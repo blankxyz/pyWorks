@@ -5,8 +5,6 @@ from flask import request
 from app import app
 from reportslib.db import dbRead
 
-
-@app.route('/')
 @app.route('/statusChange')
 def index():
     bugs = ['34', '35', '36', '37', '38', '39', '40', '41', '42']
@@ -14,7 +12,6 @@ def index():
     db = dbRead()
     ret = db.statusChangeById(bugs)
     return render_template('statusChange.html', title=title, bugs=bugs, changes=json.loads(ret))
-
 
 @app.route('/dayReport')
 def dayReport():
@@ -48,15 +45,15 @@ def log():
     data = d.values()
     return render_template('log.html', categories=categories, data=data)
 
-
+@app.route('/')
 @app.route('/getComment')
 def getComment():
-    #print "------------getComment@view.py--------------"
-    db = dbRead()
     bugId = request.args.get('bugId')
     when = request.args.get('when')
+    db = dbRead()
     result = db.getComment(bugId, when)
     print bugId
     print when
     print result
     #return jsonify(result)
+    return render_template('ajaxTest.html')

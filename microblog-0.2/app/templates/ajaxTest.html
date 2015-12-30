@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ajax test</title>
+    <script src="{{url_for('static', filename='jquery.js')}}"></script>
+    <script type=text/javascript>
+        var $SCRIPT_ROOT = {request.script_root | tojson | safe};
+        $(document).ready(function () {
+            $("#aj").click(function () {
+                $.ajax({
+                    url: $SCRIPT_ROOT,
+                    type: 'post',
+                    dataType: 'json',
+                    data: JSON.stringify({bugId: '34', when: '2015-10-10 15:48:57'}),
+                    //contentType: 'application/json; charset=UTF-8',
+                    success: function (data) {
+                        alert(data);
+                    },
+                    error: function () {
+                        alert("callAjax 异常！");
+                    }
+                });
+            });
+        });
+    </script>
+    <script type=text/javascript>
+        $(function () {
+            function submit_form(e) {
+                $.getJSON($SCRIPT_ROOT + '/add', {
+                            a: $('input[name="a"]').val(),
+                            b: $('input[name="b"]').val(),
+                            now: new Date().getTime()
+                        },
+                        function (data) {
+                            $('#result').text(data.result);
+                        });
+            };
+            $('#calculate').bind('click', submit_form);
+        });
+    </script>
+    <script type="text/javascript">
+        function callAjax() {
+            $.ajax({
+                url: $SCRIPT_ROOT + '/getComment',
+                type: 'post',
+                dataType: 'json',
+                data: JSON.stringify({bugId: '34', when:'2015-10-10 15:48:57'}),
+                //contentType: 'application/json; charset=UTF-8',
+                success: function (data) {
+                    alert(data);
+                },
+                error: function () {
+                    alert("callAjax 异常！");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<p>
+    <input type=text size=20 name=a> +
+    <input type=text size=20 name=b> =
+    <span id=result>?</span>
+</p>
+<p><input type="button" id="calculate" value="计算"></p>
+
+<p><input type="button" id="aj" onclick="callAjax()" value="callAjax Test"></p>
+</body>
+</html>
