@@ -18,23 +18,22 @@ class dbRead:
             conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port)
             cur = conn.cursor()
             conn.select_db('bugs')
-            sqlstr = ("SELECT "
-                      "usr.login_name,count(DISTINCT a.bug_id) AS reopen,count(DISTINCT b.bug_id) AS resolve,count(DISTINCT c.bug_id) AS verify,count(DISTINCT d.bug_id) AS close "
-                      "from "
-                      "  (SELECT * FROM PROFILES WHERE `show`='1') AS usr "
-                      "left JOIN "
-                      "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='RESOLVED' AND added='REOPENED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS a "
-                                                                                                                                                             "on usr.userid=a.who "
-                                                                                                                                                             "left JOIN "
-                                                                                                                                                             "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='NEW' AND added='RESOLVED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS b "
-                                                                                                                                                                                                                                                                                               "on usr.userid=b.who "
-                                                                                                                                                                                                                                                                                               "left JOIN "
-                                                                                                                                                                                                                                                                                               "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='RESOLVED' AND added='VERIFIED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS c "
-                                                                                                                                                                                                                                                                                                                                                                                                                                      "on usr.userid=c.who "
-                                                                                                                                                                                                                                                                                                                                                                                                                                      "left JOIN "
-                                                                                                                                                                                                                                                                                                                                                                                                                                      "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='VERIFIED' AND added='CLOSED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS d "
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           "ON usr.userid=d.who "
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           "GROUP BY usr.userid")
+            sqlstr = (  "SELECT "
+                        "usr.login_name,count(DISTINCT a.bug_id) AS reopen,count(DISTINCT b.bug_id) AS resolve,count(DISTINCT c.bug_id) AS verify,count(DISTINCT d.bug_id) AS close "
+                        "from "
+                        "  (SELECT * FROM PROFILES WHERE `show`='1') AS usr "
+                        "left JOIN "
+                        "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='RESOLVED' AND added='REOPENED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS a "
+                        "on usr.userid=a.who "
+                        "left JOIN "
+                        "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='NEW' AND added='RESOLVED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS b "
+                        "on usr.userid=b.who "
+                        "left JOIN "
+                        "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='RESOLVED' AND added='VERIFIED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS c "
+                        "on usr.userid=c.who "
+                        "left JOIN "
+                        "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='VERIFIED' AND added='CLOSED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS d "
+                        "ON usr.userid=d.who "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "GROUP BY usr.userid")
             # print self.sqlstr
             count = cur.execute(sqlstr)
             # print 'total member is: %s' % count
@@ -76,11 +75,11 @@ class dbRead:
                       " LEFT(usr.login_name,LENGTH(usr.login_name)-8),bugs.bug_when,cast(removed AS CHAR) AS old,cast(added AS CHAR) AS new "
                       "from "
                       " (SELECT * FROM bugs_activity WHERE fieldid='9' AND bug_id='" + bugId + "')  AS bugs "
-                                                                                               "LEFT JOIN "
-                                                                                               " PROFILES AS usr "
-                                                                                               "ON "
-                                                                                               " usr.userid=bugs.who "
-                                                                                               "ORDER BY bugs.bug_when")
+                      "LEFT JOIN "
+                      " PROFILES AS usr "
+                      "ON "
+                      " usr.userid=bugs.who "
+                      "ORDER BY bugs.bug_when")
             # print sqlStr
             count = cur.execute(sqlStr)
             # print 'total member is: %s' % count
