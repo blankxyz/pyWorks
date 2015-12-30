@@ -4,9 +4,6 @@
     <list default="true" id="b6bbd9cf-2839-4d12-9b62-1a732a96b72e" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/db-getComment.json" afterPath="$PROJECT_DIR$/microblog-0.2/db-getComment.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/reportslib/db-getComment.json" afterPath="$PROJECT_DIR$/microblog-0.2/reportslib/db-getComment.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/reportslib/db.py" afterPath="$PROJECT_DIR$/microblog-0.2/reportslib/db.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/views.py" afterPath="$PROJECT_DIR$/microblog-0.2/app/views.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pyWorks.iws" />
@@ -495,7 +492,13 @@
       <option name="project" value="LOCAL" />
       <updated>1451462873264</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="update json&#10;">
+      <created>1451466857589</created>
+      <option name="number" value="00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1451466857589</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
