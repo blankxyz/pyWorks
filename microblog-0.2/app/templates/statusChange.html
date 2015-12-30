@@ -5,71 +5,76 @@
     <title>bugs status change</title>
     <script src="{{url_for('static', filename='jquery.js')}}"></script>
     <script type=text/javascript>
-    var $SCRIPT_ROOT = {{request.script_root|tojson|safe}};
+        var $SCRIPT_ROOT = {
+        {
+            request.script_root | tojson | safe
+        }
+        }
+        ;
     </script>
     <script type=text/javascript>
-        $(document).ready( function () {
-            $("table1").blur( function () {
+        $(document).ready(function () {
+            $("table1").blur(function () {
                 var str = $(this).attr("id");
                 var bugId = str.substr("tab_".length);
-                var cnt = $("tr[id^=tr_c_" + bugId +"] > td").size()-2;
-                for (var i=0; i<cnt; i++) {
-                    $("td[id^=td_m_" + bugId +"_"+ i +"]").toggle("fast");
-                    $("td[id^=td_c_" + bugId +"_"+ i +"]").toggle("fast");
-                    $("td[id^=td_t_" + bugId +"_"+ i +"]").toggle("slow");
+                var cnt = $("tr[id^=tr_c_" + bugId + "] > td").size() - 2;
+                for (var i = 0; i < cnt; i++) {
+                    $("td[id^=td_m_" + bugId + "_" + i + "]").toggle("fast");
+                    $("td[id^=td_c_" + bugId + "_" + i + "]").toggle("fast");
+                    $("td[id^=td_t_" + bugId + "_" + i + "]").toggle("slow");
                 }
                 <!-- set last info allow show -->
-                if($("td[id^=td_c_" + bugId +"_"+ cnt +"]").text().search("CLOSED") > 0 ){
+                if ($("td[id^=td_c_" + bugId + "_" + cnt + "]").text().search("CLOSED") > 0) {
                     color = "#aaaaaa";
-                }else{
+                } else {
                     color = "#ffffff";
                 }
-                $("td[id^=td_m_" + bugId +"_"+ cnt +"]").attr("bgcolor",color);
-                $("td[id^=td_c_" + bugId +"_"+ cnt +"]").attr("bgcolor",color);
-                $("td[id^=td_t_" + bugId +"_"+ cnt +"]").attr("bgcolor",color);
+                $("td[id^=td_m_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
+                $("td[id^=td_c_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
+                $("td[id^=td_t_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
             });
-            $("td_m").blur( function(){
+            $("td_m").blur(function () {
                 $.ajax({
-                        type: 'POST',
-                        url: url,
-                        data: JSON.stringify({bugid:34, when:'2015-10-10 15:48:57'}),
-                        contentType: 'application/json'
-                        })
+                    type: 'POST',
+                    url: url,
+                    data: JSON.stringify({bugid: 34, when: '2015-10-10 15:48:57'}),
+                    contentType: 'application/json'
+                })
             });
         });
     </script>
     <script type=text/javascript>
-    $(function() {
-        function submit_form(e) {
-            $.getJSON($SCRIPT_ROOT + '/add', {
-                a: $('input[name="a"]').val(),
-                b: $('input[name="b"]').val(),
-                now: new Date().getTime()
-            },
-            function(data) {
-                $('#result').text(data.result);
-            });
-        };
-        $('#calculate').bind('click', submit_form);
-    });
+        $(function () {
+            function submit_form(e) {
+                $.getJSON($SCRIPT_ROOT + '/add', {
+                            a: $('input[name="a"]').val(),
+                            b: $('input[name="b"]').val(),
+                            now: new Date().getTime()
+                        },
+                        function (data) {
+                            $('#result').text(data.result);
+                        });
+            };
+            $('#calculate').bind('click', submit_form);
+        });
     </script>
     <script type=text/javascript>
-    $(function() {
-        function getComment(e) {
-            var str = $(this).attr("id");
-            var bugId = str.substr("tab_".length);
-            alert(bugId);
-            $.getJSON($SCRIPT_ROOT + '/getComment', {
-                bugId: '34',
-                when: '2015-10-13 14:46:28',
-                now: new Date().getTime()
-            },
-            function(data) {
-                alert(data.result);
-            });
-        };
-        $('#td_m_34_1').bind('click', getComment);
-    });
+        $(function () {
+            function getComment(e) {
+                var str = $(this).attr("id");
+                var bugId = str.substr("tab_".length);
+                alert(bugId);
+                $.getJSON($SCRIPT_ROOT + '/getComment', {
+                            bugId: '34',
+                            when: '2015-10-13 14:46:28',
+                            now: new Date().getTime()
+                        },
+                        function (data) {
+                            alert(data.result);
+                        });
+            };
+            $('#td_m_34_1').bind('click', getComment);
+        });
     </script>
 </head>
 <body>
@@ -78,6 +83,7 @@
     <input type=text size=20 name=b> =
     <span id=result>?</span>
 </p>
+
 <p><input type="button" id="calculate" value="计算"></p>
 
 {% for change in changes %}

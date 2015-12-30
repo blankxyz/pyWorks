@@ -1,1 +1,79 @@
-[{"day": "2015-12-16", "team": [{"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "mac@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "guor@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "tanggd@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "gengyf@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "wanglj@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "songyq@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "zhangjy@ehr.com"}, {"status": {"close": 0, "reopen": 0, "resolve": 0, "verify": 0}, "name": "liy@ehr.com"}]}]
+[
+  {
+    "day": "2015-12-16",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "mac@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "guor@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "tanggd@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "gengyf@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "wanglj@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "songyq@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "zhangjy@ehr.com"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "liy@ehr.com"
+      }
+    ]
+  }
+]

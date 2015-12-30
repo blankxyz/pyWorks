@@ -25,23 +25,23 @@ ys = np.append(0, (radii * np.sin(angles)).flatten())
 
 zs = np.sin(-xs * ys)
 
-list=[]
-days = { '2015-12-01','2015-12-02','2015-12-03','2015-12-04','2015-12-05', '2015-12-06'}
-members = {'mac@ehr.com','guor@ehr.com','tanggd@ehr.com','gengyf@ehr.com','wanglj@ehr.com','songyq@ehr.com','zhangjy@ehr.com','zhangjy@ehr.com','liy@ehr.com'}
+list = []
+days = {'2015-12-01', '2015-12-02', '2015-12-03', '2015-12-04', '2015-12-05', '2015-12-06'}
+members = {'mac@ehr.com', 'guor@ehr.com', 'tanggd@ehr.com', 'gengyf@ehr.com', 'wanglj@ehr.com', 'songyq@ehr.com', 'zhangjy@ehr.com', 'zhangjy@ehr.com', 'liy@ehr.com'}
 
 fp = open("db-maya.json")
 jsonStr = fp.read()
 fp.close()
-list = json.loads(jsonStr) # json encode to object
+list = json.loads(jsonStr)  # json encode to object
 
-xs = range(len(members)) # xs is member
-#print xs
+xs = range(len(members))  # xs is member
+# print xs
 zs = range(len(days))  # zs is days
 for z in zs:
-    ys=[]
+    ys = []
     for man in list[z]['team']:
-         ys.append(man['status']['resolve']) # resolved bugs'count per members
-    color =plt.cm.Set2(random.choice(xrange(plt.cm.Set2.N)))
+        ys.append(man['status']['resolve'])  # resolved bugs'count per members
+    color = plt.cm.Set2(random.choice(xrange(plt.cm.Set2.N)))
     ax.bar(xs, ys, zs=z, zdir='y', color=color, alpha=0.8)
 
 fig = plt.figure()

@@ -48,6 +48,7 @@ def log():
     data = d.values()
     return render_template('log.html', categories=categories, data=data)
 
+
 @app.route('/getComment')
 def getComment():
     db = dbRead()

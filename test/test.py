@@ -15,7 +15,7 @@ if __name__ == "__main__":
     user = cf.get("loginConf", "user")
     pwd = cf.get("loginConf", "password")
     url = "http://" + host + ":" + str(port) + "/login"
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     driver = webdriver.Firefox()
     driver.maximize_window()
     driver.implicitly_wait(1)
@@ -26,9 +26,9 @@ if __name__ == "__main__":
     inputs = driver.find_elements_by_tag_name('input')
     for input in inputs:
         if input.get_attribute('type') == 'checkbox':
-            input.click()  #勾选下次自动登录
+            input.click()  # 勾选下次自动登录
     driver.find_element_by_id("btn-login").submit()
-    #driver.implicitly_wait(1)
+    # driver.implicitly_wait(1)
     # 切换至"人事基本信息"---------------------------------------------
     driver.switch_to.default_content()
     #driver.switch_to.frame("leftFrameset")
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     time.sleep(1)
     # 切换至"基本信息"tab-------------------------------------------
     #driver.find_element_by_id('sex').find_element_by_xpath("//option[@value='1']").click()
-    driver.find_element_by_id("employeeName").send_keys(u"卫高俊") #姓名
+    driver.find_element_by_id("employeeName").send_keys(u"卫高俊")  # 姓名
     driver.find_element_by_css_selector("a.textbox-icon.combo-arrow").click()
     driver.find_element_by_id("_easyui_combobox_i1_0").click()
     driver.find_element_by_xpath("//form[@id='basicInfoForm']/div/table/tbody/tr[2]/td[8]/span/span/a").click()
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     driver.find_element_by_id("_easyui_combobox_i38_0").click()
     driver.find_element_by_xpath("//form[@id='basicInfoForm']/div/table/tbody/tr[3]/td[6]/span/span/a").click()
     driver.find_element_by_id("_easyui_combobox_i28_0").click()
-    driver.find_element_by_id("No_id").send_keys("532628197407119174") #身份证号码
+    driver.find_element_by_id("No_id").send_keys("532628197407119174")  #身份证号码
     driver.find_element_by_xpath("//form[@id='basicInfoForm']/div/table/tbody/tr[4]/td[6]/span/span/a").click()
     driver.find_element_by_id("_easyui_combobox_i7_1").click()
     driver.find_element_by_xpath("//form[@id='basicInfoForm']/div/table/tbody/tr[4]/td[8]/span/span/a").click()
