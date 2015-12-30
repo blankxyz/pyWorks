@@ -105,23 +105,27 @@ class dbRead:
         return jsonStr
 
     def getComment(self, bugId, when):
+        comment={}
         conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port)
         cur = conn.cursor()
         conn.select_db('bugs')
-        sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
-        print sqlStr
+        #sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
+        sqlStr = ("SELECT cast(thetext AS CHAR) FROM longdescs WHERE bug_id='34' AND bug_when ='2015-10-10 15:48:57'")
+        #print sqlStr
         count = cur.execute(sqlStr)
         r = cur.fetchone()
+        text = r[0] # the 'thetext' is comment
+        print text
+        comment['comment']=text
         conn.commit()
         cur.close()
         conn.close()
         # dump json to file
-        jsonStr = json.dumps(r[0])  # object to json encode
+        jsonStr = json.dumps(comment)  # object to json encode
         fp = open("db-getComment.json", 'w+')
         fp.write(jsonStr)
         fp.close()
-        # return jsonStr
-        return json.dumps()
+        return jsonStr
 
 if __name__ == '__main__':
     r = dbRead()

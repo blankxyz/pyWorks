@@ -51,12 +51,12 @@ def log():
 
 @app.route('/getComment')
 def getComment():
+    #print "------------getComment@view.py--------------"
     db = dbRead()
-    print "getComment@view.py"
-    bugId = request.args.get('bugId', 0, type=None)
-    when = request.args.get('when', 0, type=None)
+    bugId = request.args.get('bugId')
+    when = request.args.get('when')
     result = db.getComment(bugId, when)
     print bugId
     print when
     print result
-    return jsonify(result)
+    #return jsonify(result)

@@ -5,16 +5,11 @@
     <title>bugs status change</title>
     <script src="{{url_for('static', filename='jquery.js')}}"></script>
     <script type=text/javascript>
-        var $SCRIPT_ROOT = {
-        {
-            request.script_root | tojson | safe
-        }
-        }
-        ;
+        var $SCRIPT_ROOT = {request.script_root | tojson | safe};
     </script>
     <script type=text/javascript>
         $(document).ready(function () {
-            $("table1").blur(function () {
+            $("#table11").click(function () {
                 var str = $(this).attr("id");
                 var bugId = str.substr("tab_".length);
                 var cnt = $("tr[id^=tr_c_" + bugId + "] > td").size() - 2;
@@ -33,13 +28,15 @@
                 $("td[id^=td_c_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
                 $("td[id^=td_t_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
             });
-            $("td_m").blur(function () {
+            $("#td_m_34_1").click(function () {
+                alert("td_m_34_1")
                 $.ajax({
                     type: 'POST',
                     url: url,
-                    data: JSON.stringify({bugid: 34, when: '2015-10-10 15:48:57'}),
+                    data: JSON.stringify({bugId: '34', when:'2015-10-10 15:48:57'}),
+                    now: new Date().getTime(),
                     contentType: 'application/json'
-                })
+                });
             });
         });
     </script>
@@ -66,11 +63,11 @@
                 alert(bugId);
                 $.getJSON($SCRIPT_ROOT + '/getComment', {
                             bugId: '34',
-                            when: '2015-10-13 14:46:28',
+                            when: '2015-10-10 15:48:57',
                             now: new Date().getTime()
                         },
                         function (data) {
-                            alert(data.result);
+                            alert(data.comment);
                         });
             };
             $('#td_m_34_1').bind('click', getComment);
