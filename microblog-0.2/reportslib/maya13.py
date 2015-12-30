@@ -1,0 +1,1 @@
+set_minor_locator
