@@ -123,7 +123,6 @@ class dbRead:
         # return jsonStr
         return json.dumps()
 
-
 if __name__ == '__main__':
     r = dbRead()
     # print r.daysTotalByMember('2015-11-12')
