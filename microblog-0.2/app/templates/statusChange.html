@@ -7,7 +7,7 @@
     <script src="{{url_for('static', filename='highcharts.js')}}"></script>
     <script src="{{url_for('static', filename='exporting.js')}}"></script>
     <script type=text/javascript>
-        var $SCRIPT_ROOT = {request.script_root | tojson | safe};
+        var $SCRIPT_ROOT = { request.script_root | tojson | safe };
     </script>
     <script type=text/javascript>
         $(document).ready(function () {
@@ -16,92 +16,76 @@
                 var bugId = str.substr("tab_".length);
                 var cnt = $("tr[id^=tr_c_" + bugId + "] > td").size() - 2;
                 for (var i = 0; i < cnt; i++) {
+                    if ($("td[id^=td_c_" + bugId + "_" + i + "]").text().search("→REOPENED") > 0) {
+                        fontcolor = "red";
+                    } else {
+                        fontcolor = "black";
+                    }
                     $("td[id^=td_m_" + bugId + "_" + i + "]").toggle("fast");
-                    $("td[id^=td_c_" + bugId + "_" + i + "]").toggle("fast");
+                    $("td[id^=td_c_" + bugId + "_" + i + "]").toggle("normal");
+                    $("td[id^=td_c_" + bugId + "_" + i + "]").css("color",fontcolor);
                     $("td[id^=td_t_" + bugId + "_" + i + "]").toggle("slow");
+
+                    $("td[id^=td_c_" + bugId + "_" + i + "] li").hover(function() {
+                        $(this).find("em").animate({opacity: "show", top: "-175"}, "fast");
+                    }, function() {
+                        $(this).find("em").animate({opacity: "hide", top: "-85"}, "fast");
+                    });
                 }
                 <!-- set last info allow show -->
-                if ($("td[id^=td_c_" + bugId + "_" + cnt + "]").text().search("CLOSED") > 0) {
-                    color = "#aaaaaa";
+                if ($("td[id^=td_c_" + bugId + "_" + cnt + "]").text().search("→CLOSED") > 0) {
+                    bgcolor = "Gray";
                 } else {
-                    color = "#ffffff";
+                    bgcolor = "red";
                 }
-                $("td[id^=td_m_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
-                $("td[id^=td_c_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
-                $("td[id^=td_t_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
+                $("td[id^=td_c_" + bugId + "_" + cnt + "]").css("background-color",bgcolor);
             });
         });
     </script>
     <script type=text/javascript>
-    $(function () {
-    $('#container').highcharts({
-        chart: {
-            type: 'area'
-        },
-        title: {
-            text: 'status change report'
-        },
-        subtitle: {
-            text: 'from bugzilla'
-        },
-        xAxis: {
-            categories: ['10/1','10/15', '11/1', '11/15', '12/15', '1/1', '1/15'],
-            tickmarkPlacement: 'on',
-            title: {
-                enabled: false
-            }
-        },
-        yAxis: {
-            title: {
-                text: 'bugs'
-            },
-            labels: {
-                formatter: function() {
-                    return this.value;
-                }
-            }
-        },
-        tooltip: {
-            shared: true,
-            valueSuffix: ' bug'
-        },
-        plotOptions: {
-            area: {
-                stacking: 'normal',
-                lineColor: '#666666',
-                lineWidth: 1,
-                marker: {
-                    lineWidth: 1,
-                    lineColor: '#666666'
-                }
-            }
-        },
-        series: [{
-            name: 'new',
-            data: [6, 5, 4, 3, 2, 1, 0]
-        }, {
-            name: 'reopen',
-            data: [1, 1, 1, 1, 1, 1, 0]
-        }, {
-            name: 'resolve',
-            data: [2, 4, 2, 1, 0, 1, 0]
-        }, {
-            name: 'virify',
-            data: [5, 6, 11, 6, 6, 2, 2]
-        }, {
-            name: 'close',
-            data: [3, 2, 2, 6, 13, 17, 19]
-        }]
-    });
-    });
+        $(function () {
+            $('#container').highcharts({
+                chart: { type: 'area' },
+                title: { text: 'status change report' },
+                subtitle: { text: 'from bugzilla' },
+                xAxis: {
+                    categories: ['10/1', '10/15', '11/1', '11/15', '12/15', '1/1', '1/15'],
+                    tickmarkPlacement: 'on',
+                    title: { enabled: false }
+                },
+                yAxis: {
+                    title: { text: 'bugs' },
+                    labels: { formatter: function () { return this.value; } }
+                },
+                tooltip: {
+                    shared: true,
+                    valueSuffix: ' bug'
+                },
+                plotOptions: {
+                    area: {
+                        stacking: 'normal',
+                        lineColor: '#666666',
+                        lineWidth: 1,
+                        marker: { lineWidth: 1, lineColor: '#666666' }
+                    }
+                },
+                series: [
+                    { name: 'new',data: [6, 5, 4, 3, 2, 1, 0] },
+                    { name: 'reopen',data: [1, 1, 1, 1, 1, 1, 0] },
+                    { name: 'resolve',data: [2, 4, 2, 1, 0, 1, 0] },
+                    { name: 'verify',data: [5, 6, 11, 6, 6, 2, 2] },
+                    { name: 'close', data: [3, 2, 2, 6, 13, 17, 19] }]
+            });
+        });
     </script>
 </head>
 <body>
 <div id="container" style="min-width:700px;height:400px"></div>
 {% for change in changes %}
 {% set bID = change.id %}
-<div id="{{'div_' ~ bID}}" style="width:25%;margin-left:1px">
-    <table id="{{'tab_' ~ bID }}" border="1" align="left" bgcolor="{{ loop.cycle('#7fffd4', '#87ceeb') }}" style="text-align:center;margin:2px;">
+<div id="{{'div_' ~ bID}}" style="width:25%;margin-left:50px">
+    <table id="{{'tab_' ~ bID }}" border="1" align="left" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}"
+           style="text-align:center;margin:2px;">
         <tr id="{{'tr_m_' ~ bID}}">
             <td><b>{{bID}}</b></td>
             <td><b>member</b></td>
@@ -113,7 +97,9 @@
             <td><b>{{bID}}</b></td>
             <td><b>changeTo</b></td>
             {% for c in change['change'] %}
-            <td id="{{'td_c_' ~ bID ~ '_' ~ loop.index}}">{{c.changeTo}}</td>
+            <td id="{{'td_c_' ~ bID ~ '_' ~ loop.index}}" align="left">
+                <li style="list-style-type:none;"><a href="http://localhost">{{c.changeTo}}</a><br><em>{{c.comment}}</em></li>
+            </td>
             {% endfor %}
         </tr>
         <tr id="{{'tr_t_' ~ bID}}">

@@ -71,15 +71,19 @@ class dbRead:
             conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port)
             cur = conn.cursor()
             conn.select_db('bugs')
-            sqlStr = ("SELECT "
-                      " LEFT(usr.login_name,LENGTH(usr.login_name)-8),bugs.bug_when,cast(removed AS CHAR) AS old,cast(added AS CHAR) AS new "
-                      "from "
-                      " (SELECT * FROM bugs_activity WHERE fieldid='9' AND bug_id='" + bugId + "')  AS bugs "
-                      "LEFT JOIN "
-                      " PROFILES AS usr "
-                      "ON "
-                      " usr.userid=bugs.who "
-                      "ORDER BY bugs.bug_when")
+            sqlStr = (  "SELECT "
+                        "LEFT(usr.login_name, LENGTH(usr.login_name) - 8) AS member, "
+                        "bugs.bug_when                                    AS tstamp, "
+                        "CAST(bugs.removed AS CHAR)                            AS old, "
+                        "CAST(bugs.added AS CHAR)                              AS new, "
+                        "CAST(log.thetext AS CHAR)                        AS comments "
+                        "FROM "
+                        "(SELECT * FROM bugs_activity WHERE fieldid = '9' AND bug_id = '" + bugId + "') AS bugs "
+                        "LEFT JOIN PROFILES AS usr "
+                        "  ON usr.userid = bugs.who "
+                        "LEFT JOIN longdescs AS log "
+                        "  ON log.bug_when = bugs.bug_when AND log.bug_id = bugs.bug_id "
+                        "ORDER BY bugs.bug_when")
             # print sqlStr
             count = cur.execute(sqlStr)
             # print 'total member is: %s' % count
@@ -90,6 +94,10 @@ class dbRead:
                 rec['member'] = r[0]
                 rec['time'] = r[1].strftime('%Y-%m-%d')
                 rec['changeTo'] = r[2] + u'→' + r[3]
+                str =""
+                str = r[4]
+                print str
+                rec['comment'] = str
                 change.append(rec)
             conn.commit()
             cur.close()
@@ -99,7 +107,7 @@ class dbRead:
             bugs.append(bug)
         # dump json to file
         jsonStr = json.dumps(bugs)  # object to json encode
-        fp = open("reportslib/jsonData/db-statusChangeById.json", 'w+')
+        fp = open("jsonData/db-statusChangeById.json", 'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
@@ -130,5 +138,5 @@ class dbRead:
 if __name__ == '__main__':
     r = dbRead()
     # print r.daysTotalByMember('2015-11-12')
-    # print r.statusChangeById(['34','35'])
-    print r.getComment('34', '2015-10-10 15:48:57')
+    print r.statusChangeById(['34','35'])
+    #print r.getComment('34', '2015-10-10 15:48:57')
