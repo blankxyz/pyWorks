@@ -58,7 +58,7 @@ class dbRead:
         # dump json to file
         # {"day": "2015-12-03", "team": [{"status": {"close": 0, "reopen": 0, "resolve": 2, "verify": 0}, "name": "mac@ehr.com"},{},{}]},...
         jsonStr = json.dumps(reports)  # object to json encode
-        fp = open("db-daysTotalByMember.json", 'w+')
+        fp = open("reportslib/jsonData/db-daysTotalByMember.json", 'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
@@ -99,7 +99,7 @@ class dbRead:
             bugs.append(bug)
         # dump json to file
         jsonStr = json.dumps(bugs)  # object to json encode
-        fp = open("db-statusChangeById.json", 'w+')
+        fp = open("reportslib/jsonData/db-statusChangeById.json", 'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
@@ -122,7 +122,7 @@ class dbRead:
         conn.close()
         # dump json to file
         jsonStr = json.dumps(comment)  # object to json encode
-        fp = open("db-getComment.json", 'w+')
+        fp = open("reportslib/jsonData/db-getComment.json", 'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
