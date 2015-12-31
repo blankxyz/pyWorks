@@ -2,39 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b6bbd9cf-2839-4d12-9b62-1a732a96b72e" name="Default" comment="2015-12-30@home&#10;&#10;(cherry picked from commit 8a499a5f2ca33ba8f3c74196893d1f95bb8e5436)&#10;&#10;# Conflicts:&#10;#&#9;microblog-0.2/app/templates/ajaxTest.html&#10;">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/microblog-0.2/rpclib/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html" />
-      <change type="DELETED" beforePath="E:\pyWorks\Desktop.ini" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\db-daysTotalByMember.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\db-getComment.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\db-statusChangeById.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\db.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\db-getComment.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\db-statusChangeById.json" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/views.py" afterPath="$PROJECT_DIR$/microblog-0.2/app/views.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\PB-report.xlsx" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/PB-report.xlsx" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\bugzillaRPC.py" afterPath="$PROJECT_DIR$/microblog-0.2/rpclib/bugzillaRPC.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\db-maya.json" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/db-maya.json" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\major_country_gdp" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/major_country_gdp" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya10.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya10.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya11.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya11.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya12.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya12.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya13.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya13.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya2.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya2.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya3.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya3.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya4.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya4.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya5.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya5.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya6.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya6.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya7.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya7.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya8.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya8.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\maya9.py" afterPath="$PROJECT_DIR$/microblog-0.2/mayalib/maya9.py" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\statusChange.sql" afterPath="$PROJECT_DIR$/microblog-0.2/reportslib/sql/statusChange.sql" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\statuschangebymember.sql" afterPath="$PROJECT_DIR$/microblog-0.2/reportslib/sql/statuschangebymember.sql" />
-      <change type="MOVED" beforePath="E:\pyWorks\microblog-0.2\reportslib\test.py" afterPath="$PROJECT_DIR$/microblog-0.2/rpclib/test.py" />
     </list>
     <ignored path="pyWorks.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -86,7 +54,7 @@
       <file leaf-file-name="ajaxTest.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0" vertical-offset="336" max-vertical-offset="1200">
+            <state vertical-scroll-proportion="0.0" vertical-offset="336" max-vertical-offset="1200">
               <caret line="21" column="21" selection-start-line="21" selection-start-column="21" selection-end-line="21" selection-end-column="21" />
               <folding />
             </state>
@@ -548,8 +516,8 @@
     <frame x="-8" y="-8" width="1382" height="744" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.9737705" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23065251" sideWeight="0.49865228" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28688523" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23444612" sideWeight="0.49865228" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -603,6 +571,14 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="100">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1200">
