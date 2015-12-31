@@ -9,7 +9,7 @@
     </script>
     <script type=text/javascript>
         $(document).ready(function () {
-            $("#table11").click(function () {
+            $("table").click(function () {
                 var str = $(this).attr("id");
                 var bugId = str.substr("tab_".length);
                 var cnt = $("tr[id^=tr_c_" + bugId + "] > td").size() - 2;
@@ -28,61 +28,10 @@
                 $("td[id^=td_c_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
                 $("td[id^=td_t_" + bugId + "_" + cnt + "]").attr("bgcolor", color);
             });
-            $("#td_m_34_1").click(function () {
-                alert("td_m_34_1")
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: JSON.stringify({bugId: '34', when:'2015-10-10 15:48:57'}),
-                    now: new Date().getTime(),
-                    contentType: 'application/json'
-                });
-            });
-        });
-    </script>
-    <script type=text/javascript>
-        $(function () {
-            function submit_form(e) {
-                $.getJSON($SCRIPT_ROOT + '/add', {
-                            a: $('input[name="a"]').val(),
-                            b: $('input[name="b"]').val(),
-                            now: new Date().getTime()
-                        },
-                        function (data) {
-                            $('#result').text(data.result);
-                        });
-            };
-            $('#calculate').bind('click', submit_form);
-        });
-    </script>
-    <script type=text/javascript>
-        $(function () {
-            function getComment(e) {
-                var str = $(this).attr("id");
-                var bugId = str.substr("tab_".length);
-                alert(bugId);
-                $.getJSON($SCRIPT_ROOT + '/getComment', {
-                            bugId: '34',
-                            when: '2015-10-10 15:48:57',
-                            now: new Date().getTime()
-                        },
-                        function (data) {
-                            alert(data.comment);
-                        });
-            };
-            $('#td_m_34_1').bind('click', getComment);
         });
     </script>
 </head>
 <body>
-<p>
-    <input type=text size=20 name=a> +
-    <input type=text size=20 name=b> =
-    <span id=result>?</span>
-</p>
-
-<p><input type="button" id="calculate" value="计算"></p>
-
 {% for change in changes %}
 {% set bID = change.id %}
 <div id="{{'div_' ~ bID}}" style="width:25%;margin-left:1px">
