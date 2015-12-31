@@ -573,9 +573,9 @@
             snap: Mb ? 25 : 10,
             style: {color: "#333333", cursor: "default", fontSize: "12px", padding: "8px", pointerEvents: "none", whiteSpace: "nowrap"}
         }, credits: {
-            enabled: !0, text: "Highcharts.com", href: "http://www.highcharts.com", position: {align: "right", x: -10, verticalAlign: "bottom", y: -5}, style: {
+            enabled: !0, text: "bugzilla", href: "http://10.14.70.94/bugzilla/index.cgi", position: {align: "right", x: -10, verticalAlign: "bottom", y: -5}, style: {
                 cursor: "pointer", color: "#909090",
-                fontSize: "9px"
+                fontSize: "30px"
             }
         }
     };
