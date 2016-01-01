@@ -5,17 +5,21 @@ import json
 # read DB to json
 class dbRead:
     def __init__(self):
+        import sys
+        reload(sys)
+        sys.setdefaultencoding('utf8')
         self.host = 'localhost'
         self.user = 'root'
         self.password = '314159'
         self.port = 3306
+        self.path = "reportslib/jsonData/"
 
     def daysTotalByMember(self, days):
         reports = []
         for day in days:
             report = {}
             team = []
-            conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port)
+            conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
             cur = conn.cursor()
             conn.select_db('bugs')
             sqlstr = (  "SELECT "
@@ -34,9 +38,7 @@ class dbRead:
                         "left JOIN "
                         "  (SELECT * FROM bugs_activity WHERE fieldid='9' AND removed='VERIFIED' AND added='CLOSED' AND TO_DAYS(bug_when)=TO_DAYS('" + day + "')) AS d "
                         "ON usr.userid=d.who "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "GROUP BY usr.userid")
-            # print self.sqlstr
             count = cur.execute(sqlstr)
-            # print 'total member is: %s' % count
             rs = cur.fetchall()
             for r in rs:
                 #print r
@@ -56,9 +58,8 @@ class dbRead:
             report['team'] = team
             reports.append(report)
         # dump json to file
-        # {"day": "2015-12-03", "team": [{"status": {"close": 0, "reopen": 0, "resolve": 2, "verify": 0}, "name": "mac@ehr.com"},{},{}]},...
         jsonStr = json.dumps(reports)  # object to json encode
-        fp = open("reportslib/jsonData/db-daysTotalByMember.json", 'w+')
+        fp = open(self.path + "db-daysTotalByMember.json", 'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
@@ -68,14 +69,17 @@ class dbRead:
         for bugId in bugIds:
             bug = {}
             change = []
-            conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port)
+            conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
             cur = conn.cursor()
+            #conn = db.cursor();
+            #conn.execute("SET NAMES utf8");
+            #db.commit();
             conn.select_db('bugs')
             sqlStr = (  "SELECT "
                         "LEFT(usr.login_name, LENGTH(usr.login_name) - 8) AS member, "
                         "bugs.bug_when                                    AS tstamp, "
-                        "CAST(bugs.removed AS CHAR)                            AS old, "
-                        "CAST(bugs.added AS CHAR)                              AS new, "
+                        "CAST(bugs.removed AS CHAR)                       AS old, "
+                        "CAST(bugs.added AS CHAR)                         AS new, "
                         "CAST(log.thetext AS CHAR)                        AS comments "
                         "FROM "
                         "(SELECT * FROM bugs_activity WHERE fieldid = '9' AND bug_id = '" + bugId + "') AS bugs "
@@ -89,15 +93,14 @@ class dbRead:
             # print 'total member is: %s' % count
             rs = cur.fetchall()
             for r in rs:
-                # print r
                 rec = {}
                 rec['member'] = r[0]
                 rec['time'] = r[1].strftime('%Y-%m-%d')
                 rec['changeTo'] = r[2] + u'→' + r[3]
-                str =""
                 str = r[4]
+                print type(str)
                 print str
-                rec['comment'] = str
+                rec['comment'] = unicode(str)
                 change.append(rec)
             conn.commit()
             cur.close()
@@ -107,14 +110,14 @@ class dbRead:
             bugs.append(bug)
         # dump json to file
         jsonStr = json.dumps(bugs)  # object to json encode
-        fp = open("jsonData/db-statusChangeById.json", 'w+')
+        fp = open(self.path + "db-statusChangeById.json",'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
 
     def getComment(self, bugId, when):
         comment={}
-        conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port)
+        conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
         cur = conn.cursor()
         conn.select_db('bugs')
         #sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
@@ -123,20 +126,21 @@ class dbRead:
         count = cur.execute(sqlStr)
         r = cur.fetchone()
         text = r[0] # the 'thetext' is comment
-        print text
+        #print text
         comment['comment']=text
         conn.commit()
         cur.close()
         conn.close()
         # dump json to file
         jsonStr = json.dumps(comment)  # object to json encode
-        fp = open("reportslib/jsonData/db-getComment.json", 'w+')
+        fp = open(self.path + "db-getComment.json", 'w+')
         fp.write(jsonStr)
         fp.close()
         return jsonStr
 
 if __name__ == '__main__':
     r = dbRead()
+    r.path = "jsonData/"
     # print r.daysTotalByMember('2015-11-12')
-    print r.statusChangeById(['34','35'])
+    r.statusChangeById(['35'])
     #print r.getComment('34', '2015-10-10 15:48:57')

@@ -94,7 +94,7 @@
             {% endfor %}
         </tr>
         <tr id="{{'tr_c_' ~ bID}}">
-            <td><b>{{bID}}</b></td>
+            <td id="{{'td_' ~ bID}}"><b>+</b></td>
             <td><b>changeTo</b></td>
             {% for c in change['change'] %}
             <td id="{{'td_c_' ~ bID ~ '_' ~ loop.index}}" align="left">
