@@ -27,9 +27,9 @@
                     $("td[id^=td_t_" + bugId + "_" + i + "]").toggle("slow");
 
                     $("td[id^=td_c_" + bugId + "_" + i + "] li").hover(function() {
-                        $(this).find("em").animate({opacity: "show", top: "-175"}, "fast");
+                        $(this).find("em[id$='comment']").animate({opacity: "show", top: "-175"}, "fast");
                     }, function() {
-                        $(this).find("em").animate({opacity: "hide", top: "-85"}, "fast");
+                        $(this).find("em[id$='comment']").animate({opacity: "hide", top: "-85"}, "fast");
                     });
                 }
                 <!-- set last info allow show -->
@@ -98,7 +98,11 @@
             <td><b>changeTo</b></td>
             {% for c in change['change'] %}
             <td id="{{'td_c_' ~ bID ~ '_' ~ loop.index}}" align="left">
-                <li style="list-style-type:none;"><a href="http://localhost">{{c.changeTo}}</a><br><em>{{c.comment}}</em></li>
+                <li style="list-style-type:none;">
+                    <a href="http://localhost">{{c.changeTo}}</a><br>
+                    <em id="abstract" style="font-size: large">{{c.abstract}}</em>
+                    <em id="comment" style="font-size: small">{{c.comment}}</em>
+                </li>
             </td>
             {% endfor %}
         </tr>

@@ -1,7 +1,15 @@
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import matplotlib.pyplot as plt
+import random
+import json
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+from mpl_toolkits.mplot3d import Axes3D
+
+mpl.rcParams['font.size'] = 10
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 
 n_angles = 36
 n_radii = 8
@@ -27,7 +35,7 @@ zs = np.sin(-xs * ys)
 
 list = []
 days = {'2015-12-01', '2015-12-02', '2015-12-03', '2015-12-04', '2015-12-05', '2015-12-06'}
-members = {'mac@ehr.com', 'guor@ehr.com', 'tanggd@ehr.com', 'gengyf@ehr.com', 'wanglj@ehr.com', 'songyq@ehr.com', 'zhangjy@ehr.com', 'zhangjy@ehr.com', 'liy@ehr.com'}
+members = {'mac', 'guor', 'tanggd', 'gengyf', 'wanglj', 'songyq', 'zhangjy', 'zhangjy', 'liy'}
 
 fp = open("db-maya.json")
 jsonStr = fp.read()

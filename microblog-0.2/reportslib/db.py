@@ -97,10 +97,10 @@ class dbRead:
                 rec['member'] = r[0]
                 rec['time'] = r[1].strftime('%Y-%m-%d')
                 rec['changeTo'] = r[2] + u'→' + r[3]
-                str = r[4]
-                print type(str)
-                print str
-                rec['comment'] = unicode(str)
+                str = unicode(r[4])
+                if(cmp(str,"None")==True): str = u"[无]"
+                rec['abstract'] = str[:8]
+                rec['comment'] = str[8:]
                 change.append(rec)
             conn.commit()
             cur.close()

@@ -9,7 +9,7 @@
           "resolve": 2,
           "verify": 0
         },
-        "name": "mac@ehr.com"
+        "name": "mac"
       },
       {
         "status": {
@@ -18,7 +18,7 @@
           "resolve": 2,
           "verify": 0
         },
-        "name": "guor@ehr.com"
+        "name": "guor"
       },
       {
         "status": {
@@ -27,7 +27,7 @@
           "resolve": 2,
           "verify": 0
         },
-        "name": "tanggd@ehr.com"
+        "name": "tanggd"
       },
       {
         "status": {
@@ -36,7 +36,7 @@
           "resolve": 2,
           "verify": 0
         },
-        "name": "gengyf@ehr.com"
+        "name": "gengyf"
       },
       {
         "status": {
@@ -45,7 +45,7 @@
           "resolve": 2,
           "verify": 0
         },
-        "name": "wanglj@ehr.com"
+        "name": "wanglj"
       },
       {
         "status": {
@@ -54,7 +54,7 @@
           "resolve": 2,
           "verify": 2
         },
-        "name": "songyq@ehr.com"
+        "name": "songyq"
       },
       {
         "status": {
@@ -63,7 +63,7 @@
           "resolve": 3,
           "verify": 0
         },
-        "name": "zhangjy@ehr.com"
+        "name": "zhangjy"
       },
       {
         "status": {
@@ -72,7 +72,7 @@
           "resolve": 3,
           "verify": 0
         },
-        "name": "liy@ehr.com"
+        "name": "liy"
       }
     ]
   },
@@ -86,7 +86,7 @@
           "resolve": 3,
           "verify": 0
         },
-        "name": "mac@ehr.com"
+        "name": "mac"
       },
       {
         "status": {
@@ -95,7 +95,7 @@
           "resolve": 3,
           "verify": 0
         },
-        "name": "guor@ehr.com"
+        "name": "guor"
       },
       {
         "status": {
@@ -104,7 +104,7 @@
           "resolve": 5,
           "verify": 0
         },
-        "name": "tanggd@ehr.com"
+        "name": "tanggd"
       },
       {
         "status": {
@@ -113,7 +113,7 @@
           "resolve": 8,
           "verify": 0
         },
-        "name": "gengyf@ehr.com"
+        "name": "gengyf"
       },
       {
         "status": {
@@ -122,7 +122,7 @@
           "resolve": 8,
           "verify": 0
         },
-        "name": "wanglj@ehr.com"
+        "name": "wanglj"
       },
       {
         "status": {
@@ -131,7 +131,7 @@
           "resolve": 2,
           "verify": 0
         },
-        "name": "songyq@ehr.com"
+        "name": "songyq"
       },
       {
         "status": {
@@ -140,7 +140,7 @@
           "resolve": 5,
           "verify": 0
         },
-        "name": "zhangjy@ehr.com"
+        "name": "zhangjy"
       },
       {
         "status": {
@@ -149,7 +149,7 @@
           "resolve": 10,
           "verify": 0
         },
-        "name": "liy@ehr.com"
+        "name": "liy"
       }
     ]
   },
@@ -163,7 +163,7 @@
           "resolve": 11,
           "verify": 0
         },
-        "name": "mac@ehr.com"
+        "name": "mac"
       },
       {
         "status": {
@@ -172,7 +172,7 @@
           "resolve": 6,
           "verify": 0
         },
-        "name": "guor@ehr.com"
+        "name": "guor"
       },
       {
         "status": {
@@ -181,7 +181,7 @@
           "resolve": 6,
           "verify": 0
         },
-        "name": "tanggd@ehr.com"
+        "name": "tanggd"
       },
       {
         "status": {
@@ -190,7 +190,7 @@
           "resolve": 6,
           "verify": 0
         },
-        "name": "gengyf@ehr.com"
+        "name": "gengyf"
       },
       {
         "status": {
@@ -199,7 +199,7 @@
           "resolve": 9,
           "verify": 0
         },
-        "name": "wanglj@ehr.com"
+        "name": "wanglj"
       },
       {
         "status": {
@@ -208,7 +208,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "songyq@ehr.com"
+        "name": "songyq"
       },
       {
         "status": {
@@ -217,7 +217,7 @@
           "resolve": 1,
           "verify": 0
         },
-        "name": "zhangjy@ehr.com"
+        "name": "zhangjy"
       },
       {
         "status": {
@@ -226,7 +226,7 @@
           "resolve": 3,
           "verify": 0
         },
-        "name": "liy@ehr.com"
+        "name": "liy"
       }
     ]
   },
@@ -240,7 +240,7 @@
           "resolve": 4,
           "verify": 0
         },
-        "name": "mac@ehr.com"
+        "name": "mac"
       },
       {
         "status": {
@@ -249,7 +249,7 @@
           "resolve": 7,
           "verify": 0
         },
-        "name": "guor@ehr.com"
+        "name": "guor"
       },
       {
         "status": {
@@ -258,7 +258,7 @@
           "resolve": 10,
           "verify": 0
         },
-        "name": "tanggd@ehr.com"
+        "name": "tanggd"
       },
       {
         "status": {
@@ -267,7 +267,7 @@
           "resolve": 8,
           "verify": 0
         },
-        "name": "gengyf@ehr.com"
+        "name": "gengyf"
       },
       {
         "status": {
@@ -276,7 +276,7 @@
           "resolve": 8,
           "verify": 0
         },
-        "name": "wanglj@ehr.com"
+        "name": "wanglj"
       },
       {
         "status": {
@@ -285,7 +285,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "songyq@ehr.com"
+        "name": "songyq"
       },
       {
         "status": {
@@ -294,7 +294,7 @@
           "resolve": 6,
           "verify": 0
         },
-        "name": "zhangjy@ehr.com"
+        "name": "zhangjy"
       },
       {
         "status": {
@@ -303,7 +303,7 @@
           "resolve": 8,
           "verify": 0
         },
-        "name": "liy@ehr.com"
+        "name": "liy"
       }
     ]
   },
@@ -317,7 +317,7 @@
           "resolve": 8,
           "verify": 0
         },
-        "name": "mac@ehr.com"
+        "name": "mac"
       },
       {
         "status": {
@@ -326,7 +326,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "guor@ehr.com"
+        "name": "guor"
       },
       {
         "status": {
@@ -335,7 +335,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "tanggd@ehr.com"
+        "name": "tanggd"
       },
       {
         "status": {
@@ -344,7 +344,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "gengyf@ehr.com"
+        "name": "gengyf"
       },
       {
         "status": {
@@ -353,7 +353,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "wanglj@ehr.com"
+        "name": "wanglj"
       },
       {
         "status": {
@@ -362,7 +362,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "songyq@ehr.com"
+        "name": "songyq"
       },
       {
         "status": {
@@ -371,7 +371,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "zhangjy@ehr.com"
+        "name": "zhangjy"
       },
       {
         "status": {
@@ -380,7 +380,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "liy@ehr.com"
+        "name": "liy"
       }
     ]
   },
@@ -394,7 +394,7 @@
           "resolve": 5,
           "verify": 0
         },
-        "name": "mac@ehr.com"
+        "name": "mac"
       },
       {
         "status": {
@@ -403,7 +403,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "guor@ehr.com"
+        "name": "guor"
       },
       {
         "status": {
@@ -412,7 +412,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "tanggd@ehr.com"
+        "name": "tanggd"
       },
       {
         "status": {
@@ -421,7 +421,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "gengyf@ehr.com"
+        "name": "gengyf"
       },
       {
         "status": {
@@ -430,7 +430,7 @@
           "resolve": 0,
           "verify": 0
         },
-        "name": "wanglj@ehr.com"
+        "name": "wanglj"
       },
       {
         "status": {
@@ -439,7 +439,7 @@
           "resolve": 11,
           "verify": 8
         },
-        "name": "songyq@ehr.com"
+        "name": "songyq"
       },
       {
         "status": {
@@ -448,7 +448,7 @@
           "resolve": 5,
           "verify": 0
         },
-        "name": "zhangjy@ehr.com"
+        "name": "zhangjy"
       },
       {
         "status": {
@@ -457,7 +457,7 @@
           "resolve": 7,
           "verify": 0
         },
-        "name": "liy@ehr.com"
+        "name": "liy"
       }
     ]
   }
