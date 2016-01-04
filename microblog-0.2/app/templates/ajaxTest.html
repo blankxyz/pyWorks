@@ -6,8 +6,22 @@
     <script src="{{url_for('static', filename='jquery.js')}}"></script>
     <script type=text/javascript>
         var $SCRIPT_ROOT = {request.script_root | tojson | safe};
+
         $(document).ready(function () {
-            $("#aj").click(function () {
+            $("#aj").click(function () {$(function () {
+            function submit_form(e) {
+                $.getJSON($SCRIPT_ROOT + '/add', {
+                            a: $('input[name="a"]').val(),
+                            b: $('input[name="b"]').val(),
+                            now: new Date().getTime()
+                        },
+                        function (data) {
+                            $('#result').text(data.result);
+                        });
+                };
+                $('#calculate').bind('click', submit_form);
+            });
+
                 $.ajax({
                     url: $SCRIPT_ROOT,
                     type: 'post',
@@ -23,23 +37,7 @@
                 });
             });
         });
-    </script>
-    <script type=text/javascript>
-        $(function () {
-            function submit_form(e) {
-                $.getJSON($SCRIPT_ROOT + '/add', {
-                            a: $('input[name="a"]').val(),
-                            b: $('input[name="b"]').val(),
-                            now: new Date().getTime()
-                        },
-                        function (data) {
-                            $('#result').text(data.result);
-                        });
-            };
-            $('#calculate').bind('click', submit_form);
-        });
-    </script>
-    <script type="text/javascript">
+
         function callAjax() {
             $.ajax({
                 url: $SCRIPT_ROOT + '/getComment',
