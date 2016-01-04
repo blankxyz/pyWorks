@@ -3,8 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <title>404</title>
+    <script type="text/javascript" src="../static/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/highcharts.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('#container').highcharts({
+                title: {
+                    text: '',
+                },
+                xAxis: {
+                    min: 0,
+                    max: 10,
+                    tickInterval: 1,
+                    labels: {
+                        enabled: false
+                    },
+                    lineWidth: 0,
+                    tickWidth: 0
+                },
+                credits: {
+                    enabled: false
+                },
+                plotOptions: {
+                    series: {
+                        animation: false,
+                        marker: {
+                            enabled: false,
+                            states: {
+                                hover: {
+                                    enabled: false,
+                                    lineWidthPlus: 0
+                                }
+                            }
+                        },
+                        states: {
+                            hover: {
+                                lineWidthPlus: 0
+                            }
+                        }
+                    }
+                },
+                yAxis: {
+                    min: 0,
+                    max: 10,
+                    tickInterval: 1,
+                    gridLineWidth: 0,
+                    labels: {
+                        enabled: false
+                    },
+                    title: {
+                        text: ''
+                    }
+                },
+                tooltip: {
+                    enabled: false
+                },
+                legend: {
+                    enabled: false
+                },
+                series: [{
+                    name: '4',
+                    data: [
+                        [2, 1],
+                        [2, 8],
+                        [0.5, 4],
+                        [3, 4]
+                    ],
+
+                }, {
+                    name: '0',
+                    data: [
+                        [4.1, 1.8],
+                        [5.9, 1.8],
+                        [5.9, 7.2],
+                        [4.1, 7.2],
+                        [4.1, 1.8]
+                    ]
+
+                }, {
+                    name: '4',
+                    data: [
+                        [8.5, 1],
+                        [8.5, 8],
+                        [7, 4],
+                        [9.5, 4]
+                    ]
+
+                }]
+            });
+        });
+    </script>
 </head>
 <body>
-<p>error code is :{{err.code}}</p>
+<p align="center">error code is :{{err.code}} discription is :{{err}}}</p>
+<div id="container" style="max-width:800px;height:400px;margin:20px auto;"></div>
 </body>
 </html>
