@@ -1,7 +1,5 @@
 import json
-from flask import render_template
-from flask import jsonify
-from flask import request
+from flask import Flask, jsonify, render_template, request
 from app import app
 from reportslib.db import dbRead
 
@@ -21,24 +19,20 @@ def dayReport():
     reports = db.daysTotalByMember(days)
     return render_template("dayReport.html", title=title, reportDays=days, reports=json.loads(reports))
 
-@app.route('/add')
+@app.route('/add',methods=["GET", "POST"])
 def add_numbers():
-    a = request.args.get('a', 0, type=int)
-    b = request.args.get('b', 0, type=int)
-    return jsonify(result=a + b)
+    print "add_numbers()"
+    bugId = request.args.get('a')
+    when = request.args.get('b')
+    db = dbRead()
+    # '34','2015-10-10 15:48:57'
+    result = db.getComment(bugId, when)
+    print result
+    return result
 
 @app.route('/')
-@app.route('/getComment')
 def getComment():
-    bugId = request.args.get('bugId')
-    when = request.args.get('when')
-    db = dbRead()
-    result = db.getComment(bugId, when)
-    print bugId
-    print when
-    print result
-    #return jsonify(result)
-    return render_template('ajaxTest.html',bugId=bugId,when=when)
+    return render_template('ajaxTest.html')
 
 @app.errorhandler(404)
 def page_not_found(e):

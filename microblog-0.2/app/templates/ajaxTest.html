@@ -1,68 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>ajax test</title>
+    <meta charset="utf-8">
+    <title>Flask JQuery</title>
     <script src="{{url_for('static', filename='jquery.js')}}"></script>
-    <script type=text/javascript>
-        var $SCRIPT_ROOT = {request.script_root | tojson | safe};
-
-        $(document).ready(function () {
-            $("#aj").click(function () {$(function () {
-            function submit_form(e) {
-                $.getJSON($SCRIPT_ROOT + '/add', {
+    <script type="text/javascript" src="js/getComment.js"></script>
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        $(function () {
+            function submit_form2(e) {
+                $.ajax({url: $SCRIPT_ROOT + '/add',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data:{
                             a: $('input[name="a"]').val(),
                             b: $('input[name="b"]').val(),
                             now: new Date().getTime()
                         },
-                        function (data) {
-                            $('#result').text(data.result);
-                        });
-                };
-                $('#calculate').bind('click', submit_form);
-            });
-
-                $.ajax({
-                    url: $SCRIPT_ROOT,
-                    type: 'post',
-                    dataType: 'json',
-                    data: JSON.stringify({bugId: '34', when: '2015-10-10 15:48:57'}),
-                    //contentType: 'application/json; charset=UTF-8',
-                    success: function (data) {
-                        alert(data);
-                    },
-                    error: function () {
-                        alert("callAjax 异常！");
-                    }
+                        error: function(xhr, err){ $('#result').text(err); },
+                        success: function(data, textStatus){ $('#result').text(data.comment); }
                 });
-            });
+            };
+            $('#calculate').bind('click', submit_form2);
         });
-
-        function callAjax() {
-            $.ajax({
-                url: $SCRIPT_ROOT + '/getComment',
-                type: 'post',
-                dataType: 'json',
-                data: JSON.stringify({bugId: '34', when:'2015-10-10 15:48:57'}),
-                //contentType: 'application/json; charset=UTF-8',
-                success: function (data) {
-                    alert(data);
-                },
-                error: function () {
-                    alert("callAjax 异常！");
-                }
-            });
-        }
     </script>
 </head>
 <body>
 <p>
-    <input name=a type=text size=20 > +
-    <input name=b type=text size=20 > =
+    <input type=text size=10 name=a> +
+    <input type=text size=20 name=b> =
     <span id=result>?</span>
 </p>
-<p><input type="button" id="calculate" value="计算"></p>
 
-<p><input type="button" id="aj" onclick="callAjax()" value="callAjax Test"></p>
+<p><input type="button" id="calculate" value="计算"></p>
 </body>
-</html>
+</html>  
