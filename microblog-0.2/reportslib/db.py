@@ -120,13 +120,12 @@ class dbRead:
         conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
         cur = conn.cursor()
         conn.select_db('bugs')
-        #sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
-        sqlStr = ("SELECT cast(thetext AS CHAR) FROM longdescs WHERE bug_id='34' AND bug_when ='2015-10-10 15:48:57'")
+        sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
+        #sqlStr = ("SELECT cast(thetext AS CHAR) FROM longdescs WHERE bug_id='34' AND bug_when ='2015-10-10 15:48:57'")
         #print sqlStr
         count = cur.execute(sqlStr)
         r = cur.fetchone()
         text = r[0] # the 'thetext' is comment
-        #print text
         comment['comment']=text
         conn.commit()
         cur.close()
@@ -136,6 +135,7 @@ class dbRead:
         fp = open(self.path + "db-getComment.json", 'w+')
         fp.write(jsonStr)
         fp.close()
+        #print text
         return jsonStr
 
 if __name__ == '__main__':
