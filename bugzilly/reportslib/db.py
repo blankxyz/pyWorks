@@ -99,7 +99,7 @@ class dbRead:
                 rec['changeTo'] = r[2] + u'→' + r[3]
                 str = unicode(r[4])
                 if(cmp(str,u"None")==True): str = u"[无]"
-                rec['abstract'] = str[:14]
+                rec['abstract'] = str[:12]
                 rec['comment'] = str
                 change.append(rec)
             conn.commit()
@@ -117,19 +117,22 @@ class dbRead:
 
     def getComment(self, bugId, when):
         comment={}
-        conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
-        cur = conn.cursor()
-        conn.select_db('bugs')
-        sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
-        #sqlStr = ("SELECT cast(thetext AS CHAR) FROM longdescs WHERE bug_id='34' AND bug_when ='2015-10-10 15:48:57'")
-        #print sqlStr
-        count = cur.execute(sqlStr)
-        r = cur.fetchone()
-        text = r[0] # the 'thetext' is comment
-        comment['comment']=text
-        conn.commit()
-        cur.close()
-        conn.close()
+        if bugId.strip() == '' and when.strip() == '':
+            comment['comment']=u'[无]'
+        else:
+            conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
+            cur = conn.cursor()
+            conn.select_db('bugs')
+            sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")
+            #sqlStr = ("SELECT cast(thetext AS CHAR) FROM longdescs WHERE bug_id='34' AND bug_when ='2015-10-10 15:48:57'")
+            #print sqlStr
+            count = cur.execute(sqlStr)
+            r = cur.fetchone()
+            text = r[0] # the 'thetext' is comment
+            conn.commit()
+            cur.close()
+            conn.close()
+            comment['comment']=text
         # dump json to file
         jsonStr = json.dumps(comment)  # object to json encode
         fp = open(self.path + "db-getComment.json", 'w+')

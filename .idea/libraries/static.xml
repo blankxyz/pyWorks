@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="static" type="javaScript">
+    <properties>
+      <option name="frameworkName" value="jQuery" />
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/microblog-0.2/app/static" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/microblog-0.2/app/static" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

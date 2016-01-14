@@ -21,17 +21,17 @@
                         success: function(data, textStatus){ $('#result').text(data.comment); }
                 });
             };
-            $('#calculate').hover('mouseenter', submit_form2);
+            $('#get').hover('mouseenter', submit_form2);
         });
     </script>
 </head>
 <body>
 <p>
-    <input type=text size=10 name=bugId> +
-    <input type=text size=20 name=when> =
+    bug: <input type=text size=10 name=bugId placeholder="34" >
+    time("2015-10-22 21:58:11"):<input type=text size=20 name=when placeholder="2015-10-22 21:58:11">
+    <input type="button" id="get" value="hover">
+    <br>
     <span id=result>?</span>
 </p>
-
-<p><input type="button" id="calculate" value="计算"></p>
 </body>
 </html>  

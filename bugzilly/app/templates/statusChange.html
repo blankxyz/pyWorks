@@ -39,9 +39,11 @@
 <body>
 {% for change in changes %}
 {% set bID = change.id %}
-<div id="{{'div_' ~ bID}}" style="width:25%;margin-left:50px">
-    <table id="{{'tab_' ~ bID }}" border="1" align="left" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}"
-           style="text-align:center;margin:2px;">
+<div id="{{'div_' ~ bID}}" style="width:25%;margin-left:1px">
+    <table id="{{'tab_' ~ bID }}" align="left"
+           class="table table-striped table-condensed table-hover table-bordered"
+           bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}"
+           style="text-align:center;margin:5px;">
         <tr id="{{'tr_m_' ~ bID}}">
             <td><b>{{bID}}</b></td>
             <td><b>member</b></td>
