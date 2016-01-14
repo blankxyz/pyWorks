@@ -32,7 +32,7 @@ def getComment():
     bugId = request.args.get('bugId')
     when = request.args.get('when')
     db = dbRead()
-    # '34','2015-10-10 15:48:57'
+    # '34','2015-10-22 21:58:11'
     result = db.getComment(bugId, when)
     return result
 
