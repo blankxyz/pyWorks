@@ -2,13 +2,73 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b6bbd9cf-2839-4d12-9b62-1a732a96b72e" name="Default" comment="2016-01-04@baicmotor">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/js/getComment.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/reportslib/db.py" afterPath="$PROJECT_DIR$/microblog-0.2/reportslib/db.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/setup.py" afterPath="$PROJECT_DIR$/microblog-0.2/setup.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" afterPath="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/microblog-0.2/app/views.py" afterPath="$PROJECT_DIR$/microblog-0.2/app/views.py" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.gitignore" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\.name" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dataSources.ids" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dataSources.local.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dataSources.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dictionaries\Administrator.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\encodings.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\microblog-0.2.iml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\modules.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\scopes\scope_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\sqldialects.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\vcs.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\workspace.xml" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\LICENSE" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\README.md" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\exporting.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\highcharts-3d.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\highcharts-more.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\highcharts.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\jquery.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\jquery.min.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\404.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\500.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\PB-report.xlsx" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\ajaxTest.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\base.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\dayReport.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\img\snow.png" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\img\sun.png" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\js\getComment.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\js\statusChange.js" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\menu.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\statusChange.html" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\views.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\db-maya.json" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\major_country_gdp" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya10.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya11.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya12.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya13.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya2.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya3.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya4.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya5.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya6.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya7.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya8.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya9.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\db.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\jsonData\db-getComment.json" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\jsonData\db-statusChangeById.json" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\sql\statusChange.sql" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\sql\statuschangebymember.sql" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\rpclib\__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\rpclib\bugzillaRPC.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\rpclib\test.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\run.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\setup.py" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\tmp\.gitignore" afterPath="" />
+      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\virtualenv.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pyWorks.iws" />
@@ -23,7 +83,7 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/pyWorks$run.coverage" NAME="run Coverage Results" MODIFIED="1452674549240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.2" />
+    <SUITE FILE_PATH="coverage/pyWorks$run.coverage" NAME="run Coverage Results" MODIFIED="1452753058671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/bugzilly" />
     <SUITE FILE_PATH="coverage/pyWorks$db.coverage" NAME="db Coverage Results" MODIFIED="1451668128237" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.2/reportslib" />
     <SUITE FILE_PATH="coverage/pyWorks$run__1_.coverage" NAME="run (1) Coverage Results" MODIFIED="1452578827806" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.3" />
     <SUITE FILE_PATH="coverage/pyWorks$maya11.coverage" NAME="maya11 Coverage Results" MODIFIED="1451746389780" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.2/mayalib" />
@@ -98,90 +158,37 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/microblog-0.2/app/views.py">
+      <file leaf-file-name="statusChange.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="265" max-vertical-offset="768">
-              <caret line="23" column="25" selection-start-line="23" selection-start-column="25" selection-end-line="23" selection-end-column="25" />
+            <state vertical-scroll-proportion="-21.12" vertical-offset="0" max-vertical-offset="944">
+              <caret line="92" column="71" selection-start-line="92" selection-start-column="71" selection-end-line="92" selection-end-column="71" />
               <folding>
-                <element signature="e#0#11#0" expanded="true" />
+                <element signature="e#585#1719#0" expanded="false" />
+                <element signature="n#script#5;n#head#0;n#html#0;n#!!top" expanded="false" />
+                <element signature="n#style#0;n#em#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#a#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
+      <file leaf-file-name="menu.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.9123288" vertical-offset="17363" max-vertical-offset="18736">
-              <caret line="1106" column="17" selection-start-line="1106" selection-start-column="17" selection-end-line="1106" selection-end-column="17" />
+            <state vertical-scroll-proportion="0.35036495" vertical-offset="0" max-vertical-offset="304">
+              <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ajaxTest.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
+      <file leaf-file-name="dayReport.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/dayReport.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-5.76" vertical-offset="48" max-vertical-offset="672">
-              <caret line="12" column="71" selection-start-line="12" selection-start-column="71" selection-end-line="12" selection-end-column="71" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="getComment.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/js/getComment.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="6" max-vertical-offset="384">
-              <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/microblog-0.2/setup.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="33" max-vertical-offset="432">
-              <caret line="6" column="15" selection-start-line="6" selection-start-column="15" selection-end-line="6" selection-end-column="15" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sqldialects.xml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.idea/sqldialects.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="176">
+            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="464">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="db.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/microblog-0.2/reportslib/db.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1764" max-vertical-offset="2400">
-              <caret line="124" column="9" selection-start-line="124" selection-start-column="9" selection-end-line="124" selection-end-column="9" />
-              <folding>
-                <marker date="1452674578111" expanded="true" signature="691:2532" placeholder="SELECT missi..." />
-                <marker date="1452674578111" expanded="true" signature="3839:4722" placeholder="SELECT missi..." />
-                <marker date="1452674578111" expanded="true" signature="5922:6009" placeholder="SELECT thete..longdescs..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="statusChange.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-5.76" vertical-offset="0" max-vertical-offset="1440">
-              <caret line="9" column="34" selection-start-line="9" selection-start-column="34" selection-end-line="9" selection-end-column="34" />
-              <folding>
-                <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -225,8 +232,13 @@
         <option value="$PROJECT_DIR$/microblog-0.2/app/templates/js/statusChange.js" />
         <option value="$PROJECT_DIR$/microblog-0.2/app/templates/js/getComment.js" />
         <option value="$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html" />
-        <option value="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" />
         <option value="$PROJECT_DIR$/microblog-0.2/reportslib/db.py" />
+        <option value="$PROJECT_DIR$/.idea/workspace.xml" />
+        <option value="$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html" />
+        <option value="$PROJECT_DIR$/bugzilly/reportslib/db.py" />
+        <option value="$PROJECT_DIR$/bugzilly/app/templates/statusChange.html" />
+        <option value="$PROJECT_DIR$/bugzilly/app/views.py" />
+        <option value="$PROJECT_DIR$/bugzilly/app/templates/menu.html" />
       </list>
     </option>
   </component>
@@ -239,7 +251,6 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
-    <option name="y" value="-8" />
     <option name="width" value="1382" />
     <option name="height" value="744" />
   </component>
@@ -285,7 +296,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -314,7 +324,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="microblog-0.2" />
+              <option name="myItemId" value="bugzilly" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -328,7 +338,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="microblog-0.2" />
+              <option name="myItemId" value="bugzilly" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -346,7 +356,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="microblog-0.2" />
+              <option name="myItemId" value="bugzilly" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -364,7 +374,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="microblog-0.2" />
+              <option name="myItemId" value="bugzilly" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -373,37 +383,12 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pyWorks" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pyWorks" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="microblog-0.2" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -446,13 +431,13 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/microblog-0.2" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bugzilly" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="pyWorks" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/microblog-0.2/run.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bugzilly/run.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <RunnerSettings RunnerId="PythonRunner" />
@@ -866,10 +851,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="0" />
+    <frame x="-8" y="0" width="1382" height="744" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32786885" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.45737705" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -877,7 +862,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3262295" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26403642" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22989377" sideWeight="0.48746517" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24127465" sideWeight="0.48746517" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32776934" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24962063" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18882175" sideWeight="0.5125348" order="2" side_tool="true" content_ui="tabs" />
@@ -942,39 +927,30 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/views.py">
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="864">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1856">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#11#0" expanded="true" />
+            <element signature="e#585#1719#0" expanded="false" />
+            <element signature="n#script#5;n#head#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#style#0;n#em#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="384" max-vertical-offset="688">
-          <caret line="24" column="11" selection-start-line="24" selection-start-column="11" selection-end-line="24" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="96" max-vertical-offset="864">
-          <caret line="5" column="32" selection-start-line="5" selection-start-column="32" selection-end-line="5" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="704">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="19712">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/sqldialects.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="176">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1006,184 +982,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/app/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.084880635" vertical-offset="0" max-vertical-offset="624">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/app/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.25464192" vertical-offset="0" max-vertical-offset="377">
-          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/virtualenv.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-22.681318" vertical-offset="8400" max-vertical-offset="39456">
-          <caret line="24" column="17" selection-start-line="24" selection-start-column="17" selection-end-line="24" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.8484849" vertical-offset="0" max-vertical-offset="432">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/run.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.04040404" vertical-offset="0" max-vertical-offset="396">
-          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/flask/pip-selfcheck.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="553">
-          <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="578">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/app/forms.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30449826" vertical-offset="0" max-vertical-offset="578">
-          <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/app/templates/login.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.318264" vertical-offset="48" max-vertical-offset="640">
-          <caret line="14" column="43" selection-start-line="14" selection-start-column="43" selection-end-line="14" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/app/templates/base.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.318264" vertical-offset="0" max-vertical-offset="553">
-          <caret line="11" column="26" selection-start-line="11" selection-start-column="23" selection-end-line="11" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/app/templates/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="578">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/flask/Include/Python.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.0934258" vertical-offset="2366" max-vertical-offset="2944">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/flask/Lib/site.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.4048443" vertical-offset="1968" max-vertical-offset="11872">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/base.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="578">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/dayReport.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="578">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.11072665" vertical-offset="0" max-vertical-offset="578">
-          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/run.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.027681662" vertical-offset="0" max-vertical-offset="578">
-          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.3/flask/Lib/site-packages/werkzeug/datastructures.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="7.5570936" vertical-offset="0" max-vertical-offset="42976">
-          <caret line="283" column="29" selection-start-line="283" selection-start-column="25" selection-end-line="283" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/Python27/Lib/site-packages/werkzeug/wrappers.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-14.698962" vertical-offset="14864" max-vertical-offset="29264">
           <caret line="423" column="8" selection-start-line="423" selection-start-column="8" selection-end-line="423" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/js/statusChange.js">
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="656">
-          <caret line="3" column="58" selection-start-line="3" selection-start-column="58" selection-end-line="3" selection-end-column="58" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/reportslib/db.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1764" max-vertical-offset="2400">
-          <caret line="124" column="9" selection-start-line="124" selection-start-column="9" selection-end-line="124" selection-end-column="9" />
-          <folding>
-            <marker date="1452674578111" expanded="true" signature="691:2532" placeholder="SELECT missi..." />
-            <marker date="1452674578111" expanded="true" signature="3839:4722" placeholder="SELECT missi..." />
-            <marker date="1452674578111" expanded="true" signature="5922:6009" placeholder="SELECT thete..longdescs..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/ajaxTest.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.76" vertical-offset="48" max-vertical-offset="672">
-          <caret line="12" column="71" selection-start-line="12" selection-start-column="71" selection-end-line="12" selection-end-column="71" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/js/getComment.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="384">
-          <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="33" max-vertical-offset="432">
-          <caret line="6" column="15" selection-start-line="6" selection-start-column="15" selection-end-line="6" selection-end-column="15" />
-          <folding />
+        <state vertical-scroll-proportion="0.0" vertical-offset="17472" max-vertical-offset="19232">
+          <caret line="1092" column="17" selection-start-line="1092" selection-start-column="17" selection-end-line="1092" selection-end-column="17" />
         </state>
       </provider>
     </entry>
@@ -1191,34 +1000,56 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="378">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/templates/statusChange.html">
+    <entry file="file://$PROJECT_DIR$/bugzilly/reportslib/db.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.76" vertical-offset="0" max-vertical-offset="1440">
-          <caret line="9" column="34" selection-start-line="9" selection-start-column="34" selection-end-line="9" selection-end-column="34" />
+        <state vertical-scroll-proportion="0.5380531" vertical-offset="672" max-vertical-offset="2400">
+          <caret line="62" column="25" selection-start-line="62" selection-start-column="25" selection-end-line="62" selection-end-column="25" />
           <folding>
-            <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <marker date="1452751158544" expanded="true" signature="-1:-1" placeholder="SELECT missi..." />
+            <marker date="1452751158544" expanded="true" signature="-1:-1" placeholder="SELECT missi..." />
+            <marker date="1452751158544" expanded="true" signature="-1:-1" placeholder="SELECT thete..longdescs..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/microblog-0.2/app/views.py">
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="265" max-vertical-offset="768">
-          <caret line="23" column="25" selection-start-line="23" selection-start-column="25" selection-end-line="23" selection-end-column="25" />
+        <state vertical-scroll-proportion="-21.12" vertical-offset="0" max-vertical-offset="944">
+          <caret line="92" column="71" selection-start-line="92" selection-start-column="71" selection-end-line="92" selection-end-column="71" />
+          <folding>
+            <element signature="e#585#1719#0" expanded="false" />
+            <element signature="n#script#5;n#head#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#style#0;n#em#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="48" max-vertical-offset="832">
+          <caret line="6" column="8" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="8" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/dayReport.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.9123288" vertical-offset="17363" max-vertical-offset="18736">
-          <caret line="1106" column="17" selection-start-line="1106" selection-start-column="17" selection-end-line="1106" selection-end-column="17" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="578">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.35036495" vertical-offset="0" max-vertical-offset="304">
+          <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
           <folding />
         </state>
       </provider>
