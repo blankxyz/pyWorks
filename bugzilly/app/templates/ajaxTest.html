@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Flask JQuery</title>
+    <script src="{{url_for('static', filename='jquery.js')}}"></script>
+    <script type="text/javascript" src="js/getComment.js"></script>
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        $(function () {
+            function submit_form2(e) {
+                $.ajax({url: $SCRIPT_ROOT + '/add',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data:{
+                            a: $('input[name="a"]').val(),
+                            b: $('input[name="b"]').val(),
+                            now: new Date().getTime()
+                        },
+                        error: function(xhr, err){ $('#result').text(err); },
+                        success: function(data, textStatus){ $('#result').text(data.comment); }
+                });
+            };
+            $('#calculate').hover('mouseenter', submit_form2);
+        });
+    </script>
+</head>
+<body>
+<p>
+    <input type=text size=10 name=a> +
+    <input type=text size=20 name=b> =
+    <span id=result>?</span>
+</p>
+
+<p><input type="button" id="calculate" value="计算"></p>
+</body>
+</html>  

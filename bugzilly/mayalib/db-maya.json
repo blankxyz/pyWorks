@@ -1,0 +1,464 @@
+[
+  {
+    "day": "2015-12-03",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 2,
+          "verify": 0
+        },
+        "name": "mac"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 2,
+          "verify": 0
+        },
+        "name": "guor"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 2,
+          "verify": 0
+        },
+        "name": "tanggd"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 2,
+          "verify": 0
+        },
+        "name": "gengyf"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 2,
+          "verify": 0
+        },
+        "name": "wanglj"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 2,
+          "resolve": 2,
+          "verify": 2
+        },
+        "name": "songyq"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 3,
+          "verify": 0
+        },
+        "name": "zhangjy"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 3,
+          "verify": 0
+        },
+        "name": "liy"
+      }
+    ]
+  },
+  {
+    "day": "2015-12-02",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 3,
+          "verify": 0
+        },
+        "name": "mac"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 3,
+          "verify": 0
+        },
+        "name": "guor"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 5,
+          "verify": 0
+        },
+        "name": "tanggd"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 8,
+          "verify": 0
+        },
+        "name": "gengyf"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 8,
+          "verify": 0
+        },
+        "name": "wanglj"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 1,
+          "resolve": 2,
+          "verify": 0
+        },
+        "name": "songyq"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 5,
+          "verify": 0
+        },
+        "name": "zhangjy"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 10,
+          "verify": 0
+        },
+        "name": "liy"
+      }
+    ]
+  },
+  {
+    "day": "2015-12-01",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 11,
+          "verify": 0
+        },
+        "name": "mac"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 6,
+          "verify": 0
+        },
+        "name": "guor"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 6,
+          "verify": 0
+        },
+        "name": "tanggd"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 6,
+          "verify": 0
+        },
+        "name": "gengyf"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 9,
+          "verify": 0
+        },
+        "name": "wanglj"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "songyq"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 1,
+          "verify": 0
+        },
+        "name": "zhangjy"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 3,
+          "verify": 0
+        },
+        "name": "liy"
+      }
+    ]
+  },
+  {
+    "day": "2015-12-06",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 4,
+          "verify": 0
+        },
+        "name": "mac"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 7,
+          "verify": 0
+        },
+        "name": "guor"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 10,
+          "verify": 0
+        },
+        "name": "tanggd"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 8,
+          "verify": 0
+        },
+        "name": "gengyf"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 8,
+          "verify": 0
+        },
+        "name": "wanglj"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "songyq"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 6,
+          "verify": 0
+        },
+        "name": "zhangjy"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 8,
+          "verify": 0
+        },
+        "name": "liy"
+      }
+    ]
+  },
+  {
+    "day": "2015-12-05",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 8,
+          "verify": 0
+        },
+        "name": "mac"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "guor"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "tanggd"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "gengyf"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "wanglj"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "songyq"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "zhangjy"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "liy"
+      }
+    ]
+  },
+  {
+    "day": "2015-12-04",
+    "team": [
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 5,
+          "verify": 0
+        },
+        "name": "mac"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "guor"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "tanggd"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "gengyf"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 0,
+          "verify": 0
+        },
+        "name": "wanglj"
+      },
+      {
+        "status": {
+          "close": 1,
+          "reopen": 4,
+          "resolve": 11,
+          "verify": 8
+        },
+        "name": "songyq"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 5,
+          "verify": 0
+        },
+        "name": "zhangjy"
+      },
+      {
+        "status": {
+          "close": 0,
+          "reopen": 0,
+          "resolve": 7,
+          "verify": 0
+        },
+        "name": "liy"
+      }
+    ]
+  }
+]

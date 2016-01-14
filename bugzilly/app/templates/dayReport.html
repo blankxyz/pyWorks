@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+{% for report in reports %}
+<h1 align="center">report'days is: {{report.day}}</h1>
+<table border="1" align="center">
+    <tr>
+        <td>Developer</td>
+        <td>reopened</td>
+        <td>resolved</td>
+        <td>verified</td>
+        <td>closed</td>
+    </tr>
+    {% for people in report.team %}
+    <tr>
+        <td>{{people.name}}</td>
+        <td><b>{{people.status.reopen}}</b></td>
+        <td><b>{{people.status.resolve}}</b></td>
+        <td><b>{{people.status.verify}}</b></td>
+        <td><b>{{people.status.close}}</b></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endfor %}
+{% endblock %}

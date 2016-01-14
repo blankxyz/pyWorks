@@ -2,73 +2,87 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b6bbd9cf-2839-4d12-9b62-1a732a96b72e" name="Default" comment="2016-01-04@baicmotor">
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\.name" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dataSources.ids" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dataSources.local.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dataSources.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\dictionaries\Administrator.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\encodings.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\microblog-0.2.iml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\misc.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\modules.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\scopes\scope_settings.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\sqldialects.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\vcs.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\.idea\workspace.xml" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\LICENSE" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\README.md" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\exporting.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\highcharts-3d.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\highcharts-more.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\highcharts.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\jquery.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\static\jquery.min.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\404.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\500.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\PB-report.xlsx" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\ajaxTest.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\base.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\dayReport.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\img\snow.png" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\img\sun.png" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\js\getComment.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\js\statusChange.js" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\menu.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\templates\statusChange.html" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\app\views.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\db-maya.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\major_country_gdp" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya10.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya11.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya12.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya13.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya2.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya3.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya4.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya5.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya6.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya7.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya8.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\mayalib\maya9.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\db.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\jsonData\db-getComment.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\jsonData\db-statusChangeById.json" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\sql\statusChange.sql" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\reportslib\sql\statuschangebymember.sql" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\rpclib\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\rpclib\bugzillaRPC.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\rpclib\test.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\run.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\setup.py" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\tmp\.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="E:\pyWorks\microblog-0.2\virtualenv.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/PB-report.xlsx" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dataSources.ids" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.eot" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.ttf" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.woff2" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.woff" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/img/snow.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/img/sun.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.gitignore" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/tmp/.gitignore" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/.name" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/404.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/500.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dictionaries/Administrator.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/LICENSE" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/README.md" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/rpclib/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/ajaxTest.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/base.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap-theme.css.map" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap-theme.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap-theme.min.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap.css.map" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/js/bootstrap.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap.min.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/js/bootstrap.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/rpclib/bugzillaRPC.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dataSources.local.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dataSources.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/dayReport.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/jsonData/db-daysTotalByMember.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/jsonData/db-getComment.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/db-maya.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/jsonData/db-statusChangeById.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/db.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/encodings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/exporting.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/js/getComment.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.svg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/highcharts-3d.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/highcharts-more.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/highcharts.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/jquery.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/jquery.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/major_country_gdp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya10.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya11.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya12.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya13.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya2.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya3.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya4.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya5.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya6.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya7.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya8.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya9.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/menu.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/microblog-0.2.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/js/npm.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/run.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/scopes/scope_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/setup.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/sqldialects.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/statusChange.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/js/statusChange.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/sql/statusChange.sql" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/sql/statuschangebymember.sql" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/rpclib/test.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/views.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/virtualenv.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pyWorks.iws" />
@@ -161,7 +175,7 @@
       <file leaf-file-name="statusChange.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-21.12" vertical-offset="0" max-vertical-offset="944">
+            <state vertical-scroll-proportion="0.0" vertical-offset="528" max-vertical-offset="944">
               <caret line="92" column="71" selection-start-line="92" selection-start-column="71" selection-end-line="92" selection-end-column="71" />
               <folding>
                 <element signature="e#585#1719#0" expanded="false" />
@@ -186,7 +200,7 @@
       <file leaf-file-name="dayReport.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/dayReport.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="464">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="464">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
@@ -296,6 +310,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -388,7 +403,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -855,29 +869,29 @@
     <editor active="false" />
     <layout>
       <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.45737705" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24506828" sideWeight="0.48746517" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32776934" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3262295" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26403642" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24127465" sideWeight="0.48746517" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32776934" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24962063" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18882175" sideWeight="0.5125348" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.41788617" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="REST Client" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37398374" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26403642" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Jenkins" active="true" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32776934" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
       <window_info id="Database Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4601626" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1609756" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.41788617" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -927,6 +941,35 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="528" max-vertical-offset="944">
+          <caret line="92" column="71" selection-start-line="92" selection-start-column="71" selection-end-line="92" selection-end-column="71" />
+          <folding>
+            <element signature="e#585#1719#0" expanded="false" />
+            <element signature="n#script#5;n#head#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#style#0;n#em#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="96" max-vertical-offset="304">
+          <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/dayReport.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="464">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1856">
@@ -1007,17 +1050,12 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5380531" vertical-offset="672" max-vertical-offset="2400">
           <caret line="62" column="25" selection-start-line="62" selection-start-column="25" selection-end-line="62" selection-end-column="25" />
-          <folding>
-            <marker date="1452751158544" expanded="true" signature="-1:-1" placeholder="SELECT missi..." />
-            <marker date="1452751158544" expanded="true" signature="-1:-1" placeholder="SELECT missi..." />
-            <marker date="1452751158544" expanded="true" signature="-1:-1" placeholder="SELECT thete..longdescs..." />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-21.12" vertical-offset="0" max-vertical-offset="944">
+        <state vertical-scroll-proportion="0.0" vertical-offset="528" max-vertical-offset="944">
           <caret line="92" column="71" selection-start-line="92" selection-start-column="71" selection-end-line="92" selection-end-column="71" />
           <folding>
             <element signature="e#585#1719#0" expanded="false" />
@@ -1032,9 +1070,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="48" max-vertical-offset="832">
           <caret line="6" column="8" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
