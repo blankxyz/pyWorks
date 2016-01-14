@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title></title>
+    <meta charset="utf-8">
+    <title>bugzilly</title>
 </head>
 <body>
-<div id="container" style="width:1200px">
-    <div id="bugzilly" title="bugzilly"><h1>bugzilly</h1></div>
-    <div id="dayReport" style="height:700px;width:600px;float:left;">
-        <iframe name="dayReport" src="dayReport.html" width="700" height="500" frameborder="0"></iframe>
-        <p><a href="http://127.0.0.1:5000/dayReport" target="dayReport">dayReport</a></p>
-    </div>
-    <div id="statusChange" style="height:700px;width:600px;float:left;">
-        <iframe name="statusChange" src="statusChange.html" width="700" height="500" frameborder="0"></iframe>
-        <p><a href="http://127.0.0.1:5000/statusChange" target="statusChange">statusChange</a></p>
-    </div>
+<div id="menu">
+    <ul>
+        <a href="dayReport" target="mainframe"><li>dayReport</li></a>
+        <a href="statusChange" target="mainframe"><li>statusChange</li></a>
+        <a href="charts" target="mainframe"><li>charts</li></a>
+    </ul>
 </div>
+<div id="main"  style="height:1000px;width:1280px;float:left;">
+    <iframe name="mainframe" style="height:1154px;width:1280px" frameborder="0" scrolling="no"></iframe>
+</div>
+
 </body>
 </html>

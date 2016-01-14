@@ -35,45 +35,8 @@
         });
     });
     </script>
-    <script type="text/javascript">
-        $(function () {
-            $('#container').highcharts({
-                chart: { type: 'area' },
-                title: { text: 'status change report' },
-                subtitle: { text: 'from bugzilla' },
-                xAxis: {
-                    categories: ['10/1', '10/15', '11/1', '11/15', '12/15', '1/1', '1/15'],
-                    tickmarkPlacement: 'on',
-                    title: { enabled: false }
-                },
-                yAxis: {
-                    title: { text: 'bugs' },
-                    labels: { formatter: function () { return this.value; } }
-                },
-                tooltip: {
-                    shared: true,
-                    valueSuffix: ' bug'
-                },
-                plotOptions: {
-                    area: {
-                        stacking: 'normal',
-                        lineColor: '#666666',
-                        lineWidth: 1,
-                        marker: { lineWidth: 1, lineColor: '#666666' }
-                    }
-                },
-                series: [
-                    { name: 'new',data: [6, 5, 4, 3, 2, 1, 0] },
-                    { name: 'reopen',data: [1, 1, 1, 1, 1, 1, 0] },
-                    { name: 'resolve',data: [2, 4, 2, 1, 0, 1, 0] },
-                    { name: 'verify',data: [5, 6, 11, 6, 6, 2, 2] },
-                    { name: 'close', data: [3, 2, 2, 6, 13, 17, 19] }]
-            });
-        });
-    </script>
 </head>
 <body>
-<div id="container" style="min-width:700px;height:400px"></div>
 {% for change in changes %}
 {% set bID = change.id %}
 <div id="{{'div_' ~ bID}}" style="width:25%;margin-left:50px">

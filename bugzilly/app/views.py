@@ -7,6 +7,10 @@ from reportslib.db import dbRead
 def menu():
     return render_template('menu.html')
 
+@app.route('/charts')
+def charts():
+    return render_template('charts.html')
+
 @app.route('/statusChange')
 def index():
     bugs = ['34', '35', '36', '37', '38', '39', '40', '41', '42']
