@@ -27,19 +27,17 @@ def dayReport():
     reports = db.daysTotalByMember(days)
     return render_template("dayReport.html", title=title, reportDays=days, reports=json.loads(reports))
 
-@app.route('/add',methods=["GET", "POST"])
-def add_numbers():
-    print "add_numbers()"
-    bugId = request.args.get('a')
-    when = request.args.get('b')
+@app.route('/getComment',methods=["GET", "POST"])
+def getComment():
+    bugId = request.args.get('bugId')
+    when = request.args.get('when')
     db = dbRead()
     # '34','2015-10-10 15:48:57'
     result = db.getComment(bugId, when)
-    print result
     return result
 
 @app.route('/ajax')
-def getComment():
+def ajax():
     return render_template('ajaxTest.html')
 
 @app.errorhandler(404)
