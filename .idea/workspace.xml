@@ -1,88 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b6bbd9cf-2839-4d12-9b62-1a732a96b72e" name="Default" comment="2016-01-04@baicmotor">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/PB-report.xlsx" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dataSources.ids" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.eot" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.ttf" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.woff2" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.woff" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/img/snow.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/img/sun.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/tmp/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/.name" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/404.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/500.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dictionaries/Administrator.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/LICENSE" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/README.md" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/rpclib/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/ajaxTest.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/base.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap-theme.css.map" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap-theme.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap-theme.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap.css.map" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/js/bootstrap.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/css/bootstrap.min.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/js/bootstrap.min.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/rpclib/bugzillaRPC.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dataSources.local.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/dataSources.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/dayReport.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/jsonData/db-daysTotalByMember.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/jsonData/db-getComment.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/db-maya.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/jsonData/db-statusChangeById.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/db.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/encodings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/exporting.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/js/getComment.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/fonts/glyphicons-halflings-regular.svg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/highcharts-3d.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/highcharts-more.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/highcharts.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/jquery.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/jquery.min.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/major_country_gdp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya10.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya11.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya12.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya13.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya2.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya3.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya4.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya5.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya6.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya7.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya8.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/mayalib/maya9.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/menu.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/microblog-0.2.iml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/modules.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/static/bootstrap/js/npm.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/run.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/scopes/scope_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/setup.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/sqldialects.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/statusChange.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/templates/js/statusChange.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/sql/statusChange.sql" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/reportslib/sql/statuschangebymember.sql" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/rpclib/test.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/vcs.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/app/views.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/virtualenv.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bugzilly/.idea/workspace.xml" />
+    <list default="true" id="b6bbd9cf-2839-4d12-9b62-1a732a96b72e" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bugzilly/app/templates/menu.html" afterPath="$PROJECT_DIR$/bugzilly/app/templates/menu.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pyWorks.iws" />
@@ -97,7 +17,7 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/pyWorks$run.coverage" NAME="run Coverage Results" MODIFIED="1452753058671" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/bugzilly" />
+    <SUITE FILE_PATH="coverage/pyWorks$run.coverage" NAME="run Coverage Results" MODIFIED="1452754447069" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/bugzilly" />
     <SUITE FILE_PATH="coverage/pyWorks$db.coverage" NAME="db Coverage Results" MODIFIED="1451668128237" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.2/reportslib" />
     <SUITE FILE_PATH="coverage/pyWorks$run__1_.coverage" NAME="run (1) Coverage Results" MODIFIED="1452578827806" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.3" />
     <SUITE FILE_PATH="coverage/pyWorks$maya11.coverage" NAME="maya11 Coverage Results" MODIFIED="1451746389780" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/microblog-0.2/mayalib" />
@@ -190,9 +110,12 @@
       <file leaf-file-name="menu.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.35036495" vertical-offset="0" max-vertical-offset="304">
-              <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
-              <folding />
+            <state vertical-scroll-proportion="0.24347825" vertical-offset="0" max-vertical-offset="460">
+              <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
+              <folding>
+                <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -219,8 +142,8 @@
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
-        <option value="bigbangbang &lt;songyq0509@163.com&gt;" />
         <option value="sougannkyou &lt;songyq0509@163.com&gt;" />
+        <option value="bigbangbang &lt;songyq0509@163.com&gt;" />
       </list>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -265,6 +188,7 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
+    <option name="y" value="-8" />
     <option name="width" value="1382" />
     <option name="height" value="744" />
   </component>
@@ -310,7 +234,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -361,48 +284,9 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pyWorks" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pyWorks" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="bugzilly" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pyWorks" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pyWorks" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="bugzilly" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -861,37 +745,43 @@
       <option name="project" value="LOCAL" />
       <updated>1451897856704</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="2016-01-14@baicmotor">
+      <created>1452753834300</created>
+      <option name="number" value="00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1452753834300</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="0" width="1382" height="744" extended-state="0" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.45737705" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24506828" sideWeight="0.48746517" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15245901" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32776934" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3262295" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24962063" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26403642" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295082" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24886191" sideWeight="0.48746517" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32776934" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24962063" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18882175" sideWeight="0.5125348" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.41788617" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="REST Client" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37398374" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26403642" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Jenkins" active="true" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32776934" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
       <window_info id="Database Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4601626" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1609756" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.41788617" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -917,7 +807,8 @@
     <MESSAGE value="2015-12-31@home" />
     <MESSAGE value="2016-01-01@home" />
     <MESSAGE value="2016-01-04@baicmotor" />
-    <option name="LAST_COMMIT_MESSAGE" value="2016-01-04@baicmotor" />
+    <MESSAGE value="2016-01-14@baicmotor" />
+    <option name="LAST_COMMIT_MESSAGE" value="2016-01-14@baicmotor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -956,9 +847,44 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
       <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="304">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/dayReport.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="464">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/statusChange.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="528" max-vertical-offset="944">
+          <caret line="92" column="71" selection-start-line="92" selection-start-column="71" selection-end-line="92" selection-end-column="71" />
+          <folding>
+            <element signature="e#585#1719#0" expanded="false" />
+            <element signature="n#script#5;n#head#0;n#html#0;n#!!top" expanded="false" />
+            <element signature="n#style#0;n#em#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#li#0;n#td#2;n#tr#1;n#table#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
+      <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="96" max-vertical-offset="304">
           <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
-          <folding />
+          <folding>
+            <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1070,6 +996,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="48" max-vertical-offset="832">
           <caret line="6" column="8" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1083,9 +1012,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/bugzilly/app/templates/menu.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.35036495" vertical-offset="0" max-vertical-offset="304">
-          <caret line="6" column="6" selection-start-line="6" selection-start-column="6" selection-end-line="6" selection-end-column="6" />
-          <folding />
+        <state vertical-scroll-proportion="0.24347825" vertical-offset="0" max-vertical-offset="460">
+          <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
+          <folding>
+            <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
