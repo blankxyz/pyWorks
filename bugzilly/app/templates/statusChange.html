@@ -14,8 +14,11 @@
             var str = $(this).attr("id");
             var bugId = str.substr("tab_".length);
             var cnt = $("tr[id^=tr_c_" + bugId + "] > td").size() - 2;
+            var reopen = 0;
+            var times = 0;
             for (var i = 0; i < cnt; i++) {
                 if ($("td[id^=td_c_" + bugId + "_" + i + "]").text().search("→REOPENED") > 0) {
+                    reopen++;
                     fontcolor = "red";
                 } else {
                     fontcolor = "black";
@@ -32,6 +35,11 @@
                 bgcolor = "red";
             }
             $("td[id^=td_c_" + bugId + "_" + cnt + "]").css("background-color",bgcolor);
+            $("td[id^=td_c_" + bugId + "] > span").text(reopen);
+            var end = new Date($("td[id^=td_t_" + bugId + "_" + cnt + "]").text());
+            var start =  new Date($("td[id^=td_t_" + bugId + "_1]").text());
+            times = (end - start)/(1000*3600*24);
+            $("td[id^=td_t_" + bugId + "] > span").text(times);
         });
     });
     </script>
@@ -45,14 +53,14 @@
            bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}"
            style="text-align:center;margin:5px;">
         <tr id="{{'tr_m_' ~ bID}}">
-            <td><b>{{bID}}</b></td>
+            <td><span class="badge">{{bID}}</span></td>
             <td><b>member</b></td>
             {% for c in change['change'] %}
             <td id="{{'td_m_' ~ bID ~ '_' ~ loop.index}}">{{c.member}}</td>
             {% endfor %}
         </tr>
         <tr id="{{'tr_c_' ~ bID}}">
-            <td id="{{'td_' ~ bID}}"><b>+</b></td>
+            <td id="{{'td_c_' ~ bID}}"><span class="badge" style="background: darksalmon"></span></td>
             <td><b>changeTo</b></td>
             {% for c in change['change'] %}
             <td id="{{'td_c_' ~ bID ~ '_' ~ loop.index}}" align="left">
@@ -65,7 +73,7 @@
             {% endfor %}
         </tr>
         <tr id="{{'tr_t_' ~ bID}}">
-            <td><b>{{bID}}</b></td>
+            <td id="{{'td_t_' ~ bID}}"><span class="badge" style="background: skyblue"></span></td>
             <td><b>time</b></td>
             {% for c in change['change'] %}
             <td id="{{'td_t_' ~ bID ~ '_' ~ loop.index}}">{{c.time}}</td>
