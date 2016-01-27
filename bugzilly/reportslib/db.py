@@ -4,27 +4,25 @@ import json
 
 # read DB to json
 class dbRead:
-    def __init__(self):
+    def __init__(self,flg):
+        self.__offline = None
         import sys
         reload(sys)
         sys.setdefaultencoding('utf8')
-        self.host = 'localhost'
-        self.user = 'root'
-        self.password = '314159'
-        self.port = 3306
+        self.__host = 'localhost'
+        self.__user = 'root'
+        self.__password = '314159'
+        self.__port = 3306
+        self.__offline == flg
         self.path = "reportslib/jsonData/"
-        self.offline = True
-
-    def setOffline(self, offline):
-        self.offline = offline
 
     def daysTotalByMember(self, days):
-        if self.offline == False :
+        if self.__offline == False :
             reports = []
             for day in days:
                 report = {}
                 team = []
-                conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
+                conn = MySQLdb.connect(host=self.__host, user=self.__user, passwd=self.__password, port=self.__port, charset="utf8")
                 cur = conn.cursor()
                 conn.select_db('bugs')
                 sqlstr = (  "SELECT "
@@ -75,12 +73,12 @@ class dbRead:
         return jsonStr
 
     def statusChangeById(self, bugIds):
-        if self.offline == False :
+        if self.__offline == False :
             bugs = []
             for bugId in bugIds:
                 bug = {}
                 change = []
-                conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
+                conn = MySQLdb.connect(host=self.__host, user=self.__user, passwd=self.__password, port=self.__port, charset="utf8")
                 cur = conn.cursor()
                 #conn = db.cursor();
                 #conn.execute("SET NAMES utf8");
@@ -131,12 +129,12 @@ class dbRead:
         return jsonStr
 
     def getComment(self, bugId, when):
-        if self.offline == False :
+        if self.__offline == False :
             comment={}
             if bugId.strip() == '' and when.strip() == '':
                 comment['comment']=u'[无]'
             else:
-                conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
+                conn = MySQLdb.connect(host=self.__host, user=self.__user, passwd=self.__password, port=self.__port, charset="utf8")
                 cur = conn.cursor()
                 conn.select_db('bugs')
                 sqlStr = ("SELECT thetext FROM longdescs WHERE bug_id='" + bugId + "' AND bug_when ='" + when + "'")

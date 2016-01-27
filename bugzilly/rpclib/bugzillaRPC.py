@@ -1,7 +1,6 @@
 import suds
 
 url = 'http://localhost:8080/test/calc?wsdl'
-# url = 'http://10.3.18.44:8080/test/calc?wsdl'
 client = suds.client.Client(url)
 service = client.service
 

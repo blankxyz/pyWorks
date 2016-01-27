@@ -53,15 +53,13 @@
            bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}"
            style="text-align:center;margin:5px;">
         <tr id="{{'tr_m_' ~ bID}}">
-            <td><span class="badge">{{bID}}</span></td>
-            <td><b>member</b></td>
+            <td style="width: 200px;">bug<span class="badge pull-right">{{bID}}</span></td>
             {% for c in change['change'] %}
             <td id="{{'td_m_' ~ bID ~ '_' ~ loop.index}}">{{c.member}}</td>
             {% endfor %}
         </tr>
         <tr id="{{'tr_c_' ~ bID}}">
-            <td id="{{'td_c_' ~ bID}}"><span class="badge" style="background: darksalmon"></span></td>
-            <td><b>changeTo</b></td>
+            <td id="{{'td_c_' ~ bID}}" style="width: 200px;">reopen<span class="badge pull-right" style="background: darksalmon"></span></td>
             {% for c in change['change'] %}
             <td id="{{'td_c_' ~ bID ~ '_' ~ loop.index}}" align="left">
                 <li style="list-style-type:none;">
@@ -73,8 +71,7 @@
             {% endfor %}
         </tr>
         <tr id="{{'tr_t_' ~ bID}}">
-            <td id="{{'td_t_' ~ bID}}"><span class="badge" style="background: skyblue"></span></td>
-            <td><b>time</b></td>
+            <td id="{{'td_t_' ~ bID}}" style="width: 200px;">days<span class="badge pull-right" style="background: skyblue"></span></td>
             {% for c in change['change'] %}
             <td id="{{'td_t_' ~ bID ~ '_' ~ loop.index}}">{{c.time}}</td>
             {% endfor %}

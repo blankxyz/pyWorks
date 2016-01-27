@@ -1,14 +1,14 @@
 bugzilly
 =========
 
-A decently featured bugzilla web application written in Python and Flask that I'm developing in my Flask Mega-Tutorial series that begins [here](http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world).
+A decently featured bugzilla web application written in Python and Flask that I'm developing in my Flask Mega-Tutorial that begins.
 
 Installation
 ------------
 
 The tutorial referenced above explains how to setup a virtual environment with all the required modules. As a convenience, the `setup.py` script will create this virtual environment for you. You can run this script again to refresh any missing modules.
 
-The mysql database must also be created before the application can run, and the `db_create.py` script takes care of that. See the [Database tutorial](http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database) for the details.
+The mysql database must also be created before the application can run, and the `db_create.py` script takes care of that. See the [Database tutorial] for the details.
 
 Running
 -------

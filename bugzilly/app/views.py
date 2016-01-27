@@ -15,7 +15,7 @@ def charts():
 def index():
     bugs = ['34', '35', '36', '37', '38', '39', '40', '41', '42']
     title = 'status change by bugId'
-    db = dbRead()
+    db = dbRead(False)
     ret = db.statusChangeById(bugs)
     return render_template('statusChange.html', title=title, bugs=bugs, changes=json.loads(ret))
 
@@ -23,7 +23,7 @@ def index():
 def dayReport():
     days = {'2015-11-12'}
     title = 'Daily Reports by Developer'
-    db = dbRead()
+    db = dbRead(False)
     reports = db.daysTotalByMember(days)
     return render_template("dayReport.html", title=title, reportDays=days, reports=json.loads(reports))
 
@@ -31,7 +31,7 @@ def dayReport():
 def getComment():
     bugId = request.args.get('bugId')
     when = request.args.get('when')
-    db = dbRead()
+    db = dbRead(False)
     # '34','2015-10-22 21:58:11'
     result = db.getComment(bugId, when)
     return result

@@ -14,7 +14,7 @@ if __name__ == "__main__":
     port = cf.getint("loginConf", "port")
     user = cf.get("loginConf", "user")
     pwd = cf.get("loginConf", "password")
-    url = "http://" + host + ":" + str(port) + "/login"
+    url = "http://" + host
     # ------------------------------------------------------------------
     driver = webdriver.Firefox()
     driver.maximize_window()
