@@ -3,8 +3,7 @@ import urllib
 import urllib2
 import re
 import socket
-import sys
-import io
+import cookielib
 
 socket.setdefaulttimeout(30)
 
@@ -20,16 +19,17 @@ def getHtml(url):
         content = response.read()
         pattern = re.compile('<div.*?author">.*?<a.*?<img.*?>(.*?)</a>.*?<div.*?'+
                                  'content">(.*?)<!--(.*?)-->.*?</div>(.*?)<div class="stats".*?class="number">(.*?)</i>')
-        items = re.findall(r'div.*?content">(.*?)<!--(.*?)-->', content, re.U|re.S)
-        #print items
+        items = re.findall('div.*?content">(.*?)<!--(.*?)-->', content, re.U|re.S)
         for item in items:
-            print item[0].decode('utf-8').encode('utf-8'), item[1]
+            text = re.sub('<br/>','',item[0])
+            #控制台输出转化为UTF-8编码
+            print text.decode('utf-8').encode('utf-8'), item[1]
 
     except urllib2.URLError, e:
         if hasattr(e,"code"):
             print e.code
         if hasattr(e,"reason"):
-            print e.reason
+            print u"连接失败原因：",e.reason
 
 def getImg(html):
     imglist = re.findall(r"title=(.*?)style", html, re.U|re.S)
