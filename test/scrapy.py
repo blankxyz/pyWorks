@@ -7,6 +7,15 @@ import cookielib
 
 socket.setdefaulttimeout(30)
 
+def getCookies():
+    cookie = cookielib.CookieJar()
+    handler=urllib2.HTTPCookieProcessor(cookie)
+    opener = urllib2.build_opener(handler)
+    response = opener.open('http://hr.baicgroup.com.cn/blogon')
+    for item in cookie:
+        print 'Name = '+item.name
+        print 'Value = '+item.value
+
 def getHtml(url):
     page = 1
     url = 'http://www.qiushibaike.com/hot/page/' + str(page)
@@ -46,5 +55,6 @@ def getImg(html):
 #--------------test--------------------
 url="http://localhost:5000/statusChange"
 #url="http://hr.baicgroup.com.cn/blogon"
-html = getHtml(url)
+getCookies()
+#html = getHtml(url)
 #print getImg(html)
