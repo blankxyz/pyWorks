@@ -1,0 +1,161 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+    <title>2013年株洲市中小学教师全员培训</title>
+    <link href="http://css1.teacher.com.cn/feixuelixm/css/style.css" rel="stylesheet" type="text/css">
+
+    <script language="javascript" type="text/javascript"> 
+        function document.onkeydown() 
+        { 
+            var e=event.srcElement; 
+            if(event.keyCode==13) 
+            { 
+            document.getElementById("ImgbtnLogin").click(); 
+            return false; 
+            } 
+        } 
+        function G(id){return document.getElementById(id);}
+        function checkInput(input) {
+    if (input.value == G("txtUserName").title) {
+        with(input) {
+            style.fontSize = '';
+            style.color = '';
+            value = '';
+        }
+    }
+}
+ 
+function restore(input) {
+    if (!input.value.length) {
+        with(input) {
+            style.fontSize = '12px';
+            style.color = '#999';
+            value = G("txtUserName").title;
+        }
+    }
+}
+  
+
+function sett_pwd() {
+    try {
+        
+            with(G("txtUserName")) {
+                style.fontSize = '12px';
+                style.color = '#999';
+                value = G("txtUserName").title;
+                blur();
+             }
+         
+    } catch (e) {}
+}
+       
+    </script>
+
+    <script type="text/javascript" language="javascript" src="http://css1.teacher.com.cn/feixuelixm/js/login.js"></script>
+
+    <style type="text/css">
+    <!--
+    td {
+	    font-size: 12px;
+	    text-decoration: none;
+	    color: #000;
+    }
+    -->
+    </style>
+</head>
+<body onload="sett_pwd()">
+    <form name="form1" method="post" action="Login.aspx" id="form1">
+<div>
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKLTcyMzEyMTY2Nw8WAh4LTG9naW5lZFBhZ2UFEExvZ2luZWRQYWdlLmFzcHgWAmYPZBYCZg8PZBYGHgV0aXRsZQUg55So5oi35ZCNL+WtpuS5oOeggS/ouqvku73or4Hlj7ceB29uZm9jdXMFEGNoZWNrSW5wdXQodGhpcykeBm9uYmx1cgUNcmVzdG9yZSh0aGlzKWQYAQUeX19Db250cm9sc1JlcXVpcmVQb3N0QmFja0tleV9fFgEFC0ltZ2J0bkxvZ2luckJjpNhrusWhtPuT33UJ1dBUkvw=" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+        <table width="232" border="0" align="center" cellpadding="0" cellspacing="0" class="logintb">
+            <tr>
+                <td valign="top">
+                    <table width="180" border="0" align="center" cellpadding="0" cellspacing="0" class="">
+                        <tr>
+                            <td height="53" colspan="2">
+                                &nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td height="30" colspan="2" align="center">
+                                &nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td height="25">
+                                帐号：</td>
+                            <td>
+                                <input name="txtUserName" type="text" value="430223198809308045" maxlength="30" id="txtUserName" tabindex="1" title="用户名/学习码/身份证号" onfocus="checkInput(this)" onblur="restore(this)" style="width:120px;" /></td>
+                        </tr>
+                        <tr>
+                            <td height="25">
+                                密码：</td>
+                            <td>
+                                <input name="txtPassWord" type="password" maxlength="20" id="txtPassWord" tabindex="2" style="width:120px;" /></td>
+                        </tr>
+                        <tr>
+                            <td height="25">
+                                验证码：</td>
+                            <td>
+                                <input name="txtCode" type="text" value="6886
+
+" maxlength="8" id="txtCode" tabindex="3" style="width:60px;" />
+                                <img src="ImageLog.aspx" style="width: 55px; height: 22px; vertical-align: top;" /></td>
+                        </tr>
+                    </table>
+                    <table width="200" border="0" align="center" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td align="center" style="height: 34px">
+                                <input src="http://images1.teacher.com.cn/feixuelixm/images/sidebar_tag02.gif" name="ImgbtnLogin" type="image" id="ImgbtnLogin" onclick="return DoValidate();" style="border: 0" />
+                            </td>
+                            <td align="center" style="height: 34px">
+                                <a href="http://zhuzhou2013.feixuelixm.teacher.com.cn/UserRegister/UserRegister1.aspx" target="_parent">
+                                    <img src="http://images1.teacher.com.cn/feixuelixm/images/sidebar_tag03.gif" border="0"></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td height="25" align="center">
+                                <a href="../user/GetUserPassword.aspx" target="_parent">忘记密码</a></td>
+                                   <td align="center">
+                                <a href="cjwt.aspx" target="_blank">帮助中心</a></td>
+                           
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="blank5">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" id="ClientScreenWidth" name="ClientScreenWidth" value="588"/>
+        <script language="javascript" type="text/javascript">                    
+                    document.all.ClientScreenWidth.value=window.screen.width-260;                                                      
+        </script>
+    
+<script  language=javascript>document.location='LoginedPage.aspx';</script></form>
+</body>
+</html>
+
