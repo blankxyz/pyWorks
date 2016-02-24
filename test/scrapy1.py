@@ -8,8 +8,8 @@ import cookielib
 socket.setdefaulttimeout(30)
 
 def saveCookies():
-    url = 'http://10.0.90.50:10080/Login.aspx'
-    #url = 'http://www.baidu.com'
+    #url = 'http://10.0.90.50:10080/Login.aspx'
+    url = 'http://www.cnblogs.com/'
     #设置保存cookie的文件，同级目录下的cookie.txt
     filename = 'cookie.txt'
     #声明一个MozillaCookieJar对象实例来保存cookie，之后写入文件
@@ -28,7 +28,8 @@ def saveCookies():
     cookie.save(ignore_discard=True, ignore_expires=True)
 
 def readCookies():
-    loginUrl = 'http://10.0.90.50:10080/Login.aspx'
+    #loginUrl = 'http://10.0.90.50:10080/Login.aspx'
+    loginUrl = 'http://www.cnblogs.com'
     filename = 'cookie.txt'
     #声明一个MozillaCookieJar对象实例来保存cookie，之后写入文件
     cookie = cookielib.MozillaCookieJar(filename)
