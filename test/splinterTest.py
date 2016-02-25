@@ -37,7 +37,7 @@ output("测试页面:"+browser.title)
 
 try:
     # test login
-    testLogin('测试未输入用户名','','','请输入会员名')
+    testLogin('测试未输入用户名','songyq0509@163.com','','请输入会员名')
     testLogin('测试未输入密码','qd_test_001','','请输入密码')
     testLogin('测试帐户不存在','这是一个不存在的名字哦','xxxxxxx','该账户名不存在')
     testLogin('测试成功登录','qd_test_001','taobao1234','继续登录前操作')
