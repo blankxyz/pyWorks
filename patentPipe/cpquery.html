@@ -1,0 +1,485 @@
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+<title>中国及多国专利审查信息查询</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<title></title>
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="keywords" content="CPQUERY Patent System"/>
+<meta name="renderer" content="webkit" />
+<link rel="shortcut icon" href="/layout/images/favicon.ico" />
+
+<!-- CSS START -->
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/reset.css" rel="stylesheet" type="text/css" /> <!-- 去除浏览器默认样式文件 -->
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/base.css" rel="stylesheet" type="text/css" /> <!-- 公共基础样式 -->
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/common.css" rel="stylesheet" type="text/css" /> <!-- 公共组件样式 -->
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/body.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/main.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/custom.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/global.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/commons/validation/css/validationEngine.jquery.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/commons/validation/css/template.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/commons/uploadify/css/uploadify.css" rel="stylesheet" type="text/css" />
+<link href="http://cpquery.sipo.gov.cn:80/commons/tree/css/zTreeStyle.css" rel="stylesheet" type="text/css" />
+
+<!-- CSS END -->
+
+<script type="text/javascript">
+	var ctx = 'http://cpquery.sipo.gov.cn:80';
+	var openWindowType = 'window';
+	var pageUUID = '/app/cpquery/search/sub/query-zlxm.jsp';
+	var _prePageName = '';
+	var menuPath = '';// TODO
+	var errorCode = '000000';
+	var errorDesc = '';
+	var globalUser = {
+		"language" : "zh",
+		"id" : ""
+	};
+	//避免ie console log报错
+	if (!window.console || !window.console.log) {
+		window.console = {
+			log : function(v) {
+				
+			}
+		}
+	}
+</script>
+<!-- COMMON SCRIPT START  -->
+
+<!--[if lte IE 8]>
+<script src='http://cpquery.sipo.gov.cn:80/layout/js/html5.js'></script>
+<![endif]-->
+<script src='http://cpquery.sipo.gov.cn:80/commons/jquery/jquery-1.7.2.min.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/common.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/datepicker/datepicker.files.js'></script>			
+<script type="text/javascript" src="http://cpquery.sipo.gov.cn:80/commons/jquery/jquery.media.js"></script>  
+<!-- COMMON SCRIPT END  -->
+
+<link href="http://cpquery.sipo.gov.cn:80/layout/css/custom.css" rel="stylesheet" type="text/css" />	
+<!-- OPEN CORE SCRIPT END -->
+<script type="text/javascript">
+$(function() {
+	$.i18n.properties({
+		name : "message", // 资源文件名称
+		path : "http://cpquery.sipo.gov.cn:80/common/i18n/", // 资源文件所在目录路径
+		mode : "map",
+		language : globalUser.language, // 对应的语言
+		cache : false,
+		encoding : "UTF-8",
+		callback : function() { // 加载验证国际化语言
+			$.validationEngineLanguage.newLang();
+		}
+	});
+	
+	if ("TXN-ERR" == errorCode) {
+		showMsg(errorDesc, "warning");
+	}
+	if (errorDesc && window.console) {
+		console.log(errorDesc);
+	}
+});
+</script>
+
+<style type="text/css">
+.cur {
+	background-color: #66A3D2;
+}
+
+.Wdate {
+	height: 30px;
+	line-height: 30px;
+	border: 1px solid #bae2f7 !important;
+	background: #fff;
+	width: 167px;
+	font-size: 12px;
+	position: relative;
+	float: left;
+	padding-left: 10px;
+}
+</style>
+</head>
+<body>
+
+	
+
+
+
+
+
+
+
+
+
+
+
+<!--导航-->
+<input id="usertype" type="hidden"
+			value="1">
+<div class="hd">
+	<div class="head" id="header1">
+		<div class="logo_box">
+			
+		</div>
+		<div class="nav_box">
+			<ul class="header_menu">
+				<li id="header_query" 
+					class="_over" ><div
+						 class="nav_over" >
+						中国专利审查信息查询
+					</div></li>
+				<li id="header-family" ><div
+						>
+						多国发明专利审查信息查询
+					</div></li>
+			</ul>
+
+		</div>
+		<div class="hr">
+			<ul>
+				<!-- 公众用户 -->
+				
+					<li id="regpublic"><a href="javascript:;">注册</a></li>
+					<li id="loginpublic"><a href="javascript:;">登录</a></li>
+				
+				<!-- 公众注册用户 -->
+				
+				<!-- 电子申请注册用户 -->
+				
+				<!-- 公用部分  -->
+				
+				<li title="选择语言"> 
+					<div class="selectlang">
+						<a href="javascript:;"> <i class="lang"></i>
+						</a>
+						<div class="topmenulist hidden">
+							<ul>
+								<li id="zh"><span  title="中文">中文</span></li>
+								<li id="en"><span  title="English">English</span></li>
+								<li id="de"><span  title="Deutsch">Deutsch</span></li>
+								<li id="es"><span  title="Espa&ntilde;ol">Espa&ntilde;ol</span></li>
+								<li id="fr"><span  title="Fran&ccedil;ais">Fran&ccedil;ais</span></li>
+								<li id="ja"><span  title="&#26085;&#26412;&#35486;">&#26085;&#26412;&#35486;</span></li>
+								<li id="ko"><span  title="&#54620;&#44397;&#50612;">&#54620;&#44397;&#50612;</span></li>
+								<li id="ru"><span  title="&#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;">&#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;</span></li>
+							</ul>
+						</div>
+					</div>
+				</li>
+				<li id="navLogoutBtn" class="mouse_cross" title="退出">
+					<a href="javascript:;"><i class="out"></i></a>
+			 	</li>
+			</ul>
+		</div>
+
+		<ul class="float_botton">
+		<li id="backToTopBtn" title="返回顶部" style="display: none;"><i
+				class="top"></i></li>
+			<li id="backToPage" class="hidden"><a href="javascript:;"><i
+					class="back" title="返回"></i></a></li>
+			<li id="faqBtn" ><a href="javascript:;"><i
+					class="faq_icon" title="FAQ"></i></a></li>
+		</ul>
+	</div>
+</div>
+<script src='http://cpquery.sipo.gov.cn:80/appjs/header.js'></script>
+<!-- header.jsp对应js -->
+
+	<input type='hidden' name='select-key:backPage' id='select-key:backPage' value="http://cpquery.sipo.gov.cn/txnQueryOrdinaryPatents.do?select-key:shenqingh=2014202071967&amp;select-key:zhuanlimc=&amp;select-key:shenqingrxm=&amp;select-key:zhuanlilx=&amp;select-key:shenqingr_from=&amp;select-key:shenqingr_to=&amp;inner-flag:open-type=window&amp;inner-flag:flowno=1457276172123">
+	<input type='hidden' name='show:iszlxshow' id='show:iszlxshow' value="yes">
+	<input type='hidden' name='show:issqrshow' id='show:issqrshow' value="yes">
+	<input type='hidden' name='show:isfmrshow' id='show:isfmrshow' value="yes">
+	<input type='hidden' name='show:islxrshow' id='show:islxrshow' value="no">
+	<input type='hidden' name='show:iszldlshow' id='show:iszldlshow' value="no">
+	<input type='hidden' name='show:isyxqshow' id='show:isyxqshow' value="no">
+	<input type='hidden' name='show:ispctshow' id='show:ispctshow' value="no">
+	<input type='hidden' name='show:isbgshow' id='show:isbgshow' value="no">
+	<input type='hidden' name='record_zlx:zhuanlilx' id='record_zlx:zhuanlilx' value="2">
+	<div class="bd">
+		<div class="tab_body">
+			<div class="tab_list">
+				<ul>
+				    
+				    <li id="jbxx" class="tab_first on"><div class="tab_top_on"></div>
+						<p>
+							申请信息
+						</p></li>
+					<li id='wjxx'><div class="tab_top"></div>
+						<p>
+							审查信息
+						</p></li>
+					<li id='fyxx'><div class="tab_top"></div>
+						<p>
+							费用信息
+						</p></li>
+					<li id='fwxx'><div class="tab_top"></div>
+						<p>
+							发文信息
+						</p></li>
+					<li id='gbgg'><div class="tab_top"></div>
+						<p>
+							公布公告
+						</p></li>
+						
+					
+						
+				    
+					
+				</ul>
+			</div>
+			<div class="tab_box">
+				<div class="imfor_part1">
+					<h2>
+						著录项目信息
+						<i id="zlxtitle" class="draw_up"></i>
+					</h2>
+					<div id="zlxid">
+						<div class="imfor_box">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="40%" class="td1">申请号/专利号：</td>
+									<td width="60%"><span name="record_zlx:shenqingh" title="2014202071967">2014202071967</span></td>
+								</tr>
+								<tr>
+									<td class="td1">申请日：</td>
+									<td><span name="record_zlx:shenqingr" title="pos||"><span id="9694921bfb80406587c5bc1676e19e1f" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="ea64003dfef349bd9e208720d5a67e87" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="89b54a15cd2043bba7b8d59248920859" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="8a272073dd2a42f6af83876b0151b69f" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="d8c5d21e205544caa3a57c1d23afec24" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="d485d597165540e08e6f238263acf814" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="087ceefa154d4210af8c899bfc9250d2" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="21e0418f39ad43acaca286e184214900" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="88ef0d5e82e84e44b438253704cc3ba9" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span><span id="4885b8d00abe42028970942dfa31f6ef" class="nlkfqirnlfjerldfgzxcyiuro">2014-04-27</span></span></td>
+								</tr>
+								<tr>
+									<td class="td1">案件状态：</td>
+									<td><span name="record_zlx:anjianywzt" title="pos||"><span id="23418cd0a1224c9085d4960c2506a3ec" class="nlkfqirnlfjerldfgzxcyiuro">未缴</span><span id="1e00e5c6f0524eeda46e4584f581a339" class="nlkfqirnlfjerldfgzxcyiuro">权终</span><span id="458ea77ceb7a42e69cf378d2c338699c" class="nlkfqirnlfjerldfgzxcyiuro">未缴</span><span id="c4867aead28e475d8923031d8253a238" class="nlkfqirnlfjerldfgzxcyiuro">未缴</span><span id="88be0b0137314b4ab9f14aa91a86a5fd" class="nlkfqirnlfjerldfgzxcyiuro">未缴</span><span id="d11510cb53a9453f889be7d5e62d869f" class="nlkfqirnlfjerldfgzxcyiuro">权终</span><span id="669f3739eac946e294bd3a442d6fa087" class="nlkfqirnlfjerldfgzxcyiuro">年费</span><span id="232058a2e01e48c89fa9983e83b95ec8" class="nlkfqirnlfjerldfgzxcyiuro">专利</span><span id="513a3b2bad3144559a715a668a16962a" class="nlkfqirnlfjerldfgzxcyiuro">权终</span><span id="a4edb2e43b8f4d978a818dacbdf7559b" class="nlkfqirnlfjerldfgzxcyiuro">止，等恢复</span></span></td>
+								</tr>
+							</table>
+						</div>
+						<div class="imfor_box2">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="40%" class="td1">发明名称：</td>
+									<td width="60%"><span name="record_zlx:zhuanlimc" title="pos||"><span id="95bb3048bdc6464591b58ece99b0b5d6" class="nlkfqirnlfjerldfgzxcyiuro">一</span><span id="5bd9bffd1b0f4951aaccc391c1f80d65" class="nlkfqirnlfjerldfgzxcyiuro">种</span><span id="5c872aca2dd3447ab20d056e6a426075" class="nlkfqirnlfjerldfgzxcyiuro">的设计</span><span id="14bc5e14713b495480b6bc3fad5ab31f" class="nlkfqirnlfjerldfgzxcyiuro">防</span><span id="4638cbcbeeac4e2baf83dbc72a39f74d" class="nlkfqirnlfjerldfgzxcyiuro">堵</span><span id="63d2168f827146488abb2ec497217663" class="nlkfqirnlfjerldfgzxcyiuro">的设计</span><span id="99a7c2a851304235b5dc3dcccb0a0ad3" class="nlkfqirnlfjerldfgzxcyiuro">排</span><span id="f3c1fce787234fcb8a5782ec4e83607b" class="nlkfqirnlfjerldfgzxcyiuro">水</span><span id="d03de19a15594ba69a33b20b41e4e4f0" class="nlkfqirnlfjerldfgzxcyiuro">管</span><span id="d11a8e096b8f4e67ab038a621b58d41d" class="nlkfqirnlfjerldfgzxcyiuro">的设计</span></span></td>
+								</tr>
+								<tr>
+									<td width="40%" class="td1">主分类号 ：</td>
+									<td width="60%"><span name="record_zlx:zhufenlh" title="pos||"><span id="da83b324ef9d449c99c1a105b75801a9" class="nlkfqirnlfjerldfgzxcyiuro">E0</span><span id="f83b1572487346a0b22c4066cb5bb26f" class="nlkfqirnlfjerldfgzxcyiuro">E0</span><span id="a5ba252cff4c49b5b1841be780e8b293" class="nlkfqirnlfjerldfgzxcyiuro">E0</span><span id="af1d077965e64f40abaf6f2031dff418" class="nlkfqirnlfjerldfgzxcyiuro">3C</span><span id="b76ea82abe7a4e3ca3fd8bf8d45697ce" class="nlkfqirnlfjerldfgzxcyiuro">E0</span><span id="c288062fd3a8405dac8dd3b81b7a37ff" class="nlkfqirnlfjerldfgzxcyiuro"> 1</span><span id="cdece88a1cbe4903ba0ee80585e2f287" class="nlkfqirnlfjerldfgzxcyiuro">/30</span><span id="fa3b972cd2c147169f53c130f5a5a5eb" class="nlkfqirnlfjerldfgzxcyiuro"> 1</span><span id="91d464472fbf437ea33a663836832f38" class="nlkfqirnlfjerldfgzxcyiuro"> 1</span><span id="c94c5fd491844086a1961bde1d81ee59" class="nlkfqirnlfjerldfgzxcyiuro">/30</span></span></td>
+								</tr>
+								<tr>
+									<td class="td1">分案提交日：</td>
+									<td><span name="record_zlx:fenantjr" title="pos||"></span></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						申请人
+						<i id="sqrtitle" class="draw_up"></i>
+					</h2>
+					<div id="sqrid" class="imfor_table">
+						<table class="imfor_table_grid">
+							<tr>
+								<th width="20%">姓名或名称</th>
+								<th width="30%">国籍或总部所在地</th>
+								<th width="10%">邮政编码</th>
+								<th width="40%">详细地址</th>
+							</tr>
+							
+								<tr>
+									<td width="30%"><span name="record_sqr:shenqingrxm" title="pos||"><span id="6171b532716c42eab9ae103ddacafc9d" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="9f99e378aeff450691f913cf8d7a7b10" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="6ecacfba61054fd3a09d1a862949e647" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="5054b6c1720b4adcb0b5e18a59f76260" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="aa7fe47ea13e4319b4ce8cac0bde867f" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="524d7302e4ab4806bcef4a5ce6cf3226" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="dee78945de08432589283306c86ef7d7" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="b840a78889a34e79b7b95146a8ddcfb3" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="bc512b7867584661a53df4d0462d9c4f" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="149a8a271d9c42c78494b11954f324d5" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span></span></td>
+									<td width="20%"><span name="record_sqr:shenqingrgb" title="--">--</span></td>
+									<td width="10%"><span name="record_sqr:shenqingryb" title="--">--</span></td>
+									<td width="45%"><span name="record_sqr:shenqingrdz" title="--">--</span></td>
+								</tr>
+							
+						</table>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						发明人/设计人
+						<i id="fmrtitle" class="draw_up"></i>
+					</h2>
+					<div id="fmrid" class="imfor_box">
+						<table class="imfor_table_grid">
+							<tr>
+								<td width="30%" class="td1">发明人姓名：</td>
+								<td width="70%"><span name="record_fmr:famingrxm" title="pos||"><span id="6744483f221a4bb48ac2db583330ef16" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="0b27886880b44e8397168e9b8a51fe06" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="2984423ff2214cf4a1ae98f69966e5e6" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="d8a79b55bdaa4b9eb213954356448d74" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="ebed5ac02f8f4b798f4689c016e0e81d" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="072059d73177473eb50645e1afac4420" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="b122a12b7b3e4b0e810ad2f5feb28750" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="9bd01f68a3a74e1785ebed3b06b172f5" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="8cd3d25ce5cf44c7a3e222247e9b43f2" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span><span id="31d35742e44e4353a50f6438331b1523" class="nlkfqirnlfjerldfgzxcyiuro">萧冰</span></span></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						联系人
+						<i id="lxrtitle" class="draw_up"></i>
+					</h2>
+					<div id="lxrid">
+						<div class="imfor_box">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="30%" class="td1">姓名：</td>
+									<td width="70%"><span name="record_lxr:lianxirxm" title="pos||"></span></td>
+								</tr>
+								<tr>
+									<td width="30%" class="td1">邮政编码：</td>
+									<td width="70%"><span name="record_lxr:lianxiryb" title="pos||"></span></td>
+								</tr>
+
+							</table>
+						</div>
+						<div class="imfor_box2">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="30%" class="td1">详细地址：</td>
+									<td width="70%"><span name="record_lxr:lianxirdz" title="pos||"></span></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						代理情况
+						<i id="zldltitle" class="draw_up"></i>
+					</h2>
+					<div id="zldlid">
+						<div class="imfor_box">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="40%" class="td1">代理机构名称：</td>
+									<td width="60%"><span name="record_zldl:dailijgmc" title="pos||"></span></td>
+								</tr>
+							</table>
+						</div>
+						<div class="imfor_box2">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="40%" class="td1">第一代理人：</td>
+									<td width="60%"><span name="record_zldl:diyidlrxm" title="pos||"></span></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						优先权
+						<i id="yxqtitle" class="draw_up"></i>
+					</h2>
+					<div id="yxqid" class="imfor_table">
+						<table class="imfor_table_grid">
+							<tr>
+								<th>在先申请号</th>
+								<th>在先申请日</th>
+								<th>原受理机构名称</th>
+							</tr>
+							
+						</table>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						申请国际阶段
+						<i id="pcttitle" class="draw_up"></i>
+					</h2>
+					<div id="pctid">
+						<div class="imfor_box">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="30%" class="td1">国际申请号：</td>
+									<td width="70%"><span name="record_pct:guojisqh" title="pos||"></span></td>
+								</tr>
+								<tr>
+									<td class="td1" width="30%">国际申请日：</td>
+									<td width="70%"><span name="record_pct:guojisqr" title="pos||"></span></td>
+								</tr>
+							</table>
+						</div>
+						<div class="imfor_box2">
+							<table class="imfor_table_grid">
+								<tr>
+									<td width="30%" class="td1">国际公布号：</td>
+									<td width="70%"><span name="record_pct:guojigbh" title="pos||"></span></td>
+								</tr>
+								<tr>
+									<td width="30%" class="td1">国际公布日：</td>
+									<td width="70%"><span name="record_pct:guojigbr" title="pos||"></span></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="imfor_part1">
+					<h2>
+						著录项目变更
+						<i id="bgtitle" class="draw_up"></i>
+					</h2>
+					<div id="bgid" class="imfor_table">
+						<table class="imfor_table_grid">
+							<tr>
+								<th width="15%">变更生效日</th>
+								<th width="25%">变更事项</th>
+								<th width="30%">变更前</th>
+								<th width="30%">变更后</th>
+							</tr>
+							
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="ft"></div>
+	
+
+
+
+
+
+<script src='http://cpquery.sipo.gov.cn:80/common/cpquery.common.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/form.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/extend.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/browser.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/jquery.md5.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/json2.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/tool/jquery.cookie.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/commons/jqueryui/jqueryui.files.js'></script>
+<script src='http://cpquery.sipo.gov.cn:80/common/cpquery.common.js'></script>
+
+<!-- OPEN CORE SCRIPT START -->
+<script src='http://cpquery.sipo.gov.cn:80/commons/open/open.files.js'></script>						
+<script src='http://cpquery.sipo.gov.cn:80/commons/nbrowsebox/browsebox.files.js'></script>				
+<script src='http://cpquery.sipo.gov.cn:80/commons/opendialog/jquery.opendialog.files.js'></script>		
+<script src='http://cpquery.sipo.gov.cn:80/commons/validation/jquery.validation.files.js'></script>		
+<script src='http://cpquery.sipo.gov.cn:80/commons/tree/jquery.tree.files.js'></script>					
+<script src='http://cpquery.sipo.gov.cn:80/commons/placeholder/jquery.placeholder.js'></script>			
+<script src='http://cpquery.sipo.gov.cn:80/commons/i18n/jquery.i18n.properties-1.0.9.js'></script>		
+<script src='http://cpquery.sipo.gov.cn:80/commons/noty/jquery.noty.files.js'></script>					
+<script src='http://cpquery.sipo.gov.cn:80/commons/uploadify/jquery.uploadify.files.js'></script>
+
+
+<script src=/appjs/cpquery/search/sub/query-zlxm.js type="text/javascript"></script>
+
+<iframe id="downFrame" frameborder="0" height="0" width="0" ></iframe>
+
+<span style="display: none" id="65603437343535636e6c6c3838346c6b297420232c2224277c2c7b2d2b7826280c42161b12124742494d18134919191a54090b01070505065c01080e0f5c0c0c786d74757d2375707b702f2a2f747a7935636b67363165366c6d683f6a3b3f6f58564e51575756525008580e5c5c0b5b48124a4a12144f4e404a1f434f1f474ae5e2baafb1b4b5e6bbebb8e9ede9bdbea4a5a7a6adf4a1a6adf8acada4fcafa9999790c288c492c2cccb98ce989ecc97d685d68a838dd78f8981dedadfdfdad9f7f4f7faa6e9fff2aaabf9fbf8f5acabb3e7e6e5e0e0efe6baece2bebfb8e7e682d180d680d3cad28a8dd3898a8b8ade92c194c7cdc0c796999a9998cfc4cf9c31673a336033332b393d686839683f3b27202171202c23232029782d7e7e2d794145174246161741041d1c18144e4c4c52545752570153055a585c030f595c5c777323707d2371732c6573722d7a2d7d31696762676562656b6c386e383e6d3b03020101540456060c5a460d5f0e5f091314454b434745431e1a18431d484947b2e4e1b7e1bdb5b1b8bee8a7e8bdbdebf5a0abf2a5a0a3aeacfbfbada5fcadacc29392c19094c393cd9dcc9b80c99f9ed189d7838d83d48fde8ddf8d8bdcdc8ff3f9a3f5f6f4a4f2f0adfefaa8e1aaaee8e2b0e0e6e1b3b1e1bdeeefe5bee7e683d083d2d4d084d0ddd1dada8dd4c28e96c096c3c3c2cfc1cd9ccccf9ac9ce9e6260643562373634396d6c6d383c362329207627222122202a7f787d282e297a411211421213151f1b1f12181e4b1d171c520b07570050530c000b0308090e077620737a727424232d782e737d282b7a697d7e65656267356d6a686c6d6b3d6b520403015d040356585a0e0f0d0e0f091348165f424242434c41491d4e4f4f1eb4e3e0b7bce4e5b5ecebbfb3bfbebdbff5f7a3a5b8b9babbb4b5b6b7b0b1">版权信息：国家知识产权局所有</span></body>
+
+</html>

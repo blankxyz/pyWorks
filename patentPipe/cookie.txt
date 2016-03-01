@@ -1,0 +1,6 @@
+# Netscape HTTP Cookie File
+# http://www.netscape.com/newsref/std/cookie_spec.html
+# This is a generated file!  Do not edit.
+
+cpquery.sipo.gov.cn	FALSE	/	FALSE		BIGipServerdzsp_wwcx_vs	2449909952.18975.0000
+cpquery.sipo.gov.cn	FALSE	/	FALSE		JSESSIONID	1dca9037b668e5314e2397332006
