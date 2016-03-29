@@ -159,7 +159,7 @@ class dbRead:
         return jsonStr
 
 if __name__ == '__main__':
-    r = dbRead()
+    r = dbRead(True)
     r.path = "jsonData/"
     print r.daysTotalByMember('2015-11-12')
     #r.statusChangeById(['35'])
