@@ -107,7 +107,7 @@ def register_fee_detail(folder):
             ret_list[u'减缓标记'] = detail_root.findall('fee_info_all/cost_slow_flag')[0].text
             ret_list[u'代理人'] = detail_root.findall('patent_agency/agent_info/agent_name')[0].text
             names = ''
-            for name in detail_root.findall('applicant_info/applicant_name'):  # TODO 申请人N
+            for name in detail_root.findall('applicant_info/applicant_name'):  # Todo 申请人N
                 names = names + name.text + ','
             ret_list[u'申请人名称'] = names[:-1]
     except Exception, e:
@@ -118,11 +118,9 @@ def register_fee_detail(folder):
 
 # 缴费通知书
 def annual_fee_detail(folder):
-    ret_list = {u'CPC档案号': '', u'通知书类型': '', u'专利名称': '', u'申请人名称': '', u'申请号': '', u'发文日': '', u'类型': '', u'档案号': '',
-                u'申请日': '', u'代理人': '', u'缴费年费年度': '', u'缴费截止日期': '', u'费用总金额明细': []}
-    # from list
-    # from detail
-
+    ret_list = {u'CPC档案号': '', u'通知书类型': '', u'专利名称': '', u'申请人名称': '', u'申请号': '', u'发文日': '',
+                u'类型': '', u'档案号': '', u'申请日': '', u'代理人': '', u'缴费年费年度': '', u'缴费截止日期': '',
+                u'费用总金额明细': []}
     try:
         replace_xml_encoding(root_path + folder + '/list.xml')
         # file_xml = open(path,"r").read()
@@ -149,7 +147,7 @@ def annual_fee_detail(folder):
             names = ''
             for name in detail_root.findall('applicant_info/applicant_name'):
                 names = names + name.text + ','
-            ret_list[u'申请人名称'] = names[:-1]  # TODO 申请人N
+            ret_list[u'申请人名称'] = names[:-1]  # Todo 申请人N
             ret_list[u'代理人'] = detail_root.findall('patent_agency/agent_info/agent_name')[0].text
             ret_list[u'缴费年费年度'] = detail_root.findall('annual_year')[0].text
             ret_list[u'缴费截止日期'] = detail_root.findall('pay_deadline_date')[0].text
