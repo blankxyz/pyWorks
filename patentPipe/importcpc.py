@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-import os, re
+import os
 import xlwt
 
 try:
@@ -12,9 +12,10 @@ folder_list = {}
 root_path = './cpc-export/'
 excel_file = 'jzph.xls'
 
+
 def scan_dir(directory):
     for folder in os.listdir(directory):
-        tmp_path = replaceXmlEncoding(root_path + folder + '/list.xml')
+        tmp_path = replace_xml_encoding(root_path + folder + '/list.xml')
         tree = ET.parse(tmp_path)
         root = tree.getroot()
         folder_list[folder] = root.findall('TONGZHISXJ/SHUXINGXX/TONGZHISMC')[0].text
@@ -23,14 +24,13 @@ def scan_dir(directory):
 
 
 def find_detail_xml(folder):
-    xml_file = ''
     for xml_file in os.listdir(root_path + folder + '/' + folder + '/'):
         if xml_file.endswith('.xml') == True and xml_file.startswith(folder):
             return root_path + folder + '/' + folder + '/' + xml_file
     return ''
 
 
-def replaceXmlEncoding(file_path, oldEncoding='gbk', newEncoding='utf-8'):
+def replace_xml_encoding(file_path, old_encoding='gbk', new_encoding='utf-8'):
     file_xml = open(file_path, "r").read()
     file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>', '<?xml version="1.0" encoding="utf-8"?>')
     file_xml = unicode(file_xml, encoding='GBK').encode('utf-8')
@@ -50,7 +50,7 @@ def read_list_xml(folder):
     ret_list[u'档案号'] = ''
     ret_list[u'申请日'] = ''
     try:
-        replaceXmlEncoding(root_path + folder + '/list.xml')
+        replace_xml_encoding(root_path + folder + '/list.xml')
         # file_xml = open(path,"r").read()
         # file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>','<?xml version="1.0" encoding="utf-8"?>')
         # str = unicode(file_xml,encoding='GBK').encode('utf-8')
@@ -68,7 +68,7 @@ def read_list_xml(folder):
 
         print ret_list
     except Exception, e:
-        print "parse error:" + folder + '/list.xml.tmp'
+        print "parse error:%s " % e.message + folder + '/list.xml.tmp'
     return ret_list
 
 
@@ -97,7 +97,7 @@ def register_fee_detail(folder):
     ret_list[u'代理人'] = ''
 
     try:
-        replaceXmlEncoding(root_path + folder + '/list.xml')
+        replace_xml_encoding(root_path + folder + '/list.xml')
         # file_xml = open(path,"r").read()
         # file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>','<?xml version="1.0" encoding="utf-8"?>')
         # str = unicode(file_xml,encoding='GBK').encode('utf-8')
@@ -133,13 +133,14 @@ def register_fee_detail(folder):
             ret_list[u'减缓标记'] = detail_root.findall('fee_info_all/cost_slow_flag')[0].text
             ret_list[u'代理人'] = detail_root.findall('patent_agency/agent_info/agent_name')[0].text
             names = ''
-            for name in detail_root.findall('applicant_info/applicant_name'): # TODO 申请人N
-               names  = names + name.text + ','
+            for name in detail_root.findall('applicant_info/applicant_name'):  #TODO 申请人N
+                names = names + name.text + ','
             ret_list[u'申请人名称'] = names[:-1]
     except Exception, e:
-        print "parse error:" + folder + '/list.xml.tmp'
+        print "parse error:%s "%e.message + folder + '/list.xml.tmp'
 
     return ret_list
+
 
 # 缴费通知书
 def annual_fee_detail(folder):
@@ -161,7 +162,7 @@ def annual_fee_detail(folder):
     ret_list[u'费用总金额明细'] = []
 
     try:
-        replaceXmlEncoding(root_path + folder + '/list.xml')
+        replace_xml_encoding(root_path + folder + '/list.xml')
         # file_xml = open(path,"r").read()
         # file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>','<?xml version="1.0" encoding="utf-8"?>')
         # str = unicode(file_xml,encoding='GBK').encode('utf-8')
@@ -174,9 +175,9 @@ def annual_fee_detail(folder):
         ret_list[u'申请号'] = root.findall('TONGZHISXJ/SHUXINGXX/SHENQINGH')[0].text
         ret_list[u'发文日'] = root.findall('TONGZHISXJ/SHUXINGXX/FAWENR')[0].text
         ret_list[u'类型'] = root.findall('TONGZHISXJ/SHUXINGXX/FAMINGLX')[0].text
-        if len(root.findall('TONGZHISXJ/SHUXINGXX/NEIBUBH'))!=0:
+        if len(root.findall('TONGZHISXJ/SHUXINGXX/NEIBUBH')) != 0:
             ret_list[u'档案号'] = root.findall('TONGZHISXJ/SHUXINGXX/NEIBUBH')[0].text
-        if len(root.findall('TONGZHISXJ/SHUXINGXX/SHENQINGR'))!=0:
+        if len(root.findall('TONGZHISXJ/SHUXINGXX/SHENQINGR')) != 0:
             ret_list[u'申请日'] = root.findall('TONGZHISXJ/SHUXINGXX/SHENQINGR')[0].text
 
         detail_xml_path = find_detail_xml(folder)
@@ -186,23 +187,23 @@ def annual_fee_detail(folder):
             names = ''
             for name in detail_root.findall('applicant_info/applicant_name'):
                 names = names + name.text + ','
-            ret_list[u'申请人名称'] = names[:-1] #TODO 申请人N
+            ret_list[u'申请人名称'] = names[:-1]  # TODO 申请人N
             ret_list[u'代理人'] = detail_root.findall('patent_agency/agent_info/agent_name')[0].text
             ret_list[u'缴费年费年度'] = detail_root.findall('annual_year')[0].text
             ret_list[u'缴费截止日期'] = detail_root.findall('pay_deadline_date')[0].text
 
             fee_list = []
             for fee in detail_root.findall('fee_info/fee'):
-                pay_start_time = fee.findall('pay_start_time')[0].text #缴费开始时间
-                pay_end_time = fee.findall('pay_end_time')[0].text #缴费截止时间
-                annual_fee = fee.findall('annual_fee')[0].text #年费
-                late_fee = fee.findall('late_fee')[0].text #滞纳金额
-                totle_fee = fee.findall('totle_fee')[0].text #费用总金额
-                fee_list.append([pay_start_time,pay_end_time,annual_fee,late_fee,totle_fee])
+                pay_start_time = fee.findall('pay_start_time')[0].text  # 缴费开始时间
+                pay_end_time = fee.findall('pay_end_time')[0].text  # 缴费截止时间
+                annual_fee = fee.findall('annual_fee')[0].text  # 年费
+                late_fee = fee.findall('late_fee')[0].text  # 滞纳金额
+                totle_fee = fee.findall('totle_fee')[0].text  # 费用总金额
+                fee_list.append([pay_start_time, pay_end_time, annual_fee, late_fee, totle_fee])
             ret_list[u'费用总金额明细'] = fee_list
 
     except Exception, e:
-        print "parse error:" + folder + '/list.xml.tmp'
+        print "parse error:%s "%e.message + folder + '/list.xml.tmp'
 
     return ret_list
 
@@ -211,7 +212,7 @@ def annual_fee_detail(folder):
 def export_annual_fee(f):
     reg_sheet = f.add_sheet(u'缴费通知书', cell_overwrite_ok=True)
     title = [u'CPC档案号', u'通知书类型', u'发文日', u'档案号', u'类型', u'专利名称', u'申请人', u'申请号', u'申请日',
-              u'年度',u'年费',u'最高滞纳金',u'合计',u'截止日期',u'代理人']
+             u'年度', u'年费', u'最高滞纳金', u'合计', u'截止日期', u'代理人']
     type = [u'发明', u'新型', u'外观']
 
     # write title
@@ -237,15 +238,16 @@ def export_annual_fee(f):
         # detail
         reg_sheet.write(row_num, 9, parse_detail[u'缴费年费年度'])
         detail = parse_detail[u'费用总金额明细']
-        annual_fee = detail[4][2] #年费
-        late_fee = detail[4][3] #最高滞纳金
-        totle_fee = detail[4][4] #费用总金额
+        annual_fee = detail[4][2]  # 年费
+        late_fee = detail[4][3]  # 最高滞纳金
+        totle_fee = detail[4][4]  # 费用总金额
         reg_sheet.write(row_num, 10, annual_fee)
         reg_sheet.write(row_num, 11, late_fee)
         reg_sheet.write(row_num, 12, totle_fee)
         reg_sheet.write(row_num, 13, parse_detail[u'缴费截止日期'])
         reg_sheet.write(row_num, 14, parse_detail[u'代理人'])
         row_num = row_num + 1
+
 
 # 办理登记手续通知书
 def export_register_fee(f):
@@ -284,6 +286,7 @@ def export_register_fee(f):
         reg_sheet.write(row_num, 16, parse_detail[u'减缓标记'])
         reg_sheet.write(row_num, 17, parse_detail[u'代理人'])
         row_num = row_num + 1
+
 
 if __name__ == '__main__':
     scan_dir(root_path)
