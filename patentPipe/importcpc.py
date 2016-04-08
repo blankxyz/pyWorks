@@ -1,34 +1,41 @@
 # -*- coding: UTF-8 -*-
 import os
 import xlwt
+import Queue
+import threading
 
 try:
     import xml.etree.cElementTree as element_tree
 except ImportError:
     import xml.etree.ElementTree as element_tree
 
-folder_list = {}
+folder_list = {}  # task_list
 root_path = './cpc-export/'
+# notices type:12
+college_dict = {u'缴费通知书': [], u'办理登记手续通知书': [], u'手续合格通知书': [], u'第一次审查意见通知书': [],
+                u'第N次审查意见通知书': [], u'第N次补正通知书': [], u'发明专利申请初步审查合格通知书': [],
+                u'视为撤回通知书': [], u'费用减缓审批通知书': [], u'专利申请受理通知书': [], u'补正通知书': [],
+                u'专利权终止通知书': []}
+
+thread_list = ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11"]
+queue_lock = threading.Lock()
+work_queue = Queue.Queue(len(college_dict))
 
 
-def scan_dir(directory):
-    for folder in os.listdir(directory):
-        tmp_path = replace_xml_encoding(root_path + folder + '/list.xml')
-        tree = element_tree.parse(tmp_path)
-        root = tree.getroot()
-        folder_list[folder] = root.findall('TONGZHISXJ/SHUXINGXX/TONGZHISMC')[0].text
-    # print folder_list
-    return folder_list
+class parse_thread(threading.Thread):
+    def __init__(self, thread_id, notice_type, queue):
+        threading.Thread.__init__(self)
+        self.thread_id = thread_id
+        self.notice_type = notice_type
+        self.queue = queue
+
+    def run(self):
+        print "Starting " + self.notice_type
+        # process_data(self.notice_type, self.queue)
+        print "Exiting " + self.notice_type
 
 
-def find_detail_xml(folder):
-    for xml_file in os.listdir(root_path + folder + '/' + folder + '/'):
-        if xml_file.endswith('.xml') == True and xml_file.startswith(folder):
-            return root_path + folder + '/' + folder + '/' + xml_file
-    return ''
-
-
-# old_encoding='gbk' new_encoding='utf-8'
+# old_encoding='gbk' new_encoding='utf-8':list.xml -> list.xml.tmp
 def replace_xml_encoding(file_path):
     file_xml = open(file_path, "r").read()
     file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>', '<?xml version="1.0" encoding="utf-8"?>')
@@ -37,6 +44,44 @@ def replace_xml_encoding(file_path):
     temp_file.write(file_xml)
     temp_file.close()
     return file_path + '.tmp'
+
+
+# folder_list:{'GA000107254973':u'缴费通知书','GA000107499252':u'办理登记手续通知书'...}
+def scan_dir(directory):
+    global folder_list
+    for folder in os.listdir(directory):
+        tmp_path = replace_xml_encoding(root_path + folder + '/list.xml')
+        tree = element_tree.parse(tmp_path)
+        root = tree.getroot()
+        folder_list[folder] = root.findall('TONGZHISXJ/SHUXINGXX/TONGZHISMC')[0].text
+    print u'通知书共计：%d件' % len(folder_list)
+    return folder_list
+
+
+# return GA000108137330/list.xml
+def find_detail_xml(folder):
+    for xml_file in os.listdir(root_path + folder + '/' + folder + '/'):
+        if xml_file.endswith('.xml') == True and xml_file.startswith(folder):
+            return root_path + folder + '/' + folder + '/' + xml_file
+    return ''
+
+
+def college_list():
+    # reformat_dict= dict((v,k) for k,v in d.iteritems())
+    global college_dict
+    global folder_list
+    for notice_type, notice_id in college_dict.items():
+        new_list = []
+        for k, v in folder_list.items():
+            if v == notice_type:
+                new_list.append(k)
+        new_dict = {notice_type: new_list}
+        college_dict.update(new_dict)
+
+    cnt = 0
+    for notice_type, notice_id in college_dict.items():
+        cnt += len(notice_id)
+    print u'扫描通知书共：%d件' % cnt
 
 
 def read_list_xml(folder):
@@ -71,7 +116,6 @@ def register_fee_detail(folder):
                 u'类型': '', u'档案号': '', u'申请日': '', u'登记费': '', u'年费': '', u'印花费': '', u'已缴费用': '',
                 u'应缴费用': '', u'缴纳年费年度': '', u'截止日期': '', u'减缓标记': '', u'代理人': ''}
     try:
-        replace_xml_encoding(root_path + folder + '/list.xml')
         # file_xml = open(path,"r").read()
         # file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>','<?xml version="1.0" encoding="utf-8"?>')
         # str = unicode(file_xml,encoding='GBK').encode('utf-8')
@@ -122,7 +166,6 @@ def annual_fee_detail(folder):
                 u'类型': '', u'档案号': '', u'申请日': '', u'代理人': '', u'缴费年费年度': '', u'缴费截止日期': '',
                 u'费用总金额明细': []}
     try:
-        replace_xml_encoding(root_path + folder + '/list.xml')
         # file_xml = open(path,"r").read()
         # file_xml = file_xml.replace('<?xml version="1.0" encoding="GBK"?>','<?xml version="1.0" encoding="utf-8"?>')
         # str = unicode(file_xml,encoding='GBK').encode('utf-8')
@@ -175,11 +218,11 @@ def export_annual_fee(excel_file):
              u'年度', u'年费', u'最高滞纳金', u'合计', u'截止日期', u'代理人']
     types = [u'发明', u'新型', u'外观']
 
-    # write title
+    # write title to excel
     for j in range(0, len(title)):
         reg_sheet.write(0, j, title[j])
 
-    # write grid data
+    # write grid data to excel
     row_num = 1
     for folder in folder_list.keys():
         if folder_list[folder] != u'缴费通知书':
@@ -250,6 +293,7 @@ def export_register_fee(excel_file):
 
 if __name__ == '__main__':
     scan_dir(root_path)
+    college_list()
     f = xlwt.Workbook()
     export_register_fee(f)
     export_annual_fee(f)
