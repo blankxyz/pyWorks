@@ -1,0 +1,22 @@
+抽取html内容模块说明文档
+
+使用方法
+import extractorss
+data = {}
+data['html'] = unicode 页面文本
+data['title'] = unicode 标题
+data['summary'] = unicode 摘要
+extractor.get_content(data)
+
+参数说明
+html 必须，请尽量传入unicode类型，非unicode返回后会变为unicode，str会自动转码但可能失败
+title 非必须，编码同html，可提高分析准确率
+summary 非必须，同title
+
+返回说明
+函数返回值为空 结果添加进参数字典
+text 过滤标签后文本
+lines 文本按行分组列表 便于后续根据正文分析其他属性
+content 正文文本
+content_start 正文在lines中起始行数
+content_end 正文在lines中结束行数
