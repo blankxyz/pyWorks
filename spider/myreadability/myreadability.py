@@ -123,7 +123,7 @@ class Document(object):
                 #print to_string(item)
             text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
             rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
-            print rate
+            # print rate
             return rate > 0.6
         except:
             return False
