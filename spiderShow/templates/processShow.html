@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>process count show</title>
+    <script src="{{url_for('static', filename='jquery.min.js')}}"></script>
+    <script src="{{url_for('static', filename='highcharts.js')}}"></script>
+    <script src="{{url_for('static', filename='exporting.js')}}"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('#container').highcharts({
+                chart: { type: 'area' },
+                title: { text: 'process count report' },
+                subtitle: { text: 'redis' },
+                xAxis: {
+                    categories: [1,2,3,4],
+                    tickmarkPlacement: 'on',
+                    title: { enabled: false }
+                },
+                yAxis: {
+                    title: { text: 'count' },
+                    labels: { formatter: function () { return this.value; } }
+                },
+                tooltip: {
+                    shared: true,
+                    valueSuffix: ' cnt'
+                },
+                plotOptions: {
+                    area: {
+                        stacking: 'normal',
+                        lineColor: '#666666',
+                        lineWidth: 1,
+                        marker: { lineWidth: 1, lineColor: '#666666' }
+                    }
+                },
+                series: [
+                    { name: 'rule0',data: '{{rule0_cnt}}' },
+                    { name: 'rule1',data: '{{rule1_cnt}}' }]
+            });
+        });
+    </script>
+</head>
+<body>
+<p align="center">{{times}}</p>
+<p align="center">{{rule0_cnt}}</p>
+<p align="center">{{rule1_cnt}}</p>
+<div id="container" style="min-width:700px;height:400px"></div>
+</body>
+</html>
