@@ -79,18 +79,18 @@ class ScanDB:
         fp.write('\n')
         fp.close()
 
-    def readDB(self):
+    def exportDB(self):
         print self.conn.zcard(self.list_urls_zset_key)
         print self.conn.zrange(self.list_urls_zset_key,0,-1,withscores=True)
 
 if __name__ == '__main__':
     scan = ScanDB()
-    # timer_interval = 1
-    #
-    # t = Timer(timer_interval, scan.collageCount)
-    # t.start()
-    #
-    # while True:
-    #     time.sleep(60)
-    #     scan.collageCount()
-    scan.readDB()
+    timer_interval = 1
+
+    t = Timer(timer_interval, scan.collageCount)
+    t.start()
+
+    while True:
+        time.sleep(60)
+        scan.collageCount()
+    # scan.exportDB()

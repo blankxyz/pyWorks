@@ -3,47 +3,68 @@
 <head>
     <meta charset="utf-8">
     <title>process count show</title>
-    <script src="{{url_for('static', filename='jquery.min.js')}}"></script>
-    <script src="{{url_for('static', filename='highcharts.js')}}"></script>
-    <script src="{{url_for('static', filename='exporting.js')}}"></script>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='exporting.js') }}"></script>
     <script type="text/javascript">
+        setTimeout('window.location.reload()',60*1000);
         $(function () {
             $('#container').highcharts({
-                chart: { type: 'area' },
-                title: { text: 'process count report' },
-                subtitle: { text: 'redis' },
+                title: {
+                    text: '处理过程',
+                    x: -20 //center
+                },
+                subtitle: {
+                    text: '单位:分钟',
+                    x: -20
+                },
                 xAxis: {
-                    categories: [1,2,3,4],
-                    tickmarkPlacement: 'on',
-                    title: { enabled: false }
+                    categories: {{ times }}
                 },
                 yAxis: {
-                    title: { text: 'count' },
-                    labels: { formatter: function () { return this.value; } }
+                    title: {
+                        text: '页数'
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }]
                 },
                 tooltip: {
-                    shared: true,
-                    valueSuffix: ' cnt'
+                    valueSuffix: '页'
                 },
-                plotOptions: {
-                    area: {
-                        stacking: 'normal',
-                        lineColor: '#666666',
-                        lineWidth: 1,
-                        marker: { lineWidth: 1, lineColor: '#666666' }
-                    }
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 1
                 },
-                series: [
-                    { name: 'rule0',data: '{{rule0_cnt}}' },
-                    { name: 'rule1',data: '{{rule1_cnt}}' }]
+                series: [{
+                    name: '规则0',
+                    data: {{ rule0_cnt }}
+                }, {
+                    name: '规则1',
+                    data: {{ rule1_cnt }}
+                }, {
+                    name: '详情页',
+                    data: {{ detail_cnt }}
+                }, {
+                    name: '列表页',
+                    data: {{ list_cnt }}
+                },{
+                    name: '列表页(扫描完成)',
+                    data:{{ list_done_cnt }}
+                }]
             });
         });
+
     </script>
 </head>
 <body>
-<p align="center">{{times}}</p>
-<p align="center">{{rule0_cnt}}</p>
-<p align="center">{{rule1_cnt}}</p>
-<div id="container" style="min-width:700px;height:400px"></div>
+{#<p align="center">{{times}}</p>#}
+{#<p align="center">{{rule0_cnt}}</p>#}
+{#<p align="center">{{rule1_cnt}}</p>#}
+<div id="container" style="min-width:700px;height:700px"></div>
 </body>
 </html>

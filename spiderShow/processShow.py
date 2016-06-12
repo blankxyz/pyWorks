@@ -58,6 +58,7 @@ def showInMatPlot():
 @app.route('/')
 def index():
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
+    times = range(len(times))
     return render_template('processShow.html',
                            times=times,
                            rule0_cnt=rule0_cnt,
@@ -67,7 +68,7 @@ def index():
                            list_done_cnt=list_done_cnt)
 
 if __name__ == '__main__':
-    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
-    print times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt
-    showInMatPlot()
-    # app.run()
+    # times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
+    # print times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt
+    # showInMatPlot()
+    app.run()
