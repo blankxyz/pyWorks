@@ -12,7 +12,7 @@ class ScanDB:
 
     def __init__(self):
         self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/6')
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/4')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -79,13 +79,18 @@ class ScanDB:
         fp.write('\n')
         fp.close()
 
+    def readDB(self):
+        print self.conn.zcard(self.list_urls_zset_key)
+        print self.conn.zrange(self.list_urls_zset_key,0,-1,withscores=True)
+
 if __name__ == '__main__':
     scan = ScanDB()
-    timer_interval = 1
-
-    t = Timer(timer_interval, scan.collageCount)
-    t.start()
-
-    while True:
-        time.sleep(60)
-        scan.collageCount()
+    # timer_interval = 1
+    #
+    # t = Timer(timer_interval, scan.collageCount)
+    # t.start()
+    #
+    # while True:
+    #     time.sleep(60)
+    #     scan.collageCount()
+    scan.readDB()
