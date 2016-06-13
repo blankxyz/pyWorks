@@ -129,7 +129,7 @@ class MySpider(spider.Spider):
             # print tag
             try:
                 if tag.regex(r'^\s*>+\s*$'):
-                    # print '[have_crumbs() yes]' + url
+                    print '[have_crumbs() yes]' + url
                     return True
                 else:
                     print '[have_crumbs() no]' + tag
