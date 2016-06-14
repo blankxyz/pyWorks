@@ -12,7 +12,7 @@ class ScanDB:
 
     def __init__(self):
         self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/4')
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/8')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -20,6 +20,9 @@ class ScanDB:
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain
         self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
+        self.crumbs_urls_zset_key = 'crumbs_urls_zset_%s' % self.site_domain
+        self.hub_urls_zset_key = 'hub_urls_zset_%s' % self.site_domain
+        self.hub_urls_level_zset_key = 'hub_urls_level_zset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
         self.offline = False
@@ -67,6 +70,25 @@ class ScanDB:
         list_done_urls = self.conn.zrangebyscore(
             self.list_urls_zset_key, self.done_flg, self.done_flg)
         list_done_cnt = len(list_done_urls)
+        t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cnt_info = {'times': t_stamp, 'rule0_cnt': rule0_cnt, 'rule1_cnt': rule1_cnt,
+                    'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
+        self.conn.hset(
+            self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
+        print cnt_info
+        jsonStr = json.dumps(cnt_info)
+        fp = open("process.json", 'a')
+        fp.write(jsonStr)
+        fp.write('\n')
+        fp.close()
+
+    def collageCount_crumbs(self):
+        crumbs_cnt = self.conn.zcard(self.crumbs_urls_zset_key)
+        hub_cnt = self.conn.zcard(self.hub_urls_zset_key)
+        hub_level_cnt = self.conn.zcard(self.hub_urls_level_zset_key)
+        hub_done_urls = self.conn.zrangebyscore(
+            self.hub_urls_zset_key, self.done_flg, self.done_flg)
+        list_done_cnt = len(hub_done_urls)
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cnt_info = {'times': t_stamp, 'rule0_cnt': rule0_cnt, 'rule1_cnt': rule1_cnt,
                     'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
