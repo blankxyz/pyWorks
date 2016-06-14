@@ -88,15 +88,15 @@ class ScanDB:
         hub_level_cnt = self.conn.zcard(self.hub_urls_level_zset_key)
         hub_done_urls = self.conn.zrangebyscore(
             self.hub_urls_zset_key, self.done_flg, self.done_flg)
-        list_done_cnt = len(hub_done_urls)
+        hub_done_cnt = len(hub_done_urls)
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cnt_info = {'times': t_stamp, 'rule0_cnt': rule0_cnt, 'rule1_cnt': rule1_cnt,
-                    'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
-        self.conn.hset(
-            self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
+        cnt_info = {'times': t_stamp, 'crumbs_cnt': crumbs_cnt, 'hub_cnt': hub_cnt,
+                    'hub_level_cnt': hub_level_cnt, 'hub_done_cnt': hub_done_cnt}
+        # self.conn.hset(
+        #     self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
         print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open("process.json", 'a')
+        fp = open("process-crumbs.json", 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
@@ -109,10 +109,11 @@ if __name__ == '__main__':
     scan = ScanDB()
     timer_interval = 1
 
-    t = Timer(timer_interval, scan.collageCount)
+    t = Timer(timer_interval, scan.collageCount_crumbs)
     t.start()
 
     while True:
         time.sleep(60)
-        scan.collageCount()
+        # scan.collageCount()
+        scan.collageCount_crumbs()
     # scan.exportDB()

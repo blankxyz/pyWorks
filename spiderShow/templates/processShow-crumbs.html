@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>process count show</title>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='exporting.js') }}"></script>
+    <script type="text/javascript">
+        setTimeout('window.location.reload()',60*1000);
+        $(function () {
+            $('#container').highcharts({
+                title: {
+                    text: 'crumbs',
+                    x: -20 //center
+                },
+                subtitle: {
+                    text: '单位:分钟',
+                    x: -20
+                },
+                xAxis: {
+                    categories: {{ times }}
+                },
+                yAxis: {
+                    title: {
+                        text: '页数'
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }]
+                },
+                tooltip: {
+                    valueSuffix: '页'
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 1
+                },
+                series: [{
+                    name: 'crumbs_cnt',
+                    data: {{ crumbs_cnt }}
+                }, {
+                    name: 'hub_cnt',
+                    data: {{ hub_cnt }}
+                }, {
+                    name: 'hub_level',
+                    data: {{ hub_level_cnt }}
+                }, {
+                    name: 'hub_done',
+                    data: {{ hub_done_cnt }}
+                }]
+            });
+        });
+
+    </script>
+</head>
+<body>
+{#<p align="center">{{times}}</p>#}
+{#<p align="center">{{rule0_cnt}}</p>#}
+{#<p align="center">{{rule1_cnt}}</p>#}
+<div id="container" style="min-width:700px;height:700px"></div>
+</body>
+</html>
