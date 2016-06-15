@@ -32,7 +32,7 @@ class MySpider(spider.Spider):
         self.encoding = 'gbk'
         # self.site_domain = 'sina.com.cn'
         self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/4')
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/3')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -190,32 +190,6 @@ class MySpider(spider.Spider):
             return self.is_list_by_link_density(url)
         # print 'is_list_by_rule start',url,ret
 
-    # more link
-    def get_breadcrumb(self, data):
-        '''
-        1）"breadcrumb"
-        //div[contains(@class,"bread")]
-        //div[contains(@class,"crumb")]
-        2）'>' ‘>>’
-        3）//div[contains(@class,'nav')] or
-           Nav NAV
-        4) 文字长度小于7
-        '''
-        num = 0
-        # p1 = data.xpathall("//div[contains(@class,'bread')] | //div[contains(@class,'crumb')] | //div[contains(@class,'nav')]")
-        p1 = data.xpathall("//div[contains(@class,'crumb')]")
-        for p in p1:
-            # if p.regex(r'^\s*>+\s*$') or p.regex(r'^\s*>>+\s*$'):
-            #     num += 5
-            print '-' * 80
-            print p
-            print '-' * 80
-            un = HTMLParser.HTMLParser().unescape(p.text())
-            print un
-            print '-' * 80
-            print un.regex(r"^\s*>+\s*$").str().strip()
-            print '-' * 80
-
     def convert_path_to_rule0(self, url):
         '''
         http://baike.k618.cn/thread-3327665-1-1.html ->
@@ -235,7 +209,7 @@ class MySpider(spider.Spider):
         /news/201404/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
         /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm
         '''
-        # print 'convert_path_to_regex start:', path
+        # print 'convert_path_to_rule1() start:', path
         if path.count('/') >= 2:
             pos2 = path.rfind('/')
             pos1 = path[:pos2 - 1].rfind('/')
@@ -246,17 +220,15 @@ class MySpider(spider.Spider):
             # print rule1
             return rule1
         else:
-            # print '[ERROR]convert_path_to_regex end'
+            # print '[ERROR]convert_path_to_rule1() end'
             return None
 
     def get_todo_urls(self):
         urls = []
         try:
-            # get todo_flag urls
             urls = self.conn.zrangebyscore(self.list_urls_zset_key, self.todo_flg, self.todo_flg)
             if len(urls) > self.todo_urls_limits:
                 urls = urls[0:self.todo_urls_limits]
-            # setting done flag
             for url in urls:
                 self.conn.zadd(self.list_urls_zset_key, self.done_flg, url)
         except Exception, e:
@@ -341,57 +313,58 @@ class MySpider(spider.Spider):
         return result
 
 if __name__ == '__main__':
-    for cnt in range(1000):
-        print '[loop]',cnt,'[time]',datetime.datetime.utcnow()
-        detail_job_list = []  # equal to run.py detail_job_queue
-        # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
-        def __detail_page_urls(urls, func):
-            next_page_url = None
-            if func is not None:
-                if urls:
-                    for url in urls:
-                        response = mySpider.download(url)
-                        try:
-                            list_urls, callback, next_page_url = func(
-                                response)  # parse()
-                            for url in list_urls:
-                                detail_job_list.append(url)
-                        except Exception, e:
-                            print '[ERROR] main() Exception:', e
-                            list_urls, callback, next_page_url = [], None, None
+    unit_test = False
+    if unit_test is not True: # spider simulation
+        for cnt in range(1000):
+            print '[loop]',cnt,'[time]',datetime.datetime.utcnow()
+            detail_job_list = []  # equal to run.py detail_job_queue
+            # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
+            def __detail_page_urls(urls, func):
+                next_page_url = None
+                if func is not None:
+                    if urls:
+                        for url in urls:
+                            response = mySpider.download(url)
+                            try:
+                                list_urls, callback, next_page_url = func(
+                                    response)  # parse()
+                                for url in list_urls:
+                                    detail_job_list.append(url)
+                            except Exception, e:
+                                print '[ERROR] main() Exception:', e
+                                list_urls, callback, next_page_url = [], None, None
 
-                        __detail_page_urls(list_urls, callback)
+                            __detail_page_urls(list_urls, callback)
 
-                        if next_page_url is not None:
-                            print 'next_page_url'
-                            __detail_page_urls([next_page_url], func)
+                            if next_page_url is not None:
+                                print 'next_page_url'
+                                __detail_page_urls([next_page_url], func)
 
-        # --equal to run.py list_page_thread() -------------------------
+            # --equal to run.py list_page_thread() -------------------------
+            mySpider = MySpider()
+            mySpider.proxy_enable = False
+            mySpider.init_dedup()
+            mySpider.init_downloader()
+            start_urls = mySpider.get_start_urls()  # get_start_urls()
+            __detail_page_urls(start_urls, mySpider.parse)  # parse()
+
+            # --equal to run.py detail_page_thread() -------------------------
+            ret = []
+            for url in detail_job_list:
+                resp = mySpider.download(url)
+                ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
+                for item in ret:
+                    for k, v in item.iteritems():
+                        print k, v
+    else: # ---------- unit test -----------------------------
+        # url ='http://bj.esf.sina.com.cn/detail/203494453'
+        url = 'http://jiankang.k618.cn/'
         mySpider = MySpider()
+        mySpider.encoding = 'utf-8'
         mySpider.proxy_enable = False
         mySpider.init_dedup()
         mySpider.init_downloader()
-        start_urls = mySpider.get_start_urls()  # get_start_urls()
-        __detail_page_urls(start_urls, mySpider.parse)  # parse()
-
-        # --equal to run.py detail_page_thread() -------------------------
-        ret = []
-        for url in detail_job_list:
-            resp = mySpider.download(url)
-            ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
-            for item in ret:
-                for k, v in item.iteritems():
-                    print k, v
-
-    #  ------------- unit test ---------------------------------------
-    # # url ='http://bj.esf.sina.com.cn/detail/203494453'
-    # url = 'http://jiankang.k618.cn/'
-    # mySpider = MySpider()
-    # mySpider.encoding = 'utf-8'
-    # mySpider.proxy_enable = False
-    # mySpider.init_dedup()
-    # mySpider.init_downloader()
-    # #
-    # # print mySpider.is_list_by_link_density(url)
-    # print mySpider.is_list_by_rule(url)
+        #
+        # print mySpider.is_list_by_link_density(url)
+        print mySpider.is_list_by_rule(url)
 
