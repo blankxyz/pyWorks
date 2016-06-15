@@ -77,7 +77,7 @@ def convert_file_to_list_crumbs():
 def show():
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
     times = range(len(times))
-    return render_template('processShow.html',
+    return render_template('processShow-allsite.html',
                            times=times,
                            rule0_cnt=rule0_cnt,
                            rule1_cnt=rule1_cnt,

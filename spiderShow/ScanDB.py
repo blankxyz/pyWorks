@@ -12,7 +12,7 @@ class ScanDB:
 
     def __init__(self):
         self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/8')
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/3')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -21,8 +21,8 @@ class ScanDB:
         self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.crumbs_urls_zset_key = 'crumbs_urls_zset_%s' % self.site_domain
-        self.hub_urls_zset_key = 'hub_urls_zset_%s' % self.site_domain
-        self.hub_urls_level_zset_key = 'hub_urls_level_zset_%s' % self.site_domain
+        self.hub_todo_urls_zset_key = 'hub_todo_urls_zset_%s' % self.site_domain
+        self.hub_level_urls_zset_key = 'hub_level_urls_zset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
         self.offline = False
@@ -62,7 +62,7 @@ class ScanDB:
             # print  jsonStr
         return jsonStr
 
-    def collageCount(self):
+    def collageCount_allsite(self):
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
         detail_cnt = self.conn.zcard(self.detail_urls_zset_key)
@@ -84,10 +84,10 @@ class ScanDB:
 
     def collageCount_crumbs(self):
         crumbs_cnt = self.conn.zcard(self.crumbs_urls_zset_key)
-        hub_cnt = self.conn.zcard(self.hub_urls_zset_key)
-        hub_level_cnt = self.conn.zcard(self.hub_urls_level_zset_key)
+        hub_level_cnt = self.conn.zcard(self.hub_level_urls_zset_key)
+        hub_cnt = self.conn.zcard(self.hub_todo_urls_zset_key)
         hub_done_urls = self.conn.zrangebyscore(
-            self.hub_urls_zset_key, self.done_flg, self.done_flg)
+            self.hub_todo_urls_zset_key, self.done_flg, self.done_flg)
         hub_done_cnt = len(hub_done_urls)
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cnt_info = {'times': t_stamp, 'crumbs_cnt': crumbs_cnt, 'hub_cnt': hub_cnt,
@@ -109,11 +109,12 @@ if __name__ == '__main__':
     scan = ScanDB()
     timer_interval = 1
 
-    t = Timer(timer_interval, scan.collageCount_crumbs)
+    # t = Timer(timer_interval, scan.collageCount_crumbs)
+    t = Timer(timer_interval, scan.collageCount_allsite)
     t.start()
 
     while True:
         time.sleep(60)
-        # scan.collageCount()
-        scan.collageCount_crumbs()
+        scan.collageCount_allsite()
+        # scan.collageCount_crumbs()
     # scan.exportDB()
