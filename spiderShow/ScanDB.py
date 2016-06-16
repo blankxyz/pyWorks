@@ -11,8 +11,9 @@ import json
 class ScanDB:
 
     def __init__(self):
-        self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/3')
+        # self.site_domain = 'k618.cn'
+        self.site_domain = 'tianya.cn'
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/2')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -77,7 +78,7 @@ class ScanDB:
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
         print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open("process.json", 'a')
+        fp = open("process-allsite.json", 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()

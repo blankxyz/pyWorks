@@ -127,7 +127,27 @@ class Document(object):
             return rate > 0.6
         except:
             return False
-    
+
+    def is_list(self, *args, **kwargs):
+        '''
+        判读当前页是否为列表页
+        '''
+        try:
+            etree = self._build_doc(True)
+            body = etree.find(".//body")
+            text = to_string(body)
+            all_links = etree.findall(".//a")
+            links_text = []
+            for item in all_links:
+                links_text.append(to_string(item))
+                #print to_string(item)
+            text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
+            rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
+            # print rate
+            return rate > 0.6
+        except:
+            return False
+
     def urls(self):
         '''
         '''

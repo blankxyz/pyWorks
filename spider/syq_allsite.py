@@ -26,13 +26,15 @@ class MySpider(spider.Spider):
         self.siteName = "k618"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://www.k618.cn/'
+        # self.start_urls = 'http://www.k618.cn/'
+        self.start_urls = 'http://bbs.tianya.cn/'
         # self.start_urls = 'http://bj.esf.sina.com.cn/'
         # self.encoding = 'utf-8'
         self.encoding = 'gbk'
         # self.site_domain = 'sina.com.cn'
-        self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/3')
+        # self.site_domain = 'k618.cn'
+        self.site_domain = 'tianya.cn'
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/2')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -357,14 +359,18 @@ if __name__ == '__main__':
                     for k, v in item.iteritems():
                         print k, v
     else: # ---------- unit test -----------------------------
-        # url ='http://bj.esf.sina.com.cn/detail/203494453'
-        url = 'http://jiankang.k618.cn/'
+        url ='http://bj.esf.sina.com.cn/detail/203494453' # 详情页 房地产 大量图片
+        url = 'http://photo.sina.com.cn/' # 列表页 图片网站 大量图片
+        url = 'http://photo.auto.sina.com.cn/picture/70218052_1_0_0#70218052' # 详情页 汽车 太难了
+        url = 'http://photo.sina.com.cn/hist/' # 列表页
+        url = 'http://slide.news.sina.com.cn/j/slide_1_45272_100138.html#p=1' # 详情页
+        # url = 'http://jiankang.k618.cn/'
         mySpider = MySpider()
         mySpider.encoding = 'utf-8'
         mySpider.proxy_enable = False
         mySpider.init_dedup()
         mySpider.init_downloader()
         #
-        # print mySpider.is_list_by_link_density(url)
-        print mySpider.is_list_by_rule(url)
+        print mySpider.is_list_by_link_density(url)
+        # print mySpider.is_list_by_rule(url)
 

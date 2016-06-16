@@ -30,7 +30,7 @@ class Cleaner(object):
             self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/8')
         # 域名正则黑名单
         self.black_domain_regex = (
-            'bbs\.',  # syq
+            # 'bbs\.',  # syq
         )
         self.now_year = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y'), '%Y')
         self.hash_black_path_regex_key = 'hash_black_path_regex'

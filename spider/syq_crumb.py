@@ -14,6 +14,9 @@ import requests
 import myreadability
 import HTMLParser
 import syq_clean_url
+import cStringIO, urllib2, Image
+import lxml.html
+
 
 class MySpider(spider.Spider):
 
@@ -147,12 +150,12 @@ class MySpider(spider.Spider):
         [input.extract() for input in soup('input')]
         [input.extract() for input in soup('form')]
         [blank.extract() for blank in soup(text=re.compile("^\s*?\n*?$"))]
-        [foot.extract() for foot in soup(attrs={'class': 'footer'})]
+        # [foot.extract() for foot in soup(attrs={'class': 'footer'})]
         [foot.extract() for foot in soup(attrs={'class': 'bottom'})]
         [s.extract() for s in soup('style')]
         return soup
 
-    def marge_url(self,url, href):
+    def marge_url(self, url, href):
         # print 'marge_url() start'
         if url is None:
             ret = None
@@ -160,8 +163,8 @@ class MySpider(spider.Spider):
             ret = url
         elif href.find('javascript') >= 0:
             ret = None
-        elif href == './':
-            ret = url
+        elif href[:2] == './':
+            ret = url + href[2:]
         elif href.count('../') > 0:
             cnt = href.count('../')
             href_split = urlparse.urlparse(url).path.split('/')
@@ -214,6 +217,81 @@ class MySpider(spider.Spider):
         return list(set(crumbs))
         # tags2 = soup.findAll(text=re.compile(r'(正文|当前位置|当前的位置)\s*$', re.U))
         # print tags2
+
+    def find_content_div(self, url):
+        soup = self.get_clean_soup(url)
+        # //div[contains(@class,'footer')]
+        footer_div = soup.find('div',class_='footer')
+        divs = footer_div.find_previous_siblings('div',recursive=False)
+        for div in divs:
+            p_score, imgs_score, a_score = self.div_info_score(url,div)
+            print '<div id={} class={}>'.format(div.get('id'),div.get('class')), '<p>', p_score, '<img>', imgs_score, '<a>(p,img)', a_score
+
+    def div_info_score(self, url, div):
+        #<p>
+        p_text = []
+        p_tags = div.findAll('p')
+        for p_tag in p_tags:
+            text_without_blank = re.compile(r"\s+", re.I | re.M | re.S).sub('', p_tag.text)
+            p_text.append(text_without_blank)
+        p_score = len(''.join(p_text))
+
+        #<img>
+        imgs_score = 0
+        img_tags = div.findAll('img')
+        for img_tag in img_tags:
+            img_src = img_tag.get('src')
+            if img_src:
+                format, size, mode = self.get_img_info(url, img_src)
+                imgs_score += self.convert_img_info_score(size)
+            else:
+                print '0,0'
+                imgs_score += 0
+
+        #<a>
+        a_score_p, a_score_img = 0, 0
+        a_tags = div.findAll('a')
+        for a_tag in a_tags:
+            # 文字
+            text_without_blank = re.compile(r"\s+", re.I | re.M | re.S).sub('', a_tag.text)
+            a_score_p += len(text_without_blank)
+            # 图片
+            img_tag = a_tag.find('img')
+            if img_tag:
+                img_src = img_tag.get('src')
+                if img_src:
+                    format, size, mode = self.get_img_info(url, img_src)
+                    a_score_img += self.convert_img_info_score(size)
+                else:
+                    print '0,0'
+                    a_score_img += 0
+        a_score = (a_score_p, a_score_img)
+
+        return p_score, imgs_score, a_score
+
+    def convert_img_info_score(self, size):
+        # 70 * 70 = 1 汉字 转换
+        (img_width,img_high) = size
+        return img_width*img_high/(80*80)
+
+    # def to_string(self,elem):
+    #     return lxml.html.tostring(elem, encoding='utf8', method='text').strip()
+
+    def get_img_info(self, url, img_src):
+        try:
+            if img_src:
+                if img_src.find('http://') < 0:
+                    img_url = self.marge_url(url, img_src)
+                else:
+                    img_url = img_src
+                req = urllib2.Request(img_url, headers=self.header_maker())
+                file = urllib2.urlopen(req, timeout=30)
+                tmpIm = cStringIO.StringIO(file.read())
+                im = Image.open(tmpIm)
+                return im.format, im.size, im.mode
+        except Exception, e:
+            # print '[ERROR]get_img_info()',img_url
+            return None, (0,0), None
 
     def parse(self, response):
         urls = []
@@ -274,7 +352,7 @@ class MySpider(spider.Spider):
         return result
 
 if __name__ == '__main__':
-    unit_test = False
+    unit_test = True
     if unit_test is not True: # spider simulation
         for cnt in range(1000):
             print '[loop]',cnt,'[time]',datetime.datetime.utcnow()
@@ -323,12 +401,12 @@ if __name__ == '__main__':
         # url = 'http://comic.k618.cn/dmgc/201412/t20141230_5796348.htm'  # [样式A]
         # url = 'http://liuxue.k618.cn/kuaibao1/201504/t20150417_5930210.html' # [样式A]
         # url = 'http://bbs.jjh.k618.cn/thread-3327506-1-10.html' # [样式B] bug
-        url = 'http://movie.k618.cn/wdy/zx/201605/t20160531_7569985.htm' # [样式]
+        url = 'http://tech.sina.com.cn/mobile/n/n/2016-06-16/doc-ifxtfrrc3668316.shtml'
+        # url = 'http://127.0.0.1:5000/'
+        url = 'http://www.k618.cn/'
         mySpider = MySpider()
         mySpider.proxy_enable = False
         mySpider.init_dedup()
         mySpider.init_downloader()
-        print mySpider.find_breadcrumbs(url)
-        # url = 'http://news.k618.cn/world/gjrw/201606/t20160614_7725162.html'
-        # href = '../../../'
+        print mySpider.find_content_div(url)
         # print mySpider.marge_url(url,href)

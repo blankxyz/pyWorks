@@ -12,7 +12,7 @@ def convert_file_to_list():
     list_done_cnt = []
     times = []
 
-    fp = open("process.json", 'r')
+    fp = open("process-allsite.json", 'r')
     for line in fp.readlines():
         dic = eval(line)
         times.append(dic.get('times'))
@@ -73,7 +73,7 @@ def convert_file_to_list_crumbs():
 #     plt.legend(bbox_to_anchor=(0.2,1))
 #     plt.show()
 
-@app.route('/')
+@app.route('/allsite')
 def show():
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
     times = range(len(times))
@@ -95,6 +95,11 @@ def show_crumbs():
                            hub_cnt=hub_cnt,
                            hub_level_cnt=hub_level_cnt,
                            hub_done_cnt=hub_done_cnt)
+
+@app.route('/')
+def index():
+    # test for all-site spider
+    return render_template('test.html')
 
 if __name__ == '__main__':
     # times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
