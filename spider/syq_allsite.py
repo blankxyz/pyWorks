@@ -26,18 +26,16 @@ class MySpider(spider.Spider):
         self.siteName = "k618"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        # self.start_urls = 'http://www.k618.cn/'
-        self.start_urls = 'http://bbs.tianya.cn/'
-        # self.start_urls = 'http://bj.esf.sina.com.cn/'
+        self.start_urls = 'http://www.k618.cn/'
+        # self.start_urls = 'http://bbs.tianya.cn/'
         # self.encoding = 'utf-8'
         self.encoding = 'gbk'
         # self.site_domain = 'sina.com.cn'
-        # self.site_domain = 'k618.cn'
-        self.site_domain = 'tianya.cn'
+        self.site_domain = 'k618.cn'
+        # self.site_domain = 'tianya.cn'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/2')
-        self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
-        self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
+        self.bad_urls_zset_key = 'bad_urls_zset_%s' % self.site_domain
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain
         self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
@@ -108,6 +106,10 @@ class MySpider(spider.Spider):
         # urls = filter(lambda x: not self.cleaner.is_detail_by_regex(x), urls)
         # 黑名单过滤
         urls = filter(lambda x: not self.cleaner.in_black_list(x), urls) # bbs. mail.
+
+        bad_urls = self.conn.zrange(self.bad_urls_zset_key, start=0, end=-1)
+        for bad_url in bad_urls:
+            urls.remove(bad_url)
         # print 'filter_links() in_black_list', len(urls)
         # 链接时间过滤
         # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
@@ -124,73 +126,67 @@ class MySpider(spider.Spider):
 
     def is_list_by_link_density(self, url):
         # print 'is_list_by_link_density start'
-        response = self.download(url)
+        try:
+            response = self.download(url)
+        except Exception, e:
+            print "[ERROR] is_list_by_link_density(): %s" % e, url
+            self.conn.zadd(self.bad_urls_zset_key, self.done_flg, url)
+            return None
         doc = myreadability.Document(response.content, encoding=self.encoding)
-        ret = doc.is_list() # 链接密度
+        ret = doc.is_list()  # 链接密度
         return ret
 
     def is_list_by_rule_0(self, url):
-        #[rule0] rule0收集数>100时，匹配次数>10 的前10%高频度规则
-        ret = True
+        # url为了扩展用
+        path = urlparse.urlparse(url)
+        #[rule0] 收集数>100时,开始使用rule0，积分>10 的前10%高频度规则
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         if rule0_cnt > 100:
             rules = self.conn.zrevrangebyscore(self.detail_urls_rule0_zset_key,
-                                               max=999999, min=10, start=0, num=rule0_cnt/10, withscores=True)
+                    max=999999, min=10, start=0, num=rule0_cnt/10, withscores=True)
             for rule0, score in dict(rules).iteritems():
-                path = urlparse.urlparse(url).path
-                pos1 = path.rfind('/')
-                pos2 = path.find('.')
-                if pos2 < 0:
-                    pos2 = len(path)
-                path_0 = path[pos1+1:pos2]
-                # path_0 = path
-                if re.search(rule0, path_0):
+                if re.search(rule0, path):
                     print '[rule0]', rule0, '<-', url
-                    return False
-        return ret
+                    return True
+        return False # False:不能判断
 
-    def is_list_by_rule_1(self ,url):
-        #[rule1] rule1收集数>10时，匹配次数>20 的前20%高频度规则
-        ret = True
+    def is_list_by_rule_1(self, url):
+        # url为了扩展用
+        path = urlparse.urlparse(url)
+        #[rule1] rule1收集数>10时，开始使用rule1，积分>20 的前20%高频度规则
         rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
         if rule1_cnt > 10:
             rules = self.conn.zrevrangebyscore(self.detail_urls_rule1_zset_key,
-                            max=999999, min=20, start=0, num=rule1_cnt/5, withscores=True)
+                    max=999999, min=20, start=0, num=rule1_cnt/5, withscores=True)
             for rule1, score in dict(rules).iteritems():
-                path = urlparse.urlparse(url).path
-                if path.count('/') >= 2:
-                    pos2 = path.rfind('/')
-                    pos1 = path[:pos2-1].rfind('/')
-                    path_1 = path[pos1+1:pos2]
-                    # path_1 = path
-                    if re.search(rule1, path_1):
+                    if re.search(rule1, path):
                         self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule1, amount=1)
                         print '[rule1]', rule1, '<-', url
-                        return False
-        return ret
+                        return True
+        return False # False:不能判断
 
     def is_list_by_rule(self, url):
-        # print 'is_list_by_rule start'
+        # print 'is_list_by_rule() start'
         path = urlparse.urlparse(url).path
         if len(path) == 0:
             return True
         else:
             # 最优先确定规则
-            if path == u'/':
+            if path == '/':
                 return True
-            if path[-1] == u'/':
+            if path[-1] == '/':
                 return True
             if path.find('index') > 0:
                 return True
-            # 优先使用rule1
-            if self.is_list_by_rule_1(url) == False:
-                return False
-            # 使用rule0
-            if self.is_list_by_rule_0(url) == False:
-                return False
+            # 使用rule1(优先)
+            if path.count('/') >= 2 and self.is_list_by_rule_1(path):
+                return True
+            # 使用rule0(其次)
+            if self.is_list_by_rule_0(path):
+                return True
             # 使用链接密度
             return self.is_list_by_link_density(url)
-        # print 'is_list_by_rule start',url,ret
+        # print 'is_list_by_rule() start',url,ret
 
     def convert_path_to_rule0(self, url):
         '''
@@ -200,29 +196,26 @@ class MySpider(spider.Spider):
         path = urlparse.urlparse(url).path
         pos1 = path.rfind('/')
         pos2 = path.find('.')
-        if pos2 < 0:
+        if pos2 < 0:  # 找不到'.'的话,取全部。
             pos2 = len(path)
         tag = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
         tag = re.sub(r'\d', '\d', tag)
         return path[:pos1 + 1] + tag + path[pos2:]
 
-    def convert_path_to_rule1(self,path):
+    def convert_path_to_rule1(self, rule0):
         '''
-        /news/201404/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
-        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm
+        [rule0]/news/201404/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
+        [rule1]/news/\d{6}/[a-zA-Z]\d{8}_\d{7}.htm
         '''
-        # print 'convert_path_to_rule1() start:', path
-        if path.count('/') >= 2:
-            pos2 = path.rfind('/')
-            pos1 = path[:pos2 - 1].rfind('/')
-            tag = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
+        if rule0.count('/') >= 2:
+            pos2 = rule0.rfind('/')
+            pos1 = rule0[:pos2 - 1].rfind('/')
+            tag = re.sub(r'[a-zA-Z]', '[a-zA-Z]', rule0[pos1 + 1:pos2])
             tag = re.sub(r'\d', '\d', tag)
-            regex = path[:pos1 + 1] + tag + path[pos2:]
+            regex = rule0[:pos1 + 1] + tag + rule0[pos2:]
             rule1 = self.convert_regex_format(regex)
-            # print rule1
             return rule1
         else:
-            # print '[ERROR]convert_path_to_rule1() end'
             return None
 
     def get_todo_urls(self):
@@ -242,13 +235,12 @@ class MySpider(spider.Spider):
         links = data.xpathall("//a/@href | //iframe/@src")
         for link in links:
             url = urlparse.urljoin(org_url, link.text().strip())
-            # if url[-1] != '/': url = url + '/'
             urls.append(url)
         urls = self.filter_links(urls)
         return urls
 
     def extract_detail_rule_0(self, url):
-        # rule0 是无条件转换（url一定是详情页）
+        #[rule0]无条件转换,详情页url
         url_rule = self.convert_path_to_rule0(url)
         if url_rule:
             self.conn.zincrby(self.detail_urls_rule0_zset_key, value = url_rule, amount = 1)
@@ -258,14 +250,18 @@ class MySpider(spider.Spider):
         return
 
     def extract_detail_rule_1(self):
-        #[rule1] rule0>100时，采集rule0的前10%高频规则，并累加rule0中的分数，需要确定匹配
+        #[rule1] rule0规则数>100时，开始提取rule0生成rule1。
         rules_0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         if rules_0_cnt > 100: # 100 rule0(score>20) -> rule1
+            # 所有rule1清零
+            rule1_org = self.conn.zrange(self.detail_urls_rule1_zset_key,start=0,end=-1)
+            for rule1 in rule1_org:
+                self.conn.zrem(self.detail_urls_rule1_zset_key, rule1)
+            # 重新提取 积分>20、前10%的rule0规则,作为rule1。
             rules_0 = self.conn.zrevrangebyscore(self.detail_urls_rule0_zset_key,
-                            max=999999, min=20, start=0, num=rules_0_cnt/10, withscores=True)
+                        max=999999, min=20, start=0, num=rules_0_cnt/10, withscores=True)
             for rule_0, score_0 in dict(rules_0).iteritems():
                 rule_1 = self.convert_path_to_rule1(rule_0)
-                self.conn.zadd(self.detail_urls_rule1_zset_key,0,rule_1) # reset rule_1 score to 0
                 if rule_1:
                     self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule_1, amount=score_0)
         return
@@ -280,7 +276,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        # print 'parse_detail_page() start'
+        print 'parse_detail_page() start'
         result = []
         if response is None:
             return result
@@ -294,24 +290,24 @@ class MySpider(spider.Spider):
             unicode_html_body = response.content
             data = htmlparser.Parser(unicode_html_body)
             valid_urls = self.get_page_valid_urls(data, org_url)
-            # print '111'
             for valid_url in valid_urls:
-                # level = self.get_url_level(org_url)
+                print 'url:', response.request.url, '-> valid_url:', valid_url,
                 if self.is_list_by_rule(valid_url):
-                    # print 'list:',valid_url
+                    print 'is_list_by_rule(): True'
                     if self.conn.zrank(self.list_urls_zset_key, valid_url) is None:
+                        print 'is_list_by_rule(): is None'
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, valid_url)
+                        print 'is_list_by_rule(): add'
                 else:
-                    # print 'detail:', valid_url
+                    print 'is_list_by_rule(): False'
                     if self.conn.zrank(self.detail_urls_zset_key, valid_url) is None:
                         self.conn.zadd(self.detail_urls_zset_key, 0, valid_url)
                     self.extract_detail_rule_0(valid_url)
                     self.extract_detail_rule_1()
-
-            # print 'parse_detail_page() end'
+            print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s" % e
-            # print 'parse_detail_page end'
+            print 'parse_detail_page end'
         return result
 
 if __name__ == '__main__':
@@ -328,8 +324,7 @@ if __name__ == '__main__':
                         for url in urls:
                             response = mySpider.download(url)
                             try:
-                                list_urls, callback, next_page_url = func(
-                                    response)  # parse()
+                                list_urls, callback, next_page_url = func(response)  # call parse()
                                 for url in list_urls:
                                     detail_job_list.append(url)
                             except Exception, e:
@@ -361,7 +356,7 @@ if __name__ == '__main__':
     else: # ---------- unit test -----------------------------
         url ='http://bj.esf.sina.com.cn/detail/203494453' # 详情页 房地产 大量图片
         url = 'http://photo.sina.com.cn/' # 列表页 图片网站 大量图片
-        url = 'http://photo.auto.sina.com.cn/picture/70218052_1_0_0#70218052' # 详情页 汽车 太难了
+        url = 'http://photo.auto.sina.com.cn/picture/70218052_1_0_0#70218052' # 详情页 汽车 难
         url = 'http://photo.sina.com.cn/hist/' # 列表页
         url = 'http://slide.news.sina.com.cn/j/slide_1_45272_100138.html#p=1' # 详情页
         # url = 'http://jiankang.k618.cn/'
