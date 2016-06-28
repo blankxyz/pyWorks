@@ -28,15 +28,14 @@ class MySpider(spider.Spider):
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
         # self.start_urls = 'http://www.k618.cn/'
-        # self.start_urls = 'http://bbs.tianya.cn/list-apply-1.shtml'
         self.start_urls = 'http://bbs.tianya.cn/'
-        # self.encoding = 'gbk'
-        self.encoding = 'utf-8'
+        # self.encoding = 'gbk' #k618
+        self.encoding = 'utf-8' #tianya
         # self.site_domain = 'sina.com.cn'
         # self.site_domain = 'k618.cn'
         self.site_domain = 'bbs.tianya.cn'
         # self.conn = redis.StrictRedis.from_url('redis://192.168.100.15/6')
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/4')
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/0')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -52,7 +51,7 @@ class MySpider(spider.Spider):
         self.cleaner = syq_clean_url.Cleaner(
             self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/6'))
 
-    def convert_regex_format(self,rule):
+    def convert_regex_format(self, rule):
         '''
         /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
         /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
@@ -63,7 +62,7 @@ class MySpider(spider.Spider):
         cnt = 0
         pos = 0
         temp = ''
-        while pos < len(rule):
+        while pos <= len(rule):
             if rule[pos:pos + len(digit)] == digit:
                 if temp.find(digit) < 0:
                     ret = ret + temp
@@ -80,6 +79,9 @@ class MySpider(spider.Spider):
                 cnt = cnt + 1
                 temp = '%s{%d}' % (word, cnt)
                 pos = pos + len(word)
+            elif pos == len(rule):
+                ret = ret + temp
+                break
             else:
                 ret = ret + temp + rule[pos]
                 temp = ''
@@ -89,8 +91,7 @@ class MySpider(spider.Spider):
 
     def get_url_level(self, url):
         level = self.conn.zscore(self.ok_urls_zset_key, url)
-        if level in None:
-            level = 0
+        if level in None: level = 0
         return level
 
     def filter_links(self, urls):
@@ -106,21 +107,19 @@ class MySpider(spider.Spider):
         # 跨域检查
         urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
         # print 'filter_links() check_cross_domain', len(urls)
-        #过滤详情页
-        # urls = filter(lambda x: not self.cleaner.is_detail_by_regex(x), urls)
         # 黑名单过滤
         urls = filter(lambda x: not self.cleaner.in_black_list(x), urls) # bbs. mail.
         # print 'filter_links() in_black_list', len(urls)
         # 链接时间过滤
         # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
         # 非第一页链接过滤
-        # urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
+        urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
         # print 'filter_links() is_next_page', len(urls)
-        # 去重
         # for url in urls:
         #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
         #         print 'remove:', url
         #         urls.remove(url)
+        # 去重
         urls = list(set(urls))
         # print 'filter_links() set', len(urls)
         # 404
@@ -133,16 +132,16 @@ class MySpider(spider.Spider):
         response = self.download(url)
         doc = myreadability.Document(response.content, encoding=self.encoding)
         ret = doc.is_list() # 链接密度
+        # ret = doc.is_list_main_div()  # 链接密度
         return ret
 
     def is_list_by_rule_0(self, url):
         #[rule0] rule0收集数>100时，匹配次数>10 的前10%高频度规则
-        # path = urlparse.urlparse(url).path
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         if rule0_cnt > 5:
             rules = self.conn.zrevrangebyscore(self.detail_urls_rule0_zset_key,
-                                               max=999999, min=10, start=0, num=rule0_cnt/10, withscores=True)
-            for rule0, score in dict(rules).iteritems():
+                                               max=999999, min=10, start=0, num=rule0_cnt/10, withscores=False)
+            for rule0 in rules:
                 if re.search(rule0, url):
                     print '[rule0]', rule0, '<-', url
                     return False #符合详情页规则
@@ -150,12 +149,11 @@ class MySpider(spider.Spider):
 
     def is_list_by_rule_1(self ,url):
         #[rule1] rule1收集数>10时，匹配次数>20 的前20%高频度规则
-        # path = urlparse.urlparse(url).path
         rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
         if rule1_cnt > 5:
             rules = self.conn.zrevrangebyscore(self.detail_urls_rule1_zset_key,
-                            max=999999, min=20, start=0, num=rule1_cnt/5, withscores=True)
-            for rule1, score in dict(rules).iteritems():
+                            max=999999, min=20, start=0, num=rule1_cnt/5, withscores=False)
+            for rule1 in rules:
                 if re.search(rule1, url):
                     self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule1, amount=1)
                     print '[rule1]', rule1, '<-', url
@@ -187,32 +185,35 @@ class MySpider(spider.Spider):
 
     def convert_path_to_rule0(self, url):
         '''
-        http://baike.k618.cn/thread-3327665-1-1.html ->
-        /[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]-\d\d\d\d\d\d\d-\d-\d.html
+        http://baike.k618.cn/20140515/thread-3327665-1-1.html ->
+        http://baike.k618.cn/20140515/[a-zA-Z]{6}-\d{7}-\d{1}-\d{1}.html
         '''
-        path = urlparse.urlparse(url).path
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         pos1 = path.rfind('/')
         pos2 = path.find('.')
-        if pos2 < 0:
-            pos2 = len(path)
-        tag = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
-        tag = re.sub(r'\d', '\d', tag)
-        return urlparse.urlparse(url).scheme + '://' + urlparse.urlparse(url).netloc + path[:pos1 + 1] + tag + path[pos2:]
+        if pos2 < 0: pos2 = len(path)
+        regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
+        regex = re.sub(r'\d', '\d', regex)
+        # regex = urlparse.urlparse(url).scheme + '://' + urlparse.urlparse(url).netloc + path[:pos1 + 1] + regex + path[pos2:]
+        regex = path[:pos1 + 1] + regex + path[pos2:]
+        regex = urlparse.urlunparse((scheme, netloc, regex, '', '', ''))
+        return self.convert_regex_format(regex)
 
-    def convert_path_to_rule1(self, path):
+    def convert_path_to_rule1(self, rule0):
         '''
-        /news/201404/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
-        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm
+        http://baike.k618.cn/20140515/[a-zA-Z]{6}-\d{7}-\d{1}-\d{1}.html ->
+        http://baike.k618.cn/\d{8}/[a-zA-Z]{6}-\d{7}-\d{1}-\d{1}.html
         '''
-        path = urlparse.urlparse(path).path
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(rule0)
         if path.count('/') >= 2:
             pos2 = path.rfind('/')
             pos1 = path[:pos2 - 1].rfind('/')
-            tag = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
-            tag = re.sub(r'\d', '\d', tag)
-            regex = path[:pos1 + 1] + tag + path[pos2:]
+            regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
+            regex = re.sub(r'\d', '\d', regex)
             rule1 = self.convert_regex_format(regex)
-            return urlparse.urlparse(url).scheme + '://' + urlparse.urlparse(url).netloc + rule1
+            rule1 = path[:pos1 + 1] + rule1 + path[pos2:]
+            # return urlparse.urlparse(rule0).scheme +'://'+ urlparse.urlparse(rule0).netloc + path[:pos1 + 1] + rule1 + path[pos2:]
+            return urlparse.urlunparse((scheme, netloc, rule1, '', '', ''))
         else:
             return None
 
@@ -230,7 +231,7 @@ class MySpider(spider.Spider):
 
     def get_page_valid_urls(self, data, org_url):
         # print 'get_page_valid_urls() start',org_url
-        ret_urls = []
+        urls = []
         all_links = []
         remove_links = []
         try:
@@ -238,19 +239,18 @@ class MySpider(spider.Spider):
             next_links = data.xpathall(u"//a[text()='下一页' or text()='下页']/preceding-sibling::a/@href")
             # print '222222'
         except Exception, e:
-            self_links = []
-            next_links = []
-            print u"[Info] get_page_valid_urls() %s '下一页' not found @href [url] %s" % (e,org_url)
-
-        for link in self_links:
-            remove_links.append(link.text().strip())
-        for link in next_links:
-            remove_links.append(link.text().strip())
+            print u"[Info] get_page_valid_urls() [@href] %s not found next page link. [Exception] %s" % (org_url, e)
+        else:
+            for link in self_links:
+                remove_links.append(link.text().strip())
+            for link in next_links:
+                remove_links.append(link.text().strip())
 
         # print 'get_page_valid_urls() [self_links]', self_links
         # print 'get_page_valid_urls() [next_links]', next_links
-
-        links = data.xpathall("//a/@href | //iframe/@src")
+        # links = data.xpathall("//a/@href | //iframe/@src")
+        links = data.xpathall("//a[string-length(text())<=7]/@href | //iframe/@src")
+        # print 'text()<=7',len(links), links
         # print 'get_page_valid_urls() [//a/@href | //iframe/@src]',len(links), links
         for link in links:
             all_links.append(link.text().strip())
@@ -260,14 +260,19 @@ class MySpider(spider.Spider):
         # print 'get_page_valid_urls() [all_links-remove_links]', links
         for link in links:
             # print org_url, link, '->'
-            url = urlparse.urljoin(org_url, urllib.quote(link))
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(link)
+            if scheme:
+                url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
+            else:
+                link = urlparse.urlunparse(('', '', path, params, query, ''))
+                url = urlparse.urljoin(org_url, urllib.quote(link))
+            urls.append(url)
+            # url = urlparse.urljoin(org_url, urllib.quote(path))
             # print org_url, link, '->' ,url
-            ret_urls.append(url)
-        # print 'get_page_valid_urls() [urljoin]', ret_urls
-
-        ret_urls = self.filter_links(ret_urls)
-        # print 'get_page_valid_urls() end',ret_urls
-        return ret_urls
+        # print 'get_page_valid_urls() [urljoin]', urls
+        urls = self.filter_links(urls)
+        # print 'get_page_valid_urls() end',urls
+        return urls
 
     def extract_detail_rule_0(self, url):
         # rule0 是无条件转换（url一定是详情页）
@@ -276,7 +281,7 @@ class MySpider(spider.Spider):
             self.conn.zincrby(self.detail_urls_rule0_zset_key, value = url_rule, amount = 1)
         else:
             print '[ERROR] extract_detail_rule_0()',url
-            self.conn.zadd(self.error_urls_zset_key,1, urllib.unquote(url))
+            self.conn.zadd(self.error_urls_zset_key,1, url)
         return
 
     def extract_detail_rule_1(self):
@@ -300,6 +305,7 @@ class MySpider(spider.Spider):
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
         return [self.start_urls]
+        # return []
 
     def parse(self, response):
         urls = self.get_todo_urls()
@@ -319,31 +325,32 @@ class MySpider(spider.Spider):
         try:
             unicode_html_body = response.content
             data = htmlparser.Parser(unicode_html_body)
-            # print 'parse_detail_page() data.html', data.html()
+            # print '000000'
             valid_urls = self.get_page_valid_urls(data, org_url)
             # print '111111'
             for valid_url in valid_urls:
                 # print '222222'
                 if self.is_list_by_rule(valid_url):
-                    # print 'list:',valid_url
+                    print 'list:',valid_url
                     if self.conn.zrank(self.list_urls_zset_key, valid_url) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(valid_url))
+                        # self.conn.zadd(self.list_urls_zset_key, self.todo_flg, valid_url)
                 else:
-                    # print 'detail:', valid_url
+                    print 'detail:', valid_url
                     if self.conn.zrank(self.detail_urls_zset_key, valid_url) is None:
                         self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(valid_url))
+                        # self.conn.zadd(self.detail_urls_zset_key, 0, valid_url)
                     self.extract_detail_rule_0(valid_url)
                     self.extract_detail_rule_1()
-
-            print 'parse_detail_page() end'
+            # print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
-            print 'parse_detail_page end'
+            # print 'parse_detail_page end'
         return result
 
-if __name__ == '__main__':
-    unit_test = False
-    if unit_test is not True: # spider simulation
+# ---------- test run function-----------------------------
+def test(unit_test):
+    if unit_test is False: # spider simulation
         print '[spider simulation] now starting ..........'
         for cnt in range(1000):
             print '[loop]',cnt,'[time]',datetime.datetime.utcnow()
@@ -354,14 +361,13 @@ if __name__ == '__main__':
                 if func is not None:
                     if urls:
                         for url in urls:
-                            response = mySpider.download(url)
                             try:
-                                list_urls, callback, next_page_url = func(
-                                    response)  # parse()
+                                response = mySpider.download(url)
+                                list_urls, callback, next_page_url = func(response)  # parse()
                                 for url in list_urls:
                                     detail_job_list.append(url)
                             except Exception, e:
-                                print '[ERROR] main() Exception:', e
+                                print '[ERROR] main() Exception: %s' % e
                                 list_urls, callback, next_page_url = [], None, None
 
                             __detail_page_urls(list_urls, callback)
@@ -406,6 +412,18 @@ if __name__ == '__main__':
         data = htmlparser.Parser(unicode_html_body)
         # print 'parse_detail_page() data.html', data.html()
         valid_urls = mySpider.get_page_valid_urls(data, url)
-        print '[unit test]',valid_urls
-        # print mySpider.is_list_by_rule(url)
+        print valid_urls
+        #----------------------------------------------------------
 
+        # print mySpider.is_list_by_rule(url)
+        #----------------------------------------------------------
+        # url = 'http://baike.k618.cn/aaa/thread-3327665-1-1.html'
+        # rule0 = mySpider.convert_path_to_rule0(url)
+        # print url, '->', rule0
+        # rule1 = mySpider.convert_path_to_rule1(rule0)
+        # print rule0, '->', rule1
+
+if __name__ == '__main__':
+    test(unit_test = False)
+    # import cProfile
+    # cProfile.run("test(unit_test = False)")
