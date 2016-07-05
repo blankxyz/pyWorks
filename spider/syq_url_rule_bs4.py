@@ -2,15 +2,11 @@
 # coding=utf-8
 
 import re
-import time
 import datetime
 import urlparse
 import redis
 import spider
 import setting
-import htmlparser
-import myreadability
-import HTMLParser
 import urllib
 from bs4 import BeautifulSoup, Comment
 import requests
@@ -172,14 +168,6 @@ class MySpider(spider.Spider):
             if path[-1] == '/':
                 return True
             if path.find('index') > 0 or path.find('list') > 0:
-                # list_detail_regex = (
-                #     'index|list',
-                #     'post|content|detail'
-                # )
-                # for reg in list_detail_regex:
-                #     if re.search(reg, url)
-                #         return True
-                # return False
                 return True
             if path.find('post') > 0 or path.find('content') > 0 or path.find('detail') > 0:
                 return False
@@ -187,18 +175,18 @@ class MySpider(spider.Spider):
                 return True
             # 优先使用rule1
             if self.is_list_by_rule_1(url) == False:
-                print 'is_list_by_rule_1() False'
+                # print 'is_list_by_rule_1() False'
                 return False
             # 使用rule0
             if self.is_list_by_rule_0(url) == False:
-                print 'is_list_by_rule_0() False'
+                # print 'is_list_by_rule_0() False'
                 return False
             # 判断面包屑中有无的‘正文’
             if self.is_current_page(soup, url) == True:
-                print 'is_current_page() True'
+                # print 'is_current_page() True'
                 return False
             # 使用链接密度
-            print 'is_list_by_link_density()', self.is_list_by_link_density(soup)
+            # print 'is_list_by_link_density()', self.is_list_by_link_density(soup)
             return self.is_list_by_link_density(soup)
         # print 'is_list_by_rule start',url,ret
 
@@ -296,10 +284,10 @@ class MySpider(spider.Spider):
         # print 'link_str:', len(link_str), link_str
 
         rate = float(len(link_str)) / len(all_str)
-        print 'rate', rate
+        print 'is_list_by_link_density() rate:', rate
         return rate > 0.6
 
-    def url_join(self, org_url, links):
+    def urls_join(self, org_url, links):
         urls = []
         for link in links:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(link)
@@ -327,7 +315,7 @@ class MySpider(spider.Spider):
                 if tag.has_attr('href'):
                     remove_links.append(tag['href'])
 
-            tag = soup.find("a", text=re.compile(u"下一页"))
+            tag = soup.find("a", text=re.compile(u"下一页")) # 下一页 下页
             if tag:
                 if tag.has_attr('href'):
                     remove_links.append(tag['href'])
@@ -345,7 +333,7 @@ class MySpider(spider.Spider):
 
         removed = list(set(all_links) - set(remove_links))
 
-        urls = self.url_join(org_url, removed)
+        urls = self.urls_join(org_url, removed)
         # print len(all_links), all_links
         # print len(remove_links), remove_links
         # print len(removed), removed
@@ -361,8 +349,8 @@ class MySpider(spider.Spider):
                 for link in parent.find_all('a'):
                     if link.has_attr('href'):
                         links.append(link['href'])
-
-                urls = self.url_join(org_url,links)
+                #保存面包屑
+                urls = self.urls_join(org_url,links)
                 for url in urls:
                     if self.conn.zrank(self.list_urls_zset_key, url) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
@@ -418,20 +406,18 @@ class MySpider(spider.Spider):
         try:
             soup = self.get_clean_soup(org_url)
             if soup is None: return []
-            print '111111111',org_url
-            valid_urls = self.get_page_valid_urls(soup, org_url)
-            print '22222222',valid_urls
-            for valid_url in valid_urls:
-                print '333333333'
-                if self.is_list_by_rule(soup, valid_url):
-                    print 'list  :',valid_url
-                    if self.conn.zrank(self.list_urls_zset_key, valid_url) is None:
-                        self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(valid_url))
+            links = self.get_page_valid_urls(soup, org_url)
+            for link in links:
+                s = self.get_clean_soup(link)
+                if self.is_list_by_rule(s, link):
+                    print 'list  :',link
+                    if self.conn.zrank(self.list_urls_zset_key, link) is None:
+                        self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
                 else:
-                    print 'detail:', valid_url
-                    if self.conn.zrank(self.detail_urls_zset_key, valid_url) is None:
-                        self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(valid_url))
-                    self.extract_detail_rule_0(urllib.unquote(valid_url))
+                    print 'detail:', link
+                    if self.conn.zrank(self.detail_urls_zset_key, link) is None:
+                        self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(link))
+                    self.extract_detail_rule_0(urllib.unquote(link))
                     self.extract_detail_rule_1()
             # print 'parse_detail_page() end'
         except Exception, e:
@@ -485,37 +471,18 @@ def test(unit_test):
                         print k, v
     else: # ---------- unit test -----------------------------
         print '[unit test] now starting ..........'
-        # url ='http://bj.esf.sina.com.cn/detail/203494453' # 详情页 房地产 大量图片
-        # url = 'http://photo.sina.com.cn/' # 列表页 图片网站 大量图片
-        # url = 'http://photo.auto.sina.com.cn/picture/70218052_1_0_0#70218052' # 详情页 汽车 难
-        # url = 'http://photo.sina.com.cn/hist/' # 列表页
-        # url = 'http://slide.news.sina.com.cn/j/slide_1_45272_100138.html#p=1' # 详情页
-        # url = 'http://bbs.tianya.cn/list-apply-1.shtml'
-        # url = 'http://bbs.tianya.cn/'
+        url ='http://q.bashan.com/junshi/junqingmima/201507/9909.html' # 详情页
         # url = 'http://www.yangtse.com/yzkl'
         # url = 'http://news.ynet.com/2.1.0/85245.html'
         # url = 'http://news.ynet.com/2.1.0/83911.html'
         # url = 'http://edu.ynet.com/2.1.0/29293.html'
         # url = 'http://liuyan.people.com.cn/index.php?gid=4'
-        url = 'http://www.bashan.com/licaigonglue/59210.html'
-        print '[url]',url
+        # url = 'http://www.bashan.com/licaigonglue/59210.html'
+        print 'url:',url
         mySpider = MySpider()
-        # mySpider.encoding = 'utf-8'
-        mySpider.encoding = 'gbk'
-        mySpider.proxy_enable = False
-        mySpider.init_dedup()
-        mySpider.init_downloader()
-        #--------------------------------------
-        response = mySpider.download(url)
-        unicode_html_body = response.content
-        data = htmlparser.Parser(unicode_html_body)
-        # print 'parse_detail_page() data.html', data.html()
-        # valid_urls = mySpider.get_page_valid_urls(data, url)
-        # print valid_urls
         #----------------------------------------------------------
         # print mySpider.is_list_by_rule(url)
         #----------------------------------------------------------
-        # url = 'http://baike.k618.cn/aaa/thread-3327665-1-1.html'
         # rule0 = mySpider.convert_path_to_rule0(url)
         # print url, '->', rule0
         # rule1 = mySpider.convert_path_to_rule1(rule0)
