@@ -135,50 +135,6 @@ class MySpider(spider.Spider):
         print 'filter_links() end', len(urls), urls
         return urls
 
-    # def is_current_page(self, org_url):
-    #     '''
-    #     面包屑含有‘正文’,则判定为详情页,返回 True
-    #     注）提取面包屑里面的链接
-    #     '''
-    #     encode = "utf8"
-    #     response = self.download(org_url)
-    #     char = re.search(r'charset=(.*)>',response.text)
-    #     if char:
-    #         if re.search("gb", char.group(1), re.I):
-    #             encode = "gbk"
-    #         elif re.search('big5', char.group(1), re.I):
-    #             encode = "big5"
-    #
-    #     response.encoding = encode
-    #     unicode_html_body = response.text  # unicode
-    #     parse = htmlparser.Parser(data=unicode_html_body)
-    #     nav_links = parse.replace('[\n\r]','').regexall(u'<div.*?正文.*?div>')
-    #     # print nav_links
-    #     for nav in nav_links:
-    #         nav = nav.data[nav.data.rfind('<div'):]
-    #         # print nav
-    #         if nav.count('</a>') >0:
-    #             hrefs = re.findall(r'href=\"(.*?)\"', nav)
-    #             for href in hrefs:
-    #                 scheme, netloc, path, params, query, fragment = urlparse.urlparse(href)
-    #                 if scheme:
-    #                     url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
-    #                 else:
-    #                     href = urlparse.urlunparse(('', '', path, params, query, ''))
-    #                     url = urlparse.urljoin(org_url, href)
-    #                     if self.conn.zrank(self.list_urls_zset_key, url) is None:
-    #                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
-    #             return True
-    #     return False
-
-    # def is_list_by_link_density(self, url):
-    #     # print 'is_list_by_link_density start'
-    #     response = self.download(url)
-    #     doc = myreadability.Document(response.content, encoding=self.encoding)
-    #     ret = doc.is_list() # 链接密度
-    #     # ret = doc.is_list_main_div()  # 链接密度
-    #     return ret
-
     def is_list_by_rule_0(self, url):
         #[rule0] rule0收集数>100时，匹配次数>10 的前10%高频度规则
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
@@ -358,30 +314,38 @@ class MySpider(spider.Spider):
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
+        print 'get_page_valid_urls() start'
+
         all_links = []
         remove_links = []
-        print 'get_page_valid_urls() start'
         try:
             for tag in soup.find_all("a", text=re.compile(u"[\w\W]{,10}")):
                 if tag.has_attr('href'):
                     all_links.append(tag['href'])
 
             for tag in soup.find_all("a", href=re.compile(r"(javascript.*?|#.*?)", re.I)):
-                remove_links.append(tag['href'])
+                if tag.has_attr('href'):
+                    remove_links.append(tag['href'])
 
             tag = soup.find("a", text=re.compile(u"下一页"))
-            remove_links.append(tag['href'])
-            for t in tag.find_previous_siblings('a', recursive=False):
-                remove_links.append(t['href'])
-            for t in tag.find_next_siblings('a', recursive=False):
-                remove_links.append(t['href'])
+            if tag:
+                if tag.has_attr('href'):
+                    remove_links.append(tag['href'])
+
+                for t in tag.find_previous_siblings('a', recursive=False):
+                    if tag.has_attr('href'):
+                        remove_links.append(t['href'])
+
+                for t in tag.find_next_siblings('a', recursive=False):
+                    if tag.has_attr('href'):
+                        remove_links.append(t['href'])
+
         except Exception, e:
-            print '[ERROR]get_page_valid_urls()',e
+            print '[ERROR] get_page_valid_urls()',e
 
         removed = list(set(all_links) - set(remove_links))
 
         urls = self.url_join(org_url, removed)
-
         # print len(all_links), all_links
         # print len(remove_links), remove_links
         # print len(removed), removed
@@ -405,78 +369,6 @@ class MySpider(spider.Spider):
                 return True
 
         return False
-
-    # def get_page_valid_urls(self, data, org_url):
-    #     print 'get_page_valid_urls() start',org_url
-    #     urls = []
-    #     all_links = []
-    #     remove_links = []
-    #     # 移除下一页及其他
-    #     try:
-    #         self_links = data.xpathall(u"//a[text()='下一页' or text()='下页']/@href")
-    #         print 'self_links', self_links
-    #         # print '222222'
-    #     except Exception, e:
-    #         print u"[Info] get_page_valid_urls() [@href] %s not found 下一页. [Exception] %s" % (org_url, e)
-    #     else:
-    #         for link in self_links: remove_links.append(link.text().strip())
-    #
-    #     try:
-    #         next_links = data.xpathall(u"//a[text()='下一页' or text()='下页']/preceding-sibling::a/@href")
-    #         print 'next_links', next_links
-    #     except Exception, e:
-    #         print u"[Info] get_page_valid_urls() [@href] %s not found 下一页 及其他. [Exception] %s" % (org_url, e)
-    #     else:
-    #         for link in next_links: remove_links.append(link.text().strip())
-    #
-    #     #移除footer及其他
-    #     try:
-    #         foot_links= data.xpathall(u"//a[text()='联系我们']/@href")
-    #         print 'foot_links',foot_links
-    #     except Exception, e:
-    #         print u"[Info] get_page_valid_urls() [@href] %s not found 关于我们. [Exception] %s" % (org_url, e)
-    #     else:
-    #         for link in foot_links: remove_links.append(link.text().strip())
-    #
-    #     try:
-    #         footer_preceding = data.xpathall(u"//a[text()='联系我们']/preceding-sibling::a/@href")
-    #         footer_following = data.xpathall(u"//a[text()='联系我们']/following-sibling::a/@href")
-    #         print 'footer_links',footer_preceding,footer_following
-    #     except Exception, e:
-    #         print u"[Info] get_page_valid_urls() [@href] %s not found 关于我们 及其他. [Exception] %s" % (org_url, e)
-    #     else:
-    #         for link in footer_preceding: remove_links.append(link.text().strip())
-    #         for link in footer_following: remove_links.append(link.text().strip())
-    #
-    #     # print 'get_page_valid_urls() [self_links]', self_links
-    #     # print 'get_page_valid_urls() [next_links]', next_links
-    #     # links = data.xpathall("//a/@href | //iframe/@src")
-    #     links = data.xpathall("//a[string-length(text())<=10]/@href | //iframe/@src")
-    #     # print org_url
-    #     # print data.html()
-    #     print '//a',len(links), links
-    #     for link in links:
-    #         all_links.append(link.text().strip())
-    #     print 'get_page_valid_urls() [all_links]',all_links
-    #
-    #     links = list(set(all_links) - set(remove_links))
-    #     print 'get_page_valid_urls() [all_links-remove_links]', links
-    #     for link in links:
-    #         # print org_url, link, '->'
-    #         scheme, netloc, path, params, query, fragment = urlparse.urlparse(link)
-    #         if scheme:
-    #             url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
-    #         else:
-    #             link = urlparse.urlunparse(('', '', path, params, query, ''))
-    #             # url = urlparse.urljoin(org_url, urllib.quote(link))
-    #             url = urlparse.urljoin(org_url, link)
-    #         urls.append(url)
-    #         # url = urlparse.urljoin(org_url, urllib.quote(path))
-    #         # print org_url, link, '->' ,url
-    #     # print 'get_page_valid_urls() [urljoin]', urls
-    #     urls = self.filter_links(urls)
-    #     # print 'get_page_valid_urls() end',urls
-    #     return urls
 
     def extract_detail_rule_0(self, url):
         # rule0 是无条件转换（url一定是详情页）
@@ -518,16 +410,12 @@ class MySpider(spider.Spider):
     def parse_detail_page(self, response=None, url=None):
         # print 'parse_detail_page() start'
         result = []
-        if response is None:
-            return result
+        if response is None: return result
 
-        if url is None:
-            org_url = response.request.url
-        else:
-            org_url = response.url
+        if url is None: org_url = response.request.url
+        else: org_url = response.url
 
         try:
-
             soup = self.get_clean_soup(org_url)
             if soup is None: return []
             print '111111111',org_url
@@ -636,7 +524,7 @@ def test(unit_test):
         print mySpider.is_list_by_link_density(soup)
 
 if __name__ == '__main__':
-    test(unit_test = True)
-    # test(unit_test = False)
+    # test(unit_test = True)
+    test(unit_test = False)
     # import cProfile
     # cProfile.run("test(unit_test = False)")
