@@ -39,7 +39,7 @@ class MySpider(spider.Spider):
         # self.site_domain = 'thepaper.cn' # 澎湃新闻
         # self.site_domain = 'bbs.tianya.cn'
         # self.conn = redis.StrictRedis.from_url('redis://192.168.100.15/6')
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/0')
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/7')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -99,7 +99,7 @@ class MySpider(spider.Spider):
         return level
 
     def filter_links(self, urls):
-        print 'filter_links() start', len(urls), urls
+        # print 'filter_links() start', len(urls), urls
         # 下载页
         urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
         # print 'filter_links() is_download', len(urls)
@@ -128,7 +128,7 @@ class MySpider(spider.Spider):
         # print 'filter_links() set', len(urls)
         # 404
         # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
-        print 'filter_links() end', len(urls), urls
+        # print 'filter_links() end', len(urls), urls
         return urls
 
     def is_list_by_rule_0(self, url):
@@ -167,9 +167,9 @@ class MySpider(spider.Spider):
                 return True
             if path[-1] == '/':
                 return True
-            if path.find('index') > 0 or path.find('list') > 0:
+            if path.lower().find('index') > 0 or path.lower().find('list') > 0:
                 return True
-            if path.find('post') > 0 or path.find('content') > 0 or path.find('detail') > 0:
+            if path.lower().find('post') > 0 or path.lower().find('content') > 0 or path.lower().find('detail') > 0:
                 return False
             if path[1:].isalpha():
                 return True
@@ -252,9 +252,10 @@ class MySpider(spider.Spider):
         try:
             data = requests.get(url, headers=headers, timeout=5)
         except Exception, e:
-            print "[error]get_clean_soup()",e
+            print "[ERROR]get_clean_soup()",e
             return None
         soup = BeautifulSoup(data.content, 'lxml')
+        # print 'before',soup.prettify()
         comments = soup.findAll(text=lambda text: isinstance(text, Comment))
         [comment.extract() for comment in comments]
         [s.extract() for s in soup('script')]
@@ -263,6 +264,7 @@ class MySpider(spider.Spider):
         [input.extract() for input in soup('form')]
         [foot.extract() for foot in soup(attrs={'class': 'footer'})]
         [foot.extract() for foot in soup(attrs={'class': 'bottom'})]
+        # print 'after',soup.prettify()
         return soup
 
     def is_list_by_link_density(self, soup):
@@ -287,10 +289,84 @@ class MySpider(spider.Spider):
         print 'is_list_by_link_density() rate:', rate
         return rate > 0.6
 
+    def is_list_by_link_density_like(self, soup):
+        #累计所有的文字
+        all_text = []
+        for str in soup.body.stripped_strings:
+            all_text.append(str)
+        all_str = ''.join(all_text)
+        all_str = re.compile(r"\s+", re.I | re.M | re.S).sub('', all_str)
+
+        # 去掉冗余：时间标示
+        all_str = re.compile(r"\d{4}[\-|\/]\d{2}[\-|\/]\d{4}\:\d{2}", re.I | re.M | re.S).sub('', all_str)
+        all_str = re.compile(r"\d{4}[\-|\/]\d{2}[\-|\/]\d{2}", re.I | re.M | re.S).sub('', all_str)
+        # print 'all_str:', len(all_str), all_str
+
+        # 累计所有的含有链接文字
+        self_links_text = []
+        like_links_text = []
+        for tag in soup.findAll('a'):
+            par = tag.parent
+            if par.name.lower() in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                grandpa = par.parent
+                #如果grandpa只包含自己一个链接，链接还是标题类，就说明grandpa都可以看做链接文字。
+                if len(grandpa.find_all('a')) == 1:
+                    grandpa_text = []
+                    print grandpa.prettify()
+                    for str in grandpa.stripped_strings:
+                        grandpa_text.append(str)
+
+                    like_links_text.append(''.join(grandpa_text))
+            else:
+                for str in tag.stripped_strings: self_links_text.append(str)
+
+        link_str = ''.join(like_links_text)
+        link_str = re.compile(r"\s+", re.I | re.M | re.S).sub('', link_str)
+        print 'link_str:', len(link_str), link_str
+
+        rate = float(len(link_str)) / len(all_str)
+        print 'is_list_by_link_density() rate:', rate
+        return rate > 0.6
+
+    def is_parent_like_links(self, soup):
+        # print soup.prettify()
+        all_links = []
+        remove_links = []
+        like_links = []
+        try:
+            for tag in soup.find_all("a", text=re.compile(u"[\w\W]{4}")):
+            # for tag in soup.find_all("a"):
+                par = tag.parent
+                # 链接如果是标题，就是主要表达内容,应该当做链接文字。
+                if  par.name.lower() in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                    # print par.prettify()
+                    grandpa = par.parent
+                    if len(grandpa.find_all('a')) == 1:
+                        links_text = []
+                        print grandpa.prettify()
+                        for str in grandpa.stripped_strings: links_text.append(str)
+                        like_links.append(''.join(links_text))
+
+                if tag.has_attr('href'):
+                    all_links.append(tag['href'])
+
+            print like_links
+
+            urls = self.filter_links(all_links)
+
+            print 'urls',len(urls),urls
+
+            if len(urls)>10:
+                return True
+
+        except Exception, e:
+            print '[ERROR] get_page_valid_urls()', e
+        return False
+
     def urls_join(self, org_url, links):
         urls = []
         for link in links:
-            scheme, netloc, path, params, query, fragment = urlparse.urlparse(link)
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(link.strip())
             if scheme:
                 url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
             else:
@@ -321,11 +397,11 @@ class MySpider(spider.Spider):
                     remove_links.append(tag['href'])
 
                 for t in tag.find_previous_siblings('a', recursive=False):
-                    if tag.has_attr('href'):
+                    if t.has_attr('href'):
                         remove_links.append(t['href'])
 
                 for t in tag.find_next_siblings('a', recursive=False):
-                    if tag.has_attr('href'):
+                    if t.has_attr('href'):
                         remove_links.append(t['href'])
 
         except Exception, e:
@@ -471,15 +547,17 @@ def test(unit_test):
                         print k, v
     else: # ---------- unit test -----------------------------
         print '[unit test] now starting ..........'
-        url ='http://q.bashan.com/junshi/junqingmima/201507/9909.html' # 详情页
-        # url = 'http://www.yangtse.com/yzkl'
+        # url ='http://q.bashan.com/junshi/junqingmima/201507/9909.html' # 详情页
+        # url = 'http://china.cankaoxiaoxi.com/2012/0208/12439.shtml' # 详情页 图片类
+        # url = 'http://liuyan.people.com.cn/city.php?fid=452' #列表页
+        # url = 'http://gxxwfb.gxnews.com.cn/staticmores/268/39268-1.shtml' #列表页
         # url = 'http://news.ynet.com/2.1.0/85245.html'
-        # url = 'http://news.ynet.com/2.1.0/83911.html'
         # url = 'http://edu.ynet.com/2.1.0/29293.html'
-        # url = 'http://liuyan.people.com.cn/index.php?gid=4'
+        url = 'http://liuyan.people.com.cn/index.php?gid=4'
         # url = 'http://www.bashan.com/licaigonglue/59210.html'
         print 'url:',url
         mySpider = MySpider()
+        mySpider.site_domain = 'people.com.cn'
         #----------------------------------------------------------
         # print mySpider.is_list_by_rule(url)
         #----------------------------------------------------------
@@ -488,10 +566,11 @@ def test(unit_test):
         # rule1 = mySpider.convert_path_to_rule1(rule0)
         # print rule0, '->', rule1
         soup = mySpider.get_clean_soup(url)
-        print mySpider.is_list_by_link_density(soup)
+        # print mySpider.is_list_by_link_density(soup)
+        print mySpider.is_parent_like_links(soup)
 
 if __name__ == '__main__':
-    # test(unit_test = True)
-    test(unit_test = False)
+    test(unit_test = True)
+    # test(unit_test = False)
     # import cProfile
     # cProfile.run("test(unit_test = False)")
