@@ -10,10 +10,10 @@ import json
 
 class ScanDB:
 
-    def __init__(self):
+    def __init__(self,site_domain,redis_db):
         # self.site_domain = 'k618.cn'
-        self.site_domain = 'tianya.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/2')
+        self.site_domain = site_domain
+        self.conn = redis.StrictRedis.from_url(redis_db)
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -97,20 +97,63 @@ class ScanDB:
         #     self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
         print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open("process-crumbs.json", 'a')
+        fp = open("process-tianya.json", 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
 
     def exportDB(self):
-        print self.conn.zcard(self.list_urls_zset_key)
-        print self.conn.zrange(self.list_urls_zset_key,0,-1,withscores=True)
+        #列表页
+        total = self.conn.zcard(self.list_urls_zset_key)
+        fp = open('export-'+self.list_urls_zset_key+'('+ str(total) +').log','a')
+        fp.write('total:' + str(total) + '\n')
+        for line in self.conn.zrange(self.list_urls_zset_key,0,-1,withscores=True):
+            (k, v) = line
+            fp.write(k + ',' + str(v) + '\n')
+        fp.close()
+
+        # 详情页
+        total = self.conn.zcard(self.detail_urls_zset_key)
+        fp = open('export-' + self.detail_urls_zset_key +'('+ str(total) + ').log', 'a')
+        fp.write('total:' + str(total) + '\n')
+        for line in self.conn.zrange(self.detail_urls_zset_key, 0, -1, withscores=True):
+            (k, v) = line
+            fp.write(k + ',' + str(v) + '\n')
+        fp.close()
+
+        # url0
+        total = self.conn.zcard(self.detail_urls_rule0_zset_key)
+        fp = open('export-' + self.detail_urls_rule0_zset_key +'('+ str(total) + ').log', 'a')
+        fp.write('total:' + str(total) + '\n')
+        for line in self.conn.zrange(self.detail_urls_rule0_zset_key, 0, -1, withscores=True):
+            (k, v) = line
+            fp.write(k + ',' + str(v) + '\n')
+        fp.close()
+
+        # url1
+        if self.conn.exists(self.detail_urls_rule1_zset_key):
+            total = self.conn.zcard(self.detail_urls_rule1_zset_key)
+            fp = open('export-' + self.detail_urls_rule1_zset_key +'('+ str(total) + ').log', 'a')
+            fp.write('total:' + str(total) + '\n')
+            for line in self.conn.zrange(self.detail_urls_rule1_zset_key, 0, -1, withscores=True):
+                (k,v) = line
+                fp.write(k + ',' + str(v) + '\n')
+            fp.close()
 
 if __name__ == '__main__':
-    scan = ScanDB()
     timer_interval = 1
+    # scan = ScanDB(site_domain='bbs.tianya.cn', redis_db='redis://127.0.0.1/1') #天涯bbs
+    # scan = ScanDB(site_domain='yangtse.com',redis_db='redis://127.0.0.1/2') #扬子晚报
+    # scan = ScanDB(site_domain='liuyan.people.com.cn', redis_db='redis://127.0.0.1/3') #地方领导留言板
+    # scan = ScanDB(site_domain='ynet.com', redis_db='redis://127.0.0.1/13') #北青网
+    # scan = ScanDB(site_domain='cpd.com.cn', redis_db='redis://127.0.0.1/9') #中国警察网
+    # scan = ScanDB(site_domain='bjnews.com.cn', redis_db='redis://127.0.0.1/10') #新京报
+    # scan = ScanDB(site_domain='cankaoxiaoxi.com', redis_db='redis://127.0.0.1/12') #参考消息
+    # scan = ScanDB(site_domain='thepaper.cn', redis_db='redis://127.0.0.1/11')  # 澎湃新闻
+    scan = ScanDB(site_domain='bashan.com', redis_db='redis://127.0.0.1/7')  # 巴山财经
+    scan = ScanDB(site_domain='hsw.cn', redis_db='redis://127.0.0.1/8')  # 华商报
 
-    # t = Timer(timer_interval, scan.collageCount_crumbs)
+    t = Timer(timer_interval, scan.collageCount_crumbs)
     t = Timer(timer_interval, scan.collageCount_allsite)
     t.start()
 
@@ -118,4 +161,7 @@ if __name__ == '__main__':
         time.sleep(60)
         scan.collageCount_allsite()
         # scan.collageCount_crumbs()
+
+
+    #---------------------------------------------
     # scan.exportDB()

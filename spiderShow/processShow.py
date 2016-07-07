@@ -99,7 +99,8 @@ def show_crumbs():
 @app.route('/')
 def index():
     # test for all-site spider
-    return render_template('test.html')
+    # return render_template('test.html')
+    return render_template('1.html')
 
 if __name__ == '__main__':
     # times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = convert_file_to_list()
