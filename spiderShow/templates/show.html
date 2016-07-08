@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>process count show</title>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='exporting.js') }}"></script>
+    <script type="text/javascript">
+        setTimeout('window.location.reload()', 60 * 1000);
+        $(function () {
+            $('#process').highcharts({
+                title: {
+                    text: '处理过程',
+                    x: -20 //center
+                },
+                subtitle: {
+                    text: '单位:分钟',
+                    x: -20
+                },
+                xAxis: {
+                    categories: {{ times }}
+                },
+                yAxis: {
+                    title: {
+                        text: '页数'
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }]
+                },
+                tooltip: {
+                    valueSuffix: '页'
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 1
+                },
+                series: [{
+                    name: '规则0',
+                    data: {{ rule0_cnt }}
+                }, {
+                    name: '规则1',
+                    data: {{ rule1_cnt }}
+                }, {
+                    name: '详情页',
+                    data: {{ detail_cnt }}
+                }, {
+                    name: '列表页',
+                    data: {{ list_cnt }}
+                }, {
+                    name: '列表页(扫描完成)',
+                    data:{{ list_done_cnt }}
+                }]
+            });
+        });
+
+        $(function () {
+            $('#dedup').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '与192.168.110.110 dedup 匹配率'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '匹配率',
+                    data: [
+                        ['匹配', {{ matched_rate }}],
+                        {
+                            name: '不匹配',
+                            y: {{ un_match_rate }},
+                            sliced: true,
+                            selected: true
+                        }
+                    ]
+                }]
+            });
+        });
+    </script>
+</head>
+<body>
+{#<p align="center">{{times}}</p>#}
+{#<p align="center">{{rule0_cnt}}</p>#}
+{#<p align="center">{{rule1_cnt}}</p>#}
+<div id="process" style="min-width:700px;height:400px"></div>
+<div id="dedup" style="min-width:700px;height:300px"></div>
+</body>
+</html>

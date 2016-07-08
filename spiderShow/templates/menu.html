@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>bugzilly</title>
+    <script src="{{url_for('static', filename='jquery.min.js')}}"></script>
+    <link href="{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+    <script src="{{url_for('static', filename='bootstrap/js/bootstrap.min.js')}}"></script>
+</head>
+<body>
+<nav class="navbar nav-pills" role="navigation">
+    <div id="menu">
+        <ul class="nav nav-tabs nav-justified">
+            <li><a href="setting" target="mainframe">设定抓取信息</a></li>
+            <li><a href="show" target="mainframe">显示抓取过程</a></li>
+            <li class="disabled"><a href="export_import" target="mainframe">导入/导出设定</a></li>
+        </ul>
+    </div>
+</nav>
+<div id="main" style="height:1000px;width:1280px;float:left;">
+    <iframe name="mainframe" style="height:1280px;width:1360px" frameborder="0" scrolling="no"></iframe>
+</div>
+</body>
+</html>
