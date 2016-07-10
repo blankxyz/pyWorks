@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, url_for, flash, redirect
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.wtf import Form
 from wtforms import validators
-from wtforms import IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
+from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
 
 app = Flask(__name__)
@@ -57,25 +57,28 @@ bootstrap = Bootstrap(app)
 #                                         validators.Email(message=(u'That\'s not a valid email address.'))])
 #     submit = SubmitField('Submit')
 
+class RegexForm(Form):
+    select = BooleanField(label=u'选择', default=False)
+    regex = StringField(label=u'表达式', default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
+    score = IntegerField(label=u'匹配数',default=0)
+    # convert = SubmitField(label=u'<<')
+    # url = StringField(label=u'转换对象', default='http://www.sdnews.com.cn/sports/txzq/201606/t20160618_2096220.html#')
+
 
 class MyForm(Form):
-    start_urls = StringField(u'主页', default='http://cpt.xtu.edu.cn/')
-    site_domain = StringField(u'domain', default='cpt.xtu.edu.cn')
-    redis_setting = StringField(u'redis', default='redis://127.0.0.1/14')
+    start_urls = StringField(label=u'主页', default='http://cpt.xtu.edu.cn/')
+    site_domain = StringField(label='domain', default='cpt.xtu.edu.cn')
+    redis_setting = StringField(label='redis', default='redis://127.0.0.1/14')
+    dedup = StringField(label='dedup', default='redis://192.168.110.110/0')
 
-    regex1 = StringField(u'表达式1', default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    regex2 = StringField(u'表达式2', default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html')
-    regex3 = StringField(u'表达式3', default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html')
-
-    url1 = StringField(u'url转换对象1',default='http://www.sdnews.com.cn/sports/txzq/201606/t20160618_2096220.html#')
-    url2 = StringField(u'url转换对象2')
-    url3 = StringField(u'url转换对象3')
-
-    convert1 = SubmitField(u'<< 转换1')
-    convert2 = SubmitField(u'<< 转换2')
-    convert3 = SubmitField(u'<< 转换3')
-
-    submit = SubmitField(u'保存')
+    list_keyword = StringField(label=u'列表页特征词', default='list;index;')
+    detail_keyword = StringField(label=u'详情页特征词', default='post;content;')
+    result = StringField(label=u'转换结果')
+    convert = SubmitField(label=u'<<转换')
+    url = StringField(label=u'URL例子')
+    regex_list = FieldList(FormField(RegexForm), label=u'详情页正则表达式列表', min_entries=5)
+    reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
+    submit = SubmitField(label=u'保存')
 
 
 class DBDrive(object):
@@ -161,62 +164,63 @@ class CollageProcessInfo(object):
         fp.close()
         return times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt
 
-class Util(object):
-    def convert_path_to_rule(self, url):
-        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-        print path
-        pos = path.rfind('.')
-        suffix = path[pos:]
-        path = path[:pos]
-        # print suffix,path
-        split_path = path.split('/')
-        # print split_path
-        new_path_list = []
-        for p in split_path:
-            regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
-            regex = re.sub(r'\d', '\d', regex)
-            new_path_list.append(self.convert_regex_format(regex))
-        # print new_path
-        new_path = '/'.join(new_path_list) + suffix
-        return urlparse.urlunparse((scheme, netloc, new_path, '', '', ''))
+        
+def convert_path_to_rule(url):
+    scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+    print path
+    pos = path.rfind('.')
+    suffix = path[pos:]
+    path = path[:pos]
+    # print suffix,path
+    split_path = path.split('/')
+    # print split_path
+    new_path_list = []
+    for p in split_path:
+        regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
+        regex = re.sub(r'\d', '\d', regex)
+        new_path_list.append(convert_regex_format(regex))
+    # print new_path
+    new_path = '/'.join(new_path_list) + suffix
+    return urlparse.urlunparse((scheme, netloc, new_path, '', '', ''))
 
-    def convert_regex_format(self, rule):
-        '''
-        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
-        /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
-        '''
-        ret = ''
-        digit = '\d'
-        word = '[a-zA-Z]'
-        cnt = 0
-        pos = 0
-        temp = ''
-        while pos <= len(rule):
-            if rule[pos:pos + len(digit)] == digit:
-                if temp.find(digit) < 0:
-                    ret = ret + temp
-                    temp = ''
-                    cnt = 0
-                cnt = cnt + 1
-                temp = '%s{%d}' % (digit, cnt)
-                pos = pos + len(digit)
-            elif rule[pos:pos + len(word)] == word:
-                if temp.find(word) < 0:
-                    ret = ret + temp
-                    temp = ''
-                    cnt = 0
-                cnt = cnt + 1
-                temp = '%s{%d}' % (word, cnt)
-                pos = pos + len(word)
-            elif pos == len(rule):
+def convert_regex_format(rule):
+    '''
+    /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
+    /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
+    '''
+    ret = ''
+    digit = '\d'
+    word = '[a-zA-Z]'
+    cnt = 0
+    pos = 0
+    temp = ''
+    while pos <= len(rule):
+        if rule[pos:pos + len(digit)] == digit:
+            if temp.find(digit) < 0:
                 ret = ret + temp
-                break
-            else:
-                ret = ret + temp + rule[pos]
                 temp = ''
                 cnt = 0
-                pos = pos + 1
-        return ret
+            cnt = cnt + 1
+            temp = '%s{%d}' % (digit, cnt)
+            pos = pos + len(digit)
+        elif rule[pos:pos + len(word)] == word:
+            if temp.find(word) < 0:
+                ret = ret + temp
+                temp = ''
+                cnt = 0
+            cnt = cnt + 1
+            temp = '%s{%d}' % (word, cnt)
+            pos = pos + len(word)
+        elif pos == len(rule):
+            ret = ret + temp
+            break
+        else:
+            ret = ret + temp + rule[pos]
+            temp = ''
+            cnt = 0
+            pos = pos + 1
+    return ret
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -265,29 +269,20 @@ def setting():
     start_urls = 'http://cpt.xtu.edu.cn/'
     site_domain = 'cpt.xtu.edu.cn'
     redis_setting = 'redis://127.0.0.1/14'
-    regex1 = 'http://cpt.xtu.edu.cn/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html'
-    regex2 = 'http://cpt.xtu.edu.cn/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html'
-    regex3 = 'http://cpt.xtu.edu.cn/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html'
-    # setting.ini -----------------------------------
 
     myForm = MyForm()
 
-    return render_template('setting.html',
-                           myForm=myForm,
-                           start_urls=start_urls,
-                           site_domain=site_domain,
-                           redis_setting=redis_setting,
-                           regex1=regex1,
-                           regex2=regex2,
-                           regex3=regex3)
+    return render_template('setting.html', myForm=myForm)
+
 
 @app.route('/convert', methods=['POST'])
 def convert():
-    print 'convert() start'
     myForm = MyForm(request.form)
-    url1 = myForm.url1.data
-    util = Util()
-    util.convert_path_to_rule0()
+    if myForm.url.data != '':
+        myForm.convert.data = convert_path_to_rule(myForm.url.data)
+        flash('convert:'+myForm.url.data+'to'+myForm.convert.data)
+
+    return render_template('setting.html', myForm=myForm)
 
 @app.route('/submit_save_regex', methods=['POST'])
 def submit_save_regex():
@@ -295,7 +290,7 @@ def submit_save_regex():
     start_urls = None  # 'http://cpt.xtu.edu.cn/'
     site_domain = None  # 'cpt.xtu.edu.cn'
     redis_setting = None  # 'redis://127.0.0.1/14'
-    regex1, regex2, regex3 = None, None, None
+    regex_list = []
 
     myForm = MyForm(request.form)
     # if myForm.validate_on_submit():
@@ -305,43 +300,31 @@ def submit_save_regex():
     site_domain = myForm.site_domain.data
     redis_setting = myForm.redis_setting.data
 
-    regex1 = myForm.regex1.data
-    regex2 = myForm.regex2.data
-    regex3 = myForm.regex3.data
+    regex_list = myForm.regex_list.data
 
-    url1 = myForm.url1.data
-    url2 = myForm.url2.data
-    url3 = myForm.url3.data
-
-    convert1 = myForm.convert1.data
-    print 'submit_save_regex()', convert1
-    if url1:
-        util = Util()
-        new = util.convert_path_to_rule(url1)
-        print 'submit_save_regex() convert_path_to_rule0', new
-        myForm.regex1.data = new
+    regex_save_list = []
+    for r in regex_list:
+        regex = r['regex']
+        select = r['select']
+        scrore = r['score']
+        if select and regex != '':
+            regex_save_list.append(regex)
 
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
                  redis_setting=redis_setting)
-    db.save_regex([regex1, regex2, regex3])
 
+    regex_save_list = list(set(regex_save_list))
+    db.save_regex(regex_save_list)
+
+    flash(u"保存并执行...")
     print 'submit_save_regex() OK!'
     # 只启动一次 run_spider.bat
     # if os.path.exists(json_file) is False:
     #     subprocess.call(["run_spider.bat"], shell=True)
     # else:
     #     print 'no submit................'
-    #     print myForm.regex1.data, myForm.regex2.data, myForm.regex3.data
-
-    return render_template('setting.html',
-                           myForm=myForm,
-                           start_urls=start_urls,
-                           site_domain=site_domain,
-                           redis_setting=redis_setting,
-                           regex1=regex1,
-                           regex2=regex2,
-                           regex3=regex3)
+    return render_template('setting.html', myForm=myForm)
 
 
 @app.errorhandler(404)

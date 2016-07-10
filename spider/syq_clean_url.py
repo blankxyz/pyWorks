@@ -3,7 +3,6 @@
 url及文本判断过滤
 '''
 import re
-import cgi
 import json
 import urllib
 import datetime
@@ -31,6 +30,7 @@ class Cleaner(object):
         # 域名正则黑名单
         self.black_domain_regex = (
             # 'bbs\.',  # syq
+            # 'blog\.',  # syq
         )
         self.now_year = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y'), '%Y')
         self.hash_black_path_regex_key = 'hash_black_path_regex'
@@ -90,12 +90,12 @@ class Cleaner(object):
         url_list = filter(lambda x: not self.is_next_page(x), url_list)
         return url_list
 
-    def is_download(self, url):  # syq
-        p = urlparse.urlparse(url).netloc
-        for fix in ['.apk', '.doc*', '.xls*', '.csv', '.avi', '.rmvb']:
+    def is_suffixes_ok(self, url):  # syq
+        p = urlparse.urlparse(url).path
+        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb']:
             if p.find(fix) > 0:
-                return True
-        return False
+                return False
+        return True
 
     def check_cross_domain(self, url):
         '''跨域检查'''
@@ -119,7 +119,7 @@ class Cleaner(object):
     def url_sort(self, url):
         '''url参数排序'''
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-        keyvals = cgi.parse_qsl(query, keep_blank_values=1)
+        keyvals = urlparse.parse_qsl(query, keep_blank_values=1)
         keyvals.sort()
         query = urllib.urlencode(keyvals)
         return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
@@ -130,9 +130,8 @@ class Cleaner(object):
         for url in urls:
             # 清理锚 # 之后的
             url = url.split('#')[0]
-            url = url.split('?')[0]  # syq
             # 汉字参数转义
-            url = urllib.unquote(url)
+            # url = urllib.unquote(url)
             # 参数排序
             url = self.url_sort(url)
             # 去'/'

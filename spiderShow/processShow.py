@@ -1,4 +1,6 @@
-from flask import Flask, render_template
+#!/usr/bin/env python
+# coding=utf-8
+
 # import matplotlib.pyplot as plt
 
 app = Flask(__name__)

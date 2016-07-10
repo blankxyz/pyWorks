@@ -6,16 +6,46 @@
     <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
     <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+{#    <style>#}
+{#    .div-left{ float:left;width:49%;border:1px solid}#}
+{#    .div-right{ float:left;width:49%;border:1px solid}#}
+{#    </style>#}
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8"
+            src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var t = $('#detail-regex-tab').DataTable();
+{#            $('#addRow').on('click', function () {#}
+{#                t.row.add([#}
+{#                    'rule1',#}
+{#                    '<<',#}
+{#                    'url'#}
+{#                ]).draw();#}
+{#            });#}
+        });
+    </script>
 </head>
 <body>
-<h1>配置抓取信息 <small>主页、域名、正则表达式</small></h1>
-{% if regex1 or regex2 or regex3 %}
-    <h3>(1){{ regex1 }}</h3>
-    <h3>(2){{ regex2 }}</h3>
-    <h3>(3){{ regex3 }}</h3>
-{% else %}
-    <h3>请输入配置信息和正则表达式</h3>
-{% endif %}
+<h1 align="center">配置抓取信息
+    <small>主页、域名、详情页/列表页URL的 关键字/正则表达式</small>
+</h1>
+
+<div id="message" class="form-group center" style="width:80%; margin-left:50px">
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <label>{{ message }}</label>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+</div>
+{#{{ myForm.errors }}#}
 {##}
 {#<form id="set" method="POST" action="/save_regex">#}
 {#    <div class="input-group input-group-lg">#}
@@ -49,58 +79,54 @@
 {#    {{ myForm.submit() }}#}
 {#</form>#}
 
+{#<button id="addRow">添加一行</button>#}
 
 <form id="setting" method="POST" action="/submit_save_regex">
-    <table>
-        <div id="domain" style="height: 50%; width:50%; margin-inside:10px">
+    <hr/>
+    <div id="config" class="form-group center" style="width:80%; margin-left:50px">
+        {{ myForm.start_urls.label }} &nbsp;{{ myForm.start_urls(size=30) }}&nbsp;&nbsp;&nbsp;
+        {{ myForm.site_domain.label }} &nbsp;{{ myForm.site_domain(size=20) }}&nbsp;&nbsp;&nbsp;
+        {{ myForm.redis_setting.label }}&nbsp; {{ myForm.redis_setting(size=30) }}&nbsp;&nbsp;&nbsp;
+        {{ myForm.dedup.label }}&nbsp; {{ myForm.dedup(size=30) }}
+    </div>
+    <hr/>
+    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">
+        <label for="name">{{ myForm.list_keyword.label }} </label>&nbsp;{{ myForm.list_keyword(size=120) }}<br>
+        <label for="name">{{ myForm.detail_keyword.label }}</label>&nbsp;{{ myForm.detail_keyword(size=120) }}
+    </div>
+    <hr/>
+    <div id="convert" class="form-group" style="width:80%; margin-left:50px">
+        <label>正则转换工具&nbsp;</label>{{ myForm.result(size=60) }}{{ myForm.convert() }}{{ myForm.url(size=60) }}
+    </div>
+    <hr/>
+    <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
+        <label for="name">详情页-正则表达式</label><br>
+        <table id="detail-regex-tab">
+            <thead>
             <tr>
-                <td style="width:10%; margin-left:10px">{{ myForm.site_domain.label }} </td>
-                <td style="width:40%; margin-left:10px">
-                {{ myForm.site_domain() }}
-                <td>
+                <th>选择</th>
+                <th>正则表达式</th>
+                <th>匹配数</th>
             </tr>
-            <tr>
-                <td style="width:10%; margin-left:10px">{{ myForm.start_urls.label }} </td>
-                <td style="width:40%; margin-left:10px">
-                {{ myForm.start_urls() }}
-                <td>
-            </tr>
-            <tr>
-                <td style="width:10%; margin-left:10px">{{ myForm.redis_setting.label }} </td>
-                <td style="width:40%; margin-left:10px">
-                {{ myForm.redis_setting() }}
-                <td>
-            </tr>
-        </div>
-        <br>
-        <div id="regex" style="height: 50%; width:50%; margin-left:10px">
-            <tr>
-                <td style="width:10%; margin-left:10px">{{ myForm.regex1.label }}</td>
-                <td style="width:40%; margin-left:10px">{{ myForm.regex1() }}</td>
-                <td>{{ myForm.convert1() }}</td>
-                <td style="width:40%; margin-left:10px">{{ myForm.url1() }}</td>
-            </tr>
-
-            <tr>
-                <td style="width:10%; margin-left:10px">{{ myForm.regex2.label }}</td>
-                <td style="width:40%; margin-left:10px">{{ myForm.regex2() }}</td>
-                <td>{{ myForm.convert2() }}</td>
-                <td style="width:40%; margin-left:10px">{{ myForm.url2() }}</td>
-            </tr>
-
-            <tr>
-                <td style="width:10%; margin-left:10px">{{ myForm.regex3.label }}</td>
-                <td style="width:40%; margin-left:10px">{{ myForm.regex3() }}</td>
-                <td>{{ myForm.convert3() }}</td>
-                <td style="width:40%; margin-left:10px">{{ myForm.url3() }}</td>
-            </tr>
-        </div>
-    </table>
-    {{ myForm.submit() }}
+            </thead>
+            <tbody>
+            {% for regex in myForm.regex_list %}
+                <tr id="{{ loop.index }}">
+                    <td>&nbsp;&nbsp;{{ regex.used() }}</td>
+                    <td>{{ regex.regex(size=100) }}</td>
+                    <td>{{ regex.score(size=6) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="reset" class="form-group checkbox" style="width:80%; margin-left:50px">
+        <label>{{ myForm.reset }} {{ myForm.reset.label }}</label>
+    </div>
+    <div id="submit" class="form-group" style="width:80%; margin-left:50px">
+        <button type="button" class="btn-lg">{{ myForm.submit() }}</button>
+    </div>
 </form>
-
-
-
 
 </body>
 </html>
