@@ -99,7 +99,7 @@
 
 {#<button id="addRow">添加一行</button>#}
 
-<form id="setting" method="POST" action="/submit_save_regex">
+<form id="setting" method="POST" action="/save_and_run">
     <hr/>
     <div id="config" class="form-group center" style="width:80%; margin-left:50px">
         {{ myForm.start_urls.label }} &nbsp;{{ myForm.start_urls(size=30) }}&nbsp;&nbsp;&nbsp;
@@ -122,6 +122,7 @@
     <hr/>
     <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
         <label for="name">详情页-正则表达式</label><br>
+{#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
         <table id="detail-regex-tab">
             <thead>
             <tr>
@@ -131,11 +132,11 @@
             </tr>
             </thead>
             <tbody>
-            {% for regex in myForm.regex_list %}
+            {% for row in myForm.regex_list %}
                 <tr id="{{ loop.index }}">
-                    <td>&nbsp;&nbsp;{{ regex.select() }}</td>
-                    <td>{{ regex.regex(size=100) }}</td>
-                    <td>{{ regex.score(size=6) }}</td>
+                    <td>&nbsp;&nbsp;{{ row.select() }}</td>
+                    <td>{{ row.regex(size=100) }}</td>
+                    <td>{{ row.score(size=6) }}</td>
                 </tr>
             {% endfor %}
             </tbody>

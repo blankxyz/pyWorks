@@ -13,6 +13,7 @@ from flask.ext.wtf import Form
 from wtforms import validators
 from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
+from werkzeug.datastructures import MultiDict
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'success'
@@ -280,16 +281,20 @@ def setting():
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
                  redis_setting=redis_setting)
-    # FiledList设置无效
-    rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0, end=999, withscores=True)
-    i = 0
-    for rule, score in dict(rules1).iteritems():
-        myForm.regex_list.data[i]['regex'] = rule
-        myForm.regex_list.data[i]['score'] = score
-    # FiledList设置无效
+    # # FiledList设置无效
+    # rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0, end=999, withscores=True)
+    # i = 0
+    # for rule, score in dict(rules1).iteritems():
+    #     myForm.regex_list.data[i]['regex'] = rule
+    #     myForm.regex_list.data[i]['score'] = score
+    # # FiledList设置无效
 
     #清除原有所有规则
     db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key,min=0,max=99999999)
+
+    # regexForm = RegexForm()
+    # regexForm.regex=StringField(label='test',default='aaaaaaa')
+    # myForm.regex_list.data = FieldList(regexForm)
 
     #保存详情页关键字
     detail_keywords_str = []
@@ -306,6 +311,11 @@ def setting():
 
     flash(u'初始化配置完成')
 
+    regex_data = MultiDict([('select',True),('regex', 'aaaaaaa'), ('score', 999)])
+    regexForm = RegexForm(regex_data)
+    # myForm.regex_list.append_entry(regexForm)
+    myForm.regex_list.entries[0] = regexForm
+
     return render_template('setting.html', myForm=myForm)
 
 
@@ -319,8 +329,8 @@ def convert_to_regex():
     return jsonStr
 
 
-@app.route('/submit_save_regex', methods=['POST'])
-def submit_save_regex():
+@app.route('/save_and_run', methods=['POST'])
+def save_and_run():
     print 'submit_save_regex() start'
     start_urls = None  # 'http://cpt.xtu.edu.cn/'
     site_domain = None  # 'cpt.xtu.edu.cn'
@@ -379,6 +389,9 @@ def submit_save_regex():
     #     subprocess.call(["run_spider.bat"], shell=True)
     # else:
     #     print 'no submit................'
+    import os
+    os.startfile(r"D:\workspace\pyWorks\spider\syq_url_rule_manual.py")
+
     return render_template('setting.html', myForm=myForm)
 
 
