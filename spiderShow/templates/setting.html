@@ -6,19 +6,36 @@
     <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
     <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
-
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        $(function () {
+            function submit_form2(e) {
+                $.ajax({url: $SCRIPT_ROOT + '/convert',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data:{
+                            convert_url: $('input[id="convert_url"]').val(),
+                            now: new Date().getTime()
+                        },
+                        error: function(xhr, err){ $('#regex_result').text(err); },
+                        success: function(data, textStatus){ $('#regex_result').text(data.regex);}
+                });
+            };
+            $('#convert').click(submit_form2);
+        });
+    </script>
     <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+{#    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">#}
 {#    <style>#}
 {#    .div-left{ float:left;width:49%;border:1px solid}#}
 {#    .div-right{ float:left;width:49%;border:1px solid}#}
 {#    </style>#}
     <!-- DataTables -->
-    <script type="text/javascript" charset="utf8"
-            src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            var t = $('#detail-regex-tab').DataTable();
+{#    <script type="text/javascript" charset="utf8"#}
+{#            src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>#}
+{#    <script type="text/javascript">#}
+{#        $(document).ready(function () {#}
+{#            var t = $('#detail-regex-tab').DataTable();#}
 {#            $('#addRow').on('click', function () {#}
 {#                t.row.add([#}
 {#                    'rule1',#}
@@ -26,8 +43,8 @@
 {#                    'url'#}
 {#                ]).draw();#}
 {#            });#}
-        });
-    </script>
+{#        });#}
+{#    </script>#}
 </head>
 <body>
 <h1 align="center">配置抓取信息
@@ -45,6 +62,7 @@
     {% endif %}
 {% endwith %}
 </div>
+
 {#{{ myForm.errors }}#}
 {##}
 {#<form id="set" method="POST" action="/save_regex">#}
@@ -95,9 +113,12 @@
         <label for="name">{{ myForm.detail_keyword.label }}</label>&nbsp;{{ myForm.detail_keyword(size=120) }}
     </div>
     <hr/>
-    <div id="convert" class="form-group" style="width:80%; margin-left:50px">
-        <label>正则转换工具&nbsp;</label>{{ myForm.result(size=60) }}{{ myForm.convert() }}{{ myForm.url(size=60) }}
+
+    <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
+        <input type=text size=50 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
+        <label id="regex_result"> 请确认转换后的表达式，拷贝到下面列表中。 </label>
     </div>
+
     <hr/>
     <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
         <label for="name">详情页-正则表达式</label><br>
@@ -112,7 +133,7 @@
             <tbody>
             {% for regex in myForm.regex_list %}
                 <tr id="{{ loop.index }}">
-                    <td>&nbsp;&nbsp;{{ regex.used() }}</td>
+                    <td>&nbsp;&nbsp;{{ regex.select() }}</td>
                     <td>{{ regex.regex(size=100) }}</td>
                     <td>{{ regex.score(size=6) }}</td>
                 </tr>

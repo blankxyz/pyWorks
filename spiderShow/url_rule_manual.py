@@ -59,10 +59,8 @@ bootstrap = Bootstrap(app)
 
 class RegexForm(Form):
     select = BooleanField(label=u'选择', default=False)
-    regex = StringField(label=u'表达式', default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    score = IntegerField(label=u'匹配数',default=0)
-    # convert = SubmitField(label=u'<<')
-    # url = StringField(label=u'转换对象', default='http://www.sdnews.com.cn/sports/txzq/201606/t20160618_2096220.html#')
+    regex = StringField(label=u'表达式') #, default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
+    score = IntegerField(label=u'匹配数', default=0)
 
 
 class MyForm(Form):
@@ -73,11 +71,15 @@ class MyForm(Form):
 
     list_keyword = StringField(label=u'列表页特征词', default='list;index;')
     detail_keyword = StringField(label=u'详情页特征词', default='post;content;')
+
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<<转换')
     url = StringField(label=u'URL例子')
+
     regex_list = FieldList(FormField(RegexForm), label=u'详情页正则表达式列表', min_entries=5)
+
     reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
+
     submit = SubmitField(label=u'保存')
 
 
@@ -88,6 +90,8 @@ class DBDrive(object):
         self.conn = redis.StrictRedis.from_url(redis_setting)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain
+        self.list_urls_keyword_zset_key = 'list_urls_keyword_zset_%s' % self.site_domain
+        self.detail_urls_keyword_zset_key = 'detail_urls_keyword_zset_%s' % self.site_domain
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain
         self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
@@ -164,10 +168,10 @@ class CollageProcessInfo(object):
         fp.close()
         return times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt
 
-        
+
 def convert_path_to_rule(url):
     scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-    print path
+    # print path
     pos = path.rfind('.')
     suffix = path[pos:]
     path = path[:pos]
@@ -182,6 +186,7 @@ def convert_path_to_rule(url):
     # print new_path
     new_path = '/'.join(new_path_list) + suffix
     return urlparse.urlunparse((scheme, netloc, new_path, '', '', ''))
+
 
 def convert_regex_format(rule):
     '''
@@ -272,17 +277,47 @@ def setting():
 
     myForm = MyForm()
 
+    db = DBDrive(start_urls=start_urls,
+                 site_domain=site_domain,
+                 redis_setting=redis_setting)
+    # FiledList设置无效
+    rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0, end=999, withscores=True)
+    i = 0
+    for rule, score in dict(rules1).iteritems():
+        myForm.regex_list.data[i]['regex'] = rule
+        myForm.regex_list.data[i]['score'] = score
+    # FiledList设置无效
+
+    #清除原有所有规则
+    db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key,min=0,max=99999999)
+
+    #保存详情页关键字
+    detail_keywords_str = []
+    detail_keywords = db.conn.zrange(db.detail_urls_keyword_zset_key, start=0, end=999, withscores=False)
+    for keyword in detail_keywords:
+        detail_keywords_str.append(keyword)
+    myForm.detail_keyword.data = ';'.join(detail_keywords_str)
+
+    list_keywords_str = []
+    list_keywords = db.conn.zrange(db.list_urls_keyword_zset_key, start=0, end=999, withscores=False)
+    for keyword in list_keywords:
+        list_keywords_str.append(keyword)
+    myForm.list_keyword.data = ';'.join(list_keywords_str)
+
+    flash(u'初始化配置完成')
+
     return render_template('setting.html', myForm=myForm)
 
 
-@app.route('/convert', methods=['POST'])
-def convert():
-    myForm = MyForm(request.form)
-    if myForm.url.data != '':
-        myForm.convert.data = convert_path_to_rule(myForm.url.data)
-        flash('convert:'+myForm.url.data+'to'+myForm.convert.data)
+@app.route('/convert',methods=["GET", "POST"])
+def convert_to_regex():
+    ret = {}
+    convert_url = request.args.get('convert_url')
+    ret['regex'] = convert_path_to_rule(convert_url)
+    jsonStr = json.dumps(ret)
+    print 'ajax()', convert_url,'->',jsonStr
+    return jsonStr
 
-    return render_template('setting.html', myForm=myForm)
 
 @app.route('/submit_save_regex', methods=['POST'])
 def submit_save_regex():
@@ -304,9 +339,9 @@ def submit_save_regex():
 
     regex_save_list = []
     for r in regex_list:
-        regex = r['regex']
         select = r['select']
-        scrore = r['score']
+        regex = r['regex']
+        score = r['score']
         if select and regex != '':
             regex_save_list.append(regex)
 
@@ -316,6 +351,26 @@ def submit_save_regex():
 
     regex_save_list = list(set(regex_save_list))
     db.save_regex(regex_save_list)
+
+    # 清除原有，保存页面存储的详情页关键字
+    db.conn.zremrangebyscore(db.detail_urls_keyword_zset_key, min=0, max=99999999)
+    detail_key =  myForm.detail_keyword.data
+    for keyword in detail_key.split(';'):
+        if keyword !='' and db.conn.zrank(db.detail_urls_keyword_zset_key,keyword) is None:
+            db.conn.zadd(db.detail_urls_keyword_zset_key,0,keyword)
+
+    # 清除原有，保存页面存储的列表页关键字
+    db.conn.zremrangebyscore(db.list_urls_keyword_zset_key, min=0, max=99999999)
+    list_key = myForm.list_keyword.data
+    for keyword in list_key.split(';'):
+        if keyword !='' and db.conn.zrank(db.list_urls_keyword_zset_key,keyword) is None:
+            db.conn.zadd(db.list_urls_keyword_zset_key,0,keyword)
+
+    # 将原有正则表达式的score清零
+    if myForm.reset:
+        regex_reset = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0,end=9999999)
+        for regex in regex_reset:
+            db.conn.zadd(db.detail_urls_rule1_zset_key, 0, regex)
 
     flash(u"保存并执行...")
     print 'submit_save_regex() OK!'
