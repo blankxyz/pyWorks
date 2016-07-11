@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 import re
+import os
 import urlparse
 import redis
 import json
@@ -67,8 +68,8 @@ class RegexForm(Form):
 class MyForm(Form):
     start_urls = StringField(label=u'主页', default='http://cpt.xtu.edu.cn/')
     site_domain = StringField(label='domain', default='cpt.xtu.edu.cn')
-    redis_setting = StringField(label='redis', default='redis://127.0.0.1/14')
-    dedup = StringField(label='dedup', default='redis://192.168.110.110/0')
+    # redis_setting = StringField(label='redis', default='redis://127.0.0.1/14')
+    # dedup = StringField(label='dedup', default='redis://192.168.110.110/0')
 
     list_keyword = StringField(label=u'列表页特征词', default='list;index;')
     detail_keyword = StringField(label=u'详情页特征词', default='post;content;')
@@ -281,16 +282,6 @@ def setting():
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
                  redis_setting=redis_setting)
-    # # FiledList设置无效
-    # rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0, end=999, withscores=True)
-    # i = 0
-    # for rule, score in dict(rules1).iteritems():
-    #     myForm.regex_list.data[i]['regex'] = rule
-    #     myForm.regex_list.data[i]['score'] = score
-    # # FiledList设置无效
-
-    #清除原有所有规则
-    db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key,min=0,max=99999999)
 
     # regexForm = RegexForm()
     # regexForm.regex=StringField(label='test',default='aaaaaaa')
@@ -309,12 +300,20 @@ def setting():
         list_keywords_str.append(keyword)
     myForm.list_keyword.data = ';'.join(list_keywords_str)
 
-    flash(u'初始化配置完成')
+    #还原原有的正则表达式
+    rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0, end=999, withscores=True)
+    i = 0
+    for rule, score in dict(rules1).iteritems():
+        regex_data = MultiDict([('select', True), ('regex', rule), ('score', int(score))])
+        regexForm = RegexForm(regex_data)
+        # myForm.regex_list.append_entry(regexForm)
+        myForm.regex_list.entries[i] = regexForm
+        i += 1
 
-    regex_data = MultiDict([('select',True),('regex', 'aaaaaaa'), ('score', 999)])
-    regexForm = RegexForm(regex_data)
-    # myForm.regex_list.append_entry(regexForm)
-    myForm.regex_list.entries[0] = regexForm
+    # 清除原有所有规则
+    # db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key, min=0, max=99999999)
+
+    flash(u'初始化配置完成')
 
     return render_template('setting.html', myForm=myForm)
 
@@ -343,7 +342,6 @@ def save_and_run():
     # if request.method == 'POST' and myForm.validate():
     start_urls = myForm.start_urls.data
     site_domain = myForm.site_domain.data
-    redis_setting = myForm.redis_setting.data
 
     regex_list = myForm.regex_list.data
 
@@ -363,16 +361,22 @@ def save_and_run():
     db.save_regex(regex_save_list)
 
     # 清除原有，保存页面存储的详情页关键字
+    detail_keys = []
     db.conn.zremrangebyscore(db.detail_urls_keyword_zset_key, min=0, max=99999999)
     detail_key =  myForm.detail_keyword.data
     for keyword in detail_key.split(';'):
+        if keyword != '':
+            detail_keys.append(keyword)
         if keyword !='' and db.conn.zrank(db.detail_urls_keyword_zset_key,keyword) is None:
             db.conn.zadd(db.detail_urls_keyword_zset_key,0,keyword)
 
     # 清除原有，保存页面存储的列表页关键字
+    list_keys = []
     db.conn.zremrangebyscore(db.list_urls_keyword_zset_key, min=0, max=99999999)
     list_key = myForm.list_keyword.data
     for keyword in list_key.split(';'):
+        if keyword != '':
+            list_keys.append(keyword)
         if keyword !='' and db.conn.zrank(db.list_urls_keyword_zset_key,keyword) is None:
             db.conn.zadd(db.list_urls_keyword_zset_key,0,keyword)
 
@@ -382,16 +386,17 @@ def save_and_run():
         for regex in regex_reset:
             db.conn.zadd(db.detail_urls_rule1_zset_key, 0, regex)
 
-    flash(u"保存并执行...")
-    print 'submit_save_regex() OK!'
-    # 只启动一次 run_spider.bat
-    # if os.path.exists(json_file) is False:
-    #     subprocess.call(["run_spider.bat"], shell=True)
-    # else:
-    #     print 'no submit................'
-    import os
-    os.startfile(r"D:\workspace\pyWorks\spider\syq_url_rule_manual.py")
-
+    if len(list(set(list_keys)&set(detail_keys))) > 0:
+        flash(u"详情页/列表页有重复！")
+    else:
+        flash(u"保存并执行...")
+        print 'submit_save_regex() OK!'
+        os.startfile(r"D:\workspace\pyWorks\spider\syq_url_rule_manual.py")
+        # 只启动一次 run_spider.bat
+        # if os.path.exists(json_file) is False:
+        #     subprocess.call(["run_spider.bat"], shell=True)
+        # else:
+        #     print 'no submit................'
     return render_template('setting.html', myForm=myForm)
 
 

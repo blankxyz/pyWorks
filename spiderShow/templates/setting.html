@@ -103,9 +103,7 @@
     <hr/>
     <div id="config" class="form-group center" style="width:80%; margin-left:50px">
         {{ myForm.start_urls.label }} &nbsp;{{ myForm.start_urls(size=30) }}&nbsp;&nbsp;&nbsp;
-        {{ myForm.site_domain.label }} &nbsp;{{ myForm.site_domain(size=20) }}&nbsp;&nbsp;&nbsp;
-        {{ myForm.redis_setting.label }}&nbsp; {{ myForm.redis_setting(size=30) }}&nbsp;&nbsp;&nbsp;
-        {{ myForm.dedup.label }}&nbsp; {{ myForm.dedup(size=30) }}
+        {{ myForm.site_domain.label }} &nbsp;{{ myForm.site_domain(size=20) }}
     </div>
     <hr/>
     <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">
@@ -146,7 +144,7 @@
         <label>{{ myForm.reset }} {{ myForm.reset.label }}</label>
     </div>
     <div id="submit" class="form-group" style="width:80%; margin-left:50px">
-        <button type="button" class="btn-lg">{{ myForm.submit() }}</button>
+        <button type="button" class="btn">{{ myForm.submit() }}</button>
     </div>
 </form>
 
