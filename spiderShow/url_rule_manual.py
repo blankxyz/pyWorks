@@ -511,7 +511,8 @@ def save_and_run():
     modify_pyfile(py_file=RUN_PY_FILE, start_urls = "\'"+ start_urls +"\'", site_domain="\'"+ site_domain + "\'")
 
     # DOS "start" command
-    os.startfile(RUN_PY_FILE)
+    if os.name == 'nt':
+        os.startfile(RUN_PY_FILE)
 
     export_file = {'start_urls':start_urls,
             'site_domain':site_domain,
