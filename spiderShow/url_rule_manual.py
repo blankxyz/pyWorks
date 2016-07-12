@@ -21,6 +21,10 @@ app.config['SECRET_KEY'] = 'success'
 bootstrap = Bootstrap(app)
 
 
+redis_setting = 'redis://127.0.0.1/14'
+dedup_setting = 'redis://192.168.110.110/0'
+json_file = "process-temp.json"
+
 # def is_me(form, field): #自定义check函数
 #     if field.data != 'yes':
 #         raise validators.ValidationError('Must input "yes"') #FormField对象
@@ -66,29 +70,27 @@ class RegexForm(Form):
 
 
 class MyForm(Form):
-    start_urls = StringField(label=u'主页', default='http://cpt.xtu.edu.cn/')
-    site_domain = StringField(label='domain', default='cpt.xtu.edu.cn')
-    # redis_setting = StringField(label='redis', default='redis://127.0.0.1/14')
-    # dedup = StringField(label='dedup', default='redis://192.168.110.110/0')
+    start_urls = StringField(label=u'主页')   # cpt.xtu.edu.cn'  # 湘潭大学
+    site_domain = StringField(label=u'限定域名') # 'http://cpt.xtu.edu.cn/'
 
-    list_keyword = StringField(label=u'列表页特征词', default='list;index;')
-    detail_keyword = StringField(label=u'详情页特征词', default='post;content;')
+    list_keyword = StringField(label=u'列表页特征词', default='list;index')
+    detail_keyword = StringField(label=u'详情页特征词', default='post;content;detail')
 
     result = StringField(label=u'转换结果')
-    convert = SubmitField(label=u'<<转换')
+    convert = SubmitField(label=u'<< 转换')
     url = StringField(label=u'URL例子')
 
     regex_list = FieldList(FormField(RegexForm), label=u'详情页正则表达式列表', min_entries=5)
 
     reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
 
-    submit = SubmitField(label=u'保存')
+    submit = SubmitField(label=u'保存并执行')
 
 
 class DBDrive(object):
     def __init__(self, start_urls, site_domain, redis_setting):
-        self.site_domain = site_domain  # 'cpt.xtu.edu.cn'  # 湘潭大学
-        self.start_urls = start_urls  # 'http://cpt.xtu.edu.cn/'
+        self.site_domain = site_domain
+        self.start_urls = start_urls
         self.conn = redis.StrictRedis.from_url(redis_setting)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain
@@ -96,13 +98,13 @@ class DBDrive(object):
         self.detail_urls_keyword_zset_key = 'detail_urls_keyword_zset_%s' % self.site_domain
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain
         self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
+        self.setting_hset_key = 'setting_hset'
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
         # print 'DBDrive init()', self.site_domain, self.start_urls, self.conn
 
     def save_regex(self, regexs):
-        print 'save_regex()', regexs, self.site_domain, self.start_urls, self.conn
         for regex in regexs:
             if regex:
                 self.conn.zadd(self.detail_urls_rule1_zset_key, self.done_flg, regex)
@@ -187,7 +189,7 @@ def convert_path_to_rule(url):
         new_path_list.append(convert_regex_format(regex))
     # print new_path
     new_path = '/'.join(new_path_list) + suffix
-    return urlparse.urlunparse((scheme, netloc, new_path, '', '', ''))
+    return urlparse.urlunparse(('', '', new_path, '', '', ''))
 
 
 def convert_regex_format(rule):
@@ -228,6 +230,29 @@ def convert_regex_format(rule):
             pos = pos + 1
     return ret
 
+def modify_pyfile(py_file, start_urls , site_domain):
+    try:
+        lines = open(py_file, 'r').readlines()
+        # print type(lines)
+        i = 0
+        for line in lines:
+            s = line.strip()
+            i += 1
+            if s !='' and s[0] == '#':
+                continue
+            else:
+                if i<100 and re.search(r'self\.start_urls\s*?=',s):
+                    lines[i-1] = line[:line.find('=')+1] + ' ' + start_urls + '\n'
+                    print 'modify_pyfile()',lines[i-1]
+
+                if i < 100 and re.search(r'self\.site_domain\s*?=', s):
+                    lines[i - 1] = line[:line.find('=') + 1] + ' ' + site_domain + '\n'
+                    print 'modify_pyfile()',lines[i - 1]
+
+        open(py_file, 'w').writelines(lines)
+
+    except Exception, e:
+        print 'modify_pyfile()',e
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -236,14 +261,18 @@ def index():
 
 @app.route('/show', methods=['GET', 'POST'])
 def show():
-    start_urls = 'http://cpt.xtu.edu.cn/'
-    site_domain = 'cpt.xtu.edu.cn'
-    redis_setting = 'redis://127.0.0.1/14'
+    myForm = MyForm()
 
-    # 只启动一次 run_spider.bat
-    json_file = "process-temp.json"
-    # if os.path.exists(json_file) is False:
-    #     subprocess.call(["run_spider.bat"], shell=True)
+    #保存主页、域名
+    db = DBDrive(start_urls='',
+                 site_domain='',
+                 redis_setting=redis_setting)
+    start_urls = db.conn.hget(db.setting_hset_key,'start_urls')
+    site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
+    if start_urls is None or start_urls.strip() == '' or site_domain is None or  site_domain.strip() == '':
+        flash(u'请设置主页、域名信息。')
+        return render_template('show.html', myForm=myForm)
+
 
     # 从redis提取实时信息，转换成json文件
     db = DBDrive(start_urls=start_urls,
@@ -259,9 +288,9 @@ def show():
     un_match_rate = 100.0 - matched_rate
 
     # 将json映射到html
+    flash(u'页面每隔10秒刷新，更新 '+ start_urls + u' 的实时信息。')
     return render_template('show.html',
                            times=times,
-                           rule0_cnt=rule0_cnt,
                            rule1_cnt=rule1_cnt,
                            detail_cnt=detail_cnt,
                            list_cnt=list_cnt,
@@ -271,21 +300,20 @@ def show():
 
 
 @app.route('/setting', methods=['GET', 'POST'])
-def setting():
+def setting_init():
     # setting.ini -----------------------------------
-    start_urls = 'http://cpt.xtu.edu.cn/'
-    site_domain = 'cpt.xtu.edu.cn'
-    redis_setting = 'redis://127.0.0.1/14'
-
     myForm = MyForm()
+
+    start_urls = myForm.start_urls.data
+    site_domain = myForm.site_domain.data
+    if start_urls is None or start_urls.strip() == '' or \
+        site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、域名信息。')
+        return render_template('setting.html', myForm=myForm)
 
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
                  redis_setting=redis_setting)
-
-    # regexForm = RegexForm()
-    # regexForm.regex=StringField(label='test',default='aaaaaaa')
-    # myForm.regex_list.data = FieldList(regexForm)
 
     #保存详情页关键字
     detail_keywords_str = []
@@ -330,73 +358,86 @@ def convert_to_regex():
 
 @app.route('/save_and_run', methods=['POST'])
 def save_and_run():
-    print 'submit_save_regex() start'
-    start_urls = None  # 'http://cpt.xtu.edu.cn/'
-    site_domain = None  # 'cpt.xtu.edu.cn'
-    redis_setting = None  # 'redis://127.0.0.1/14'
-    regex_list = []
-
     myForm = MyForm(request.form)
     # if myForm.validate_on_submit():
-    print 'request.method', request.method, 'myForm.validate()', myForm.validate()
     # if request.method == 'POST' and myForm.validate():
     start_urls = myForm.start_urls.data
     site_domain = myForm.site_domain.data
-
-    regex_list = myForm.regex_list.data
-
-    regex_save_list = []
-    for r in regex_list:
-        select = r['select']
-        regex = r['regex']
-        score = r['score']
-        if select and regex != '':
-            regex_save_list.append(regex)
+    if start_urls.strip() == '' or site_domain.strip() == '':
+        flash(u'必须设置主页、域名信息！')
+        return render_template('setting.html', myForm=myForm)
 
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
                  redis_setting=redis_setting)
 
-    regex_save_list = list(set(regex_save_list))
-    db.save_regex(regex_save_list)
+    #保存主页、域名
+    db.conn.hset(db.setting_hset_key,'start_urls',start_urls)
+    db.conn.hset(db.setting_hset_key, 'site_domain', site_domain)
 
-    # 清除原有，保存页面存储的详情页关键字
     detail_keys = []
-    db.conn.zremrangebyscore(db.detail_urls_keyword_zset_key, min=0, max=99999999)
-    detail_key =  myForm.detail_keyword.data
+    detail_key = myForm.detail_keyword.data
     for keyword in detail_key.split(';'):
         if keyword != '':
             detail_keys.append(keyword)
-        if keyword !='' and db.conn.zrank(db.detail_urls_keyword_zset_key,keyword) is None:
-            db.conn.zadd(db.detail_urls_keyword_zset_key,0,keyword)
 
-    # 清除原有，保存页面存储的列表页关键字
     list_keys = []
-    db.conn.zremrangebyscore(db.list_urls_keyword_zset_key, min=0, max=99999999)
     list_key = myForm.list_keyword.data
     for keyword in list_key.split(';'):
         if keyword != '':
             list_keys.append(keyword)
-        if keyword !='' and db.conn.zrank(db.list_urls_keyword_zset_key,keyword) is None:
+
+    if len(list(set(list_keys) & set(detail_keys))) > 0:
+        flash(u"详情页/列表页 特征词有重复，请修改。")
+        return render_template('setting.html', myForm=myForm)
+
+    # 清除原有，保存页面填写的详情页关键字
+    db.conn.zremrangebyscore(db.detail_urls_keyword_zset_key, min=0, max=99999999)
+    for keyword in detail_keys:
+        db.conn.zadd(db.detail_urls_keyword_zset_key,0,keyword)
+
+    # 清除原有，保存页面填写的列表页关键字
+    db.conn.zremrangebyscore(db.list_urls_keyword_zset_key, min=0, max=99999999)
+    for keyword in list_keys:
             db.conn.zadd(db.list_urls_keyword_zset_key,0,keyword)
 
     # 将原有正则表达式的score清零
-    if myForm.reset:
+    if myForm.reset.data:
         regex_reset = db.conn.zrange(db.detail_urls_rule1_zset_key,start=0,end=9999999)
         for regex in regex_reset:
             db.conn.zadd(db.detail_urls_rule1_zset_key, 0, regex)
 
-    if len(list(set(list_keys)&set(detail_keys))) > 0:
-        flash(u"详情页/列表页有重复！")
-    else:
-        flash(u"保存并执行...")
-        print 'submit_save_regex() OK!'
-        os.startfile(r"D:\workspace\pyWorks\spider\syq_url_rule_manual.py")
-        # 只启动一次 run_spider.bat
-        # if os.path.exists(json_file) is False:
-        #     subprocess.call(["run_spider.bat"], shell=True)
-        # else:
-        #     print 'no submit................'
+    # 只启动一次 run_spider.bat
+    # if os.path.exists(json_file) is False:
+    #     subprocess.call(["run_spider.bat"], shell=True)
+    # else:
+    #     print 'no submit................'
+    #保存rule1
+    regex_list = myForm.regex_list.data
+    regex_save_list = []
+    regex_cnt = 0
+    for r in regex_list:
+        select = r['select']
+        regex = r['regex']
+        score = r['score']
+        if select and regex != '':
+            regex_cnt += 1
+            regex_save_list.append(regex)
+
+    if regex_cnt == 0:
+        flash(u"请填写并勾选要执行的 详情页正则表达式。")
+        return render_template('setting.html', myForm=myForm)
+
+    regex_save_list = list(set(regex_save_list))
+    db.save_regex(regex_save_list)
+
+    py_file = "D:\workspace\pyWorks\spider\syq_url_rule_manual.py"
+
+    modify_pyfile(py_file=py_file, start_urls = "\'"+ start_urls +"\'", site_domain="\'"+ site_domain + "\'")
+
+    os.startfile(py_file)
+
+    flash(u"保存完毕，执行中...")
     return render_template('setting.html', myForm=myForm)
 
 
