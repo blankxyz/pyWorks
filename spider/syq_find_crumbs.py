@@ -16,6 +16,7 @@ import HTMLParser
 import syq_clean_url
 import cStringIO, urllib2, Image
 import lxml.html
+import urllib
 
 
 class MySpider(spider.Spider):
@@ -33,21 +34,11 @@ class MySpider(spider.Spider):
         self.info_flag = "01"
         self.start_urls = 'http://www.k618.cn/'
         # self.start_urls = 'http://bj.esf.sina.com.cn/'
+        # self.encoding = 'gbk'
         # self.encoding = 'utf-8'
-        self.encoding = 'utf-8'
         # self.site_domain = 'sina.com.cn'
         self.site_domain = 'k618.cn'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/8')
-        self.crumbs_urls_zset_key = 'crumbs_urls_zset_%s' % self.site_domain
-        self.hub_todo_urls_zset_key = 'hub_todo_urls_zset_%s' % self.site_domain
-        self.hub_level_urls_zset_key = 'hub_level_urls_zset_%s' % self.site_domain
-        self.todo_flg = -1
-        self.done_flg = 0
-        self.todo_urls_limits = 10
-        self.max_level = 5  # 最大级别
-        self.dedup_key = None
-        self.cleaner = syq_clean_url.Cleaner(
-            self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/5'))
+
 
     def convert_path_to_rule0(self, url):
         '''
@@ -109,12 +100,7 @@ class MySpider(spider.Spider):
         # print 'filter_links()', len(urls)
         return urls
 
-    def get_start_urls(self, data=None):
-        if self.conn.zrank(self.hub_todo_urls_zset_key, self.start_urls) is None:
-            self.conn.zadd(self.hub_todo_urls_zset_key, self.todo_flg, self.start_urls)
-        if self.conn.zrank(self.hub_level_urls_zset_key, self.start_urls) is None:
-            self.conn.zadd(self.hub_level_urls_zset_key, 0, self.start_urls)
-        return [self.start_urls]
+
 
     def get_page_valid_urls(self, data, org_url):
         urls = []
@@ -155,33 +141,6 @@ class MySpider(spider.Spider):
         [s.extract() for s in soup('style')]
         return soup
 
-    def marge_url(self, url, href):
-        # print 'marge_url() start'
-        if url is None:
-            ret = None
-        elif href is None or href == '#':
-            ret = url
-        elif href.find('javascript') >= 0:
-            ret = None
-        elif href[:2] == './':
-            ret = url + href[2:]
-        elif href.count('../') > 0:
-            cnt = href.count('../')
-            href_split = urlparse.urlparse(url).path.split('/')
-            href_split = href_split[:-(cnt+1)]
-            new = '/'.join(href_split)
-            ret = urlparse.urlparse(url).scheme + '://' + urlparse.urlparse(url).netloc + new
-        elif urlparse.urlparse(href).scheme:
-            ret = href
-        else:
-            netloc = urlparse.urlparse(url).netloc
-            if netloc[-1] != '/':
-                netloc += '/'
-            ret = urlparse.urlparse(url).scheme + '://'  + netloc + href
-        if ret:
-            if ret[-1]=='/': ret = ret[:-1]
-        return ret
-
     def find_breadcrumbs(self, url):
         '''
         1）"breadcrumb"
@@ -191,32 +150,37 @@ class MySpider(spider.Spider):
         3）//div[contains(@class,'nav')] or
            Nav NAV
         4) 文字长度小于7
+        # tags2 = soup.findAll(text=re.compile(r'(正文|当前位置|当前的位置)\s*$', re.U))
         '''
         crumbs = []
         soup = self.get_clean_soup(url)
         if not soup:
             return False
 
-        div_tag = soup.find('div',class_=re.compile(r'\w?crumb[s]?', re.U))
-        if div_tag:
-            # print 'div tag:',div_tag
-            soup = div_tag
+        tags2 = soup.findAll(text=re.compile(u'(正文|当前位置|当前的位置)\s*$', re.U))
+        print tags2
 
-        a_tags = soup.findAll('a')
-        for a_tag in a_tags:
-            tags = a_tag.parent.findAll(text=re.compile(r'^\s*[>›]+\s*$', re.U))
-            if tags:
-                for a in a_tag.parent.findAll('a'):
-                    marge_url = self.marge_url(url, a.get('href'))
-                    # print url, a.get('href'), '->', marge_url
-                    if marge_url:
-                        crumbs.append(marge_url)
+        # div_tag = soup.find('div',class_=re.compile(r'[\w\W]?(position|bread|crumb[s]?)', re.U))
+        # if div_tag:
+        #     print 'div tag:', div_tag
+        #     soup = div_tag
 
-                break # 防止邻近非兄弟<a>节点混入
+        # div_tag = soup.find('div', text=re.compile(r'当前位置', re.U))
+        # if div_tag:
+        #     print u'正文|当前位置|当前的位置:', div_tag
+        #     soup = div_tag
+        #     print soup
 
-        return list(set(crumbs))
-        # tags2 = soup.findAll(text=re.compile(r'(正文|当前位置|当前的位置)\s*$', re.U))
-        # print tags2
+        # a_tags = soup.findAll('a')
+        # for a_tag in a_tags:
+        #     tags = a_tag.parent.findAll(text=re.compile(r'^\s*[>›]+\s*$', re.U))
+        #     # tags = div_tag.find(text=re.compile(r'(正文|当前位置|当前的位置)\s*$'))
+        #     if tags:
+        #         print tags
+        #         for a in tags.parent.findAll('a'):
+        #             print a.get('href')
+        #         break # 防止邻近非兄弟<a>节点混入
+
 
     def find_content_div(self, url):
         soup = self.get_clean_soup(url)
@@ -293,120 +257,92 @@ class MySpider(spider.Spider):
             # print '[ERROR]get_img_info()',img_url
             return None, (0,0), None
 
-    def parse(self, response):
-        urls = []
-        try:
-            urls = self.conn.zrangebyscore(self.hub_todo_urls_zset_key, self.todo_flg, self.todo_flg)
-            if len(urls) > self.todo_urls_limits:
-                urls = urls[0:self.todo_urls_limits]
-            for url in urls:
-                self.conn.zadd(self.hub_todo_urls_zset_key, self.done_flg, url)
-        except Exception, e:
-            print "[ERROR] parse(): %s" % e
-        return urls, None, None
+    def is_current_page(self, org_url):
+        response = mySpider.download(org_url)
+        char = re.search(r'charset=(.*)>',response.text)
+        if char:
+            if re.search("utf", char.group(1), re.I):
+                encode = "utf8"
+            elif re.search("gb", char.group(1), re.I):
+                encode = "gbk"
+            elif re.search('big5', char.group(1), re.I):
+                encode = "big5"
+        else:
+            encode = "utf8"
 
+        response.encoding = encode
+        unicode_html_body = response.text  # unicode
+        parse = htmlparser.Parser(data=unicode_html_body)
+        # parse = htmlparser.Parser(data=parse.data, encoding=encode)
 
-    def parse_detail_page(self, response=None, url=None):
-        result = []
-        if response is None:
-            return result
-        try:
-            unicode_html_body = response.content
-            data = htmlparser.Parser(unicode_html_body)
-            valid_urls = self.get_page_valid_urls(data, response.url)
-            # for valid_url in valid_urls:
-            #     # 取得（没有的话，父节点+1）/记录（有记录的话） hub 的 level
-            #     if self.conn.zrank(self.hub_level_urls_zset_key, valid_url) is None:
-            #         # child.score = parent.score +1
-            #         score = self.conn.zscore(self.hub_level_urls_zset_key, response.url)
-            #         if score is None: score = 0
-            #         self.conn.zadd(self.hub_level_urls_zset_key, score + 1, valid_url)
-            #     else:
-            #         score = self.conn.zscore(self.hub_level_urls_zset_key, valid_url)
-            #
-            #     # 超过 max_level 则done
-            #     if self.conn.zrank(self.hub_todo_urls_zset_key, valid_url) is None:
-            #         if score <= self.max_level:
-            #             self.conn.zadd(self.hub_todo_urls_zset_key, self.todo_flg, valid_url)
-            #         # else:
-            #         #     self.conn.zadd(self.hub_todo_urls_zset_key, self.done_flg, valid_url)
+        nav_links = parse.replace('[\n\r]','').regexall(u'<div.*?正文.*?div>')
+        print 'nav_links:',nav_links
+        for nav in nav_links:
+            nav = nav.data[nav.data.rfind('<div'):]
+            # print nav
+            if nav.count('</a>') >0:
+                hrefs = re.findall(r'href=\"(.*?)\"', nav)
+                for href in hrefs:
+                    scheme, netloc, path, params, query, fragment = urlparse.urlparse(href)
+                    if scheme:
+                        url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
+                    else:
+                        href = urlparse.urlunparse(('', '', path, params, query, ''))
+                        url = urlparse.urljoin(org_url, href)
+                    print 'urljoin:',url
+                return True
+        return False
 
-            for valid_url in valid_urls:
-                crumbs = self.find_breadcrumbs(valid_url)
-                if crumbs:
-                    # save to redis
-                    for crumb in crumbs:
-                        if self.conn.zrank(self.crumbs_urls_zset_key, crumb) is None:
-                            self.conn.zadd(self.crumbs_urls_zset_key, 0, crumb)
+    def find_bread(self,org_url):
+        response = mySpider.download(org_url)
+        char = re.search(r'charset=(.*)>',response.text)
+        if char:
+            if re.search("utf", char.group(1), re.I):
+                encode = "utf8"
+            elif re.search("gb", char.group(1), re.I):
+                encode = "gbk"
+            elif re.search('big5', char.group(1), re.I):
+                encode = "big5"
+        else:
+            encode = "utf8"
 
-                    # 此url的todo状态设为done
-                    self.conn.zadd(self.hub_todo_urls_zset_key, self.done_flg, valid_url)
+        response.encoding = encode
+        unicode_html_body = response.text  # unicode
+        parse = htmlparser.Parser(data=unicode_html_body)
+        nav_links = parse.replace('[\n\r]', '').regexall(u'<div.*?class=".*?bread.*?".*?div>')
+        print nav_links
+        for nav in nav_links:
+            nav = nav.data[nav.data.rfind('<div'):]
+            hrefs = re.findall(r'href=\"(.*?)\"', nav)
+            for href in hrefs:
+                scheme, netloc, path, params, query, fragment = urlparse.urlparse(href)
+                if scheme:
+                    url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
                 else:
-                    if self.conn.zrank(self.hub_todo_urls_zset_key, valid_url) is None:
-                        self.conn.zadd(self.hub_todo_urls_zset_key, self.todo_flg, valid_url)
+                    href = urlparse.urlunparse(('', '', path, params, query, ''))
+                    url = urlparse.urljoin(org_url, href)
+                print 'urljoin:', url
 
-        except Exception, e:
-            # self.conn.zadd(self.hub_urls_zset_key, self.done_flg, response.url)
-            print "[ERROR] parse_detail_page(): %s" % e
-
-        return result
 
 if __name__ == '__main__':
-    unit_test = True
-    if unit_test is not True: # spider simulation
-        for cnt in range(1000):
-            print '[loop]',cnt,'[time]',datetime.datetime.utcnow()
-            detail_job_list = []  # equal to run.py detail_job_queue
-            # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
-            def __detail_page_urls(urls, func):
-                next_page_url = None
-                if func is not None:
-                    if urls:
-                        for url in urls:
-                            response = mySpider.download(url)
-                            try:
-                                list_urls, callback, next_page_url = func(
-                                    response)  # parse()
-                                for url in list_urls:
-                                    detail_job_list.append(url)
-                            except Exception, e:
-                                print '[ERROR] main() Exception:', e
-                                list_urls, callback, next_page_url = [], None, None
+    url = 'http://www.yangtse.com/wenyu/2014-10-07/302874.html' #gbk
+    # url = 'http://nt.yangtse.com/Micro/video/96412.html' #utf8
+    # url = 'http://nt.yangtse.com/news/house/2015/12/31/1451521665107307.html' #utf8
+    url = 'http://nt.yangtse.com/news/house/2015/12/31/1451521664107302.html'
+    url = 'http://liuyan.people.com.cn/index.php?fid=4'
+    # url = 'http://127.0.0.1:5000/'
+    mySpider = MySpider()
+    mySpider.proxy_enable = False
+    mySpider.init_dedup()
+    mySpider.init_downloader()
+    # response.encoding = mySpider.encoding
+    print url
 
-                            __detail_page_urls(list_urls, callback)
+    print 'is_current_page()'
+    mySpider.is_current_page(url)
+    #
+    # print 'find_bread()'
+    # mySpider.find_bread(url)
 
-                            if next_page_url is not None:
-                                print 'next_page_url'
-                                __detail_page_urls([next_page_url], func)
-
-            # --equal to run.py list_page_thread() -------------------------
-            mySpider = MySpider()
-            mySpider.proxy_enable = False
-            mySpider.init_dedup()
-            mySpider.init_downloader()
-            start_urls = mySpider.get_start_urls()  # get_start_urls()
-            __detail_page_urls(start_urls, mySpider.parse)  # parse()
-
-            # --equal to run.py detail_page_thread() -------------------------
-            ret = []
-            for url in detail_job_list:
-                resp = mySpider.download(url)
-                ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
-                for item in ret:
-                    for k, v in item.iteritems():
-                        print k, v
-    else: # -------- unit test -------------------
-        # url = 'http://news.k618.cn/zxbd/201606/t20160613_7705874.html' # [样式A]
-        # url = 'http://news.k618.cn/yl_37061/201508/t20150822_6103876.html' # [样式A]
-        # url = 'http://comic.k618.cn/dmgc/201412/t20141230_5796348.htm'  # [样式A]
-        # url = 'http://liuxue.k618.cn/kuaibao1/201504/t20150417_5930210.html' # [样式A]
-        # url = 'http://bbs.jjh.k618.cn/thread-3327506-1-10.html' # [样式B] bug
-        url = 'http://tech.sina.com.cn/mobile/n/n/2016-06-16/doc-ifxtfrrc3668316.shtml'
-        # url = 'http://127.0.0.1:5000/'
-        url = 'http://www.k618.cn/'
-        mySpider = MySpider()
-        mySpider.proxy_enable = False
-        mySpider.init_dedup()
-        mySpider.init_downloader()
-        print mySpider.find_content_div(url)
-        # print mySpider.marge_url(url,href)
+    # print 'find_breadcrumbs()'
+    # mySpider.find_breadcrumbs(url)

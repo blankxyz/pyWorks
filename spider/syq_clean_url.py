@@ -3,6 +3,7 @@
 url及文本判断过滤
 '''
 import re
+import cgi
 import json
 import urllib
 import datetime
@@ -30,7 +31,6 @@ class Cleaner(object):
         # 域名正则黑名单
         self.black_domain_regex = (
             # 'bbs\.',  # syq
-            # 'blog\.',  # syq
         )
         self.now_year = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y'), '%Y')
         self.hash_black_path_regex_key = 'hash_black_path_regex'
@@ -92,7 +92,7 @@ class Cleaner(object):
 
     def is_suffixes_ok(self, url):  # syq
         p = urlparse.urlparse(url).path
-        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb']:
+        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb','.jpg','.mp3','.pdf']:
             if p.find(fix) > 0:
                 return False
         return True
