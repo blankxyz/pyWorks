@@ -573,7 +573,7 @@
             snap: Mb ? 25 : 10,
             style: {color: "#333333", cursor: "default", fontSize: "12px", padding: "8px", pointerEvents: "none", whiteSpace: "nowrap"}
         }, credits: {
-            enabled: !0, text: "python", href: "http://localhost/", position: {align: "right", x: -10, verticalAlign: "bottom", y: -5}, style: {
+            enabled: !0, text: "全站爬虫", href: "http://localhost/", position: {align: "right", x: -10, verticalAlign: "bottom", y: -5}, style: {
                 cursor: "pointer", color: "#909090",
                 fontSize: "25px"
             }
