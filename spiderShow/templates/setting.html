@@ -50,8 +50,8 @@
 <h1 align="center">配置抓取信息
     <small>主页、域名、详情页/列表页URL的 关键字/正则表达式</small>
 </h1>
-
-<div id="message" class="form-group center" style="width:80%; margin-left:50px">
+<hr/>
+<div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
 {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class=flashes>
@@ -113,6 +113,7 @@
     <hr/>
 
     <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
+        <label>[例]  http://www.sdnews.com.cn/sports/tx/201606/t20160618_2096220.html#  >>>  [a-zA-Z]{6}/[a-zA-Z]{2}/\d{6}/[a-zA-Z]{1}\d{8}_\d{7}.html</label><br>
         <input type=text size=50 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
         <label id="regex_result"> 请确认转换后的表达式，拷贝到下面列表中。 </label>
     </div>

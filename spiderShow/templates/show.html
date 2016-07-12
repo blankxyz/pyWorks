@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <title>process count show</title>
     <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='highcharts.js') }}"></script>
     <script src="{{ url_for('static', filename='exporting.js') }}"></script>
     <script type="text/javascript">
-        setTimeout('window.location.reload()', 60 * 1000);
+        setTimeout('window.location.reload()', 10 * 1000);
         $(function () {
             $('#process').highcharts({
                 title: {
@@ -41,10 +43,7 @@
                     borderWidth: 1
                 },
                 series: [{
-                    name: '规则0',
-                    data: {{ rule0_cnt }}
-                }, {
-                    name: '规则1',
+                    name: '详情页-正则表达式',
                     data: {{ rule1_cnt }}
                 }, {
                     name: '详情页',
@@ -102,9 +101,17 @@
     </script>
 </head>
 <body>
-{#<p align="center">{{times}}</p>#}
-{#<p align="center">{{rule0_cnt}}</p>#}
-{#<p align="center">{{rule1_cnt}}</p>#}
+<div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:50px">
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <label>{{ message }}</label>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+</div>
 <div id="process" style="min-width:700px;height:400px"></div>
 <div id="dedup" style="min-width:700px;height:300px"></div>
 </body>
