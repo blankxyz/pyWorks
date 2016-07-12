@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>导入导出</title>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+</head>
+
+<body>
+<h1 align="center">导入/导出
+    <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
+</h1>
+<div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <label>{{ message }}</label>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+</div>
+<div id="config" class="form-group center" style="width:80%; margin-left:50px">
+    <form action="export_upload" method="post" enctype="multipart/form-data">
+        <hr/>
+        <input type="file" name="file" value="选择导入文件"/>
+        <br>
+        <input type="submit" value="导入文件"/>
+        <hr/>
+        <a class="bottom" href="{{ url_for('static', filename='setting/setting.json') }}">请下载保存设置信息</a>
+    </form>
+
+    <form action="export_setting" method="post">
+        <hr/>
+        <input type="submit" value="导出mysql"/> {{ setting_json }}
+    </form>
+</div>
+</body>
+</html>

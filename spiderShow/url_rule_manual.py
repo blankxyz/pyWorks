@@ -7,23 +7,28 @@ import redis
 import json
 import datetime
 import dedup
+import MySQLdb
 import subprocess
 from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import send_from_directory
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.wtf import Form
 from wtforms import validators
 from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
 from werkzeug.datastructures import MultiDict
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'success'
 bootstrap = Bootstrap(app)
 
-
 redis_setting = 'redis://127.0.0.1/14'
 dedup_setting = 'redis://192.168.110.110/0'
 json_file = "process-temp.json"
+SETTING_FOLDER = 'static/setting/'
+# RUN_PY_FILE = "run_spider.bat"
+RUN_PY_FILE='D:\workspace\pyWorks\spider\syq_url_rule_manual.py'
 
 # def is_me(form, field): #自定义check函数
 #     if field.data != 'yes':
@@ -86,6 +91,67 @@ class MyForm(Form):
 
     submit = SubmitField(label=u'保存并执行')
 
+    import_setting = SubmitField(label=u'导入')
+
+class MySqlDrive(object):
+    def __init__(self):
+        import sys
+        reload(sys)
+        sys.setdefaultencoding('utf8')
+        self.host = 'localhost'
+        self.user = 'root'
+        self.password = 'root'
+        self.port = 3306
+        self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port, charset="utf8")
+        self.conn.select_db('spider')
+
+    def save_to_mysql(self, start_urls, site_domain,setting_json):
+        setting_json, get_cnt = self.get_setting()
+        cur = self.conn.cursor()
+        cnt = 0
+
+        if get_cnt > 0:
+            sqlStr = ("UPDATE setting SET setting_json = '" + setting_json + "' WHERE start_urls= '" + start_urls + "' AND site_domain= '" + site_domain + "'")
+        else:
+            sqlStr = ("INSERT INTO setting(start_urls,site_domain,setting_json) VALUES ('"+start_urls+"','"+site_domain+"','"+setting_json+"')")
+
+        print sqlStr
+        try:
+            cnt = cur.execute(sqlStr)
+            self.conn.commit()
+        except Exception, e:
+            print 'save_to_mysql()',e
+            self.conn.rollback()
+        finally:
+            cur.close()
+            # self.conn.close()
+        return cnt
+
+    def get_setting(self):
+        # 提取主页、域名
+        db = DBDrive(start_urls='',
+                     site_domain='',
+                     redis_setting=redis_setting)
+        start_urls = db.conn.hget(db.setting_hset_key, 'start_urls')
+        site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
+
+        setting_json = ''
+        cur = self.conn.cursor()
+        sqlStr = ("SELECT setting_json FROM setting WHERE start_urls='" + start_urls + "' AND site_domain ='" + site_domain + "'")
+        cnt = 0
+        print sqlStr
+        try:
+            cnt = cur.execute(sqlStr)
+            r = cur.fetchone()
+            setting_json = r[0]
+            self.conn.commit()
+        except Exception, e:
+            print 'get_setting()', e
+        finally:
+            cur.close()
+            # self.conn.close()
+
+        return setting_json,cnt
 
 class DBDrive(object):
     def __init__(self, start_urls, site_domain, redis_setting):
@@ -123,11 +189,11 @@ class DBDrive(object):
             # if (de.is_dedup(url)):
             #     print 'matched:', url
             #     cnt += 1
-            cnt = 80
+            cnt = 1
 
         return float(cnt) / len(urls)
 
-    def covert_to_json(self, json_file):
+    def covert_redis_cnt_to_json(self, json_file):
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
         detail_cnt = self.conn.zcard(self.detail_urls_zset_key)
@@ -142,7 +208,7 @@ class DBDrive(object):
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
         print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open(json_file, 'a')
+        fp = open(SETTING_FOLDER +'/'+json_file, 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
@@ -160,7 +226,7 @@ class CollageProcessInfo(object):
         list_done_cnt = []
         times = []
 
-        fp = open(self.json_file, 'r')
+        fp = open(SETTING_FOLDER +'/'+self.json_file, 'r')
         for line in fp.readlines():
             dic = eval(line)
             times.append(dic.get('times'))
@@ -258,19 +324,36 @@ def modify_pyfile(py_file, start_urls , site_domain):
 def index():
     return render_template('menu.html')
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html', err=e), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html', err=e), 500
+
+@app.route('/convert',methods=["GET", "POST"])
+def convert_to_regex():
+    ret = {}
+    convert_url = request.args.get('convert_url')
+    ret['regex'] = convert_path_to_rule(convert_url)
+    jsonStr = json.dumps(ret)
+    print 'ajax()', convert_url,'->',jsonStr
+    return jsonStr
+
 
 @app.route('/show', methods=['GET', 'POST'])
 def show():
     myForm = MyForm()
 
-    #保存主页、域名
+    #提取主页、域名
     db = DBDrive(start_urls='',
                  site_domain='',
                  redis_setting=redis_setting)
     start_urls = db.conn.hget(db.setting_hset_key,'start_urls')
     site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
     if start_urls is None or start_urls.strip() == '' or site_domain is None or  site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。')
+        flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', myForm=myForm)
 
 
@@ -278,7 +361,7 @@ def show():
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
                  redis_setting=redis_setting)
-    db.covert_to_json(json_file)
+    db.covert_redis_cnt_to_json(json_file)
 
     collage = CollageProcessInfo(json_file)
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = collage.convert_file_to_list()
@@ -301,9 +384,14 @@ def show():
 
 @app.route('/setting', methods=['GET', 'POST'])
 def setting_init():
-    # setting.ini -----------------------------------
-    myForm = MyForm()
+    #清空主页、域名
+    db = DBDrive(start_urls='',
+                 site_domain='',
+                 redis_setting=redis_setting)
+    db.conn.hset(db.setting_hset_key,'start_urls','')
+    db.conn.hset(db.setting_hset_key, 'site_domain', '')
 
+    myForm = MyForm()
     start_urls = myForm.start_urls.data
     site_domain = myForm.site_domain.data
     if start_urls is None or start_urls.strip() == '' or \
@@ -342,18 +430,7 @@ def setting_init():
     # db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key, min=0, max=99999999)
 
     flash(u'初始化配置完成')
-
     return render_template('setting.html', myForm=myForm)
-
-
-@app.route('/convert',methods=["GET", "POST"])
-def convert_to_regex():
-    ret = {}
-    convert_url = request.args.get('convert_url')
-    ret['regex'] = convert_path_to_rule(convert_url)
-    jsonStr = json.dumps(ret)
-    print 'ajax()', convert_url,'->',jsonStr
-    return jsonStr
 
 
 @app.route('/save_and_run', methods=['POST'])
@@ -431,25 +508,58 @@ def save_and_run():
     regex_save_list = list(set(regex_save_list))
     db.save_regex(regex_save_list)
 
-    py_file = "D:\workspace\pyWorks\spider\syq_url_rule_manual.py"
+    modify_pyfile(py_file=RUN_PY_FILE, start_urls = "\'"+ start_urls +"\'", site_domain="\'"+ site_domain + "\'")
 
-    modify_pyfile(py_file=py_file, start_urls = "\'"+ start_urls +"\'", site_domain="\'"+ site_domain + "\'")
+    # DOS "start" command
+    os.startfile(RUN_PY_FILE)
 
-    os.startfile(py_file)
+    export_file = {'start_urls':start_urls,
+            'site_domain':site_domain,
+            'regex_save_list':regex_save_list,
+            'detail_keys':detail_keys,
+            'list_keys':list_keys
+            }
+    json_str = json.dumps(export_file)
+    mysql = MySqlDrive()
+    cnt = mysql.save_to_mysql(start_urls, site_domain, json_str)
 
-    flash(u"保存完毕，执行中...")
+    if cnt==1: flash(u"MySQL保存完毕，执行中...")
+    else: flash(u"MySQL保存失败，执行中...")
+
+    open(SETTING_FOLDER+'setting.json', 'w').write(json_str)
     return render_template('setting.html', myForm=myForm)
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html', err=e), 404
+@app.route('/setting/<path:filename>')
+def download_file(filename):
+    return send_from_directory(app.config['SETTING_FOLDER'],filename, as_attachment=True)
 
+@app.route('/export_upload', methods=['GET', 'POST'])
+def export_upload():
+    if request.method == 'GET':
+        return render_template('export_import.html')
 
-@app.errorhandler(500)
-def internal_server_error(e):
-    return render_template('500.html', err=e), 500
+    elif request.method == 'POST':
+        f = request.files['file']
+        f_name = secure_filename(f.filename) #获取一个安全的文件名，仅支持ascii字符；
+        f.save(os.path.join(SETTING_FOLDER, f_name))
+        flash(u"上传成功.")
+        return render_template('export_import.html')
 
+@app.route('/export_setting', methods=['GET', 'POST'])
+def export_setting():
+    mysql_db = MySqlDrive()
+    setting_json,cnt = mysql_db.get_setting()
+    flash(u"MySQL导出结果。")
+    return render_template('export_import.html',setting_json=setting_json)
+
+@app.route('/export_import')
+def export_import():
+    flash(u"请选择导入/导出操作。")
+    return redirect(url_for('export_upload'), 302)
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # mysql = MySqlDrive()
+    # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
+    # print mysql.get_setting()
