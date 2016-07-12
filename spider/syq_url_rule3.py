@@ -28,18 +28,18 @@ class MySpider(spider.Spider):
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
         # self.start_urls = 'http://baby.k618.cn/'
-        self.start_urls = 'http://www.yangtse.com/' #扬子晚报
+        # self.start_urls = 'http://www.yangtse.com/'
+        self.start_urls = 'http://www.bjnews.com.cn/' #新京报
         # self.start_urls = 'http://bbs.tianya.cn/'
-        # self.start_urls = 'http://www.cpd.com.cn/' #中国警察网
-        self.encoding = 'gbk' #k618 扬子晚报
-        # self.encoding = 'utf-8' #tianya 中国警察网
+        # self.encoding = 'gbk' #k618 扬子晚报 地方领导留言板
+        self.encoding = 'utf-8' #tianya 新京报
         # self.site_domain = 'sina.com.cn'
         # self.site_domain = 'k618.cn'
-        # self.site_domain = 'cpd.com.cn'
+        # self.site_domain = 'yangtse.com'
+        self.site_domain = 'bjnews.com.cn'
         # self.site_domain = 'bbs.tianya.cn'
-        self.site_domain = 'yangtse.com' #扬子晚报
         # self.conn = redis.StrictRedis.from_url('redis://192.168.100.15/6')
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/5') #扬子晚报:5
+        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/10')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
         self.error_urls_zset_key = 'error_urls_zset_%s' % self.site_domain
@@ -53,7 +53,7 @@ class MySpider(spider.Spider):
         self.detail_level = 99
         self.dedup_key = None
         self.cleaner = syq_clean_url.Cleaner(
-            self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/0'))
+            self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/6'))
 
     def convert_regex_format(self, rule):
         '''
@@ -99,43 +99,44 @@ class MySpider(spider.Spider):
         return level
 
     def filter_links(self, urls):
-        print 'filter_links() start', len(urls), urls
+        # print 'filter_links() start', len(urls), urls
         # 下载页
         urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
-        print 'filter_links() is_download', len(urls), urls
+        # print 'filter_links() is_download', len(urls)
         # 错误url识别
         urls = filter(lambda x: not self.cleaner.is_error_url(x), urls)
-        print 'filter_links() is_error_url', len(urls), urls
+        # print 'filter_links() is_error_url', len(urls)
         # 清洗无效参数#?
         urls = self.cleaner.url_clean(urls)
         # 跨域检查
         urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
-        print 'filter_links() check_cross_domain', len(urls), urls
+        # print 'filter_links() check_cross_domain', len(urls)
         # 黑名单过滤
         urls = filter(lambda x: not self.cleaner.in_black_list(x), urls) # bbs. mail.
-        print 'filter_links() in_black_list', len(urls), urls
+        # print 'filter_links() in_black_list', len(urls)
         # 链接时间过滤
         # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
         # 非第一页链接过滤
         urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
-        # print 'filter_links() is_next_page', len(urls), urls
+        # print 'filter_links() is_next_page', len(urls)
         # for url in urls:
         #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
         #         print 'remove:', url
         #         urls.remove(url)
         # 去重
         urls = list(set(urls))
-        # print 'filter_links() set', len(urls), urls
+        # print 'filter_links() set', len(urls)
         # 404
         # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
         # print 'filter_links() end', len(urls), urls
         return urls
 
-    def is_current_page(self, url):
+    def is_current_page(self, org_url):
         '''
-        面包屑含有‘正文’,则判定为详情页
+        面包屑含有‘正文’,则判定为详情页,返回 True
+        注）提取面包屑里面的链接
         '''
-        response = self.download(url)
+        response = self.download(org_url)
         char = re.search(r'charset=(.*)>',response.text)
         if char:
             if re.search("utf", char.group(1), re.I):
@@ -155,7 +156,17 @@ class MySpider(spider.Spider):
         for nav in nav_links:
             nav = nav.data[nav.data.rfind('<div'):]
             # print nav
-            if nav.count('</a>') >= 2:
+            if nav.count('</a>') >0:
+                hrefs = re.findall(r'href=\"(.*?)\"', nav)
+                for href in hrefs:
+                    scheme, netloc, path, params, query, fragment = urlparse.urlparse(href)
+                    if scheme:
+                        url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
+                    else:
+                        href = urlparse.urlunparse(('', '', path, params, query, ''))
+                        url = urlparse.urljoin(org_url, href)
+                        if self.conn.zrank(self.list_urls_zset_key, url) is None:
+                            self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
                 return True
         return False
 
@@ -203,21 +214,26 @@ class MySpider(spider.Spider):
                 return True
             if path[-1] == '/':
                 return True
-            if path.find('index') > 0:
+            if path.find('index') > 0 or path.find('list') >0 and path.find('post') < 0:
                 return True
             if path[1:].isalpha():
                 return True
             # 优先使用rule1
             if self.is_list_by_rule_1(url) == False:
+                print 'is_list_by_rule_1()', False
                 return False
             # 使用rule0
             if self.is_list_by_rule_0(url) == False:
+                print 'is_list_by_rule_0()', False
                 return False
             # 判断面包屑中有无的‘正文’
             if self.is_current_page(url) == True:
+                print 'is_current_page()', True
                 return False
             # 使用链接密度
-            return self.is_list_by_link_density(url)
+            ret = self.is_list_by_link_density(url)
+            print 'is_list_by_link_density()', ret
+            return ret
         # print 'is_list_by_rule start',url,ret
 
     def convert_path_to_rule0(self, url):
@@ -287,14 +303,15 @@ class MySpider(spider.Spider):
         # print 'get_page_valid_urls() [next_links]', next_links
         # links = data.xpathall("//a/@href | //iframe/@src")
         links = data.xpathall("//a[string-length(text())<=10]/@href | //iframe/@src")
-        # print 'links:',len(links), links
-        # print 'get_page_valid_urls() [//a/@href | //iframe/@src]',len(links), links
+        # print org_url
+        # print data.html()
+        print 'get_page_valid_urls() //a/@href | //iframe/@src ',len(links), links
         for link in links:
             all_links.append(link.text().strip())
         # print 'get_page_valid_urls() [all_links]',all_links
 
         links = list(set(all_links) - set(remove_links))
-        print 'get_page_valid_urls() [all_links-remove_links]', links
+        # print 'get_page_valid_urls() [all_links-remove_links]', links
         for link in links:
             # print org_url, link, '->'
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(link)
@@ -302,13 +319,14 @@ class MySpider(spider.Spider):
                 url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
             else:
                 link = urlparse.urlunparse(('', '', path, params, query, ''))
-                url = urlparse.urljoin(org_url, urllib.quote(link))
+                # url = urlparse.urljoin(org_url, urllib.quote(link))
+                url = urlparse.urljoin(org_url, link)
             urls.append(url)
             # url = urlparse.urljoin(org_url, urllib.quote(path))
             # print org_url, link, '->' ,url
-        # print 'get_page_valid_urls() [urljoin]', urls
+        print 'get_page_valid_urls() [urljoin]',len(urls), urls
         urls = self.filter_links(urls)
-        print 'get_page_valid_urls() end',urls
+        print 'get_page_valid_urls() end',len(urls), urls
         return urls
 
     def extract_detail_rule_0(self, url):
@@ -441,6 +459,8 @@ def test(unit_test):
         # url = 'http://bbs.tianya.cn/list-apply-1.shtml'
         url = 'http://bbs.tianya.cn/'
         url = 'http://www.yangtse.com/yzkl'
+        url = 'http://liuyan.people.com.cn/city.php?fid=452'
+        url = 'http://gxxwfb.gxnews.com.cn/staticmores/268/39268-1.shtml'
         print '[url]',url
         mySpider = MySpider()
         mySpider.encoding = 'utf-8'
@@ -467,6 +487,6 @@ def test(unit_test):
         print mySpider.is_list_by_rule(url)
 
 if __name__ == '__main__':
-    test(unit_test = False)
+    test(unit_test = True)
     # import cProfile
     # cProfile.run("test(unit_test = False)")
