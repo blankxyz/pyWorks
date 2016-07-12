@@ -25,15 +25,15 @@ class MySpider(spider.Spider):
         self.siteName = "test"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        # self.start_urls = 'http://baby.k618.cn/'
-        self.start_urls = 'http://www.yangtse.com/'
+        # self.start_urls = 'http://www.bashan.com/' #巴山财经
+        self.start_urls='http://roll.news.sina.com.cn/news/gnxw/gdxw1/index.shtml'
+        # self.start_urls = 'http://www.yangtse.com/'
         # self.start_urls = 'http://www.thepaper.cn/' # 澎湃新闻
         # self.start_urls = 'http://bbs.tianya.cn/'
-        self.encoding = 'gbk' #k618 扬子晚报 地方领导留言板 北青网
-        # self.encoding = 'utf-8' #tianya 澎湃新闻
-        # self.site_domain = 'sina.com.cn'
-        # self.site_domain = 'k618.cn'
-        self.site_domain = 'yangtse.com'
+        # self.encoding = 'gbk' #k618 扬子晚报 地方领导留言板 北青网
+        self.encoding = 'utf-8' #tianya 澎湃新闻 巴山财经
+        self.site_domain = 'tianya.cn' #巴山财经
+        # self.site_domain = 'yangtse.com'
         # self.site_domain = 'ynet.com' # 北青网
         # self.site_domain = 'thepaper.cn' # 澎湃新闻
         # self.site_domain = 'bbs.tianya.cn'
@@ -119,9 +119,10 @@ class MySpider(spider.Spider):
         return urls
 
     def urls_join(self, org_url, links):
+        # print 'urls_join() start',len(links), org_url,links
         urls = []
         for link in links:
-            scheme, netloc, path, params, query, fragment = urlparse.urlparse(link)
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(link.strip())
             if scheme:
                 url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
             else:
@@ -130,6 +131,7 @@ class MySpider(spider.Spider):
                 url = urlparse.urljoin(org_url, link)
             urls.append(url)
 
+        # print 'urls_join() end', len(links), urls
         return urls
 
     def is_current_page(self, soup, org_url):
@@ -159,7 +161,7 @@ class MySpider(spider.Spider):
         # print 'link_str:', len(link_str), link_str
 
         rate = float(len(link_str)) / len(all_str)
-        print 'is_list_by_link_density() rate:', rate
+        # print 'is_list_by_link_density() rate:', rate
         return rate > 0.6
 
     def is_list_by_rule(self, soup, url):
@@ -173,11 +175,13 @@ class MySpider(spider.Spider):
                 return True
             if path[-1] == '/':
                 return True
-            if path.find('index') > 0 or path.find('list') > 0:
+            if path.lower().find('index') > 0 or path.lower().find('list') > 0:
                 return True
-            if path.find('post') > 0 or path.find('content') > 0 or path.find('detail') > 0:
+            if path.lower().find('post') > 0 or path.lower().find('content') > 0 or path.lower().find('detail') > 0:
                 return False
             if path[1:].isalpha():
+                return True
+            if self.conn.zrank(self.list_urls_zset_key, url):
                 return True
             # 判断面包屑中有无的‘正文’
             if self.is_current_page(soup, url) == True:
@@ -199,7 +203,7 @@ class MySpider(spider.Spider):
         return urls
 
     def get_page_valid_urls_short(self, soup, org_url):
-        print 'get_page_valid_urls() start'
+        # print 'get_page_valid_urls_short() start',org_url
         all_links = []
         remove_links = []
         try:
@@ -217,15 +221,15 @@ class MySpider(spider.Spider):
                     remove_links.append(tag['href'])
 
                 for t in tag.find_previous_siblings('a', recursive=False):
-                    if tag.has_attr('href'):
+                    if t.has_attr('href'):
                         remove_links.append(t['href'])
 
                 for t in tag.find_next_siblings('a', recursive=False):
-                    if tag.has_attr('href'):
+                    if t.has_attr('href'):
                         remove_links.append(t['href'])
 
         except Exception, e:
-            print '[ERROR] get_page_valid_urls()',e
+            print '[ERROR] get_page_valid_urls_short()',e
 
         removed = list(set(all_links) - set(remove_links))
 
@@ -241,10 +245,11 @@ class MySpider(spider.Spider):
                 if self.conn.zrank(self.detail_urls_zset_key, link) is None:
                     self.conn.zadd(self.detail_urls_zset_key, self.done_flg, link)
 
+        # print 'get_page_valid_urls_short() end',len(links), links
         return links
 
     def get_page_valid_urls_long(self, soup, org_url):
-        print 'get_page_valid_urls_long() start',org_url
+        # print 'get_page_valid_urls_long() start', org_url
         urls = []
         all_links = []
         remove_links = []
@@ -269,7 +274,7 @@ class MySpider(spider.Spider):
         for link in links:
             if self.conn.zrank(self.detail_urls_zset_key, link) is None:
                 self.conn.zadd(self.detail_urls_zset_key, self.done_flg, link)
-        print 'get_page_valid_urls_long() end'
+        # print 'get_page_valid_urls_long() end', len(links), links
         return links
 
     def get_start_urls(self, data=None):
@@ -280,7 +285,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        # print 'parse_detail_page() start'
+        # print 'parse_detail_page() start',org_url
         if response is None: return []
 
         if url is None:
@@ -296,9 +301,10 @@ class MySpider(spider.Spider):
         return []
 
 # ---------- test run function-----------------------------
-def make_test_list(url):
+def make_test_list(urls):
     mySpider = MySpider()
-    mySpider.conn.zadd(mySpider.list_urls_zset_key, mySpider.done_flg, url)
+    for url in urls:
+        mySpider.conn.zadd(mySpider.list_urls_zset_key, mySpider.done_flg, url)
 
 def test(unit_test):
     if unit_test is False: # spider simulation
@@ -363,7 +369,9 @@ def test(unit_test):
         print mySpider.is_list_by_link_density(soup)
 
 if __name__ == '__main__':
-    # test(unit_test = False)
-    test(unit_test = True)
+    urls = ['http://blog.tianya.cn/']
+    make_test_list(urls)
+    test(unit_test = False)
+    # test(unit_test = True)
     # import cProfile
     # cProfile.run("test(unit_test = False)")

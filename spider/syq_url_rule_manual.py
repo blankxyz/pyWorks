@@ -25,9 +25,9 @@ class MySpider(spider.Spider):
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://cpt.xtu.edu.cn/'
-        self.site_domain = 'cpt.xtu.edu.cn'
-        self.encoding = 'utf-8' # 湘潭大学
+        self.start_urls = 'http://bbs.tianya.cn/'
+        self.site_domain = 'bbs.tianya.cn'
+        self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
@@ -118,26 +118,6 @@ class MySpider(spider.Spider):
         # print 'filter_links() end', len(urls), urls
         return urls
 
-    def is_list_certain(self, url):
-        # 最优先确定规则
-        path = urlparse.urlparse(url).path
-        if len(path) == 0:
-            return True
-        if path == '/':
-            return True
-        if path[-1] == '/':
-            return True
-
-        #list index
-        detail_keyword_list = self.conn.zrange(self.detail_urls_keyword_zset_key,start=0,end=999)
-        if path.lower() in detail_keyword_list:
-            return False
-
-        # post content detail
-        list_keyword_list = self.conn.zrange(self.list_urls_keyword_zset_key,start=0,end=999)
-        if path.lower() in list_keyword_list:
-            return True
-
     def is_detail_rule_0(self, url):
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         rules = self.conn.zrevrangebyscore(self.detail_urls_rule0_zset_key,
@@ -161,8 +141,27 @@ class MySpider(spider.Spider):
 
     def is_list_by_rule(self, soup, url):
         # print 'is_list_by_rule start'
-        if self.is_list_certain(url) == True:
+        # 最优先确定规则
+        path = urlparse.urlparse(url).path
+        if len(path) == 0:
             return True
+        if path == '/':
+            return True
+        if path[-1] == '/':
+            return True
+
+        #post;content;detail
+        detail_keyword_list = self.conn.zrange(self.detail_urls_keyword_zset_key,start=0,end=999)
+        for key in detail_keyword_list:
+            if path.lower().find(key) >0:
+                return False
+
+        # list;index
+        list_keyword_list = self.conn.zrange(self.list_urls_keyword_zset_key,start=0,end=999)
+        for key in list_keyword_list:
+            if path.lower().find(key):
+                return True
+
         # 优先使用rule1
         if self.is_detail_rule_1(url) == False:
             return False
@@ -425,7 +424,7 @@ def test(unit_test):
                         print k, v
     else: # ---------- unit test -----------------------------
         print '[unit test] now starting ..........'
-        url = 'http://liuyan.people.com.cn/index.php?gid=4'
+        url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
         print 'url:',url
         mySpider = MySpider()
         #预置匹配规则
@@ -441,7 +440,7 @@ def test(unit_test):
         # print url, '->', rule0
         # rule1 = mySpider.convert_path_to_rule1(rule0)
         # print rule0, '->', rule1
-        # print mySpider.is_list_by_link_density(soup)
+        print mySpider.is_list_certain(url)
 
 if __name__ == '__main__':
     test(unit_test = False)

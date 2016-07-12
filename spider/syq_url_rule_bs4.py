@@ -318,9 +318,10 @@ class MySpider(spider.Spider):
 
                     like_links_text.append(''.join(grandpa_text))
             else:
-                for str in tag.stripped_strings: self_links_text.append(str)
+                for str in tag.stripped_strings:
+                    self_links_text.append(str)
 
-        link_str = ''.join(like_links_text)
+        link_str = ''.join(like_links_text) + ''.join(self_links_text)
         link_str = re.compile(r"\s+", re.I | re.M | re.S).sub('', link_str)
         print 'link_str:', len(link_str), link_str
 
