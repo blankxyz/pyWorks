@@ -109,44 +109,87 @@ class Document(object):
         return etree
     
     def is_list(self, *args, **kwargs):
+        # print 'is_list() start ...'
         '''
         判读当前页是否为列表页
         '''
         try:
             etree = self._build_doc(True)
+            print etree
             body = etree.find(".//body")
+            # print body.findall('.//style')
+            # for style in body.findall('.//style'):
+            #     print style
+
             text = to_string(body)
             all_links = etree.findall(".//a")
             links_text = []
             for item in all_links:
                 links_text.append(to_string(item))
-                #print to_string(item)
+                # print to_string(item)
             text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
+            # print 'text_without_blank space',len(text_without_blank), text_without_blank
+            text_without_blank = re.compile(r"\d{4}\/\d{2}\/\d{4}\:\d{2}", re.I | re.M | re.S).sub('', text_without_blank)
+            # print 'text_without_blank time', len(text_without_blank), text_without_blank
             rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
-            # print rate
+            # print 'join(links_text)',len(''.join(links_text)),''.join(links_text)
+            print 'rate', rate
+
+            # max_div_len = 0
+            # divs = etree.findall(".//body/div")
+            # for div in divs:
+            #     div_text = to_string(div)
+            #     if len(div_text) > max_div_len:
+            #         max_div_len = len(div_text)
+            #         max_div = div
+            #
+            # print 'max_div',to_string(max_div)
+            # max_div_links = max_div.findall(".//a")
+            # print 'max_div_links',len(max_div_links), max_div_links
+            # max_div_links_text = []
+            # for item in max_div_links:
+            #     max_div_links_text.append(to_string(item))
+            #
+            # print 'max_div_links_text',max_div_links_text
+            # div_text = to_string(max_div)
+            # div_text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', div_text)
+            # # print 'text_without_blank space',len(text_without_blank), text_without_blank
+            # div_text_without_blank = re.compile(r"\d{4}\/\d{2}\/\d{4}\:\d{2}", re.I | re.M | re.S).sub('', div_text_without_blank)
+            # print 'div_text_without_blank time', len(div_text_without_blank), div_text_without_blank
+            # max_div_rate = len(''.join(max_div_links_text)) * 1.0 / len(div_text_without_blank)
+            # print 'max_div_rate', max_div_rate
+
             return rate > 0.6
-        except:
+        except Exception, e:
+            print e
             return False
 
-    def is_list(self, *args, **kwargs):
-        '''
-        判读当前页是否为列表页
-        '''
-        try:
-            etree = self._build_doc(True)
-            body = etree.find(".//body")
-            text = to_string(body)
-            all_links = etree.findall(".//a")
-            links_text = []
-            for item in all_links:
-                links_text.append(to_string(item))
-                #print to_string(item)
-            text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
-            rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
-            # print rate
-            return rate > 0.6
-        except:
-            return False
+    # def is_list_main_div(self, *args, **kwargs):
+    #     '''
+    #     判读当前页是否为列表页
+    #     '''
+    #     try:
+    #         etree = self._build_doc(True)
+    #         body = etree.find(".//body")
+    #         divs = body.findall('div')
+    #         for div in divs:
+    #             if div.get('class') == 'container' 'main':
+    #                 save
+    #             if div.get('^nav,footer,^foot,^bottom','^top','channel'):
+    #                 remove
+    #
+    #         text = to_string(body)
+    #         all_links = etree.findall(".//a")
+    #         links_text = []
+    #         for item in all_links:
+    #             links_text.append(to_string(item))
+    #             #print to_string(item)
+    #         text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
+    #         rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
+    #         # print rate
+    #         return rate > 0.6
+    #     except:
+    #         return False
 
     def urls(self):
         '''
@@ -255,8 +298,14 @@ class Document(object):
                     else:
                         article = self._root.find('body')
                         if article is None:
+                            print '222'
                             article = self._root
-                
+
+                # print 'article', type(article)
+                for el in  self.tags(article,'div'):
+                    link_density = self.get_link_density(el)
+                    # print 'link_density()', link_density #i.text_content()
+
                 cleaned_article = self.sanitize(article, candidates)
                 article_length = len(cleaned_article or '')
                 retry_length = self.kwargs.get('retry_length',self.RETRY_LENGTH)
@@ -691,8 +740,6 @@ if __name__ == "__main__":
     url = 'http://www.thepaper.cn/newsDetail_forward_1301303'
     url = 'http://hebei.hebnews.cn/2014-09/12/content_4169408.htm'
     url = 'http://news.cnnb.com.cn/system/2006/03/20/005090532.shtml'
-    url = 'http://news.16888.com/a/2014/0903/539638.html'
-    url = 'http://news.ifeng.com/a/20150429/43658999_0.shtml'
     url = 'http://tieba.baidu.com/p/2958122545'
     url = 'http://www.eastobacco.com/ycr/201501/t20150112_354115.html'
     url = 'http://www.chinacourt.org/article/detail/2011/02/id/441623.shtml'
@@ -700,7 +747,16 @@ if __name__ == "__main__":
 #    url = 'http://t.cn/RLi7bux'
     url = 'http://astro.sina.com.cn/t/2015-08-14/doc-ifxfxzzn7469512.shtml'
     url = 'http://www.slrbs.com/shyf/shenghuoyufa/2014-10-08/203212.html#'
-    
+
+    url = 'http://bbs.tianya.cn/post-100-1979308-1.shtml' #is_list() bug
+    url = 'http://news.16888.com/a/2014/0903/539638.html'
+    url = 'http://news.ifeng.com/a/20150429/43658999_0.shtml'
+    url = 'http://chezhan.16888.com/'
+    url = 'http://www.xinjiangyaou.com/News/Vedio/index.shtml'
+    url = 'http://tv.cctv.com/2016/06/26/VIDElVKFM1LN5T8bDkG7jrl5160626.shtml'
+    url = 'http://www.xinjiangyaou.com/' # summry bug
+    url = 'http://www.thepaper.cn/point_question.jsp?commentid=5798849&contid=10004233' # summry bug
+
     resp = requests.get(url)
     html = resp.content
     
@@ -715,9 +771,10 @@ if __name__ == "__main__":
     doc = Document(html, url=url)
      
     title =  doc.title
+    print 'url:',url
     print "--title: ", title
     print "--encoding: ", doc.encoding
-    print doc.get_ctime()
-    print doc.summary(False)
-    
-#    print doc.is_list()
+    print 'get_time():', doc.get_ctime()
+    summry = doc.summary(False)
+    print 'summary():', len(summry), summry
+    print 'is_list():', doc.is_list()
