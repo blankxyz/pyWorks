@@ -92,7 +92,7 @@ class Cleaner(object):
 
     def is_suffixes_ok(self, url):  # syq
         p = urlparse.urlparse(url).path
-        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb','.jpg','.mp3','.pdf']:
+        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb','.jpg','.mp3','.pdf','.rar']:
             if p.find(fix) > 0:
                 return False
         return True
