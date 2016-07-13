@@ -28,8 +28,10 @@ dedup_setting = 'redis://192.168.110.110/0'
 json_file = "process-temp.json"
 SETTING_FOLDER = 'static/setting/'
 # RUN_PY_FILE = "run_spider.bat"
-RUN_PY_FILE='D:\workspace\pyWorks\spider\syq_url_rule_manual.py'
-
+if os.name == 'nt':
+    RUN_PY_FILE='D:\workspace\pyWorks\spider\syq_url_rule_manual.py'
+else:
+    RUN_PY_FILE='/Users/song/workspace/pyWorks/spider/syq_url_rule_manual.py'
 # def is_me(form, field): #自定义check函数
 #     if field.data != 'yes':
 #         raise validators.ValidationError('Must input "yes"') #FormField对象
@@ -321,7 +323,13 @@ def modify_pyfile(py_file, start_urls , site_domain):
         print 'modify_pyfile()',e
 
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def menu():
+    #清空主页、域名
+    db = DBDrive(start_urls='',
+                 site_domain='',
+                 redis_setting=redis_setting)
+    db.conn.hset(db.setting_hset_key,'start_urls','')
+    db.conn.hset(db.setting_hset_key, 'site_domain', '')
     return render_template('menu.html')
 
 @app.errorhandler(404)
@@ -338,7 +346,7 @@ def convert_to_regex():
     convert_url = request.args.get('convert_url')
     ret['regex'] = convert_path_to_rule(convert_url)
     jsonStr = json.dumps(ret)
-    print 'ajax()', convert_url,'->',jsonStr
+    print 'convert_to_regex()', convert_url,'->',jsonStr
     return jsonStr
 
 
@@ -355,7 +363,6 @@ def show():
     if start_urls is None or start_urls.strip() == '' or site_domain is None or  site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', myForm=myForm)
-
 
     # 从redis提取实时信息，转换成json文件
     db = DBDrive(start_urls=start_urls,
@@ -384,20 +391,21 @@ def show():
 
 @app.route('/setting', methods=['GET', 'POST'])
 def setting_init():
-    #清空主页、域名
+    myForm = MyForm(request.form)
+
     db = DBDrive(start_urls='',
                  site_domain='',
                  redis_setting=redis_setting)
-    db.conn.hset(db.setting_hset_key,'start_urls','')
-    db.conn.hset(db.setting_hset_key, 'site_domain', '')
 
-    myForm = MyForm()
-    start_urls = myForm.start_urls.data
-    site_domain = myForm.site_domain.data
+    start_urls = db.conn.hget(db.setting_hset_key, 'start_urls')
+    site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
     if start_urls is None or start_urls.strip() == '' or \
         site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
         return render_template('setting.html', myForm=myForm)
+    else:
+        myForm.start_urls.data = start_urls
+        myForm.site_domain.data = site_domain
 
     db = DBDrive(start_urls=start_urls,
                  site_domain=site_domain,
@@ -511,7 +519,11 @@ def save_and_run():
     modify_pyfile(py_file=RUN_PY_FILE, start_urls = "\'"+ start_urls +"\'", site_domain="\'"+ site_domain + "\'")
 
     # DOS "start" command
-    os.startfile(RUN_PY_FILE)
+    if os.name == 'nt':
+        os.startfile(RUN_PY_FILE)
+    else:
+        os.popen("python "+RUN_PY_FILE)
+        # print p.read()
 
     export_file = {'start_urls':start_urls,
             'site_domain':site_domain,
@@ -520,11 +532,11 @@ def save_and_run():
             'list_keys':list_keys
             }
     json_str = json.dumps(export_file)
-    mysql = MySqlDrive()
-    cnt = mysql.save_to_mysql(start_urls, site_domain, json_str)
-
-    if cnt==1: flash(u"MySQL保存完毕，执行中...")
-    else: flash(u"MySQL保存失败，执行中...")
+    # mysql = MySqlDrive()
+    # cnt = mysql.save_to_mysql(start_urls, site_domain, json_str)
+    #
+    # if cnt==1: flash(u"MySQL保存完毕，执行中...")
+    # else: flash(u"MySQL保存失败，执行中...")
 
     open(SETTING_FOLDER+'setting.json', 'w').write(json_str)
     return render_template('setting.html', myForm=myForm)
@@ -548,8 +560,8 @@ def export_upload():
 
 @app.route('/export_setting', methods=['GET', 'POST'])
 def export_setting():
-    mysql_db = MySqlDrive()
-    setting_json,cnt = mysql_db.get_setting()
+    # mysql_db = MySqlDrive()
+    # setting_json,cnt = mysql_db.get_setting()
     flash(u"MySQL导出结果。")
     return render_template('export_import.html',setting_json=setting_json)
 
