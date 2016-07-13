@@ -125,8 +125,8 @@ class MySpider(spider.Spider):
         for rule0 in rules:
             if re.search(rule0, url):
                 print '[rule0]', rule0, '<-', url
-                return False #符合详情页规则
-        return True #不确定
+                return True #符合详情页规则
+        return False #不确定
 
     def is_detail_rule_1(self ,url):
         rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
@@ -136,8 +136,8 @@ class MySpider(spider.Spider):
             if re.search(rule1, url):
                 self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule1, amount=1)
                 print '[rule1]', rule1, '<-', url
-                return False #符合详情页规则
-        return True #不确定
+                return True #符合详情页规则
+        return False #不确定
 
     def is_list_by_rule(self, soup, url):
         # print 'is_list_by_rule start'
@@ -154,24 +154,29 @@ class MySpider(spider.Spider):
         detail_keyword_list = self.conn.zrange(self.detail_urls_keyword_zset_key,start=0,end=999)
         for key in detail_keyword_list:
             if path.lower().find(key) >0:
+                self.conn.zincrby(self.detail_urls_keyword_zset_key, value=key, amount=1)
+                # print 'detail_keyword_list',False
                 return False
 
         # list;index
         list_keyword_list = self.conn.zrange(self.list_urls_keyword_zset_key,start=0,end=999)
         for key in list_keyword_list:
-            if path.lower().find(key):
+            if path.lower().find(key) > 0:
+                self.conn.zincrby(self.list_urls_keyword_zset_key, value=key, amount=1)
+                # print 'list_keyword_list',True,path,key
                 return True
 
         # 优先使用rule1
-        if self.is_detail_rule_1(url) == False:
+        if self.is_detail_rule_1(url) == True:
+            # print 'detail_rule_1()',True
             return False
-        # 使用rule0
-        if self.is_detail_rule_0(url) == False:
+        # # 使用rule0
+        if self.is_detail_rule_0(url) == True:
             return False
         # 判断面包屑中有无的‘正文’
-        if self.is_current_page(soup, url) == True:
-            # print 'is_current_page() True'
-            return False
+        # if self.is_current_page(soup, url) == True:
+        #     # print 'is_current_page() True'
+        #     return False
 
         return True
         # print 'is_list_by_rule start',url,ret
@@ -427,6 +432,8 @@ def test(unit_test):
         url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
         print 'url:',url
         mySpider = MySpider()
+        #预置数据
+        mySpider.conn.zadd(mySpider.list_urls_zset_key, mySpider.todo_flg, mySpider.start_urls)
         #预置匹配规则
         mySpider.conn.zadd(mySpider.detail_urls_rule1_zset_key,mySpider.done_flg,'/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
         mySpider.conn.zadd(mySpider.detail_urls_rule1_zset_key,mySpider.done_flg,'/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html')

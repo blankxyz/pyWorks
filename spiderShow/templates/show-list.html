@@ -31,19 +31,7 @@
     </script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
-    <style>
-        .div-left {
-            float: left;
-            width: 49%;
-            border: 1px solid
-        }
 
-        .div-right {
-            float: left;
-            width: 49%;
-            border: 1px solid
-        }
-    </style>
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8"
             src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
@@ -66,7 +54,7 @@
                     "sProcessing": "<img src='./loading.gif' />"
                 },
                 "bFilter": false,
-                "bLengthChange": false,
+                "bLengthChange": true,
                 "aLengthMenu": [5, 10, 50, "All"]
             });
             $('#addRow').on('click', function () {
@@ -80,8 +68,8 @@
     </script>
 </head>
 <body>
-<h1 align="center">设定抓取信息
-    <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
+<h1 align="center">列表页信息
+    <small>请点击刷新按钮</small>
 </h1>
 <hr/>
 <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
@@ -96,67 +84,15 @@
     {% endwith %}
 </div>
 
-{#{{ myForm.errors }}#}
-{##}
-{#<form id="set" method="POST" action="/save_regex">#}
-{#    <div class="input-group input-group-lg">#}
-{#        <span class="input-group-addon">{{ myForm.regex1.label }}</span>#}
-{#        <input type="text" class="form-control"#}
-{#               placeholder="/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html">#}
-{#    </div>#}
-{#    <br>#}
-{##}
-{#    <div class="input-group input-group-lg">#}
-{#        <span class="input-group-addon">{{ myForm.regex2.label }}</span>#}
-{#        <input type="text" class="form-control"#}
-{#               placeholder="/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html">#}
-{#    </div>#}
-{#    <br>#}
-{##}
-{#    <div class="input-group input-group-lg">#}
-{#        <span class="input-group-addon">{{ myForm.regex3.label }}</span>#}
-{#        <input type="text" class="form-control" #}
-{#               placeholder="/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html">#}
-{#    </div>#}
-{#    <br>#}
-{#    <div class="input-group input-group-lg">#}
-{#       <span class="input-group-addon">#}
-{#          <input type="checkbox">#}
-{#       </span>#}
-{#       <input type="text" class="form-control">#}
-{#    </div>#}
-{#    <br>#}
-{#    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">{{ myForm.submit.label }}</button>#}
-{#    {{ myForm.submit() }}#}
-{#</form>#}
-
-{#<button id="addRow">添加一行</button>#}
-
-<form id="setting" method="POST" action="/save_and_run">
+<form id="setting" method="POST" action="/get_show_list">
     <hr/>
     <div id="config" class="form-group center" style="width:80%; margin-left:50px">
         {{ myForm.start_urls.label }} &nbsp;{{ myForm.start_urls(size=30) }}&nbsp;&nbsp;&nbsp;
         {{ myForm.site_domain.label }} &nbsp;{{ myForm.site_domain(size=20) }}
     </div>
     <hr/>
-    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">
-        <label for="name">{{ myForm.list_keyword.label }} </label>&nbsp;{{ myForm.list_keyword(size=100) }}&nbsp;请按照 单词 + ‘;’ 形式增加。 <br>
-        <label for="name">{{ myForm.detail_keyword.label }}</label>&nbsp;{{ myForm.detail_keyword(size=100) }}
-    </div>
-    <hr/>
-
-    <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
-        <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
-             /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
-        <input type=text size=50 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
-        <label id="regex_result"> 请确认转换后的表达式，拷贝到下面列表中。 </label>
-    </div>
-
-    <hr/>
-{#    <button id="addRow">添加一行</button>#}
     <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
         <label for="name">详情页-正则表达式</label><br>
-        {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
         <table id="detail-regex-tab">
             <thead>
             <tr>
@@ -175,9 +111,6 @@
             {% endfor %}
             </tbody>
         </table>
-    </div>
-    <div id="reset" class="form-group checkbox" style="width:80%; margin-left:50px">
-        <label>{{ myForm.reset }} {{ myForm.reset.label }}</label>
     </div>
     <div id="submit" class="form-group" style="width:80%; margin-left:50px">
         <button type="button" class="btn">{{ myForm.submit() }}</button>
