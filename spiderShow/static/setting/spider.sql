@@ -14,7 +14,6 @@ CREATE TABLE `content_rule` (
   `item` varchar(255) NOT NULL DEFAULT 'title' COMMENT 'title，ctime，gtime，content 等',
   `rule` varchar(255) DEFAULT NULL COMMENT '匹配规则',
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
-  `update_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新（做成）时间',
   PRIMARY KEY (`Id`),
   KEY `item` (`item`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='提取内容的规则（xpath）';
@@ -39,7 +38,6 @@ CREATE TABLE `url_rule` (
   `regex` varchar(255) DEFAULT NULL COMMENT '正则表达式',
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   `setting_json` longtext NOT NULL COMMENT 'json版 setting',
-  `update_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '更新（做成）时间',
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_urls`,`site_domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
@@ -48,4 +46,4 @@ CREATE TABLE `url_rule` (
 # Data for table "url_rule"
 #
 
-INSERT INTO `url_rule` VALUES (1,'http://bbs.tianya.cn/','bbs.tianya.cn',0,b'0',0,'index',NULL,'{\'index\':index}','0000-00-00 00:00:00');
+INSERT INTO `url_rule` VALUES (1,'http://bbs.tianya.cn/','bbs.tianya.cn',0,b'0',0,'index',NULL,'{\'index\':index}');
