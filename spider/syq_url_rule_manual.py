@@ -25,8 +25,8 @@ class MySpider(spider.Spider):
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://bbs.tianya.cn/'
-        self.site_domain = 'bbs.tianya.cn'
+        self.start_urls = 'http://cpt.xtu.edu.cn/'
+        self.site_domain = 'cpt.xtu.edu.cn'
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
         self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain

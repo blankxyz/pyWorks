@@ -49,17 +49,37 @@
             src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            var t = $('#detail-regex-tab').DataTable({
+            var detail_t = $('#detail-regex-tab').DataTable({
                 "oLanguage": {
-                    "sLengthMenu": "每页显示 _MENU_ 条记录",
-                    "sZeroRecords": "没有找到",
-                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条数据",
-                    "sInfoEmpty": "没有数据",
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sZeroRecords": "没有检索到",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "Redis没有数据",
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
                     "oPaginate": {
                         "sFirst": "首页",
-                        "sPrevious": "前一页",
-                        "sNext": "后一页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有检索到数据",
+                    "sProcessing": "<img src='./loading.gif' />"
+                },
+                "bFilter": false,
+                "bLengthChange": false,
+                "aLengthMenu": [5, 10, 50, "All"]
+            });
+            var list_t = $('#list-regex-tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sZeroRecords": "没有检索到",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "Redis没有数据",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
                         "sLast": "尾页"
                     },
                     "sZeroRecords": "没有检索到数据",
@@ -70,7 +90,7 @@
                 "aLengthMenu": [5, 10, 50, "All"]
             });
             $('#addRow').on('click', function () {
-                t.row.add([
+                detail_t.row.add([
                     'rule1',
                     '<<',
                     'url'
@@ -80,9 +100,9 @@
     </script>
 </head>
 <body>
-<h1 align="center">设定抓取信息
+<h3 align="center">设定抓取信息
     <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
-</h1>
+</h3>
 <hr/>
 <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
     {% with messages = get_flashed_messages() %}
@@ -96,25 +116,25 @@
     {% endwith %}
 </div>
 
-{#{{ myForm.errors }}#}
+{#{{ inputForm.errors }}#}
 {##}
 {#<form id="set" method="POST" action="/save_regex">#}
 {#    <div class="input-group input-group-lg">#}
-{#        <span class="input-group-addon">{{ myForm.regex1.label }}</span>#}
+{#        <span class="input-group-addon">{{ inputForm.regex1.label }}</span>#}
 {#        <input type="text" class="form-control"#}
 {#               placeholder="/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html">#}
 {#    </div>#}
 {#    <br>#}
 {##}
 {#    <div class="input-group input-group-lg">#}
-{#        <span class="input-group-addon">{{ myForm.regex2.label }}</span>#}
+{#        <span class="input-group-addon">{{ inputForm.regex2.label }}</span>#}
 {#        <input type="text" class="form-control"#}
 {#               placeholder="/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html">#}
 {#    </div>#}
 {#    <br>#}
 {##}
 {#    <div class="input-group input-group-lg">#}
-{#        <span class="input-group-addon">{{ myForm.regex3.label }}</span>#}
+{#        <span class="input-group-addon">{{ inputForm.regex3.label }}</span>#}
 {#        <input type="text" class="form-control" #}
 {#               placeholder="/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html">#}
 {#    </div>#}
@@ -126,8 +146,8 @@
 {#       <input type="text" class="form-control">#}
 {#    </div>#}
 {#    <br>#}
-{#    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">{{ myForm.submit.label }}</button>#}
-{#    {{ myForm.submit() }}#}
+{#    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">{{ inputForm.submit.label }}</button>#}
+{#    {{ inputForm.submit() }}#}
 {#</form>#}
 
 {#<button id="addRow">添加一行</button>#}
@@ -135,25 +155,53 @@
 <form id="setting" method="POST" action="/save_and_run">
     <hr/>
     <div id="config" class="form-group center" style="width:80%; margin-left:50px">
-        {{ myForm.start_urls.label }} &nbsp;{{ myForm.start_urls(size=30) }}&nbsp;&nbsp;&nbsp;
-        {{ myForm.site_domain.label }} &nbsp;{{ myForm.site_domain(size=20) }}
+        {{ inputForm.start_urls.label }} &nbsp;{{ inputForm.start_urls(size=30) }}&nbsp;
+        {{ inputForm.site_domain.label }} &nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
+        {{ inputForm.white_list.label }} &nbsp;{{ inputForm.white_list(size=20) }}&nbsp;
+        {{ inputForm.black_list.label }} &nbsp;{{ inputForm.black_list(size=20) }}
     </div>
     <hr/>
-    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">
-        <label for="name">{{ myForm.list_keyword.label }} </label>&nbsp;{{ myForm.list_keyword(size=100) }}&nbsp;请按照 单词 + ‘;’ 形式增加。 <br>
-        <label for="name">{{ myForm.detail_keyword.label }}</label>&nbsp;{{ myForm.detail_keyword(size=100) }}
-    </div>
-    <hr/>
-
     <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
         <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
-             /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
+            /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
         <input type=text size=50 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
         <label id="regex_result"> 请确认转换后的表达式，拷贝到下面列表中。 </label>
     </div>
+    <hr/>
+    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">
+        <label for="name">{{ inputForm.list_keyword.label }} </label>&nbsp;{{ inputForm.list_keyword(size=100) }}&nbsp;请按照
+        单词 + ‘;’ 形式增加。 <br>
+    </div>
+    <div id="list-regex" class="form-group" style="width:80%; margin-left:50px">
+        <label for="name">列表页-正则表达式</label><br>
+        {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
+        <table id="list-regex-tab">
+            <thead>
+            <tr>
+                <th>选择</th>
+                <th>正则表达式</th>
+                <th>权重</th>
+                <th>匹配数</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in inputForm.list_regex_list %}
+                <tr id="{{ loop.index }}">
+                    <td>&nbsp;&nbsp;{{ row.select() }}</td>
+                    <td>{{ row.regex(size=100) }}</td>
+                    <td>{{ row.weight() }}</td>
+                    <td>{{ row.score(size=6) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <hr/>
-{#    <button id="addRow">添加一行</button>#}
+    <div id="detail-keyword" class="form-group" style="width:80%; margin-left:50px">
+        <label for="name">{{ inputForm.detail_keyword.label }}</label>&nbsp;{{ inputForm.detail_keyword(size=100) }}&nbsp;请按照
+        单词 + ‘;’ 形式增加。 <br>
+    </div>
     <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
         <label for="name">详情页-正则表达式</label><br>
         {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
@@ -162,25 +210,28 @@
             <tr>
                 <th>选择</th>
                 <th>正则表达式</th>
+                <th>权重</th>
                 <th>匹配数</th>
             </tr>
             </thead>
             <tbody>
-            {% for row in myForm.regex_list %}
+            {% for row in inputForm.detal_regex_list %}
                 <tr id="{{ loop.index }}">
                     <td>&nbsp;&nbsp;{{ row.select() }}</td>
                     <td>{{ row.regex(size=100) }}</td>
+                    <td>{{ row.weight() }}</td>
                     <td>{{ row.score(size=6) }}</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
+    <hr/>
     <div id="reset" class="form-group checkbox" style="width:80%; margin-left:50px">
-        <label>{{ myForm.reset }} {{ myForm.reset.label }}</label>
+        <label>{{ inputForm.reset }} {{ inputForm.reset.label }}</label>
     </div>
     <div id="submit" class="form-group" style="width:80%; margin-left:50px">
-        <button type="button" class="btn">{{ myForm.submit() }}</button>
+        <button type="button" class="btn">{{ inputForm.submit() }}</button>
     </div>
 </form>
 

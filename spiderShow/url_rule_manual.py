@@ -44,7 +44,7 @@ else:
 #     building = StringField('building')
 #
 #
-# class MyForm(Form):
+# class InputForm(Form):
 #     me = StringField('Is your self info?',[is_me,validators.Length(min=1,max=3)])
 #     name = StringField('What is your name?',
 #                        [validators.InputRequired('name'),
@@ -75,27 +75,49 @@ else:
 class RegexForm(Form):
     select = BooleanField(label=u'选择', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
+    weight = SelectField(label=u'权重', choices=[('100', u'确定'), ('50', u'可能'), ('20', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
-class MyForm(Form):
+class DetailUrlForm(Form):
+    detail_url = StringField(label=u'详情页')
+    select = BooleanField(label=u'正误', default=False)
+
+
+class ListUrlForm(Form):
+    list_url = StringField(label=u'列表页')
+    select = BooleanField(label=u'正误', default=False)
+
+
+class InputForm(Form):
     start_urls = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
+    white_list = StringField(label=u'白名单')
+    black_list = StringField(label=u'黑名单')
 
-    list_keyword = StringField(label=u'列表页特征词', default='list;index')
-    detail_keyword = StringField(label=u'详情页特征词', default='post;content;detail')
+    list_keyword = StringField(label=u'列表页-特征词', default='list;index')
+    detail_keyword = StringField(label=u'详情页-特征词', default='post;content;detail')
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
     url = StringField(label=u'URL例子')
 
-    regex_list = FieldList(FormField(RegexForm), label=u'详情页正则表达式列表', min_entries=50)
+    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=50)
+    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=50)
 
     reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
 
     submit = SubmitField(label=u'保存并执行')
 
     import_setting = SubmitField(label=u'导入')
+
+
+class OutputForm(Form):
+    detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=1000)
+
+    list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=1000)
+
+    refresh = SubmitField(label=u'刷新')
 
 
 class MySqlDrive(object):
@@ -112,6 +134,10 @@ class MySqlDrive(object):
         self.conn.select_db('spider')
         self.cur = self.conn.cursor()
 
+    def __del__(self):
+        self.cur.close()
+        self.conn.close()
+
     def save_to_mysql(self, start_urls, site_domain, setting_json):
         print 'save_to_mysql() start...', start_urls, site_domain, setting_json
 
@@ -121,7 +147,8 @@ class MySqlDrive(object):
                 "UPDATE setting SET setting_json = '" + setting_json + "' WHERE start_urls= '" + start_urls + "' AND site_domain= '" + site_domain + "'")
         else:
             sqlStr = (
-                "INSERT INTO setting(start_urls,site_domain,setting_json) VALUES ('" + start_urls + "','" + site_domain + "','" + setting_json + "')")
+                "INSERT INTO url_rule(start_urls,site_domain,scope,yes_no,weight,regex,etc,setting_json,update_time) "
+                "VALUES ('" + start_urls + "','" + site_domain + "','0','0','0','','" + setting_json + "',NOW())")
 
         ret_cnt = 0
         try:
@@ -131,18 +158,16 @@ class MySqlDrive(object):
         except Exception, e:
             print 'save_to_mysql()', e
             self.conn.rollback()
-        # finally:
-        #     self.cur.close()
-        #     self.conn.close()
+
         return ret_cnt
 
     def get_setting(self):
         # 提取主页、域名
-        db = DBDrive(start_urls='',
-                     site_domain='',
-                     redis_setting=redis_setting)
-        start_urls = db.conn.hget(db.setting_hset_key, 'start_urls')
-        site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
+        redis_db = RedisDrive(start_urls='',
+                              site_domain='',
+                              redis_setting=redis_setting)
+        start_urls = redis_db.conn.hget(redis_db.setting_hset_key, 'start_urls')
+        site_domain = redis_db.conn.hget(redis_db.setting_hset_key, 'site_domain')
 
         setting_json = ''
         sqlStr = (
@@ -157,14 +182,11 @@ class MySqlDrive(object):
             print 'get_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_setting()', e
-        # finally:
-        #     self.cur.close()
-        #     self.conn.close()
 
         return setting_json, cnt
 
 
-class DBDrive(object):
+class RedisDrive(object):
     def __init__(self, start_urls, site_domain, redis_setting):
         self.site_domain = site_domain
         self.start_urls = start_urls
@@ -179,15 +201,22 @@ class DBDrive(object):
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
-        # print 'DBDrive init()', self.site_domain, self.start_urls, self.conn
+        # print 'RedisDrive init()', self.site_domain, self.start_urls, self.conn
 
-    def save_regex(self, regexs):
-        for regex in regexs:
+    def save_regex(self, list_regexs=[], detail_regexs=[]):
+        for regex in list_regexs:
             if regex:
                 self.conn.zadd(self.detail_urls_rule1_zset_key, self.done_flg, regex)
 
+        for regex in detail_regexs:
+            if regex:
+                self.conn.zadd(self.detail_urls_rule0_zset_key, self.done_flg, regex)
+
     def get_detail_urls(self):
         return self.conn.zrangebyscore(self.detail_urls_zset_key, self.done_flg, self.done_flg)
+
+    def get_list_urls(self):
+        return self.conn.zrangebyscore(self.list_urls_zset_key, self.done_flg, self.done_flg)
 
     def get_matched_rate(self):
         cnt = 0
@@ -208,7 +237,7 @@ class DBDrive(object):
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         matched_cnt = ','.join(['99', '2', '10', '30', '1'])
-        print keywords,matched_cnt
+        print keywords, matched_cnt
         return keywords, matched_cnt
 
     def covert_redis_cnt_to_json(self, process_show_json):
@@ -346,9 +375,9 @@ def modify_pyfile(py_file, start_urls, site_domain):
 @app.route('/', methods=['GET', 'POST'])
 def menu():
     # 清空主页、域名
-    db = DBDrive(start_urls='',
-                 site_domain='',
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls='',
+                    site_domain='',
+                    redis_setting=redis_setting)
     db.conn.hset(db.setting_hset_key, 'start_urls', '')
     db.conn.hset(db.setting_hset_key, 'site_domain', '')
     return render_template('menu.html')
@@ -376,22 +405,22 @@ def convert_to_regex():
 
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
-    myForm = MyForm()
+    inputForm = InputForm()
 
     # 提取主页、域名
-    db = DBDrive(start_urls='',
-                 site_domain='',
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls='',
+                    site_domain='',
+                    redis_setting=redis_setting)
     start_urls = db.conn.hget(db.setting_hset_key, 'start_urls')
     site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
     if start_urls is None or start_urls.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('show.html', myForm=myForm)
+        return render_template('show.html', inputForm=inputForm)
 
     # 从redis提取实时信息，转换成json文件
-    db = DBDrive(start_urls=start_urls,
-                 site_domain=site_domain,
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls=start_urls,
+                    site_domain=site_domain,
+                    redis_setting=redis_setting)
     db.covert_redis_cnt_to_json(process_show_json)
 
     collage = CollageProcessInfo(process_show_json)
@@ -417,120 +446,137 @@ def show_process():
                            matched_cnt=matched_cnt)
 
 
-@app.route('/show_list', methods=['GET', 'POST'])
-def get_show_list():
-    myForm = MyForm()
+@app.route('/show_result', methods=['GET', 'POST'])
+def get_show_result():
+    outputForm = OutputForm()
 
     # 提取主页、域名
-    db = DBDrive(start_urls='',
-                 site_domain='',
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls='',
+                    site_domain='',
+                    redis_setting=redis_setting)
     start_urls = db.conn.hget(db.setting_hset_key, 'start_urls')
     site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
     if start_urls is None or start_urls.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('show.html', myForm=myForm)
+        return render_template('show-result.html', outputForm=outputForm)
 
     # 从redis提取实时信息，转换成json文件
-    db = DBDrive(start_urls=start_urls,
-                 site_domain=site_domain,
-                 redis_setting=redis_setting)
-    db.covert_redis_cnt_to_json(process_show_json)
+    db = RedisDrive(start_urls=start_urls,
+                    site_domain=site_domain,
+                    redis_setting=redis_setting)
 
-    collage = CollageProcessInfo(process_show_json)
-    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = collage.convert_file_to_list()
-    times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
+    i = 0
+    for list_url in db.get_list_urls():
+        list_url_data = MultiDict([('list_url', list_url), ('select', True)])
+        list_url_form = ListUrlForm(list_url_data)
+        outputForm.list_urls_list.entries[i] = list_url_form
+        i += 1
 
-    flash(u'每隔10秒刷新 ' + start_urls + u' 的实时采集信息。')
-    return render_template('show-list.html',myForm=myForm)
+    i = 0
+    for detail_url in db.get_detail_urls():
+        detail_url_data = MultiDict([('detail_url', detail_url), ('select', True)])
+        detail_url_form = DetailUrlForm(detail_url_data)
+        outputForm.detail_urls_list.entries[i] = detail_url_form
+        i += 1
+
+    return render_template('show-result.html', outputForm=outputForm)
 
 
-@app.route('/setting', methods=['GET', 'POST'])
-def setting_init():
-    myForm = MyForm(request.form)
+@app.route('/setting_main', methods=['GET', 'POST'])
+def setting_main():
+    inputForm = InputForm(request.form)
 
-    db = DBDrive(start_urls='',
-                 site_domain='',
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls='',
+                    site_domain='',
+                    redis_setting=redis_setting)
 
     start_urls = db.conn.hget(db.setting_hset_key, 'start_urls')
     site_domain = db.conn.hget(db.setting_hset_key, 'site_domain')
     if start_urls is None or start_urls.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
-        return render_template('setting.html', myForm=myForm)
+        return render_template('setting.html', inputForm=inputForm)
     else:
-        myForm.start_urls.data = start_urls
-        myForm.site_domain.data = site_domain
+        inputForm.start_urls.data = start_urls
+        inputForm.site_domain.data = site_domain
 
-    db = DBDrive(start_urls=start_urls,
-                 site_domain=site_domain,
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls=start_urls,
+                    site_domain=site_domain,
+                    redis_setting=redis_setting)
 
-    # 保存详情页关键字
+    # 保存详情页关键字-详情页
     detail_keywords_str = []
     detail_keywords = db.conn.zrange(db.detail_urls_keyword_zset_key, start=0, end=999, withscores=False)
     for keyword in detail_keywords:
         detail_keywords_str.append(keyword)
-    myForm.detail_keyword.data = ';'.join(detail_keywords_str)
-
-    list_keywords_str = []
-    list_keywords = db.conn.zrange(db.list_urls_keyword_zset_key, start=0, end=999, withscores=False)
-    for keyword in list_keywords:
-        list_keywords_str.append(keyword)
-    myForm.list_keyword.data = ';'.join(list_keywords_str)
-
-    # 还原原有的正则表达式
+    inputForm.detail_keyword.data = ';'.join(detail_keywords_str)
+    # 还原原有的正则表达式-详情页
     rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key, start=0, end=999, withscores=True)
     i = 0
     for rule, score in dict(rules1).iteritems():
         regex_data = MultiDict([('select', True), ('regex', rule), ('score', int(score))])
         regexForm = RegexForm(regex_data)
-        # myForm.regex_list.append_entry(regexForm)
-        myForm.regex_list.entries[i] = regexForm
+        # inputForm.regex_list.append_entry(regexForm)
+        inputForm.detail_regex_list.entries[i] = regexForm
+        i += 1
+
+    # 保存详情页关键字-列表页
+    list_keywords_str = []
+    list_keywords = db.conn.zrange(db.list_urls_keyword_zset_key, start=0, end=999, withscores=False)
+    for keyword in list_keywords:
+        list_keywords_str.append(keyword)
+    inputForm.list_keyword.data = ';'.join(list_keywords_str)
+    # 还原原有的正则表达式-列表页
+    rules0 = db.conn.zrange(db.detail_urls_rule0_zset_key, start=0, end=999, withscores=True)
+    i = 0
+    for rule, score in dict(rules0).iteritems():
+        regex_data = MultiDict([('select', True), ('regex', rule), ('score', int(score))])
+        regexForm = RegexForm(regex_data)
+        # inputForm.regex_list.append_entry(regexForm)
+        inputForm.list_regex_list.entries[i] = regexForm
         i += 1
 
     # 清除原有所有规则
     # db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key, min=0, max=99999999)
 
     flash(u'初始化配置完成')
-    return render_template('setting.html', myForm=myForm)
+    return render_template('setting.html', inputForm=inputForm)
 
 
 @app.route('/save_and_run', methods=['POST'])
-def save_and_run():
-    myForm = MyForm(request.form)
-    # if myForm.validate_on_submit():
-    # if request.method == 'POST' and myForm.validate():
-    start_urls = myForm.start_urls.data
-    site_domain = myForm.site_domain.data
+def setting_main_save_and_run():
+    inputForm = InputForm(request.form)
+    # if inputForm.validate_on_submit():
+    # if request.method == 'POST' and inputForm.validate():
+    start_urls = inputForm.start_urls.data
+    site_domain = inputForm.site_domain.data
     if start_urls.strip() == '' or site_domain.strip() == '':
         flash(u'必须设置主页、域名信息！')
-        return render_template('setting.html', myForm=myForm)
+        return render_template('setting.html', inputForm=inputForm)
 
-    db = DBDrive(start_urls=start_urls,
-                 site_domain=site_domain,
-                 redis_setting=redis_setting)
+    db = RedisDrive(start_urls=start_urls,
+                    site_domain=site_domain,
+                    redis_setting=redis_setting)
 
     # 保存主页、域名
     db.conn.hset(db.setting_hset_key, 'start_urls', start_urls)
     db.conn.hset(db.setting_hset_key, 'site_domain', site_domain)
 
     detail_keys = []
-    detail_key = myForm.detail_keyword.data
+    detail_key = inputForm.detail_keyword.data
     for keyword in detail_key.split(';'):
         if keyword != '':
             detail_keys.append(keyword)
 
     list_keys = []
-    list_key = myForm.list_keyword.data
+    list_key = inputForm.list_keyword.data
     for keyword in list_key.split(';'):
         if keyword != '':
             list_keys.append(keyword)
 
     if len(list(set(list_keys) & set(detail_keys))) > 0:
         flash(u"详情页/列表页 特征词有重复，请修改。")
-        return render_template('setting.html', myForm=myForm)
+        return render_template('setting.html', inputForm=inputForm)
 
     # 清除原有，保存页面填写的详情页关键字
     db.conn.zremrangebyscore(db.detail_urls_keyword_zset_key, min=0, max=99999999)
@@ -543,35 +589,50 @@ def save_and_run():
         db.conn.zadd(db.list_urls_keyword_zset_key, 0, keyword)
 
     # 将原有正则表达式的score清零
-    if myForm.reset.data:
+    if inputForm.reset.data:
         regex_reset = db.conn.zrange(db.detail_urls_rule1_zset_key, start=0, end=9999999)
         for regex in regex_reset:
             db.conn.zadd(db.detail_urls_rule1_zset_key, 0, regex)
 
-    # 只启动一次 run_spider.bat
-    # if os.path.exists(process_show_json) is False:
-    #     subprocess.call(["run_spider.bat"], shell=True)
-    # else:
-    #     print 'no submit................'
-    # 保存rule1
-    regex_list = myForm.regex_list.data
-    regex_save_list = []
-    regex_cnt = 0
-    for r in regex_list:
+    # 保存详情页正则
+    detail_regex_list = inputForm.detail_regex_list.data
+    detail_regex_save_list = []
+    detail_regex_cnt = 0
+    for r in detail_regex_list:
         select = r['select']
         regex = r['regex']
         score = r['score']
         if select and regex != '':
-            regex_cnt += 1
-            regex_save_list.append(regex)
+            detail_regex_cnt += 1
+            detail_regex_save_list.append(regex)
 
-    if regex_cnt == 0:
+    if detail_regex_cnt == 0:
         flash(u"请填写并勾选要执行的 详情页正则表达式。")
-        return render_template('setting.html', myForm=myForm)
+        return render_template('setting.html', inputForm=inputForm)
 
-    regex_save_list = list(set(regex_save_list))
-    db.save_regex(regex_save_list)
+    detail_regex_save_list = list(set(detail_regex_save_list))
+    db.save_regex(detail_regexs=detail_regex_save_list)
 
+    # 保存列表页正则
+    list_regex_list = inputForm.list_regex_list.data
+    list_regex_save_list = []
+    list_regex_cnt = 0
+    for r in list_regex_list:
+        select = r['select']
+        regex = r['regex']
+        score = r['score']
+        if select and regex != '':
+            list_regex_cnt += 1
+            list_regex_save_list.append(regex)
+
+    # if list_regex_cnt == 0:
+    #     flash(u"请填写并勾选要执行的 详情页正则表达式。")
+    #     return render_template('setting.html', inputForm=inputForm)
+
+    list_regex_save_list = list(set(list_regex_save_list))
+    db.save_regex(list_regexs=list_regex_save_list)
+
+    # 修改配置文件的执行入口信息
     modify_pyfile(py_file=RUN_PY_FILE, start_urls="\'" + start_urls + "\'", site_domain="\'" + site_domain + "\'")
 
     # DOS "start" command
@@ -583,7 +644,8 @@ def save_and_run():
 
     export_file = {'start_urls': start_urls,
                    'site_domain': site_domain,
-                   'regex_save_list': regex_save_list,
+                   'detail_regex_save_list': detail_regex_save_list,
+                   'list_regex_save_list': list_regex_save_list,
                    'detail_keys': detail_keys,
                    'list_keys': list_keys
                    }
@@ -598,7 +660,7 @@ def save_and_run():
         flash(u"MySQL保存失败，执行中...")
 
     open(SETTING_FOLDER + 'setting.json', 'w').write(json_str)
-    return render_template('setting.html', myForm=myForm)
+    return render_template('setting.html', inputForm=inputForm)
 
 
 @app.route('/setting/<path:filename>')

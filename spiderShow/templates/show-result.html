@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>setting</title>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8"
+            src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var detail_t = $('#detail-urls-tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sZeroRecords": "没有找到",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "没有数据",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有检索到数据",
+                    "sProcessing": "<img src='./loading.gif' />"
+                },
+                "bFilter": false,
+                "bLengthChange": true,
+                "aLengthMenu": [5, 10, 50, "All"],
+                "sDom": '<"top"flip>rt<"clear">'
+            });
+            var list_t = $('#list-urls-tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sZeroRecords": "没有找到",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "没有数据",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有检索到数据",
+                    "sProcessing": "<img src='./loading.gif' />"
+                },
+                "bFilter": false,
+                "bLengthChange": true,
+                "aLengthMenu": [10, 50, 100, "All"],
+                "sDom": '<"top"flip>rt<"clear">'
+            });
+            $('#addRow').on('click', function () {
+                detail_t.row.add([
+                    'rule1',
+                    '<<',
+                    'url'
+                ]).draw();
+            });
+        });
+    </script>
+</head>
+<body>
+<h3 align="center">抓取结果一览-列表页/详情页
+    <small>最大支持1000条。</small>
+    <button type="button" class="btn" formaction="/show_result">{{ outputForm.refresh() }}</button>
+</h3>
+<hr/>
+<form id="show_result" method="POST" action="/show_result">
+    <div id="list-urls" class="form-group" style="float:left;width:50%;">
+        <table id="list-urls-tab">
+            <thead>
+            <tr>
+                <th>列表页一览</th>
+                <th>正误</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in outputForm.list_urls_list %}
+                <tr id="{{ loop.index }}">
+                    <td>{{ row.list_url(size=70) }}</td>
+                    <td>&nbsp;&nbsp;{{ row.select() }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{#    <hr style="width:2px;height:100px;"></hr>#}
+    <div id="detail-urls" class="form-group" style="float:right;width:50%;">
+        <table id="detail-urls-tab">
+            <thead>
+            <tr>
+                <th>详情页一览</th>
+                <th>正误</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in outputForm.detail_urls_list %}
+                <tr id="{{ loop.index }}">
+                    <td>{{ row.detail_url(size=70) }}</td>
+                    <td>&nbsp;&nbsp;{{ row.select() }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+</body>
+</html>
