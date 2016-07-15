@@ -14,20 +14,23 @@
     <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
 </h1>
 <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class=flashes>
-            {% for message in messages %}
-                <label>{{ message }}</label>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for message in messages %}
+                    <label>{{ message }}</label>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 </div>
 <div id="config" class="form-group center" style="width:80%; margin-left:50px">
     <form action="export_upload" method="post" enctype="multipart/form-data">
         <hr/>
         <a class="bottom" href="{{ url_for('static', filename='setting/setting.json') }}">请下载保存设置信息</a>
+        <hr/>
+        <a class="bottom" href="{{ url_for('static', filename='setting/result-detail.txt') }}">请下载抓取结果(详情页)</a>
+        <a class="bottom" href="{{ url_for('static', filename='setting/result-list.txt') }}">请下载抓取结果(列表页)</a>
         <hr/>
         <input type="file" name="file" value="选择导入文件"/>
         <br>
