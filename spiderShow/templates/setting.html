@@ -157,21 +157,21 @@
     <div id="config" class="form-group center" style="width:80%; margin-left:50px">
         {{ inputForm.start_url.label }} &nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
         {{ inputForm.site_domain.label }} &nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
-        {{ inputForm.white_list.label }} &nbsp;{{ inputForm.white_list(size=20) }}&nbsp;
-        {{ inputForm.black_list.label }} &nbsp;{{ inputForm.black_list(size=20) }}
+{#        {{ inputForm.white_list.label }} &nbsp;{{ inputForm.white_list(size=20) }}&nbsp;#}
+        {{ inputForm.black_list.label }} &nbsp;{{ inputForm.black_list(size=30) }} &nbsp;黑名单请按照域名 + ‘;’ 形式增加。<br>
     </div>
     <hr/>
     <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
         <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
             /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
-        <input type=text size=50 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
+        <input type=text size=70 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
         <label id="regex_result"> 请确认转换后的表达式，拷贝到下面列表中。 </label>
     </div>
     <hr/>
-    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">
-        <label for="name">{{ inputForm.list_keyword.label }} </label>&nbsp;{{ inputForm.list_keyword(size=100) }}&nbsp;请按照
-        单词 + ‘;’ 形式增加。 <br>
-    </div>
+{#    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">#}
+{#        <label for="name">{{ inputForm.list_keyword.label }} </label>&nbsp;{{ inputForm.list_keyword(size=100) }}&nbsp;请按照#}
+{#        单词 + ‘;’ 形式增加。 <br>#}
+{#    </div>#}
     <div id="list-regex" class="form-group" style="width:80%; margin-left:50px">
         <label for="name">列表页-正则表达式</label><br>
         {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
@@ -198,10 +198,10 @@
     </div>
 
     <hr/>
-    <div id="detail-keyword" class="form-group" style="width:80%; margin-left:50px">
-        <label for="name">{{ inputForm.detail_keyword.label }}</label>&nbsp;{{ inputForm.detail_keyword(size=100) }}&nbsp;请按照
-        单词 + ‘;’ 形式增加。 <br>
-    </div>
+{#    <div id="detail-keyword" class="form-group" style="width:80%; margin-left:50px">#}
+{#        <label for="name">{{ inputForm.detail_keyword.label }}</label>&nbsp;{{ inputForm.detail_keyword(size=100) }}&nbsp;请按照#}
+{#        单词 + ‘;’ 形式增加。 <br>#}
+{#    </div>#}
     <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
         <label for="name">详情页-正则表达式</label><br>
         {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
@@ -215,7 +215,7 @@
             </tr>
             </thead>
             <tbody>
-            {% for row in inputForm.detal_regex_list %}
+            {% for row in inputForm.detail_regex_list %}
                 <tr id="{{ loop.index }}">
                     <td>&nbsp;&nbsp;{{ row.select() }}</td>
                     <td>{{ row.regex(size=100) }}</td>
@@ -227,9 +227,9 @@
         </table>
     </div>
     <hr/>
-    <div id="reset" class="form-group checkbox" style="width:80%; margin-left:50px">
-        <label>{{ inputForm.reset }} {{ inputForm.reset.label }}</label>
-    </div>
+{#    <div id="reset" class="form-group checkbox" style="width:80%; margin-left:50px">#}
+{#        <label>{{ inputForm.reset }} {{ inputForm.reset.label }}</label>#}
+{#    </div>#}
     <div id="submit" class="form-group" style="width:80%; margin-left:50px">
         <button type="button" class="btn">{{ inputForm.submit() }}</button>
     </div>

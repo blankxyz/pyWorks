@@ -12,7 +12,7 @@ import htmlparser
 import myreadability
 import HTMLParser
 import urllib
-import syq_clean_url
+import allsite_clean_url
 
 class MySpider(spider.Spider):
 
@@ -52,7 +52,7 @@ class MySpider(spider.Spider):
         self.max_level = 7  # 最大级别
         self.detail_level = 99
         self.dedup_key = None
-        self.cleaner = syq_clean_url.Cleaner(
+        self.cleaner = allsite_clean_url.Cleaner(
             self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/0'))
 
     def convert_regex_format(self, rule):

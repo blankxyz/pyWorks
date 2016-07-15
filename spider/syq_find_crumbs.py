@@ -13,7 +13,7 @@ import htmlparser
 import requests
 import myreadability
 import HTMLParser
-import syq_clean_url
+import allsite_clean_url
 import cStringIO, urllib2, Image
 import lxml.html
 import urllib

@@ -1,1 +1,1 @@
-{"site_domain": "bbs.tianya.cn", "detail_keys": ["post", "content", "detail"], "list_regex_save_list": ["/[a-zA-Z]{1}/[a-zA-Z]{7}/\\d{4}/\\d{4}/\\d{3}.html"], "list_keys": ["list", "index"], "start_url": "http://bbs.tianya.cn", "detail_regex_save_list": []}
+{"site_domain": "bbs.tianya.cn", "detail_keys": [], "list_regex_save_list": [["/[a-zA-Z]{1}/[a-zA-Z]{7}/\\d{4}/\\d{4}/\\d{3}.html", "100"], ["list1", "100"]], "list_keys": [], "start_url": "http://bbs.tianya.cn", "detail_regex_save_list": [["detail1", "100"], ["detail2", "100"]]}
