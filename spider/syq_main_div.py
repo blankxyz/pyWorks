@@ -13,7 +13,7 @@ import htmlparser
 import requests
 import myreadability
 import HTMLParser
-import syq_clean_url
+import allsite_clean_url
 import cStringIO, urllib2, Image
 import lxml.html
 
@@ -46,7 +46,7 @@ class MySpider(spider.Spider):
         self.todo_urls_limits = 10
         self.max_level = 5  # 最大级别
         self.dedup_key = None
-        self.cleaner = syq_clean_url.Cleaner(
+        self.cleaner = allsite_clean_url.Cleaner(
             self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/5'))
 
     def convert_path_to_rule0(self, url):

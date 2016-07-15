@@ -9,7 +9,7 @@ from multiprocessing import Process
 # run
 def run_spider():
     os.chdir("D:\workspace\pyWorks\spider")
-    execfile("syq_url_rule_manual.py")
+    execfile("allsite_url_rule_manual.py")
     # time.sleep(times)
     # print time.localtime()
 

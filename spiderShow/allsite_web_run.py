@@ -25,13 +25,13 @@ bootstrap = Bootstrap(app)
 
 redis_setting = 'redis://127.0.0.1/14'
 dedup_setting = 'redis://192.168.110.110/0'
-process_show_json = "process_show_temp.json"
+PROCESS_SHOW_JSON = "process_show_temp.json"
 SETTING_FOLDER = 'static/setting/'
 # RUN_PY_FILE = "run_spider.bat"
 if os.name == 'nt':
-    RUN_PY_FILE = 'D:\workspace\pyWorks\spider\syq_url_rule_manual.py'
+    RUN_PY_FILE = 'D:\workspace\pyWorks\spider\allsite_url_rule_manual.py'
 else:
-    RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/syq_url_rule_manual.py'
+    RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/allsite_url_rule_manual.py'
 
 
 # def is_me(form, field): #自定义check函数
@@ -75,7 +75,7 @@ else:
 class RegexForm(Form):
     select = BooleanField(label=u'选择', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    weight = SelectField(label=u'权重', choices=[('100', u'确定'), ('50', u'可能'), ('20', u'。。。')])
+    weight = SelectField(label=u'权重', choices=[('100', u'确定'), ('50', u'可能'), ('30', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
@@ -93,7 +93,7 @@ class InputForm(Form):
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
-    black_list = StringField(label=u'黑名单')
+    black_list = StringField(label=u'域名黑名单')
 
     list_keyword = StringField(label=u'列表页-特征词', default='list;index')
     detail_keyword = StringField(label=u'详情页-特征词', default='post;content;detail')
@@ -103,6 +103,7 @@ class InputForm(Form):
     url = StringField(label=u'URL例子')
 
     list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=50)
+
     detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=50)
 
     reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
@@ -138,24 +139,46 @@ class MySqlDrive(object):
         self.cur.close()
         self.conn.close()
 
-    def save_to_mysql(self, start_url, site_domain, setting_json, detail_regex_save_list,
-                      list_regex_save_list, detail_keys, list_keys):
+    def save_all_setting(self, start_url, site_domain, setting_json, detail_regex_save_list,
+                         list_regex_save_list, detail_keys, list_keys):
         print 'save_to_mysql() start...', start_url, site_domain
 
-        start_url, site_domain, setting_json = self.get_current_main_setting()
-        if len(start_url) > 0:
-            sqlStr = (
-                "UPDATE url_rule SET setting_json = '" + setting_json + "' WHERE start_url= '" + start_url + "' AND site_domain= '" + site_domain + "'")
-        else:
-            sqlStr = (
-                "INSERT INTO url_rule(start_url,site_domain,scope,yes_no,weight,regex,etc,setting_json) "
-                "VALUES ('" + start_url + "','" + site_domain + "','0','0','0','','" + setting_json + "')")
-
         ret_cnt = 0
+        sqlStr1 = ''
+        sqlStr2 = ''
         try:
-            ret_cnt = self.cur.execute(sqlStr)
+            sqlStr1 = (
+                "DELETE FROM url_rule WHERE start_url= '" + start_url + "' AND site_domain= '" + site_domain + "'")
+            self.cur.execute(sqlStr1)
             self.conn.commit()
-            print 'save_to_mysql()', ret_cnt, sqlStr
+
+            # detail_or_list = '0'  # 0:detail,1:list
+            # scope = '0'           # 0:netloc,1:path,2:query
+            # white_or_black = '0'  # 0:white,1:black
+            # weight = '0'          # 100:高，50：中，20：低
+
+            for regex, weight in detail_regex_save_list:
+                detail_or_list = '0'
+                scope = '1'
+                white_or_black = '0'
+                sqlStr2 = "INSERT INTO url_rule(start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
+                          "VALUES ('" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
+                          scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
+                print 'save_to_mysql() detail', sqlStr2
+                ret_cnt = self.cur.execute(sqlStr2)
+                self.conn.commit()
+
+            for regex, weight in list_regex_save_list:
+                detail_or_list = '1'
+                scope = '1'
+                white_or_black = '0'
+                sqlStr2 = "INSERT INTO url_rule(start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
+                          "VALUES ('" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
+                          scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
+                print 'save_to_mysql() list', sqlStr2
+                ret_cnt = self.cur.execute(sqlStr2)
+                self.conn.commit()
+
         except Exception, e:
             print 'save_to_mysql()', e
             self.conn.rollback()
@@ -167,33 +190,33 @@ class MySqlDrive(object):
         cnt = 0
         start_url = ''
         site_domain = ''
-        setting_json = ''
+        # setting_json = ''
         sqlStr = "SELECT * FROM current_main_setting"
         try:
             cnt = self.cur.execute(sqlStr)
             if cnt == 1:
-                r = self.cur.fetchone()
-                start_url = r[0][0]
-                site_domain = r[0][1]
-                setting_json = r[0][2]
+                (id, start_url, site_domain, setting_json) = self.cur.fetchone()
                 self.conn.commit()
             print 'get_current_main_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_current_main_setting()', e
 
-        return start_url, site_domain, setting_json
+        return start_url, site_domain  # , setting_json
 
     def set_current_main_setting(self, start_url, site_domain, setting_json):
         # 提取主页、域名
         sqlStr1 = "DELETE FROM current_main_setting"
-        sqlStr2 = "INSERT INTO current_main_setting VALUES ('" + start_url + "','" + site_domain + "','" + setting_json + "')"
+        sqlStr2 = "INSERT INTO current_main_setting(start_url,site_domain,setting_json) " \
+                  "VALUES ('" + start_url + "','" + site_domain + "','" + setting_json + "')"
         try:
+            print 'set_current_main_setting()', sqlStr1
             self.cur.execute(sqlStr1)
+            print 'set_current_main_setting()', sqlStr2
             cnt = self.cur.execute(sqlStr2)
             self.conn.commit()
-            print 'get_current_main_setting()', cnt, sqlStr2
         except Exception, e:
-            print 'get_current_main_setting()', e
+            print 'set_current_main_setting()', e, sqlStr1
+            print 'set_current_main_setting()', e, sqlStr2
 
         return start_url, site_domain, setting_json
 
@@ -225,13 +248,13 @@ class RedisDrive(object):
         # print 'RedisDrive init()', self.site_domain, self.start_url, self.conn
 
     def save_regex(self, list_regexs=[], detail_regexs=[]):
-        for regex in list_regexs:
-            if regex:
-                self.conn.zadd(self.detail_urls_rule1_zset_key, self.done_flg, regex)
+        for regex, weight in list_regexs:
+            # todo weight
+            self.conn.zadd(self.detail_urls_rule1_zset_key, self.done_flg, regex)
 
-        for regex in detail_regexs:
-            if regex:
-                self.conn.zadd(self.detail_urls_rule0_zset_key, self.done_flg, regex)
+        for regex, weight in detail_regexs:
+            # todo weight
+            self.conn.zadd(self.detail_urls_rule0_zset_key, self.done_flg, regex)
 
     def get_detail_urls(self):
         return self.conn.zrangebyscore(self.detail_urls_zset_key, self.done_flg, self.done_flg)
@@ -261,7 +284,7 @@ class RedisDrive(object):
         print keywords, matched_cnt
         return keywords, matched_cnt
 
-    def covert_redis_cnt_to_json(self, process_show_json):
+    def covert_redis_cnt_to_json(self):
         rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
         rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
         detail_cnt = self.conn.zcard(self.detail_urls_zset_key)
@@ -276,15 +299,15 @@ class RedisDrive(object):
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
         print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open(SETTING_FOLDER + '/' + process_show_json, 'a')
+        fp = open(SETTING_FOLDER + '/' + PROCESS_SHOW_JSON, 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
 
 
 class CollageProcessInfo(object):
-    def __init__(self, process_show_json):
-        self.process_show_json = process_show_json
+    def __init__(self):
+        self.json_file = PROCESS_SHOW_JSON
 
     def convert_file_to_list(self):
         rule0_cnt = []
@@ -294,7 +317,7 @@ class CollageProcessInfo(object):
         list_done_cnt = []
         times = []
 
-        fp = open(SETTING_FOLDER + '/' + self.process_show_json, 'r')
+        fp = open(SETTING_FOLDER + '/' + PROCESS_SHOW_JSON, 'r')
         for line in fp.readlines():
             dic = eval(line)
             times.append(dic.get('times'))
@@ -426,26 +449,26 @@ def show_process():
     inputForm = InputForm()
 
     # 提取主页、域名
-    db = MySqlDrive()
-    start_url, site_domain, setting_json = db.get_current_main_setting()
+    mysql_db = MySqlDrive()
+    start_url, site_domain = mysql_db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', inputForm=inputForm)
 
     # 从redis提取实时信息，转换成json文件
-    db = RedisDrive(start_url=start_url,
+    redis_db = RedisDrive(start_url=start_url,
                     site_domain=site_domain,
                     redis_setting=redis_setting)
-    db.covert_redis_cnt_to_json(process_show_json)
+    redis_db.covert_redis_cnt_to_json()
 
-    collage = CollageProcessInfo(process_show_json)
+    collage = CollageProcessInfo()
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = collage.convert_file_to_list()
     times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
 
-    matched_rate = db.get_matched_rate() * 100.0
+    matched_rate = redis_db.get_matched_rate() * 100.0
     un_match_rate = 100.0 - matched_rate
 
-    keywords, matched_cnt = db.get_keywords_match()
+    keywords, matched_cnt = redis_db.get_keywords_match()
 
     # 将json映射到html
     flash(u'每隔10秒刷新 ' + start_url + u' 的实时采集信息。')
@@ -467,7 +490,7 @@ def get_show_result():
 
     # 提取主页、域名
     db = MySqlDrive()
-    start_url,site_domain,setting_json = db.get_current_main_setting()
+    start_url, site_domain = db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show-result.html', outputForm=outputForm)
@@ -499,7 +522,7 @@ def setting_main():
     inputForm = InputForm(request.form)
 
     db = MySqlDrive()
-    start_url,site_domain,setting_json = db.get_current_main_setting()
+    start_url, site_domain = db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -578,24 +601,24 @@ def setting_main_save_and_run():
         flash(u"详情页/列表页 特征词有重复，请修改。")
         return render_template('setting.html', inputForm=inputForm)
 
-    db = RedisDrive(start_url=start_url,
-                    site_domain=site_domain,
-                    redis_setting=redis_setting)
+    redis_db = RedisDrive(start_url=start_url,
+                          site_domain=site_domain,
+                          redis_setting=redis_setting)
     # 清除原有，保存页面填写的详情页关键字
-    db.conn.zremrangebyscore(db.detail_urls_keyword_zset_key, min=0, max=99999999)
+    redis_db.conn.zremrangebyscore(redis_db.detail_urls_keyword_zset_key, min=0, max=99999999)
     for keyword in detail_keys:
-        db.conn.zadd(db.detail_urls_keyword_zset_key, 0, keyword)
+        redis_db.conn.zadd(redis_db.detail_urls_keyword_zset_key, 0, keyword)
 
     # 清除原有，保存页面填写的列表页关键字
-    db.conn.zremrangebyscore(db.list_urls_keyword_zset_key, min=0, max=99999999)
+    redis_db.conn.zremrangebyscore(redis_db.list_urls_keyword_zset_key, min=0, max=99999999)
     for keyword in list_keys:
-        db.conn.zadd(db.list_urls_keyword_zset_key, 0, keyword)
+        redis_db.conn.zadd(redis_db.list_urls_keyword_zset_key, 0, keyword)
 
     # 将原有正则表达式的score清零
     if inputForm.reset.data:
-        regex_reset = db.conn.zrange(db.detail_urls_rule1_zset_key, start=0, end=9999999)
+        regex_reset = redis_db.conn.zrange(redis_db.detail_urls_rule1_zset_key, start=0, end=9999999)
         for regex in regex_reset:
-            db.conn.zadd(db.detail_urls_rule1_zset_key, 0, regex)
+            redis_db.conn.zadd(redis_db.detail_urls_rule1_zset_key, 0, regex)
 
     # 保存详情页正则
     detail_regex_list = inputForm.detail_regex_list.data
@@ -604,16 +627,17 @@ def setting_main_save_and_run():
     for r in detail_regex_list:
         select = r['select']
         regex = r['regex']
+        weight = r['weight']
         score = r['score']
         if select and regex != '':
             detail_regex_cnt += 1
-            detail_regex_save_list.append(regex)
+            detail_regex_save_list.append((regex, weight))
 
     # if detail_regex_cnt == 0:
     #     flash(u"请填写并勾选要执行的 详情页正则表达式。")
     #     return render_template('setting.html', inputForm=inputForm)
-    detail_regex_save_list = list(set(detail_regex_save_list))
-    db.save_regex(list_regexs=[], detail_regexs=detail_regex_save_list)
+    # detail_regex_save_list = list(set(detail_regex_save_list))
+    redis_db.save_regex(list_regexs=[], detail_regexs=detail_regex_save_list)
 
     # 保存列表页正则
     list_regex_list = inputForm.list_regex_list.data
@@ -622,18 +646,19 @@ def setting_main_save_and_run():
     for r in list_regex_list:
         select = r['select']
         regex = r['regex']
+        weight = r['weight']
         score = r['score']
         if select and regex != '':
             list_regex_cnt += 1
-            list_regex_save_list.append(regex)
+            list_regex_save_list.append((regex, weight))
 
     # if list_regex_cnt == 0:
     #     flash(u"请填写并勾选要执行的 详情页正则表达式。")
     #     return render_template('setting.html', inputForm=inputForm)
-    list_regex_save_list = list(set(list_regex_save_list))
-    db.save_regex(list_regexs=list_regex_save_list,detail_regexs=[])
+    # list_regex_save_list = list(set(list_regex_save_list))
+    redis_db.save_regex(list_regexs=list_regex_save_list, detail_regexs=[])
 
-    #保存到json文件
+    # 保存到json文件
     export_file = {'start_url': start_url,
                    'site_domain': site_domain,
                    'detail_regex_save_list': detail_regex_save_list,
@@ -644,10 +669,11 @@ def setting_main_save_and_run():
     seeting_json = json.dumps(export_file)
     open(SETTING_FOLDER + 'setting.json', 'w').write(seeting_json)
 
-    #保存到MYSQL
-    mysql = MySqlDrive()
-    cnt = mysql.save_to_mysql(start_url, site_domain, seeting_json, detail_regex_save_list,
-                              list_regex_save_list, detail_keys, list_keys)
+    # 保存到MYSQL
+    mysql_db = MySqlDrive()
+    mysql_db.set_current_main_setting(start_url, site_domain, seeting_json)
+    cnt = mysql_db.save_all_setting(start_url, site_domain, seeting_json, detail_regex_save_list,
+                                    list_regex_save_list, detail_keys, list_keys)
     if cnt == 1:
         flash(u"MySQL保存完毕，执行中...")
     else:
