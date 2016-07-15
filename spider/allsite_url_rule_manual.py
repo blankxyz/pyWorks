@@ -57,12 +57,15 @@ class MySqlDrive(object):
         except Exception, e:
             print 'get_current_main_setting()', e
 
-    def get_regexs(self, detail_or_list):
+    def get_regexs(self, type):
         # 0:detail,1:list
+        if type == 'detail':
+            detail_or_list = '0'
+        else:
+            detail_or_list = '1'
         regexs = []
         # 提取主页、域名
         start_url, site_domain = self.get_current_main_setting()
-        #
         sqlStr = "SELECT black_domain,scope,white_or_black,weight,regex,etc FROM url_rule " \
                  "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
         try:
@@ -76,6 +79,7 @@ class MySqlDrive(object):
         except Exception, e:
             print 'get_regexs()', e
         return regexs
+
 
 
 class MySpider(spider.Spider):
@@ -109,7 +113,7 @@ class MySpider(spider.Spider):
         self.dedup_key = 'dedup'
         # self.cleaner = syq_clean_url.Cleaner(
         #     self.site_domain, redis.StrictRedis.from_url('redis://192.168.110.110/0'))
-        self.cleaner = syq_clean_url.Cleaner(
+        self.cleaner = allsite_clean_url.Cleaner(
             self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/0'))
 
     def convert_regex_format(self, rule):
@@ -206,7 +210,7 @@ class MySpider(spider.Spider):
 
     def is_list_by_rule(self, soup, url):
         # print 'is_list_by_rule start'
-        # 最优先确定规则
+        # 最优先确定规则 todo 做入 web正则中
         path = urlparse.urlparse(url).path
         if len(path) == 0:
             return True
@@ -215,22 +219,19 @@ class MySpider(spider.Spider):
         if path[-1] == '/':
             return True
 
-        # detail
-        detail_keyword_list = self.conn.zrange(self.detail_urls_keyword_zset_key, start=0, end=999)
-        for key in detail_keyword_list:
-            if path.lower().find(key) > 0:
-                self.conn.zincrby(self.detail_urls_keyword_zset_key, value=key, amount=1)
-                # print 'detail_keyword_list',False
+        # 页面手工配置规则
+        mysql_db = MySqlDrive()
+        regexs = mysql_db.get_regexs('detail')
+        for regex in regexs:
+            if re.match(regex,path):
                 return False
 
-        # list
-        list_keyword_list = self.conn.zrange(self.list_urls_keyword_zset_key, start=0, end=999)
-        for key in list_keyword_list:
-            if path.lower().find(key) > 0:
-                self.conn.zincrby(self.list_urls_keyword_zset_key, value=key, amount=1)
-                # print 'list_keyword_list',True,path,key
+        regexs = mysql_db.get_regexs('list')
+        for regex in regexs:
+            if re.match(regex,path):
                 return True
 
+        # 自动归纳规则
         # 优先使用rule1
         if self.is_detail_rule_1(url) == True:
             # print 'detail_rule_1()',True

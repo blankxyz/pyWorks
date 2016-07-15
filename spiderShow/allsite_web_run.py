@@ -230,6 +230,29 @@ class MySqlDrive(object):
         except Exception, e:
             print 'get_current_main_setting()', e
 
+    def get_regexs(self, type):
+        # 0:detail,1:list
+        if type == 'detail':
+            detail_or_list = '0'
+        else:
+            detail_or_list = '1'
+        regexs = []
+        # 提取主页、域名
+        start_url, site_domain = self.get_current_main_setting()
+        sqlStr = "SELECT black_domain,scope,white_or_black,weight,regex,etc FROM url_rule " \
+                 "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
+        try:
+            cnt = self.cur.execute(sqlStr)
+            rs = self.cur.fetchall()
+            for r in rs:
+                (black_domain, scope, white_or_black, weight, regex, etc) = r
+                regexs.append((black_domain, scope, white_or_black, weight, regex, etc))
+            self.conn.commit()
+            print 'get_regexs()', cnt, sqlStr
+        except Exception, e:
+            print 'get_regexs()', e
+        return regexs
+
 
 class RedisDrive(object):
     def __init__(self, start_url, site_domain, redis_setting):
@@ -457,8 +480,8 @@ def show_process():
 
     # 从redis提取实时信息，转换成json文件
     redis_db = RedisDrive(start_url=start_url,
-                    site_domain=site_domain,
-                    redis_setting=redis_setting)
+                          site_domain=site_domain,
+                          redis_setting=redis_setting)
     redis_db.covert_redis_cnt_to_json()
 
     collage = CollageProcessInfo()
@@ -521,8 +544,8 @@ def get_show_result():
 def setting_main():
     inputForm = InputForm(request.form)
 
-    db = MySqlDrive()
-    start_url, site_domain = db.get_current_main_setting()
+    mysql_db = MySqlDrive()
+    start_url, site_domain = mysql_db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -531,18 +554,15 @@ def setting_main():
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
 
-    db = RedisDrive(start_url=start_url,
-                    site_domain=site_domain,
-                    redis_setting=redis_setting)
+    # # 保存详情页关键字-详情页
+    # detail_keywords_str = []
+    # detail_keywords = redis_db.conn.zrange(redis_db.detail_urls_keyword_zset_key, start=0, end=999, withscores=False)
+    # for keyword in detail_keywords:
+    #     detail_keywords_str.append(keyword)
+    # inputForm.detail_keyword.data = ';'.join(detail_keywords_str)
 
-    # 保存详情页关键字-详情页
-    detail_keywords_str = []
-    detail_keywords = db.conn.zrange(db.detail_urls_keyword_zset_key, start=0, end=999, withscores=False)
-    for keyword in detail_keywords:
-        detail_keywords_str.append(keyword)
-    inputForm.detail_keyword.data = ';'.join(detail_keywords_str)
     # 还原原有的正则表达式-详情页
-    rules1 = db.conn.zrange(db.detail_urls_rule1_zset_key, start=0, end=999, withscores=True)
+    rules1 = mysql_db.get_regexs('detail')
     i = 0
     for rule, score in dict(rules1).iteritems():
         regex_data = MultiDict([('select', True), ('regex', rule), ('score', int(score))])
@@ -551,14 +571,15 @@ def setting_main():
         inputForm.detail_regex_list.entries[i] = regexForm
         i += 1
 
-    # 保存详情页关键字-列表页
-    list_keywords_str = []
-    list_keywords = db.conn.zrange(db.list_urls_keyword_zset_key, start=0, end=999, withscores=False)
-    for keyword in list_keywords:
-        list_keywords_str.append(keyword)
-    inputForm.list_keyword.data = ';'.join(list_keywords_str)
+    # # 保存详情页关键字-列表页
+    # list_keywords_str = []
+    # list_keywords = redis_db.conn.zrange(redis_db.list_urls_keyword_zset_key, start=0, end=999, withscores=False)
+    # for keyword in list_keywords:
+    #     list_keywords_str.append(keyword)
+    # inputForm.list_keyword.data = ';'.join(list_keywords_str)
+
     # 还原原有的正则表达式-列表页
-    rules0 = db.conn.zrange(db.detail_urls_rule0_zset_key, start=0, end=999, withscores=True)
+    rules0 = redis_db.conn.zrange(redis_db.detail_urls_rule0_zset_key, start=0, end=999, withscores=True)
     i = 0
     for rule, score in dict(rules0).iteritems():
         regex_data = MultiDict([('select', True), ('regex', rule), ('score', int(score))])
