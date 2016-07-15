@@ -4,82 +4,14 @@
 import re
 import datetime
 import urlparse
-import redis, MySQLdb
+import redis
+import MySQLdb
 import spider
 import setting
 import urllib
 from bs4 import BeautifulSoup, Comment
 import requests
 import allsite_clean_url
-
-
-class MySqlDrive(object):
-    def __init__(self):
-        import sys
-        reload(sys)
-        sys.setdefaultencoding('utf8')
-        self.host = 'localhost'
-        self.user = 'root'
-        self.password = 'root'
-        self.port = 3306
-        self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
-                                    charset="utf8")
-        self.conn.select_db('spider')
-        self.cur = self.conn.cursor()
-
-    def __del__(self):
-        self.cur.close()
-        self.conn.close()
-
-    def get_current_main_setting(self):
-        # 提取主页、域名
-        start_url = ''
-        site_domain = ''
-        # setting_json = ''
-        sqlStr = "SELECT * FROM current_main_setting"
-        try:
-            cnt = self.cur.execute(sqlStr)
-            if cnt == 1:
-                (id, start_url, site_domain, setting_json) = self.cur.fetchone()
-                self.conn.commit()
-            print 'get_current_main_setting()', cnt, sqlStr
-        except Exception, e:
-            print 'get_current_main_setting()', e
-        return start_url, site_domain  # , setting_json
-
-    def clean_current_main_setting(self):
-        # 提取主页、域名
-        sqlStr = "DELETE FROM current_main_setting"
-        try:
-            self.cur.execute(sqlStr)
-            self.conn.commit()
-            print 'get_current_main_setting()', sqlStr
-        except Exception, e:
-            print 'get_current_main_setting()', e
-
-    def get_regexs(self, type):
-        # 0:detail,1:list
-        if type == 'detail':
-            detail_or_list = '0'
-        else:
-            detail_or_list = '1'
-        regexs = []
-        # 提取主页、域名
-        start_url, site_domain = self.get_current_main_setting()
-        sqlStr = "SELECT black_domain,scope,white_or_black,weight,regex,etc FROM url_rule " \
-                 "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
-        try:
-            cnt = self.cur.execute(sqlStr)
-            rs = self.cur.fetchall()
-            for r in rs:
-                (black_domain, scope, white_or_black, weight, regex, etc) = r
-                regexs.append((black_domain, scope, white_or_black, weight, regex, etc))
-            self.conn.commit()
-            print 'get_regexs()', cnt, sqlStr
-        except Exception, e:
-            print 'get_regexs()', e
-        return regexs
-
 
 
 class MySpider(spider.Spider):
@@ -94,14 +26,11 @@ class MySpider(spider.Spider):
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://bbs.tianya.cn'
-        self.site_domain = 'bbs.tianya.cn'
+        self.start_urls = 'http://cpt.xtu.edu.cn/'
+        self.site_domain = 'cpt.xtu.edu.cn'
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
-        self.ok_urls_zset_key = 'ok_urls_zset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
-        self.list_urls_keyword_zset_key = 'list_urls_keyword_zset_%s' % self.site_domain
-        self.detail_urls_keyword_zset_key = 'detail_urls_keyword_zset_%s' % self.site_domain
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain
         self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
@@ -111,6 +40,10 @@ class MySpider(spider.Spider):
         self.max_level = 7  # 最大级别
         self.detail_level = 99
         self.dedup_key = 'dedup'
+        self.mysql_db = MySqlDrive()
+        self.detail_manual_regexs = []
+        self.list_manual_regexs = []
+
         # self.cleaner = syq_clean_url.Cleaner(
         #     self.site_domain, redis.StrictRedis.from_url('redis://192.168.110.110/0'))
         self.cleaner = allsite_clean_url.Cleaner(
@@ -155,7 +88,7 @@ class MySpider(spider.Spider):
         return ret
 
     def filter_links(self, urls):
-        # print 'filter_links() start', len(urls), urls
+        print 'filter_links() start', len(urls), urls
         # 下载页
         urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
         # print 'filter_links() is_download', len(urls)
@@ -184,7 +117,7 @@ class MySpider(spider.Spider):
         # print 'filter_links() set', len(urls)
         # 404
         # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
-        # print 'filter_links() end', len(urls), urls
+        print 'filter_links() end', len(urls), urls
         return urls
 
     def is_detail_rule_0(self, url):
@@ -208,44 +141,49 @@ class MySpider(spider.Spider):
                 return True  # 符合详情页规则
         return False  # 不确定
 
-    def is_list_by_rule(self, soup, url):
-        # print 'is_list_by_rule start'
+    def path_is_list(self, soup, url):
+        print 'path_is_list() start'
+        print 'detail_manual_regexs:',self.detail_manual_regexs
+        print 'list_manual_regexs:', self.list_manual_regexs
+
         # 最优先确定规则 todo 做入 web正则中
         path = urlparse.urlparse(url).path
-        if len(path) == 0:
-            return True
-        if path == '/':
-            return True
-        if path[-1] == '/':
-            return True
+        # if len(path) == 0:
+        #     return True
+        # if path == '/':
+        #     return True
+        # if path[-1] == '/':
+        #     return True
+        # regex: \/$
 
         # 页面手工配置规则
-        mysql_db = MySqlDrive()
-        regexs = mysql_db.get_regexs('detail')
-        for regex in regexs:
-            if re.match(regex,path):
+        for regex in self.detail_manual_regexs:
+            print 'detail_manual_regexs',regex, path
+            if re.search(regex, path):
+                print 'detail_manual_regexs',False
                 return False
 
-        regexs = mysql_db.get_regexs('list')
-        for regex in regexs:
-            if re.match(regex,path):
+        for regex in self.list_manual_regexs:
+            print 'list_manual_regexs',regex, path
+            if re.search(regex, path):
+                print 'list_manual_regexs',True
                 return True
 
         # 自动归纳规则
         # 优先使用rule1
         if self.is_detail_rule_1(url) == True:
-            # print 'detail_rule_1()',True
+            print 'is_detail_rule_1()',True
             return False
         # # 使用rule0
         if self.is_detail_rule_0(url) == True:
+            print 'is_detail_rule_0()',True
             return False
         # 判断面包屑中有无的‘正文’
         # if self.is_current_page(soup, url) == True:
         #     # print 'is_current_page() True'
         #     return False
-
+        print 'path_is_listz() end'
         return True
-        # print 'is_list_by_rule start',url,ret
 
     def convert_path_to_rule0(self, url):
         '''
@@ -287,6 +225,7 @@ class MySpider(spider.Spider):
                 urls = urls[0:self.todo_urls_limits]
             for url in urls:
                 self.conn.zadd(self.list_urls_zset_key, self.done_flg, url)
+            print 'get_todo_urls()',urls
         except Exception, e:
             print "[ERROR] get_todo_urls(): %s" % e
         return urls
@@ -337,6 +276,7 @@ class MySpider(spider.Spider):
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
+        print 'get_page_valid_urls() start'
         all_links = []
         remove_links = []
         try:
@@ -372,6 +312,7 @@ class MySpider(spider.Spider):
         # print len(removed), removed
         # print len(urls), urls
         urls = self.filter_links(urls)
+        print 'get_page_valid_urls() end',urls
         return urls
 
     def is_current_page(self, soup, org_url):
@@ -413,15 +354,21 @@ class MySpider(spider.Spider):
     def get_start_urls(self, data=None):
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
+
+        #初始化手工配置规则
+        for (black_domain, scope, white_or_black, weight, regex, etc) in self.mysql_db.get_regexs('detail'):
+            self.detail_manual_regexs.append(regex)
+        for (black_domain, scope, white_or_black, weight, regex, etc) in self.mysql_db.get_regexs('list'):
+            self.list_manual_regexs.append(regex)
+
         return [self.start_urls]
-        # return []
 
     def parse(self, response):
         urls = self.get_todo_urls()
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        # print 'parse_detail_page() start'
+        print 'parse_detail_page() start'
         result = []
         if response is None: return result
 
@@ -436,7 +383,7 @@ class MySpider(spider.Spider):
             links = self.get_page_valid_urls(soup, org_url)
             for link in links:
                 s = self.get_clean_soup(link)
-                if self.is_list_by_rule(s, link):
+                if self.path_is_list(s, link):
                     print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
@@ -444,11 +391,77 @@ class MySpider(spider.Spider):
                     print 'detail:', link
                     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
                         self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(link))
-                        # print 'parse_detail_page() end'
+                        print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
-            # print 'parse_detail_page end'
         return result
+
+class MySqlDrive(object):
+    def __init__(self):
+        import sys
+        reload(sys)
+        sys.setdefaultencoding('utf8')
+        self.host = 'localhost'
+        self.user = 'root'
+        self.password = 'root'
+        self.port = 3306
+        self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
+                                    charset="utf8")
+        self.conn.select_db('spider')
+        self.cur = self.conn.cursor()
+
+    def __del__(self):
+        self.cur.close()
+        self.conn.close()
+
+    def get_current_main_setting(self):
+        # 提取主页、域名
+        start_url = ''
+        site_domain = ''
+        # setting_json = ''
+        sqlStr = "SELECT * FROM current_main_setting"
+        try:
+            cnt = self.cur.execute(sqlStr)
+            if cnt == 1:
+                (id, start_url, site_domain, setting_json) = self.cur.fetchone()
+                self.conn.commit()
+            # print 'get_current_main_setting()', cnt, sqlStr
+        except Exception, e:
+            print 'get_current_main_setting()', e
+        return start_url, site_domain  # , setting_json
+
+    def clean_current_main_setting(self):
+        # 提取主页、域名
+        sqlStr = "DELETE FROM current_main_setting"
+        try:
+            self.cur.execute(sqlStr)
+            self.conn.commit()
+            print 'clean_current_main_setting()', sqlStr
+        except Exception, e:
+            print 'clean_current_main_setting()', e
+
+    def get_regexs(self, type):
+        # 0:detail,1:list
+        if type == 'detail':
+            detail_or_list = '0'
+        else:
+            detail_or_list = '1'
+        regexs = []
+        # 提取主页、域名
+        start_url, site_domain = self.get_current_main_setting()
+        sqlStr = "SELECT black_domain,scope,white_or_black,weight,regex,etc FROM url_rule " \
+                 "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
+        try:
+            cnt = self.cur.execute(sqlStr)
+            rs = self.cur.fetchall()
+            for r in rs:
+                (black_domain, scope, white_or_black, weight, regex, etc) = r
+                regexs.append((black_domain, scope, white_or_black, weight, regex, etc))
+            self.conn.commit()
+            # print 'get_regexs()', cnt, sqlStr
+        except Exception, e:
+            print 'get_regexs()', e
+        return regexs
 
 
 # ---------- test run function-----------------------------
@@ -499,28 +512,21 @@ def test(unit_test):
                         print k, v
     else:  # ---------- unit test -----------------------------
         print '[unit test] now starting ..........'
-        url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
+        # url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
+        url = 'http://cpt.xtu.edu.cn/a/keyanchengguo/keyanxiangmu/2013/0414/109.html'
         print 'url:', url
         mySpider = MySpider()
         # 预置数据
-        mySpider.conn.zadd(mySpider.list_urls_zset_key, mySpider.todo_flg, mySpider.start_urls)
         # 预置匹配规则
-        mySpider.conn.zadd(mySpider.detail_urls_rule1_zset_key, mySpider.done_flg,
-                           '/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-        mySpider.conn.zadd(mySpider.detail_urls_rule1_zset_key, mySpider.done_flg,
-                           '/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html')
-        mySpider.conn.zadd(mySpider.detail_urls_rule1_zset_key, mySpider.done_flg,
-                           '/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\d{4}/?\d{4}/\d{1,}.html')
-
-        # soup = mySpider.get_clean_soup(url)
+        mySpider.get_start_urls()
+        soup = mySpider.get_clean_soup(url)
         # ----------------------------------------------------------
-        # print mySpider.is_list_by_rule(url)
+        print mySpider.path_is_list(soup,url)
         # ----------------------------------------------------------
         # rule0 = mySpider.convert_path_to_rule0(url)
         # print url, '->', rule0
         # rule1 = mySpider.convert_path_to_rule1(rule0)
         # print rule0, '->', rule1
-        print mySpider.is_list_certain(url)
 
 
 if __name__ == '__main__':
