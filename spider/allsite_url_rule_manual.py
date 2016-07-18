@@ -30,10 +30,12 @@ class MySpider(spider.Spider):
         self.site_domain = 'cpt.xtu.edu.cn'
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
-        self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain
-        self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain
-        self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain
-        self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain
+        self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
+        self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
+        self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain  # 自动算法规则
+        self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain  # 自动算法规则
+        self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_detail_urls_rule_zset_key = 'manual_detail_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.todo_urls_limits = 10
         self.todo_flg = -1
         self.done_flg = 0
@@ -41,8 +43,6 @@ class MySpider(spider.Spider):
         self.detail_level = 99
         self.dedup_key = 'dedup'
         self.mysql_db = MySqlDrive()
-        self.detail_manual_regexs = []
-        self.list_manual_regexs = []
 
         # self.cleaner = syq_clean_url.Cleaner(
         #     self.site_domain, redis.StrictRedis.from_url('redis://192.168.110.110/0'))
@@ -88,7 +88,7 @@ class MySpider(spider.Spider):
         return ret
 
     def filter_links(self, urls):
-        print 'filter_links() start', len(urls), urls
+        # print 'filter_links() start', len(urls), urls
         # 下载页
         urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
         # print 'filter_links() is_download', len(urls)
@@ -117,7 +117,7 @@ class MySpider(spider.Spider):
         # print 'filter_links() set', len(urls)
         # 404
         # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
-        print 'filter_links() end', len(urls), urls
+        # print 'filter_links() end', len(urls), urls
         return urls
 
     def is_detail_rule_0(self, url):
@@ -141,10 +141,32 @@ class MySpider(spider.Spider):
                 return True  # 符合详情页规则
         return False  # 不确定
 
+    def is_manual_detail_rule(self, url):
+        rule_cnt = self.conn.zcard(self.manual_detail_urls_rule_zset_key)
+        rules = self.conn.zrevrangebyscore(self.manual_detail_urls_rule_zset_key,
+                                           max=999999, min=0, start=0, num=rule_cnt, withscores=False)
+        for rule in rules:
+            if re.search(rule, url):
+                self.conn.zincrby(self.manual_detail_urls_rule_zset_key, value=rule, amount=1)
+                print '[manual-detail]', rule, '<-', url
+                return True  # 符合详情页规则
+        return False
+
+    def is_manual_list_rule(self, url):
+        rule_cnt = self.conn.zcard(self.manual_list_urls_rule_zset_key)
+        rules = self.conn.zrevrangebyscore(self.manual_list_urls_rule_zset_key,
+                                           max=999999, min=0, start=0, num=rule_cnt, withscores=False)
+        for rule in rules:
+            if re.search(rule, url):
+                self.conn.zincrby(self.manual_list_urls_rule_zset_key, value=rule, amount=1)
+                print '[manual-list]', rule, '<-', url
+                return True  # 符合详情页规则
+        return False
+
     def path_is_list(self, soup, url):
-        print 'path_is_list() start'
-        print 'detail_manual_regexs:',self.detail_manual_regexs
-        print 'list_manual_regexs:', self.list_manual_regexs
+        # print 'path_is_list() start'
+        # print 'detail_manual_regexs:',self.detail_manual_regexs
+        # print 'list_manual_regexs:', self.list_manual_regexs
 
         # 最优先确定规则 todo 做入 web正则中
         path = urlparse.urlparse(url).path
@@ -157,32 +179,28 @@ class MySpider(spider.Spider):
         # regex: \/$
 
         # 页面手工配置规则
-        for regex in self.detail_manual_regexs:
-            print 'detail_manual_regexs',regex, path
-            if re.search(regex, path):
-                print 'detail_manual_regexs',False
-                return False
+        if self.is_manual_detail_rule(url) == True:
+            # print 'is_manual_detail_rule()', True
+            return False
 
-        for regex in self.list_manual_regexs:
-            print 'list_manual_regexs',regex, path
-            if re.search(regex, path):
-                print 'list_manual_regexs',True
-                return True
+        if self.is_manual_list_rule(url) == True:
+            # print 'is_manual_list_rule()', True
+            return True
 
         # 自动归纳规则
         # 优先使用rule1
         if self.is_detail_rule_1(url) == True:
-            print 'is_detail_rule_1()',True
+            # print 'is_detail_rule_1()', True
             return False
         # # 使用rule0
         if self.is_detail_rule_0(url) == True:
-            print 'is_detail_rule_0()',True
+            # print 'is_detail_rule_0()', True
             return False
         # 判断面包屑中有无的‘正文’
         # if self.is_current_page(soup, url) == True:
         #     # print 'is_current_page() True'
         #     return False
-        print 'path_is_listz() end'
+        # print 'path_is_list() end'
         return True
 
     def convert_path_to_rule0(self, url):
@@ -225,7 +243,7 @@ class MySpider(spider.Spider):
                 urls = urls[0:self.todo_urls_limits]
             for url in urls:
                 self.conn.zadd(self.list_urls_zset_key, self.done_flg, url)
-            print 'get_todo_urls()',urls
+            # print 'get_todo_urls()', urls
         except Exception, e:
             print "[ERROR] get_todo_urls(): %s" % e
         return urls
@@ -276,7 +294,7 @@ class MySpider(spider.Spider):
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
-        print 'get_page_valid_urls() start'
+        # print 'get_page_valid_urls() start'
         all_links = []
         remove_links = []
         try:
@@ -312,7 +330,7 @@ class MySpider(spider.Spider):
         # print len(removed), removed
         # print len(urls), urls
         urls = self.filter_links(urls)
-        print 'get_page_valid_urls() end',urls
+        # print 'get_page_valid_urls() end', urls
         return urls
 
     def is_current_page(self, soup, org_url):
@@ -355,12 +373,6 @@ class MySpider(spider.Spider):
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
 
-        #初始化手工配置规则
-        for (black_domain, scope, white_or_black, weight, regex, etc) in self.mysql_db.get_regexs('detail'):
-            self.detail_manual_regexs.append(regex)
-        for (black_domain, scope, white_or_black, weight, regex, etc) in self.mysql_db.get_regexs('list'):
-            self.list_manual_regexs.append(regex)
-
         return [self.start_urls]
 
     def parse(self, response):
@@ -368,7 +380,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        print 'parse_detail_page() start'
+        # print 'parse_detail_page() start'
         result = []
         if response is None: return result
 
@@ -391,10 +403,11 @@ class MySpider(spider.Spider):
                     print 'detail:', link
                     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
                         self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(link))
-                        print 'parse_detail_page() end'
+            # print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result
+
 
 class MySqlDrive(object):
     def __init__(self):
@@ -425,7 +438,7 @@ class MySqlDrive(object):
             if cnt == 1:
                 (id, start_url, site_domain, setting_json) = self.cur.fetchone()
                 self.conn.commit()
-            # print 'get_current_main_setting()', cnt, sqlStr
+                # print 'get_current_main_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_current_main_setting()', e
         return start_url, site_domain  # , setting_json
@@ -499,7 +512,7 @@ def test(unit_test):
             mySpider.init_dedup()
             mySpider.init_downloader()
             start_urls = mySpider.get_start_urls()  # get_start_urls()
-            print 'start_urls:', start_urls
+            # print 'start_urls:', start_urls
             __detail_page_urls(start_urls, mySpider.parse)  # parse()
 
             # --equal to run.py detail_page_thread() -------------------------
@@ -521,7 +534,7 @@ def test(unit_test):
         mySpider.get_start_urls()
         soup = mySpider.get_clean_soup(url)
         # ----------------------------------------------------------
-        print mySpider.path_is_list(soup,url)
+        print mySpider.path_is_list(soup, url)
         # ----------------------------------------------------------
         # rule0 = mySpider.convert_path_to_rule0(url)
         # print url, '->', rule0

@@ -1548,8 +1548,8 @@ def install_activate(home_dir, bin_dir, prompt=None):
 def install_distutils(home_dir):
     distutils_path = change_prefix(distutils.__path__[0], home_dir)
     mkdir(distutils_path)
-    ## FIXME: maybe this prefix setting should only be put in place if
-    ## there's a local distutils.cfg with a prefix setting?
+    ## FIXME: maybe this prefix export should only be put in place if
+    ## there's a local distutils.cfg with a prefix export?
     home_dir = os.path.abspath(home_dir)
     ## FIXME: this is breaking things, removing for now:
     # distutils_cfg = DISTUTILS_CFG + "\n[install]\nprefix=%s\n" % home_dir

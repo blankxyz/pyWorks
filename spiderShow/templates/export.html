@@ -25,20 +25,17 @@
     {% endwith %}
 </div>
 <div id="config" class="form-group center" style="width:80%; margin-left:50px">
+    <hr/>
+    <a class="bottom" href="{{ url_for('static', filename='export/export.json') }}">下载设置信息</a>
+    <hr/>
     <form action="export_upload" method="post" enctype="multipart/form-data">
-        <hr/>
-        <a class="bottom" href="{{ url_for('static', filename='setting/setting.json') }}">请下载保存设置信息</a>
-        <hr/>
-        <a class="bottom" href="{{ url_for('static', filename='setting/result-detail.txt') }}">请下载抓取结果(详情页)</a>
-        <a class="bottom" href="{{ url_for('static', filename='setting/result-list.txt') }}">请下载抓取结果(列表页)</a>
-        <hr/>
         <input type="file" name="file" value="选择导入文件"/>
         <br>
-        <input type="submit" value="导入文件"/>
+        <input type="submit" value="导入文件(英文名称)"/>
     </form>
 
-    <form action="export_setting" method="post">
-        <hr/>
+    <hr/>
+    <form action="export_setting_json" method="post">
         <input type="submit" value="导出mysql"/> {{ setting_json }}
     </form>
 </div>
