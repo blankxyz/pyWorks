@@ -18,7 +18,7 @@
         // For CommonJS and CommonJS-like environments where a proper `window`
         // is present, execute the factory and get jQuery.
         // For environments that do not have a `window` with a `document`
-        // (such as Node.js), expose a factory as module.setting.
+        // (such as Node.js), expose a factory as module.export.
         // This accentuates the need for the creation of a real `window`.
         // e.g. var jQuery = require("jquery")(window);
         // See ticket #14549 for more info.
@@ -1177,7 +1177,7 @@
                     assert(function (div) {
                         // Select is set to empty string on purpose
                         // This is to test IE's treatment of not explicitly
-                        // setting a boolean content attribute,
+                        // export a boolean content attribute,
                         // since its presence should be enough
                         // http://bugs.jquery.com/ticket/12359
                         docElem.appendChild(div).innerHTML = "<a id='" + expando + "'></a>" +
@@ -5910,7 +5910,7 @@
     jQuery.extend({
 
         // Add in style property hooks for overriding the default
-        // behavior of getting and setting a style property
+        // behavior of getting and export a style property
         cssHooks: {
             opacity: {
                 get: function (elem, computed) {
@@ -5941,7 +5941,7 @@
         },
 
         // Add in properties whose names you wish to fix before
-        // setting or getting the value
+        // export or getting the value
         cssProps: {
             "float": "cssFloat"
         },
@@ -5964,7 +5964,7 @@
             // Gets hook for the prefixed version, then unprefixed version
             hooks = jQuery.cssHooks[name] || jQuery.cssHooks[origName];
 
-            // Check if we're setting a value
+            // Check if we're export a value
             if (value !== undefined) {
                 type = typeof value;
 
@@ -6240,7 +6240,7 @@
     };
 
 // Support: IE9
-// Panic based approach to setting things on disconnected nodes
+// Panic based approach to export things on disconnected nodes
     Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
         set: function (tween) {
             if (tween.elem.nodeType && tween.elem.parentNode) {
@@ -6703,7 +6703,7 @@
     jQuery.fn.extend({
         fadeTo: function (speed, to, easing, callback) {
 
-            // Show any hidden elements after setting opacity to 0
+            // Show any hidden elements after export opacity to 0
             return this.filter(isHidden).css("opacity", 0).show()
 
                 // Animate to the value specified
@@ -7366,7 +7366,7 @@
 
                 hooks = jQuery.valHooks[this.type] || jQuery.valHooks[this.nodeName.toLowerCase()];
 
-                // If set returns undefined, fall back to normal setting
+                // If set returns undefined, fall back to normal export
                 if (!hooks || !("set" in hooks) || hooks.set(this, val, "value") === undefined) {
                     this.value = val;
                 }
@@ -9138,7 +9138,7 @@
 // to call noConflict to hide this version of jQuery, it will work.
 
 // Note that for maximum portability, libraries that are not jQuery should
-// declare themselves as anonymous modules, and avoid setting a global if an
+// declare themselves as anonymous modules, and avoid export a global if an
 // AMD loader is present. jQuery is a special case. For more information, see
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 

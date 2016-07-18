@@ -26,12 +26,14 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'success'
+app.config['EXPORT_FOLDER'] = 'static/export/'
 bootstrap = Bootstrap(app)
 
 redis_setting = 'redis://127.0.0.1/14'
 dedup_setting = 'redis://192.168.110.110/0'
 PROCESS_SHOW_JSON = "process_show_temp.json"
-SETTING_FOLDER = 'static/setting/'
+EXPORT_FOLDER = 'static/export/'
+
 # RUN_PY_FILE = "run_spider.bat"
 if os.name == 'nt':
     RUN_PY_FILE = 'D:\workspace\pyWorks\spider\\allsite_url_rule_manual.py'
@@ -311,7 +313,7 @@ class RedisDrive(object):
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
         print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open(SETTING_FOLDER + '/' + PROCESS_SHOW_JSON, 'a')
+        fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
@@ -329,7 +331,7 @@ class CollageProcessInfo(object):
         list_done_cnt = []
         times = []
 
-        fp = open(SETTING_FOLDER + '/' + PROCESS_SHOW_JSON, 'r')
+        fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'r')
         for line in fp.readlines():
             dic = eval(line)
             times.append(dic.get('times'))
@@ -527,13 +529,13 @@ def get_show_result():
         i += 1
 
     # result-list.txt
-    fp = open(SETTING_FOLDER + '/result-list.txt', 'w')
+    fp = open(EXPORT_FOLDER + '/result-list.txt', 'w')
     for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
     fp.close()
 
     # result-detail.txt
-    fp = open(SETTING_FOLDER + '/result-detail.txt', 'w')
+    fp = open(EXPORT_FOLDER + '/result-detail.txt', 'w')
     for line in redis_db.conn.zrange(redis_db.detail_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
     fp.close()
@@ -642,7 +644,7 @@ def setting_main_save_and_run():
                    'list_regex_save_list': list_regex_save_list
                    }
     seeting_json = json.dumps(export_file)
-    open(SETTING_FOLDER + 'setting.json', 'w').write(seeting_json)
+    open(EXPORT_FOLDER + 'export.json', 'w').write(seeting_json)
 
     # 保存手工配置规则到Redis
     redis_db = RedisDrive(start_url=start_url,
@@ -683,7 +685,8 @@ def setting_main_save_and_run():
 
 @app.route('/export/<path:filename>')
 def download_file(filename):
-    return send_from_directory(app.config['SETTING_FOLDER'], filename, as_attachment=True)
+    print 'download_file()',filename
+    return send_from_directory(app.config['EXPORT_FOLDER'], filename, as_attachment=True)
 
 
 @app.route('/export_upload', methods=['GET', 'POST'])
@@ -695,7 +698,7 @@ def export_upload():
         f = request.files['file']
         # 获取一个安全的文件名，仅支持ascii字符。
         f_name = secure_filename(f.filename)
-        f.save(os.path.join(SETTING_FOLDER, f_name))
+        f.save(os.path.join(EXPORT_FOLDER, f_name))
         flash(u"上传成功.")
         return render_template('export.html')
 
