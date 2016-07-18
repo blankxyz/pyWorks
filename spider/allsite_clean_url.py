@@ -3,7 +3,6 @@
 url及文本判断过滤
 '''
 import re
-import cgi
 import json
 import urllib
 import datetime
@@ -271,11 +270,6 @@ def get_unicode_page(url, encoding):
 
 if __name__ == '__main__':
     sina_clean = Cleaner('news.sina.com.cn')
-    # print sina_clean.is_old_url('http://roll.news.sina.com.cn/s_2012nobel_all/index.shtml')
-    # print sina_clean.in_black_list('http://tags.news.sina.com.cn/')
-    # print sina_clean.is_next_page('http://news.sina.com.cn/911anni/photo/21.shtml')
-    # print sina_clean.is_next_page('http://news.sina.com.cn/911anni/photo/21.shtml')
-    # print sina_clean.filter_urls(['http://news.sina.com.cn/richtalk/news/society/society_beijingribao.html'])
     # print sina_clean.is_detail_by_regex('http://news.sina.com.cn/richtalk/news/society/society_beijingribao.html')
     text = get_unicode_page('http://bbs.yuloo.com/404.html', 'gbk')
     print sina_clean.is_error_page(text)

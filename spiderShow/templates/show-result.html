@@ -13,7 +13,7 @@
             src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            var detail_t = $('#detail-urls-tab').DataTable({
+            var list_t = $('#list-urls-tab').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
                     "sZeroRecords": "没有找到",
@@ -34,7 +34,7 @@
                 "aLengthMenu": [5, 10, 50, "All"],
                 "sDom": '<"top"flip>rt<"clear">'
             });
-            var list_t = $('#list-urls-tab').DataTable({
+            var detail_t = $('#detail-urls-tab').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
                     "sZeroRecords": "没有找到",
@@ -68,9 +68,10 @@
 <body>
 <h3 align="center">抓取结果一览-列表页/详情页
     <small>最大支持1000条。</small>
-    <button type="button" class="btn" formaction="/show_result">{{ outputForm.refresh() }}</button>
+    <button type="button" class="btn disabled" formaction="/show_result">{{ outputForm.refresh() }}</button>
+    <a class="bottom" href="{{ url_for('static', filename='export/result-detail.txt') }}">下载抓取结果(详情页)</a>
+    <a class="bottom" href="{{ url_for('static', filename='export/result-list.txt') }}">下载抓取结果(列表页)</a>
 </h3>
-<hr/>
 <form id="show_result" method="POST" action="/show_result">
     <div id="list-urls" class="form-group" style="float:left;width:50%;">
         <table id="list-urls-tab">
@@ -90,7 +91,7 @@
             </tbody>
         </table>
     </div>
-{#    <hr style="width:2px;height:100px;"></hr>#}
+    {#    <hr style="width:2px;height:100px;"></hr>#}
     <div id="detail-urls" class="form-group" style="float:right;width:50%;">
         <table id="detail-urls-tab">
             <thead>

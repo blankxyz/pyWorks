@@ -1,1 +1,1 @@
-{"detail_regex_save_list": [["/[a-zA-Z]{1}/[a-zA-Z]{7}/\\d{4}/\\d{4}/\\d{3}.html", "100"], ["detail", "100"]], "site_domain": "cpt.xtu.edu.cn", "list_regex_save_list": [["/[a-zA-Z]{1}/[a-zA-Z]{7}/\\d{4}/\\d{4}/\\d{3}.html", "100"], ["list", "100"]], "start_url": "http://cpt.xtu.edu.cn/"}
+{"detail_regex_save_list": [], "site_domain": "cpt.xtu.edu.cn", "list_regex_save_list": [["\\/$", "100"]], "start_url": "http://cpt.xtu.edu.cn/"}
