@@ -732,6 +732,10 @@ def export_upload():
         flash(u"上传成功.")
         return render_template('export.html')
 
+@app.route('/kill', methods=['GET', 'POST'])
+def kill():
+    subprocess.Popen(['/bin/sh','-c','./kill.sh'])
+    return redirect(url_for('show_process'), 302)
 
 @app.route('/export_setting_json', methods=['GET', 'POST'])
 def export_setting():
