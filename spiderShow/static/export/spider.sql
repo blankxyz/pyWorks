@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version: 5.6.20)
-# Date: 2016-07-15 22:09:05
+# Date: 2016-07-19 11:24:11
 # Generator: MySQL-Front 5.3  (Build 4.214)
 
 /*!40101 SET NAMES utf8 */;
@@ -24,22 +24,24 @@ CREATE TABLE `content_rule` (
 
 
 #
-# Structure for table "current_main_setting"
+# Structure for table "current_domain_setting"
 #
 
-DROP TABLE IF EXISTS `current_main_setting`;
-CREATE TABLE `current_main_setting` (
+DROP TABLE IF EXISTS `current_domain_setting`;
+CREATE TABLE `current_domain_setting` (
   `Id` int(11) NOT NULL DEFAULT '0',
   `start_url` varchar(255) DEFAULT NULL,
   `site_domain` varchar(255) DEFAULT NULL,
+  `black_domain` varchar(255) DEFAULT NULL COMMENT '以 ; 分割的列表',
   `setting_json` longtext COMMENT '配置简报，json版',
   PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='初始化配置，只有一条当前配置记录。';
 
 #
-# Data for table "current_main_setting"
+# Data for table "current_domain_setting"
 #
 
+INSERT INTO `current_domain_setting` VALUES (0,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','aaa.xtu.edu.cn;bbb.xtu.edu.cn','{\"detail_regex_save_list\": [[\"/[a-zA-Z]{1}/[a-zA-Z]{7}/\\d{4}/\\d{4}/\\d{3}.html\", \"100\"], [\"/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\\d{4}/?\\d{4}/\\d{1,}.html\", \"100\"], [\"/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\\d{4}/?\\d{4}/\\d{1,}.html\", \"100\"]], \"site_domain\": \"cpt.xtu.edu.cn\", \"list_regex_save_list\": [[\"\\/$\", \"100\"], [\"list\", \"100\"]], \"start_url\": \"http://cpt.xtu.edu.cn/\"}');
 
 #
 # Structure for table "url_rule"
@@ -50,7 +52,6 @@ CREATE TABLE `url_rule` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `start_url` varchar(255) NOT NULL DEFAULT '' COMMENT 'homepage',
   `site_domain` varchar(255) NOT NULL DEFAULT '' COMMENT 'domain',
-  `black_domain` varchar(255) DEFAULT NULL,
   `detail_or_list` char(1) DEFAULT '0' COMMENT '0:detail,1:list',
   `scope` char(1) NOT NULL DEFAULT '0' COMMENT '0:netloc,1:path,2:query',
   `white_or_black` char(1) NOT NULL DEFAULT '0' COMMENT '0:white,1:black',
@@ -59,10 +60,10 @@ CREATE TABLE `url_rule` (
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_url`,`site_domain`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
+) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
 
 #
 # Data for table "url_rule"
 #
 
-INSERT INTO `url_rule` VALUES (26,'http://bbs.tianya.cn','bbs.tianya.cn',NULL,'0','1','0','1','detail1',NULL),(27,'http://bbs.tianya.cn','bbs.tianya.cn',NULL,'0','1','0','1','detail2',NULL),(28,'http://bbs.tianya.cn','bbs.tianya.cn',NULL,'1','1','0','1','/[a-zA-Z]{1}/[a-zA-Z]{7}/d{4}/d{4}/d{3}.html',NULL),(29,'http://bbs.tianya.cn','bbs.tianya.cn',NULL,'1','1','0','1','list1',NULL);
+INSERT INTO `url_rule` VALUES (101,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','0','1','0','1','/[a-zA-Z]{1}/[a-zA-Z]{7}/d{4}/d{4}/d{3}.html',NULL),(102,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','0','1','0','1','/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/d{4}/?d{4}/d{1,}.html',NULL),(103,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','0','1','0','1','/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/d{4}/?d{4}/d{1,}.html',NULL),(104,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','1','1','0','1','/$',NULL),(105,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','1','1','0','1','list',NULL);

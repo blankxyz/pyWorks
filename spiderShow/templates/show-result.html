@@ -29,9 +29,9 @@
                     "sZeroRecords": "没有检索到数据",
                     "sProcessing": "<img src='./loading.gif' />"
                 },
-                "bFilter": false,
+                "bFilter": true,
                 "bLengthChange": true,
-                "aLengthMenu": [5, 10, 50, "All"],
+                "aLengthMenu": [10, 20, 50, "All"],
                 "sDom": '<"top"flip>rt<"clear">'
             });
             var detail_t = $('#detail-urls-tab').DataTable({
@@ -50,9 +50,9 @@
                     "sZeroRecords": "没有检索到数据",
                     "sProcessing": "<img src='./loading.gif' />"
                 },
-                "bFilter": false,
+                "bFilter": true,
                 "bLengthChange": true,
-                "aLengthMenu": [10, 50, 100, "All"],
+                "aLengthMenu": [10, 20, 50, "All"],
                 "sDom": '<"top"flip>rt<"clear">'
             });
             $('#addRow').on('click', function () {
@@ -70,9 +70,10 @@
     <small>最大支持{{ outputForm.show_max }}条。</small>
     {#    <button type="button" class="btn disabled" formaction="/show_result">{{ outputForm.refresh() }}</button>#}
 </h3>
+<hr/>
 <form id="show_result" method="POST" action="/show_result">
     <div id="list-urls" class="form-group" style="float:left;width:45%;margin-left:10px">
-        <a class="center" href="{{ url_for('static', filename='export/result-list.log') }}">下载抓取结果(列表页)</a>
+        <a class="top-left" href="{{ url_for('static', filename='export/result-list.log') }}">下载抓取结果(列表页)</a>
         <hr/>
         <table id="list-urls-tab">
             <thead>
@@ -93,7 +94,7 @@
     </div>
     {#    <hr style="width:2px;height:100px;"></hr>#}
     <div id="detail-urls" class="form-group" style="float:right;width:45%;margin-left:10px">
-        <a class="center" href="{{ url_for('static', filename='export/result-detail.log') }}">下载抓取结果(详情页)</a>
+        <a class="top-right" href="{{ url_for('static', filename='export/result-detail.log') }}">下载抓取结果(详情页)</a>
         <hr/>
         <table id="detail-urls-tab">
             <thead>

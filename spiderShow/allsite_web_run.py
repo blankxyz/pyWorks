@@ -29,7 +29,7 @@ app.config['SECRET_KEY'] = 'success'
 app.config['EXPORT_FOLDER'] = 'static/export/'
 bootstrap = Bootstrap(app)
 
-redis_setting = 'redis://127.0.0.1/14'
+REDIS_SETTING = 'redis://127.0.0.1/14'
 dedup_setting = 'redis://192.168.110.110/0'
 PROCESS_SHOW_JSON = "process_show_temp.json"
 EXPORT_FOLDER = 'static/export/'
@@ -100,7 +100,7 @@ class InputForm(Form):
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
-    black_list = StringField(label=u'域名黑名单')
+    black_domain_list = StringField(label=u'域名黑名单')
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
@@ -193,23 +193,25 @@ class MySqlDrive(object):
         # 提取主页、域名
         start_url = ''
         site_domain = ''
-        sqlStr = "SELECT * FROM current_main_setting"
+        black_domain = ''
+        sqlStr = "SELECT start_url, site_domain, black_domain, setting_json FROM current_domain_setting"
         try:
             cnt = self.cur.execute(sqlStr)
             if cnt == 1:
-                (id, start_url, site_domain, setting_json) = self.cur.fetchone()
+                (start_url, site_domain, black_domain, setting_json) = self.cur.fetchone()
                 self.conn.commit()
-            # print 'get_current_main_setting()', cnt, sqlStr
+                # print 'get_current_main_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_current_main_setting()', e
 
-        return start_url, site_domain  # , setting_json
+        return start_url, site_domain, black_domain
 
-    def set_current_main_setting(self, start_url, site_domain, setting_json):
+    def set_current_main_setting(self, start_url, site_domain, black_domain, setting_json):
+        print 'set_current_main_setting', black_domain
         # 提取主页、域名
-        sqlStr1 = "DELETE FROM current_main_setting"
-        sqlStr2 = "INSERT INTO current_main_setting(start_url,site_domain,setting_json) " \
-                  "VALUES ('" + start_url + "','" + site_domain + "','" + setting_json + "')"
+        sqlStr1 = "DELETE FROM current_domain_setting"
+        sqlStr2 = "INSERT INTO current_domain_setting(start_url,site_domain,black_domain,setting_json) " \
+                  "VALUES ('" + start_url + "','" + site_domain + "','" + black_domain + "','" + setting_json + "')"
         try:
             # print 'set_current_main_setting()', sqlStr1
             self.cur.execute(sqlStr1)
@@ -224,7 +226,7 @@ class MySqlDrive(object):
 
     def clean_current_main_setting(self):
         # 提取主页、域名
-        sqlStr = "DELETE FROM current_main_setting"
+        sqlStr = "DELETE FROM current_domain_setting"
         try:
             self.cur.execute(sqlStr)
             self.conn.commit()
@@ -241,14 +243,14 @@ class MySqlDrive(object):
         regexs = []
         # 提取主页、域名
         start_url, site_domain = self.get_current_main_setting()
-        sqlStr = "SELECT black_domain,scope,white_or_black,weight,regex,etc FROM url_rule " \
+        sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule " \
                  "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
         try:
             cnt = self.cur.execute(sqlStr)
             rs = self.cur.fetchall()
             for r in rs:
-                (black_domain, scope, white_or_black, weight, regex, etc) = r
-                regexs.append((black_domain, scope, white_or_black, weight, regex, etc))
+                (scope, white_or_black, weight, regex, etc) = r
+                regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
             # print 'get_regexs()', cnt, sqlStr
         except Exception, e:
@@ -257,10 +259,10 @@ class MySqlDrive(object):
 
 
 class RedisDrive(object):
-    def __init__(self, start_url, site_domain, redis_setting):
+    def __init__(self, start_url, site_domain):
         self.site_domain = site_domain
         self.start_url = start_url
-        self.conn = redis.StrictRedis.from_url(redis_setting)
+        self.conn = redis.StrictRedis.from_url(REDIS_SETTING)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
         self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
@@ -407,7 +409,7 @@ def convert_regex_format(rule):
     return ret
 
 
-def modify_pyfile(py_file, start_urls, site_domain):
+def modify_pyfile(py_file, start_urls, site_domain, black_domain_list):
     try:
         lines = open(py_file, 'r').readlines()
         # print type(lines)
@@ -418,13 +420,18 @@ def modify_pyfile(py_file, start_urls, site_domain):
             if s != '' and s[0] == '#':
                 continue
             else:
-                if i < 100 and re.search(r'self\.start_urls\s*?=', s):
-                    lines[i - 1] = line[:line.find('=') + 1] + ' ' + start_urls + '\n'
-                    print 'modify_pyfile()', lines[i - 1]
+                if i < 100:
+                    if re.search(r'self\.start_urls\s*?=', s):
+                        lines[i - 1] = line[:line.find('=') + 1] + ' ' + start_urls + '\n'
+                        print 'modify_pyfile()', lines[i - 1]
 
-                if i < 100 and re.search(r'self\.site_domain\s*?=', s):
-                    lines[i - 1] = line[:line.find('=') + 1] + ' ' + site_domain + '\n'
-                    print 'modify_pyfile()', lines[i - 1]
+                    if re.search(r'self\.site_domain\s*?=', s):
+                        lines[i - 1] = line[:line.find('=') + 1] + ' ' + site_domain + '\n'
+                        print 'modify_pyfile()', lines[i - 1]
+
+                    if re.search(r'self\.black_domain_list\s*?=', s):
+                        lines[i - 1] = line[:line.find('=') + 1] + ' ' + black_domain_list + '\n'
+                        print 'modify_pyfile()', lines[i - 1]
 
         open(py_file, 'w').writelines(lines)
 
@@ -466,15 +473,14 @@ def show_process():
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
-    start_url, site_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', inputForm=inputForm)
 
     # 从redis提取实时信息，转换成json文件
     redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain,
-                          redis_setting=redis_setting)
+                          site_domain=site_domain)
     redis_db.covert_redis_cnt_to_json()
 
     collage = CollageProcessInfo()
@@ -506,15 +512,14 @@ def get_show_result():
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
-    start_url, site_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show-result.html', outputForm=outputForm)
 
     # 从redis提取实时信息，转换成json文件
     redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain,
-                          redis_setting=redis_setting)
+                          site_domain=site_domain)
 
     i = 0
     for list_url in redis_db.get_list_urls():
@@ -553,7 +558,7 @@ def setting_main_init():
     inputForm = InputForm(request.form)
 
     mysql_db = MySqlDrive()
-    start_url, site_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -561,13 +566,13 @@ def setting_main_init():
     else:
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
+        inputForm.black_domain_list = black_domain
 
     redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain,
-                          redis_setting=redis_setting)
+                          site_domain=site_domain)
     # 设置/还原 正则表达式-详情页
     i = 0
-    for (black_domain, scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail'):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail'):
         regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(0))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
@@ -580,7 +585,7 @@ def setting_main_init():
 
     # 设置/还原 正则表达式-列表页
     i = 0
-    for (black_domain, scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list'):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list'):
         regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(0))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
@@ -605,6 +610,7 @@ def setting_main_save_and_run():
     # if request.method == 'POST' and inputForm.validate():
     start_url = inputForm.start_url.data
     site_domain = inputForm.site_domain.data
+    black_domain_list = inputForm.black_domain_list.data
     if start_url.strip() == '' or site_domain.strip() == '':
         flash(u'必须设置主页、域名信息！')
         return render_template('setting.html', inputForm=inputForm)
@@ -650,8 +656,7 @@ def setting_main_save_and_run():
 
     # 保存手工配置规则到Redis
     redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain,
-                          redis_setting=redis_setting)
+                          site_domain=site_domain)
     for regex in redis_db.conn.zrange(redis_db.manual_list_urls_rule_zset_key, start=0, end=-1):
         redis_db.conn.zrem(redis_db.manual_list_urls_rule_zset_key, regex)
     for (regex, weight) in list_regex_save_list:
@@ -664,7 +669,7 @@ def setting_main_save_and_run():
 
     # 保存所有手工配置信息到MySql
     mysql_db = MySqlDrive()
-    mysql_db.set_current_main_setting(start_url, site_domain, seeting_json)
+    mysql_db.set_current_main_setting(start_url, site_domain, inputForm.black_domain_list.data, seeting_json)
     cnt = mysql_db.save_all_setting(start_url, site_domain, seeting_json, detail_regex_save_list,
                                     list_regex_save_list)
     if cnt == 1:
@@ -674,7 +679,8 @@ def setting_main_save_and_run():
 
     # 执行抓取程序 RUN_PY_FILE
     # 修改配置文件的执行入口信息
-    modify_pyfile(py_file=RUN_PY_FILE, start_urls="\'" + start_url + "\'", site_domain="\'" + site_domain + "\'")
+    modify_pyfile(py_file=RUN_PY_FILE, start_urls="\'" + start_url + "\'", site_domain="\'" + site_domain + "\'",
+                  black_domain_list="\'" + black_domain_list + "\'")
     # DOS "start" command
     if os.name == 'nt':
         os.startfile(RUN_PY_FILE)
@@ -688,7 +694,7 @@ def setting_main_save_and_run():
 
 @app.route('/export/<path:filename>')
 def download_file(filename):
-    print 'download_file()',filename
+    print 'download_file()', filename
     return send_from_directory(app.config['EXPORT_FOLDER'], filename, as_attachment=True)
 
 

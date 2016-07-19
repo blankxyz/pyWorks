@@ -8,7 +8,6 @@ import urllib
 import datetime
 import urlparse
 import requests
-
 import redis
 
 
@@ -22,20 +21,18 @@ class myexc(Exception):
 
 
 class Cleaner(object):
-    def __init__(self, site_domain, conn=None):
+    def __init__(self, site_domain, black_domain_list, conn=None):
         self.site_domain = site_domain
         self.conn = conn
         if self.conn is None:
-            self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/8')
+            self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
         # 域名正则黑名单
-        self.black_domain_regex = (
-            # 'bbs\.',  # syq
-        )
         self.now_year = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y'), '%Y')
         self.hash_black_path_regex_key = 'hash_black_path_regex'
-        self.black_path_regex = self.get_black_path_regex()
+        self.black_path_regex =[]
+        self.black_domain_regex = self.get_black_path_regex(black_domain_list)  # black_domain_list 以 ; 分割的字符串
 
-    def get_black_path_regex(self):
+    def get_black_path_regex(self, black_domain_list):
         '''路径正则黑名单
         @ 匹配到的路径应为 非列表页url
         '''
@@ -43,19 +40,18 @@ class Cleaner(object):
             re.compile('/'),
             re.compile('^$'),
         )
-        regex_list_str = self.conn.hget(self.hash_black_path_regex_key, self.site_domain)
-        if regex_list_str is not None:
-            regex_list = json.loads(regex_list_str)
-        else:
-            regex_list = []
+        regex_list = black_domain_list.split(';')
         compile_list = []
         for regex_str in regex_list:
             compile_list.append(re.compile(regex_str))
+
+        # print 'get_black_path_regex()', tuple(compile_list) + default_regex
         return tuple(compile_list) + default_regex
 
     def in_black_list(self, url):
         '''域名黑名单'''
         for regex in self.black_domain_regex:
+            # print 'in_black_list()', regex,todo
             if re.match(regex, urlparse.urlparse(url).netloc):
                 return True
         return False
@@ -91,7 +87,7 @@ class Cleaner(object):
 
     def is_suffixes_ok(self, url):  # syq
         p = urlparse.urlparse(url).path
-        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb','.jpg','.mp3','.pdf','.rar']:
+        for fix in ['.apk', '.doc', '.xls', '.csv', '.avi', '.rmvb', '.jpg', '.mp3', '.pdf', '.rar']:
             if p.find(fix) > 0:
                 return False
         return True
@@ -100,6 +96,7 @@ class Cleaner(object):
         '''跨域检查'''
         if self.site_domain in urlparse.urlparse(url).netloc:
             return True
+
         return False
 
     def is_detail_by_regex(self, url):

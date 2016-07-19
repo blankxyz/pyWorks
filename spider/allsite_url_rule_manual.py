@@ -28,6 +28,7 @@ class MySpider(spider.Spider):
         self.info_flag = "01"
         self.start_urls = 'http://cpt.xtu.edu.cn/'
         self.site_domain = 'cpt.xtu.edu.cn'
+        self.black_domain_list = 'aaa.xtu.edu.cn;bbb.xtu.edu.cn'
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
@@ -47,7 +48,9 @@ class MySpider(spider.Spider):
         # self.cleaner = syq_clean_url.Cleaner(
         #     self.site_domain, redis.StrictRedis.from_url('redis://192.168.110.110/0'))
         self.cleaner = allsite_clean_url.Cleaner(
-            self.site_domain, redis.StrictRedis.from_url('redis://127.0.0.1/0'))
+            site_domain=self.site_domain,
+            black_domain_list=self.black_domain_list,
+            conn=redis.StrictRedis.from_url('redis://127.0.0.1/0'))
 
     def convert_regex_format(self, rule):
         '''
@@ -99,10 +102,10 @@ class MySpider(spider.Spider):
         urls = self.cleaner.url_clean(urls)
         # 跨域检查
         urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
-        # print 'filter_links() check_cross_domain', len(urls)
+        print 'filter_links() check_cross_domain', len(urls)
         # 黑名单过滤
         urls = filter(lambda x: not self.cleaner.in_black_list(x), urls)  # bbs. mail.
-        # print 'filter_links() in_black_list', len(urls)
+        print 'filter_links() in_black_list', len(urls)
         # 链接时间过滤
         # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
         # 非第一页链接过滤
@@ -243,7 +246,7 @@ class MySpider(spider.Spider):
                 urls = urls[0:self.todo_urls_limits]
             for url in urls:
                 self.conn.zadd(self.list_urls_zset_key, self.done_flg, url)
-            # print 'get_todo_urls()', urls
+                # print 'get_todo_urls()', urls
         except Exception, e:
             print "[ERROR] get_todo_urls(): %s" % e
         return urls
@@ -403,7 +406,7 @@ class MySpider(spider.Spider):
                     print 'detail:', link
                     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
                         self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(link))
-            # print 'parse_detail_page() end'
+                        # print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result
@@ -462,14 +465,14 @@ class MySqlDrive(object):
         regexs = []
         # 提取主页、域名
         start_url, site_domain = self.get_current_main_setting()
-        sqlStr = "SELECT black_domain,scope,white_or_black,weight,regex,etc FROM url_rule " \
+        sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule " \
                  "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
         try:
             cnt = self.cur.execute(sqlStr)
             rs = self.cur.fetchall()
             for r in rs:
-                (black_domain, scope, white_or_black, weight, regex, etc) = r
-                regexs.append((black_domain, scope, white_or_black, weight, regex, etc))
+                (scope, white_or_black, weight, regex, etc) = r
+                regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
             # print 'get_regexs()', cnt, sqlStr
         except Exception, e:

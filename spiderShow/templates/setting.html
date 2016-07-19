@@ -158,14 +158,14 @@
         {{ inputForm.start_url.label }} &nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
         {{ inputForm.site_domain.label }} &nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
 {#        {{ inputForm.white_list.label }} &nbsp;{{ inputForm.white_list(size=20) }}&nbsp;#}
-        {{ inputForm.black_list.label }} &nbsp;{{ inputForm.black_list(size=30) }} &nbsp;黑名单请按照域名 + ‘;’ 形式增加。<br>
+        {{ inputForm.black_domain_list.label }} &nbsp;{{ inputForm.black_domain_list(size=30) }} &nbsp;黑名单请按照域名 + ‘;’ 形式增加。<br>
     </div>
     <hr/>
     <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
         <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
             /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
         <input type=text size=70 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
-        <label id="regex_result"> 请确认转换后的表达式，编辑/拷贝到下面列表中。 </label>
+        <label id="regex_result"> 请确认转换后的表达式， 编辑（拷贝） 到下面列表中。 </label>
     </div>
     <hr/>
 {#    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">#}
