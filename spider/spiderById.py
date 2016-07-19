@@ -12,6 +12,7 @@
 2014-06-23：庞  威  代码创建
 '''
 import re
+import time
 import threading
 import datetime
 
@@ -35,6 +36,12 @@ class Spider(spider.Spider):
         self.largest_successed_post_id = 0
         #本次抓取开始前最大成功抓取帖子id
         self.last_successed_post_id = 0
+        #阀值 控制采集太快导致的漏采
+        self.interval_404 = 500
+        #每次最少新url数目，避免全部url为重试url
+        self.least_new_url_limits = 0
+        #每次加载新url：包括重试url及新生成url
+        self.limits = 30
         
         
     def __del__(self):
@@ -51,21 +58,36 @@ class Spider(spider.Spider):
             #
             for post_id in self.page_404_ids:
                 #未发表帖子
-                if long(post_id) > long(self.last_successed_post_id):
+                if long(post_id) > long(self.last_successed_post_id) - self.interval_404:
                     pipe.lpush(self.key_retry_post_ids, post_id)
                     print " ---- %s --- page has not been posted ---- :%s "%(self.siteName, post_id)
                 #post_id有效，该贴被封
                 else:
 #                    pipe.zadd(self.key_404_post_ids, 0, post_id)
                     print " ---- %s --- *** page_not_exist *** : %s"%(self.siteName, post_id)
-            #更新成功下载帖子最大id
-            if long(self.largest_successed_post_id) > long(self.last_successed_post_id):
-                pipe.set(self.key_last_largest_post_id, self.largest_successed_post_id)
             try:
                 pipe.execute()
             except Exception, e:
                 print e
-            
+                
+            #更新成功下载帖子最大id
+            if long(self.largest_successed_post_id) > long(self.last_successed_post_id):
+                for i in range(3):
+                    try:
+                        pipe.get(self.key_last_largest_post_id)
+                        last_largest_post_id = long(pipe.execute()[0])
+                        if last_largest_post_id < self.largest_successed_post_id:
+                            pipe.watch(self.key_last_largest_post_id)
+                            pipe.multi()
+                            pipe.set(self.key_last_largest_post_id, self.largest_successed_post_id)
+                            pipe.execute()
+                        break
+                    except redis.exceptions.WatchError:
+                        pass
+                    except Exception as e:
+                        log.logger.exception(e)
+                        
+           
     def get_start_urls(self, data=None):
         """
         获取爬虫抓取入口网页地址;
@@ -98,7 +120,7 @@ class Spider(spider.Spider):
                 self.last_successed_post_id = 0
             
             pipe = self.post_id_db.pipeline()
-            for i in xrange(self.limits):
+            for i in xrange(self.limits - self.least_new_url_limits):
                 pipe.rpop(self.key_retry_post_ids)
             try:
                 retry_post_ids = pipe.execute()
@@ -134,6 +156,9 @@ class Spider(spider.Spider):
             m = self.re_post_id.search(url)
             if m:
                 post_id = long(m.group(1))
+            else:
+                print "can not search self.re_post_id in url : %s"%url
+                return None
             
             unicode_html_body = u''
             try:
@@ -176,14 +201,15 @@ class Spider(spider.Spider):
             else:
                 if long(self.largest_successed_post_id) < long(post_id):
                     self.largest_successed_post_id = post_id
-            
             return result
         else:
             if url is not None:
                 m = self.re_post_id.search(url)
                 if m:
                     post_id = long(m.group(1))
-                self.page_download_failed_ids.add(post_id)
+                    self.page_download_failed_ids.add(post_id)
+                else:
+                    print "can not search self.re_post_id in url : %s"%url
             return None
     
     def get_detail_page_info(self, data):

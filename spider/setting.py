@@ -34,6 +34,7 @@ PROXY_ENABLE = config.getboolean('http', 'proxy_enable')
 PROXY_MAX_NUM = config.getint('http', 'proxy_max_num')
 PROXY_AVAILABLE = config.getint('http', 'available_proxy_num')
 PROXY_URL = config.get('http', 'proxy_url')
+USER_AGENT = config.get('http', 'user_agent')
 COMPRESSION = config.getboolean('http', 'compression')
 HTTP_TIMEOUT = config.getint('http', 'http_timeout')
 COOKIE_ENABLE = config.getboolean('http', 'cookie_enable')
@@ -59,6 +60,13 @@ try:
 except:
     ADSL_ID = -1
 
+#duanyifei add begin on 2016-05-25
+try:
+    CONFIG_MONITOR= config.getboolean('spider', 'config_monitor')
+except:
+    CONFIG_MONITOR = False
+#duanyifei add end on 2016-05-25
+
 #dedup
 DEDUP_URI = config.get('dedup', 'dedup_uri')
 DEDEUP_KEY = config.get('dedup', 'dedup_key')
@@ -76,7 +84,12 @@ PIDFILE_TIMEOUT = config.getint('daemon_app', 'pidfile_timeout')
 SPIDER_DATA_DB = config.get('data_db', 'spider_data_db')
 SPIDER_LOG_DB = config.get('data_db', 'spider_log_db')
 CRAWLER_LIST_DATA = config.get('data_db', 'crawler_list_data')
-
+#duanyifei add begin on 2016-05-26
+try:
+    CONFIG_MONITOR_DATA_DB = config.get('data_db', 'config_monitor_data_db')
+except:
+    CONFIG_MONITOR_DATA_DB = 'mongodb://192.168.85.36:27019/config_run_status.config_status'
+#duanyifei add end on 2016-05-26
 
 #pangwei add begin on 2016-03-14
 import platform

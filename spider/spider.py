@@ -21,10 +21,13 @@ monkey.patch_all()
 
 import json
 import time
+import copy
 import urllib
 import urllib2
+import traceback
 #from datetime import datetime
 import datetime
+import pprint
 from collections import defaultdict
 
 import log
@@ -102,6 +105,28 @@ class Spider(object):
         self.data_db = setting.SPIDER_DATA_DB
         #日志信息入库地址
         self.log_db = setting.SPIDER_LOG_DB
+
+        #duanyifei add begin on 2016-05-27
+        #数据总数不为0标志
+        self.has_total_data = 0
+        #详情页解析数据记录
+        self.detail_page_record_list = []
+        #函数执行异常记录
+        self.exceptions_info_list = []
+        #类型检查失败信息记录
+        self.field_type_failed_record = []
+        #url格式错误信息记录
+        self.url_format_error_record = defaultdict(list)
+        #字段类型预定义
+        self.field_type_dic = self.get_field_type()
+        #配置监测数据入库地址
+        self.config_monitor_data_db = setting.CONFIG_MONITOR_DATA_DB
+        #配置监测开关
+        self.config_monitor = setting.CONFIG_MONITOR
+        #duanyifei add end on 2016-05-27
+
+
+
         self.request_headers = {}
         #调试模式标志位
         self.debug = getattr(cmd_args, 'debug', False)
@@ -132,7 +157,7 @@ class Spider(object):
         if self.dedup_uri is not None and self.dedup_key is not None:
             try:
                 self.urldedup = dedup.Dedup(self.dedup_uri, self.dedup_key)
-            except Exception, e:
+            except Exception as e:
                 log.logger.error("init dedup failed: %s; dedup: %s"%(e, self.dedup_uri))
         else:
             self.urldedup = None
@@ -232,7 +257,7 @@ class Spider(object):
 #        print " --- post_data is:", post_data
         try:
             j_data = json.dumps(post_data)
-        except Exception, e:
+        except Exception as e:
             j_data = '{}'
             log.logger.error("post_data is %s; exception: %s"%(str(post_data),e))
         p_data = {"data":j_data}
@@ -240,7 +265,7 @@ class Spider(object):
 
         try:
             response = urllib2.urlopen(url, e_data, timeout=15).read()
-        except Exception, e:
+        except Exception as e:
             log.logger.info("send_cmd_to(): url:%s, Exception:%s"%(url, e))
             return []
         if not response:
@@ -248,8 +273,8 @@ class Spider(object):
 #        print "--reponse--,",response
         try:
             data = json.loads(response)
-        except Exception, e:
-            log.logger.info("send_cmd_to.json.load(): excepiton: %s; url:%s"%(e,url))
+        except Exception as e:
+            log.logger.info("send_cmd_to.json.load(): exception: %s; url:%s"%(e,url))
             return []
         return data
 
@@ -259,21 +284,26 @@ class Spider(object):
         '''
         return request
 
-    def download(self, url, **kwargs):
+    def download(self, request, func_name=None, **kwargs):
         '''
         '''
-        #kwargs = self.request_headers
         kwargs.update(self.request_headers)
         
         response = None
+
+        url = request.get('url') if isinstance(request, dict) else request
+
         if isinstance(url, basestring):
             newurl_lower = url.lower().strip()
             if (newurl_lower.startswith('http://') or
                     newurl_lower.startswith('https://') or
                     newurl_lower.startswith('ftp://')):
-                response = self.downloader.download(url, **kwargs)
+                response = self.downloader.download(request, **kwargs)
             else:
                 log.logger.info("-- config_id:%s ; url not start with http/https/ftp: %s"%(self.config_id, url))
+                self.url_format_error_record[func_name].append(url)
+        else:
+            log.logger.error("-- config_id:%s ; url not instance of basestring or dict: %s"%(self.config_id, url))
         return response
 
     def check_url_list(self, url_list, url):
@@ -304,7 +334,80 @@ class Spider(object):
                             self.error_info.append((PARSE_DETAIL_FAILED, "PARSE_DETAIL_FAILED; parse %s failed; "%key))
                             for err in self.failed_info[key]:
                                 self.error_info.append((PARSE_DETAIL_FAILED, err))
-                #
+                
+                
+                # duanyifei begin 2016-5-23
+                # 错误严重级别代码
+                # 默认最低  0
+                default_level = '0'
+                # 一般  1
+                general_level = '1'
+                # 肯定  2
+                serious_level = '2'
+
+                # 错误分类 error_reason
+                # 1. 字段解析失败比例高
+                # 2. 连续下载失败
+                # 3. 总数连续为0
+                # 4. 详情页异常
+                # 5. 返回值字段检查失败
+                # 6. url格式错误
+
+                error_level = default_level
+                error_reason = defaultdict(dict)
+                # 指定监控或者debug模式下 收集配置运行信息
+                if self.config_monitor or self.debug:
+
+                    # 字段解析失败比例处理
+                    for k,v in self.failed_info.iteritems():
+                        num = len(v)
+                        per = num * 1.0 / self.new_data_num
+                        if per > 0.4 and self.new_data_num > 10:
+                            error_level = serious_level
+                            error_reason['1'].update({k:"{}/{}/{}".format(num, self.new_data_num, self.total_data_num)})
+                    # 总数连续为0 增加总数不为0标志判断
+                    if self.total_data_num == 0 and not self.has_total_data:
+                        error_level = general_level
+                        error_reason['3'].update({"total_data_num":self.total_data_num})
+                    # 连续下载失败
+                    elif self.download_failed_num == self.new_data_num and self.new_data_num > 5:
+                        error_level = general_level
+                        error_reason['2'].update({"download_failed_num":self.download_failed_num,
+                                                "new_data_num":self.new_data_num
+                                                })
+                    #异常处理
+                    if self.exceptions_info_list:
+                        error_level = serious_level
+                        exc_urls = defaultdict(list)
+                        exc_format = {}
+                        for exc_dic in self.exceptions_info_list:
+                            e_name = exc_dic['e_name']
+                            url = exc_dic['url']
+                            if url:
+                                exc_urls[e_name].append(url)
+                            format_exc = exc_dic['detail']
+                            exc_format[e_name] = format_exc
+
+                        for e_name, format_exc in exc_format.iteritems():
+                            error_reason['4'].update({
+                                e_name:{
+                                    'urls':exc_urls.get(e_name, []),
+                                    'exc_info':format_exc,
+                                }
+                                })
+
+                    # 字段类型检查失败
+                    if self.field_type_failed_record:
+                        error_level = serious_level
+                        for idx,err in enumerate(self.field_type_failed_record):
+                            error_reason['5'].update({str(idx):err})
+
+                    # url格式错误处理
+                    if self.url_format_error_record:
+                        error_level = serious_level
+                        error_reason['6'].update(self.url_format_error_record)
+                    # duanyifei end 2016-5-23
+                    #
                 response = {'start_time':time.mktime(self.start_time.timetuple()), 
                             'end_time':time.mktime(datetime.datetime.utcnow().timetuple()),
                             'total_data_num': self.total_data_num,
@@ -316,15 +419,35 @@ class Spider(object):
                             'worker_id': self.worker_id,
                             'config_id': self.config_id,
                             'config_name':self.config_name,
+                            'siteName':self.siteName,
                             'job_id': self.job_id,
+                            #duanyifei 2016-5-23
+                            'detail_page_record_list':self.detail_page_record_list,
+                            'error_level':error_level,
+                            'error_reason':dict(error_reason),
+                            #duanyifei 2016-5-23
                             }
                 #
                 util.save_log(self.log_db, str(self.config_id), response)
-                
+                #保存监控信息到mongodb  指定监控并且非debug模式生效
+                if self.config_monitor and not self.debug:
+                    util.save_monitor_log(self.config_monitor_data_db, response)
+                    log.logger.info(u"config_runing_info is saved !!!")
+
                 #打印爬虫日志信息
                 if self.debug:
-                    for k, v in response.iteritems():
-                        print "%s : %s"%(k, v)
+                    for k,v in response.iteritems():
+                        if isinstance(v, (basestring, int, float)):
+                            print "%s : %s"%(k, v)
+                        else:
+                            if k in ('detail_page_record_list', ):
+                                limits = 10
+                                print "%s :" % ( k ), u"总数 {} 最大显示条数 {}".format(len(v), limits)
+                                v = v[:limits]
+                                print " %s" % ( pprint.pformat(v) )
+                            else:
+                                print "%s : \n %s"%(k, pprint.pformat(v))
+
                 #
                 url = getattr(setting, "SEND_CRAWL_RESULT_TO", "")
                 if self.error_info and url:
@@ -339,7 +462,7 @@ class Spider(object):
                     e_data = urllib.urlencode(data)
                     try:
                         urllib2.urlopen(url, e_data, timeout=15)
-                    except Exception, e:
+                    except Exception as e:
                         log.logger.info("send crawl result to %s failed: %s"%(url,e))
                 #
                 self.job_event.set()
@@ -348,12 +471,115 @@ class Spider(object):
             return True
         return False
 
+    # duanyifei 2016-5-23
+    def save_parse_detail_info(self, result):
+        '''
+        参数result为解析页面返回值
+        此函数作用为记录页面返回值解析错误的字段
 
-    def parse_detail_by_url(self, url=None):
+        错误定义:
+            字符串字段返回值为空
+            visitCount, replyCount 返回值为-1
+            ctime和gtime相差 1s 内
+
+        '''
+        if not result:
+            return True
+        result = copy.deepcopy(result)
+        if not isinstance(result, list):
+            log.logger.error('parse_detail_page() error: return value is not list or dict')
+            return True
+        new_result = []
+        g_c = datetime.timedelta(seconds=1)
+        for post in result:
+            if not post:
+                continue
+            url = post.get('url')
+
+            dic = {'url':url}
+
+            ctime, gtime = post.get('ctime'), post.get('gtime')
+            if gtime - ctime < g_c:
+                dic.update({'ctime':str(ctime)})
+                self.failed_info['ctime'].append("%s : %s"%('ctime', url))
+
+            for k,v in post.iteritems():
+                error_flag = 0
+                k = str(k)
+                if k == 'url':
+                    pass
+                elif isinstance(v, datetime.datetime):
+                    continue
+                elif isinstance(v, str):
+                    if not v:
+                        error_flag = 1
+                elif k in ('visitCount', 'replyCount'):
+                    if isinstance(v, list):
+                        count = v[0].get('count')
+                    else:
+                        count = v
+                    if count < 0:
+                        v = count
+                        error_flag = 1
+                else:
+                    continue
+                if error_flag:
+                    dic.update({k:v})
+            if len(dic.keys()) > 1:
+                new_result.append(dic)
+        self.detail_page_record_list += new_result
+        return True
+
+    def get_field_type(self):
+        basestring_type_list = ['url']
+        str_type_list = ['title', 'content', 'author', 'source', 'siteName', 'channel', 'html', 'summary']
+        datetime_type_list = ['ctime', 'gtime']
+        list_type_list = ['video_urls', 'pic_urls']
+        list_or_int_type_list = ['visitCount', 'replyCount']
+        dic = dict()
+        dic.update({}.fromkeys(basestring_type_list, basestring))
+        dic.update({}.fromkeys(str_type_list, str))
+        dic.update({}.fromkeys(datetime_type_list, datetime.datetime))
+        dic.update({}.fromkeys(list_type_list, list))
+        dic.update({}.fromkeys(list_or_int_type_list, (list, int)))
+        return dic
+
+
+    def check_detail_field(self, post):
+        '''对详情页返回值字段类型进行检查'''
+        # 指定监控或者debug模式下进行检查 
+        # if not self.config_monitor and not self.debug:
+        #     return True
+        flag = True
+        error = {}
+        for k,v in post.iteritems():
+            if k in self.field_type_dic.keys():
+                should_type = self.field_type_dic.get(k)
+                if not isinstance(v, should_type):
+                    flag = False
+                    if k == 'url':
+                        error.update({'url_type':str(type(v))})
+                    else:
+                        error.update({k:str(type(v))})
+                    if self.debug:
+                        log.logger.error(util.RR(k)+u" TYPE ERROR, should be {}, but found ".format(should_type)+util.RR("{}".format(type(v))))
+                    else:
+                        log.logger.error(u"{} TYPE ERROR, should be {}, but found {}".format(k, self.field_type_dic.get(k), type(v)))
+        if not flag:
+            url = post.get('url', '')
+            error.update({'url':url})
+            self.field_type_failed_record.append(error)
+        return flag
+    # duanyifei 2016-5-23
+
+
+    def parse_detail_by_url(self, request=None):
         '''
         参数url指向一个详情页，下载并分析该页面详情；并统计分析结果；
         返回值为一个二元元组；第一个值表示所有详情页是否下载解析完毕，第二个值表示是否有下一页要抓取；
         '''
+        request = copy.deepcopy(request)
+        url = request.get('url') if isinstance(request, dict) else request
         next_urls = []
         if not url:
             return False, next_urls
@@ -361,70 +587,70 @@ class Spider(object):
         result = {}
         parse_success = True
         
-        response = self.download(url)
+        response = self.download(request, func_name='parse')
         try:
-            result = self.parse_detail_page(response, url)
-        except Exception, e:
+            result = self.parse_detail_page(response, request)
+        except Exception as e:
+            # duanyifei 2016-5-24
+            e_detail = traceback.format_exc()
+            if self.debug:
+                print util.R(e_detail)
+            else:
+                log.logger.error(e_detail)
+            exc_dic = {'detail':e_detail, 'url':url, 'e_name':util.get_type_str(e)}
+            self.exceptions_info_list.append(exc_dic)
+            # duanyifei 2016-5-24
             parse_success = False
-        #下载网页失败
+        # 下载网页失败
         if result is None:
             self.increase_download_failed_num()
 #            self.error_info.append((DOWNLOAD_FAILED, "DOWNLOAD_FAILED; url:%s"%url))
             log.logger.info("DOWNLOAD_FAILED; url:%s"%url)
             res = self.spider_finished()
             return res, next_urls
-        
+
         if not result:
             parse_success = False
         else:
             if isinstance(result, dict):
-                for key, value in result.items():
-                    if not value:
-                        parse_success = False
-#                        self.error_info.append((PARSE_DETAIL_FAILED, "PARSE_DETAIL_FAILED; parse %s failed; url:%s"%(key, url)))
-                        log.logger.info("PARSE_DETAIL_FAILED; parse %s failed; url:%s"%(key, url))
-                        #字段解析失败监测；当字段解析失败时，将其存入parse_failed，key为字段名;
-                        if self.parse_failed.get(key, True):
-                            self.parse_failed[key] = True
-                            self.failed_info[key].append("%s : %s"%(key, url))
-                    else:
-                        #解析成功，将该字段对应的值设为False
-                        self.parse_failed[key] = False
-            elif isinstance(result, list):
+                result = [result]
+            if isinstance(result, list):
+                new_result = []
                 for item in result:
                     if isinstance(item, dict):
+                        if 'url' not in item:
+                            item.update({'url':url})
+                        # 值存在检查
                         for key, value in item.items():
                             if not value:
                                 parse_success = False
 #                                self.error_info.append((PARSE_DETAIL_FAILED, "PARSE_DETAIL_FAILED; parse %s failed; url:%s"%(key, url)))
-                                log.logger.info("PARSE_DETAIL_FAILED; parse %s failed; url:%s"%(key, url))
+                                log.logger.info("PARSE_DETAIL_FAILED; parse %s failed; url:%s"%(util.RR(key), url))
                                 if self.parse_failed.get(key, True):
                                     self.parse_failed[key] = True
                                     self.failed_info[key].append("%s : %s"%(key, url))
                             else:
                                 self.parse_failed[key] = False
+                        # 类型检查
+                        if not self.check_detail_field(item):
+                            parse_success = False
+                            continue
+                        new_result.append(item)
+                result = new_result
         if parse_success:
             self.increase_parsed_success_num()
         else:
             self.increase_parsed_failed_num()
-        #save data to db by data_queue
+        # save data to db by data_queue
         res = {'url':url, 'config_id':self.config_id, 
                'info_flag':self.info_flag, 'siteName':self.siteName,
                'data_db':self.data_db, 'spider_id':getattr(setting, 'SPIDER_IP', self.spider_id)}
-        #标题解析成功时将该数据入库，否则丢弃;
+
+        g_c = datetime.timedelta(seconds=1)
+        # 标题解析成功时将该数据入库，否则丢弃;
         if isinstance(result, dict):
-            #获取下一页url
-            next_urls = result.pop('next_urls', [])
-            #更新返回信息
-            if result.get('title', ''):
-                res.update(result)
-                self.crawler_data_queue.put(res)
-                #
-                if self.debug or getattr(setting, 'SHOW_DATA', False):
-                    print util.B('\n {}'.format('###########################'))
-                    for k, v in res.iteritems():
-                        print '{:>10.10} : {}'.format(k,v)
-        elif isinstance(result, list):
+            result = [result]
+        if isinstance(result, list):
             new_result = []
             for item in result:
                 if isinstance(item, dict):
@@ -436,10 +662,29 @@ class Spider(object):
                         #
                         if self.debug or getattr(setting, 'SHOW_DATA', False):
                             print util.B('\n {}'.format('###########################'))
+                            ctime, gtime = res1.get('ctime'), res1.get('gtime')
+                            time_error = 0
+                            if gtime - ctime < g_c:
+                                time_error = 1
                             for k, v in res1.iteritems():
-                                print '{:>10.10} : {}'.format(k,v)
+                                if not v:
+                                    print util.R('{:>10.10}'.format(k))+ ': {}'.format(v)
+                                elif (k in ('ctime', ) and time_error):
+                                    print util.R('{:>10.10}'.format(k))+ ': ' + util.RR('{}'.format(v))
+                                else:
+                                    print '{:>10.10} : {}'.format(k,v)
             if new_result:
                 self.crawler_data_queue.put(new_result)
+
+        # duanyifei 2016-5-23
+        # 指定监控或者debug模式下 收集详情页错误字段信息
+        if self.config_monitor or self.debug:
+            try:
+                self.save_parse_detail_info(result)
+            except Exception as e:
+                log.logger.exception(e)
+        # duanyifei 2016-5-23
+        
         #
         for url in next_urls:
             self.increase_new_data_num()
@@ -462,7 +707,7 @@ if __name__ == "__main__":
     url = "http://192.168.110.24/task.php"
     try:
         resp = urllib2.urlopen(url, e_data, timeout=15)
-    except Exception, e:
+    except Exception as e:
         log.logger.info("send crawl result to %s failed: %s"%(url,e))
         print "failed"
     else:

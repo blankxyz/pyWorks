@@ -6,11 +6,13 @@ import redis
 import log
 
 def clean_dedup(con_str, key, score):
-    db = redis.from_url("redis://%s"%(con_str))
+    db = redis.StrictRedis.from_url("redis://%s"%(con_str))
     
     log.logger.info("删除:%s, %s, %s天之前"%(con_str, key, score/(3600*24)))
-    
-    count = db.zremrangebyscore(key, 0, time.time() - score)
+    try:
+        count = db.zremrangebyscore(key, 0, time.time() - score)
+    except:
+        count = 0
     return count
 
 

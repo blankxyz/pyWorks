@@ -77,7 +77,7 @@ class Parser():
     '''
     解析数据类，支持连贯操作
     '''
-    def __init__(self, data=None, url=None, encoding="utf8", response=None):
+    def __init__(self, data=None, url=None, encoding="utf8", response=None, clean=False, **kwargs):
         '''
         初始化，data 为页面源码；response就是requests库中的response对象
         '''
@@ -93,8 +93,14 @@ class Parser():
         if encoding == "utf8":
             self.data = data
         else:
-            self.data = data.decode(encoding).encode("utf8")
+            self.data = data.decode(encoding)#.encode("utf8")
+            
+        if clean:
+            self.data = util.filter_style_script(self.data)
         
+        #去除xml声明
+        self.data = re.sub("^<\?(XML|xml)\s+[^>]+>\s*", "", self.data)
+
         self.encoding = encoding
         
         if data:
@@ -230,12 +236,11 @@ class Parser():
         
         return Parser(data)
     
-    def __repr__(self):
-        '''
-        重载操作符，用于显示%s
-        '''
-        return self.str()
-#        return self.str(self.data)
+    #def __repr__(self):
+    #    '''
+    #    重载操作符，用于显示%s
+    #    '''
+    #    return self.str(self.data)
       
     def str(self, encoding="utf8"):
         '''
@@ -359,7 +364,7 @@ class Parser():
             log.logger.debug(util.BB("错误，datetime，没有解析成功, 匹配内容: %s "%self.data))
             dt = datetime.datetime.now()
          
-        utc_dt = dt - datetime.timedelta(seconds=28800)
+        utc_dt = dt - datetime.timedelta(hours=8)
         return utc_dt
        
     def url(self,  remove_param=False):
@@ -456,6 +461,22 @@ class Parser():
                 else:
                     urls.append(url)
         return urls
+
+    def remove(self, xp):
+        '''去除指定xpath对应的数据 返回一个不包含已去除数据的'''
+        _root = etree.HTML(self.data)
+        try:
+            result = _root.xpath(xp)
+            for r in result:
+                r.getparent().remove(r)
+        except Exception as e:
+            try:
+                url = self.response.request.url
+            except:
+                url = ''
+            log.logger.debug(util.R("异常：xpath 解析错误: xp is %s; exception:%s; url:%s"%(xp, e, url)))
+            return self
+        return Parser(etree.tostring(_root, method="html"))
     
     def utcnow(self):
         return datetime.datetime.utcnow()

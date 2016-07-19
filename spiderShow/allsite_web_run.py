@@ -36,9 +36,11 @@ EXPORT_FOLDER = 'static/export/'
 
 # RUN_PY_FILE = "run_spider.bat"
 if os.name == 'nt':
-    RUN_PY_FILE = 'D:\workspace\pyWorks\spider\\allsite_url_rule_manual.py'
+    # RUN_PY_FILE = 'D:\workspace\pyWorks\spiderShow\\run_spider.bat'
+    RUN_PY_FILE = 'run_spider.bat'
 else:
-    RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/allsite_url_rule_manual.py'
+    # RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/allsite_url_rule_manual.py'
+    RUN_PY_FILE = 'run_spider.sh'
 
 
 # def is_me(form, field): #自定义check函数
@@ -242,7 +244,7 @@ class MySqlDrive(object):
             detail_or_list = '1'
         regexs = []
         # 提取主页、域名
-        start_url, site_domain = self.get_current_main_setting()
+        start_url, site_domain, black_domain = self.get_current_main_setting()
         sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule " \
                  "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
         try:
@@ -268,15 +270,16 @@ class RedisDrive(object):
         self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.manual_detail_urls_rule_zset_key = 'manual_detail_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
+        self.show_max =200
         self.todo_flg = -1
         self.done_flg = 0
         # print 'RedisDrive init()', self.site_domain, self.start_url, self.conn
 
     def get_detail_urls(self):
-        return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg)
+        return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0, num=self.show_max)
 
     def get_list_urls(self):
-        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg)
+        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg,start=0, num=self.show_max)
 
     def get_matched_rate(self):
         cnt = 0
@@ -535,14 +538,14 @@ def get_show_result():
         outputForm.detail_urls_list.entries[i] = detail_url_form
         i += 1
 
-    # result-list.txt
-    fp = open(EXPORT_FOLDER + '/result-list.txt', 'w')
+    # result-list.log
+    fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
     for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
     fp.close()
 
-    # result-detail.txt
-    fp = open(EXPORT_FOLDER + '/result-detail.txt', 'w')
+    # result-detail.log
+    fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
     for line in redis_db.conn.zrange(redis_db.detail_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
     fp.close()
@@ -558,7 +561,7 @@ def setting_main_init():
     inputForm = InputForm(request.form)
 
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain_list = mysql_db.get_current_main_setting()
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -566,7 +569,7 @@ def setting_main_init():
     else:
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
-        inputForm.black_domain_list = black_domain
+        inputForm.black_domain_list.data = black_domain_list
 
     redis_db = RedisDrive(start_url=start_url,
                           site_domain=site_domain)
@@ -645,6 +648,18 @@ def setting_main_save_and_run():
         flash(u"请填写并勾选要执行的 列表/详情页正则表达式。")
         return render_template('setting.html', inputForm=inputForm)
 
+    if len(list_regex_save_list) != len(set(list_regex_save_list)):
+        flash(u"列表页正则表达式有重复。")
+        return render_template('setting.html', inputForm=inputForm)
+
+    if len(detail_regex_save_list) != len(set(detail_regex_save_list)):
+        flash(u"详情页正则表达式有重复。")
+        return render_template('setting.html', inputForm=inputForm)
+
+    if list(set(list_regex_save_list).intersection(set(detail_regex_save_list))) == 0:
+        flash(u"列表和详情页中的正则表达式不能重复。")
+        return render_template('setting.html', inputForm=inputForm)
+
     # 保存到json文件
     export_file = {'start_url': start_url,
                    'site_domain': site_domain,
@@ -715,7 +730,7 @@ def export_upload():
 @app.route('/export_setting_json', methods=['GET', 'POST'])
 def export_setting():
     mysql_db = MySqlDrive()
-    start_url, site_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
     setting_json = ''
     flash(u"MySQL导出结果。")
     return render_template('export.html', setting_json=setting_json)

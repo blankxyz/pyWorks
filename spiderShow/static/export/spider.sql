@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version: 5.6.20)
-# Date: 2016-07-19 11:24:11
+# Date: 2016-07-19 17:47:37
 # Generator: MySQL-Front 5.3  (Build 4.214)
 
 /*!40101 SET NAMES utf8 */;
@@ -41,7 +41,7 @@ CREATE TABLE `current_domain_setting` (
 # Data for table "current_domain_setting"
 #
 
-INSERT INTO `current_domain_setting` VALUES (0,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','aaa.xtu.edu.cn;bbb.xtu.edu.cn','{\"detail_regex_save_list\": [[\"/[a-zA-Z]{1}/[a-zA-Z]{7}/\\d{4}/\\d{4}/\\d{3}.html\", \"100\"], [\"/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\\d{4}/?\\d{4}/\\d{1,}.html\", \"100\"], [\"/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/\\d{4}/?\\d{4}/\\d{1,}.html\", \"100\"]], \"site_domain\": \"cpt.xtu.edu.cn\", \"list_regex_save_list\": [[\"\\/$\", \"100\"], [\"list\", \"100\"]], \"start_url\": \"http://cpt.xtu.edu.cn/\"}');
+INSERT INTO `current_domain_setting` VALUES (0,'http://bbs.tianya.cn','bbs.tianya.cn','blog.tianya.cn','{\"detail_regex_save_list\": [[\"thread\", \"100\"], [\"post-\", \"100\"], [\"pic-\", \"100\"]], \"site_domain\": \"bbs.tianya.cn\", \"list_regex_save_list\": [[\"\\/$\", \"100\"], [\"list\", \"100\"], [\"index\", \"100\"]], \"start_url\": \"http://bbs.tianya.cn\"}');
 
 #
 # Structure for table "url_rule"
@@ -66,4 +66,4 @@ CREATE TABLE `url_rule` (
 # Data for table "url_rule"
 #
 
-INSERT INTO `url_rule` VALUES (101,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','0','1','0','1','/[a-zA-Z]{1}/[a-zA-Z]{7}/d{4}/d{4}/d{3}.html',NULL),(102,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','0','1','0','1','/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/d{4}/?d{4}/d{1,}.html',NULL),(103,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','0','1','0','1','/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[a-zA-Z]{1,}/[0-9a-zA-Z]{1,}/d{4}/?d{4}/d{1,}.html',NULL),(104,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','1','1','0','1','/$',NULL),(105,'http://cpt.xtu.edu.cn/','cpt.xtu.edu.cn','1','1','0','1','list',NULL);
+INSERT INTO `url_rule` VALUES (182,'http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','1','thread',NULL),(183,'http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','1','post-',NULL),(184,'http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','1','pic-',NULL),(185,'http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','1','/$',NULL),(186,'http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','1','list',NULL),(187,'http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','1','index',NULL);

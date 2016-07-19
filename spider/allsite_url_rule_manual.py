@@ -26,9 +26,9 @@ class MySpider(spider.Spider):
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://cpt.xtu.edu.cn/'
-        self.site_domain = 'cpt.xtu.edu.cn'
-        self.black_domain_list = 'aaa.xtu.edu.cn;bbb.xtu.edu.cn'
+        self.start_urls = 'http://bbs.tianya.cn'
+        self.site_domain = 'bbs.tianya.cn'
+        self.black_domain_list = 'blog.tianya.cn'
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
@@ -129,7 +129,7 @@ class MySpider(spider.Spider):
                                            max=999999, min=0, start=0, num=rule0_cnt, withscores=False)
         for rule0 in rules:
             if re.search(rule0, url):
-                print '[rule0]', rule0, '<-', url
+                print '[detail-rule0-auto]', rule0, '<-', url
                 return True  # 符合详情页规则
         return False  # 不确定
 
@@ -140,7 +140,7 @@ class MySpider(spider.Spider):
         for rule1 in rules:
             if re.search(rule1, url):
                 self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule1, amount=1)
-                print '[rule1]', rule1, '<-', url
+                print '[detail-rule1-auto]', rule1, '<-', url
                 return True  # 符合详情页规则
         return False  # 不确定
 
@@ -151,7 +151,7 @@ class MySpider(spider.Spider):
         for rule in rules:
             if re.search(rule, url):
                 self.conn.zincrby(self.manual_detail_urls_rule_zset_key, value=rule, amount=1)
-                print '[manual-detail]', rule, '<-', url
+                print '[detail-manual]', rule, '<-', url
                 return True  # 符合详情页规则
         return False
 
@@ -162,7 +162,7 @@ class MySpider(spider.Spider):
         for rule in rules:
             if re.search(rule, url):
                 self.conn.zincrby(self.manual_list_urls_rule_zset_key, value=rule, amount=1)
-                print '[manual-list]', rule, '<-', url
+                print '[list-manual]', rule, '<-', url
                 return True  # 符合详情页规则
         return False
 
@@ -182,12 +182,10 @@ class MySpider(spider.Spider):
         # regex: \/$
 
         # 页面手工配置规则
-        if self.is_manual_detail_rule(url) == True:
-            # print 'is_manual_detail_rule()', True
+        if self.is_manual_detail_rule(path) == True:
             return False
 
-        if self.is_manual_list_rule(url) == True:
-            # print 'is_manual_list_rule()', True
+        if self.is_manual_list_rule(path) == True:
             return True
 
         # 自动归纳规则
@@ -204,6 +202,7 @@ class MySpider(spider.Spider):
         #     # print 'is_current_page() True'
         #     return False
         # print 'path_is_list() end'
+        print '[unkownn]',url
         return True
 
     def convert_path_to_rule0(self, url):
@@ -399,11 +398,11 @@ class MySpider(spider.Spider):
             for link in links:
                 s = self.get_clean_soup(link)
                 if self.path_is_list(s, link):
-                    print 'list  :', link
+                    # print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
                 else:
-                    print 'detail:', link
+                    # print 'detail:', link
                     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
                         self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(link))
                         # print 'parse_detail_page() end'

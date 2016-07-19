@@ -9,6 +9,7 @@ import db
 import MySQLdb
 import datetime
 
+# duanyifei 2016-5-23
 class Cursor(object):
     '''重新封装cursor使得可以自动捕获mysql连接超时错误并重新连接'''
     def __init__(self, mysql_conn, setting_dict, **kwargs):
@@ -54,6 +55,7 @@ class Cursor(object):
             raise Exception('Mysql 数据库连接错误：%s, %s' % (e, self.setting_dict))
             return (None, None)
         return conn
+# duanyifei 2016-5-23
 
 
 class MySQLOpt(db.DbOpt):

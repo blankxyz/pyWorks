@@ -24,6 +24,7 @@ from gevent import monkey
 monkey.patch_all()
 
 import time
+import copy
 import random
 import logging
 
@@ -32,6 +33,7 @@ import requests
 import log
 import proxy
 import setting
+import util
 
 requests_log = logging.getLogger("requests")
 requests_log.setLevel(logging.ERROR)
@@ -52,8 +54,9 @@ def retry(ExceptionToCheck, tries=2, delay=1, backoff=2):
             while mtries > 0:
                 try:
                     return f(self, *args, **kwargs)
-                except ExceptionToCheck, e:
+                except ExceptionToCheck as e:
 #                    print "%s, Retrying in %d seconds..."%(str(e), mdelay)
+                    log.logger.error("%s, Retrying in %d seconds..."%(util.B(str(e)), mdelay))
                     time.sleep(mdelay)
                     mtries -= 1
                     mdelay *= backoff
@@ -206,7 +209,7 @@ class Downloader(object):
         super(Downloader, self).__init__()
         self.cookie_enable = cookie_enable
         self.proxy_enable = proxy_enable
-        User_Agent = "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36"
+        User_Agent = setting.USER_AGENT
         self.headers = {"Accept":"text/html, application/xhtml+xml, application/xml;q=0.9,*/*;q=0.8",
                         "User-Agent":User_Agent,
                         }
@@ -233,7 +236,9 @@ class Downloader(object):
         return False
     
     @retry(Exception)
-    def _download(self, url, **kwargs):
+    def _download(self, request, **kwargs):
+        request = copy.deepcopy(request)
+        url = request.get('url') if isinstance(request, dict) else request
         response = None
 #        print  "downloading ...", url
         if self.proxy_enable:
@@ -254,46 +259,76 @@ class Downloader(object):
             try:
                 if 'proxies' not in kwargs:
                     kwargs.update(proxies=proxies)
-                if 'data' not in kwargs:
-                    r = self.session.get(url, stream=True, timeout=self.timeout, **kwargs)
-                else:
-                    r = self.session.post(url, stream=True, timeout=self.timeout, **kwargs)
-                if r.status_code not in [200, 404]:
-                    r.raise_for_status()
+
+                kwargs.update({
+                    'stream':True,
+                    'timeout':self.timeout,
+                    })
+
+                default_method = 'POST' if 'data' in kwargs else 'GET'
+
+                keep_status_code = 0
+
+                if isinstance(request, dict):
+                    try:
+                        if request.get('meta', {}).get('keep_status_code', False):
+                            keep_status_code = 1
+                    except:
+                        pass
+                    method = request.get('method')
+                    default_method = method if method is not None else default_method
+                    for key in ('url', 'meta', 'method', 'func_name'):
+                        if key in request:
+                            request.pop(key)
+                    kwargs.update(request)
+
+                r = self.session.request(default_method, url, **kwargs)
+
+                if r.status_code not in (200, 404, 410):
+                    log.logger.warning(u"调试信息 下载返回码 %s  请注意"%util.BB(r.status_code))
+                    if not keep_status_code:
+                        r.raise_for_status()
+                elif r.status_code in (404, 410):
+                    log.logger.warning(u"调试信息 下载返回码 %s  请注意"%util.BB(r.status_code))
+                
                 #
                 response = r
                 response.content
                 #保存当前代理
                 if self.proxy_enable:
                     self.proxy_manager.put_proxy(proxy_item)
+                try:
+                    response.proxies = kwargs.get('proxies')
+                except Exception as e:
+                    log.logger.error(u"response对象增加代理属性失败 %s"%e)
             except requests.exceptions.Timeout, e:
                 raise e
-            except requests.exceptions.RequestException, e:
+            except requests.exceptions.RequestException as e:
                 raise e
-            except Exception, e:
+            except Exception as e:
                 raise e
             else:
                 r.close()
         except gevent.Timeout, e:
             #print "--**-- gevent.Timeout"
             raise requests.exceptions.Timeout
-        except requests.exceptions.RequestException, e:
+        except requests.exceptions.RequestException as e:
             #print "--**-- RequestException", e
             raise e
-        except Exception, e:
+        except Exception as e:
             raise e
         finally:
             timeout.cancel()
         
         return response
 
-    def download(self, url, **kwargs):
+    def download(self, request, **kwargs):
         headers = kwargs.get('headers',{})
         self.headers.update(headers)
         kwargs.update(headers=self.headers)
         response = None
         try:
-            response = self._download(url, **kwargs)
+            response = self._download(request, **kwargs)
         except gevent.Timeout, e:
             #log.logger.debug("gevent.Timeout: %s : %s"%(url, str(e)))
             #print 'gevent.Timeout: ', str(e)
@@ -302,11 +337,11 @@ class Downloader(object):
             #log.logger.debug(" requests.Timeout: %s : %s;"%(str(e), url))
             #print 'requests.Timeout', str(e)
             pass
-        except requests.exceptions.RequestException, e:
+        except requests.exceptions.RequestException as e:
             #log.logger.debug("requests.RequestException: %s : %s"%(e, url))
             #print 'RequestException', str(e)
             pass
-        except Exception, e:
+        except Exception as e:
             #log.logger.debug("download %s failed; reason: %s"%(url, e))
             #print 'Exception: ', str(e)
             pass

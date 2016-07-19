@@ -2,7 +2,11 @@
 import redis
 from urllib2 import urlparse
 import cPickle as pickle
-import ujson
+try:
+    import ujson as json
+except ImportError:
+    import json
+import time
 
 class Buffer:
 
@@ -25,32 +29,49 @@ class RedisBuffer(Buffer):
         self.host = uri.hostname
         self.port = uri.port or 6379
         self.db, self.key_name = filter(lambda x: x != '', uri.path.split('/'))[:2]
-        self.conn = redis.Redis(host=self.host, port=self.port, db=self.db)
+        self.conn = redis.StrictRedis(host=self.host, port=self.port, db=self.db)
 
     def push(self, data, dest_json = False):
         if dest_json:
-            push_data = ujson.dumps(data)
+            push_data = json.dumps(data)
         else:
             push_data = pickle.dumps(data)
-        self.conn.lpush(self.key_name, push_data)
+        try:
+            self.conn.lpush(self.key_name, push_data)
+        except:
+            time.sleep(10)
+            try:
+                self.conn.lpush(self.key_name, push_data)
+            except:
+                pass
+            
 
     def pushall(self, data_list, dest_json = False):
         pipe = self.conn.pipeline()
         for data in data_list:
             if dest_json:
-                dest_data = ujson.dumps(data)
+                dest_data = json.dumps(data)
             else:
                 dest_data = pickle.dumps(data)
             pipe.lpush(self.key_name, dest_data)
-
-        pipe.execute()
+        try:
+            pipe.execute()
+        except:
+            time.sleep(10)
+            try:
+                pipe.execute()
+            except:
+                pass
 
     def pop(self, src_json = False):
-        src_data = self.conn.rpop(self.key_name)
+        try:
+            src_data = self.conn.rpop(self.key_name)
+        except:
+            src_data = None
         if src_json:
             if src_data is None:
                 return
-            return ujson.loads(src_data)
+            return json.loads(src_data)
         elif src_data is None:
             return
         else:

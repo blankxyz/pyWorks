@@ -22,7 +22,12 @@ import zlib
 import cgi
 import hashlib
 
-
+def unicode_to_str(text, encoding=None, errors='strict'):
+    if encoding is None:
+        encoding = 'utf-8'
+    if isinstance(text, unicode):
+        return text.encode(encoding, errors)
+    return text
 
 def _parse_url(url, encoding = None):
     return url if isinstance(url, urlparse.ParseResult) else \
@@ -37,7 +42,7 @@ def _unquotepath(path):
 def canonicalize_url(url, keep_blank_values = True, keep_fragments = True,
         encoding=None):
     """
-    解析url去除无效参数                 
+    解析url去除无效参数
     """
     scheme, netloc, path, params, query, fragment = _parse_url(url)
     keyvals = cgi.parse_qsl(query, keep_blank_values)

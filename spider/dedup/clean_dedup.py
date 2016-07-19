@@ -6,8 +6,11 @@ import redis
 
 
 def clean_dedup(con_str, key, score):
-    db = redis.from_url("redis://%s"%(con_str))
-    count = db.zremrangebyscore(key, 0, time.time() - score)
+    db = redis.StrictRedis.from_url("redis://%s"%(con_str))
+    try:
+        count = db.zremrangebyscore(key, 0, time.time() - score)
+    except:
+        count = 0
     return count
 
 
