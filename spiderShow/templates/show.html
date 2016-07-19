@@ -13,7 +13,7 @@
         $(function () {
             $('#process-div').highcharts({
                 title: {
-                    text: '处理过程',
+                    text: '处理过程展示',
                     x: -20 //center
                 },
                 subtitle: {
@@ -66,7 +66,7 @@
                     plotShadow: false
                 },
                 title: {
-                    text: '与192.168.110.110 dedup 匹配率'
+                    text: '与去重库匹配的情况'
                 },
                 tooltip: {
                     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -106,7 +106,7 @@
                     margin: [50, 50, 100, 80]
                 },
                 title: {
-                    text: '关键字 匹配度'
+                    text: '规则匹配情况'
                 },
                 xAxis: {
                     categories: [

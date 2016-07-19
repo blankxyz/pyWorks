@@ -165,7 +165,7 @@
         <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
             /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
         <input type=text size=70 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
-        <label id="regex_result"> 请确认转换后的表达式，拷贝到下面列表中。 </label>
+        <label id="regex_result"> 请确认转换后的表达式，编辑/拷贝到下面列表中。 </label>
     </div>
     <hr/>
 {#    <div id="list-keyword" class="form-group" style="width:80%; margin-left:50px">#}
@@ -173,7 +173,7 @@
 {#        单词 + ‘;’ 形式增加。 <br>#}
 {#    </div>#}
     <div id="list-regex" class="form-group" style="width:80%; margin-left:50px">
-        <label for="name">列表页-正则表达式</label><br>
+        <label for="name">列表页-正则表达式(最多50条)</label><br>
         {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
         <table id="list-regex-tab">
             <thead>
@@ -203,7 +203,7 @@
 {#        单词 + ‘;’ 形式增加。 <br>#}
 {#    </div>#}
     <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
-        <label for="name">详情页-正则表达式</label><br>
+        <label for="name">详情页-正则表达式(最多50条)</label><br>
         {#        <table id="detail-regex-tab" bgcolor="{{ loop.cycle('Gainsboro', 'GhostWhite') }}">#}
         <table id="detail-regex-tab">
             <thead>

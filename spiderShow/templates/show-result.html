@@ -67,12 +67,13 @@
 </head>
 <body>
 <h3 align="center">抓取结果一览-列表页/详情页
-    <small>最大支持1000条。</small>
+    <small>最大支持{{ outputForm.show_max }}条。</small>
     {#    <button type="button" class="btn disabled" formaction="/show_result">{{ outputForm.refresh() }}</button>#}
 </h3>
 <form id="show_result" method="POST" action="/show_result">
-    <div id="list-urls" class="form-group" style="float:left;width:50%;">
-        <a class="bottom" href="{{ url_for('static', filename='export/result-list.txt') }}">下载抓取结果(列表页)</a>
+    <div id="list-urls" class="form-group" style="float:left;width:45%;margin-left:10px">
+        <a class="bottom" href="{{ url_for('static', filename='export/result-list.yy') }}">下载抓取结果(列表页)</a>
+        <hr/>
         <table id="list-urls-tab">
             <thead>
             <tr>
@@ -91,8 +92,9 @@
         </table>
     </div>
     {#    <hr style="width:2px;height:100px;"></hr>#}
-    <div id="detail-urls" class="form-group" style="float:right;width:50%;">
-        <a class="bottom" href="{{ url_for('static', filename='export/result-detail.txt') }}">下载抓取结果(详情页)</a>
+    <div id="detail-urls" class="form-group" style="float:right;width:45%;margin-left:10px">
+        <a class="bottom" href="{{ url_for('static', filename='export/result-detail.yy') }}">下载抓取结果(详情页)</a>
+        <hr/>
         <table id="detail-urls-tab">
             <thead>
             <tr>

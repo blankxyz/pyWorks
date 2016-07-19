@@ -118,9 +118,11 @@ class InputForm(Form):
 
 
 class OutputForm(Form):
-    detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=1000)
+    show_max = 200
 
-    list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=1000)
+    detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=show_max)
+
+    list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=show_max)
 
     refresh = SubmitField(label=u'刷新')
 
@@ -197,7 +199,7 @@ class MySqlDrive(object):
             if cnt == 1:
                 (id, start_url, site_domain, setting_json) = self.cur.fetchone()
                 self.conn.commit()
-            print 'get_current_main_setting()', cnt, sqlStr
+            # print 'get_current_main_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_current_main_setting()', e
 
