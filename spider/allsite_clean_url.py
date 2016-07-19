@@ -36,23 +36,20 @@ class Cleaner(object):
         '''路径正则黑名单
         @ 匹配到的路径应为 非列表页url
         '''
-        default_regex = (
-            re.compile('/'),
-            re.compile('^$'),
-        )
-        regex_list = black_domain_list.split(';')
+        default_regex = ['/', '^$']
         compile_list = []
-        for regex_str in regex_list:
-            compile_list.append(re.compile(regex_str))
+        for regex_str in black_domain_list.split(';'):
+            if regex_str!='': compile_list.append(regex_str)
 
-        # print 'get_black_path_regex()', tuple(compile_list) + default_regex
-        return tuple(compile_list) + default_regex
+        compile_list.extend(default_regex)
+
+        return compile_list
 
     def in_black_list(self, url):
         '''域名黑名单'''
         for regex in self.black_domain_regex:
-            # print 'in_black_list()', regex,todo
-            if re.match(regex, urlparse.urlparse(url).netloc):
+            if re.match(re.compile(regex), urlparse.urlparse(url).netloc):
+                print regex
                 return True
         return False
 
@@ -266,8 +263,11 @@ def get_unicode_page(url, encoding):
 
 
 if __name__ == '__main__':
-    sina_clean = Cleaner('news.sina.com.cn')
-    # print sina_clean.is_detail_by_regex('http://news.sina.com.cn/richtalk/news/society/society_beijingribao.html')
-    text = get_unicode_page('http://bbs.yuloo.com/404.html', 'gbk')
-    print sina_clean.is_error_page(text)
-    print sina_clean.is_old_page(text)
+    url = 'http://aa.bb.com'
+    cleaner = Cleaner(site_domain='news.sina.com.cn',black_domain_list='aa.bb.com;cc.dd.com')
+    # print cleaner.is_detail_by_regex('http://news.sina.com.cn/richtalk/news/society/society_beijingribao.html')
+    # text = get_unicode_page('http://bbs.yuloo.com/404.html', 'gbk')
+    # print cleaner.is_error_page(text)
+    # print cleaner.is_old_page(text)
+    print cleaner.in_black_list(url)
+
