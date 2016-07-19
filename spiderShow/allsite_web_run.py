@@ -36,11 +36,11 @@ EXPORT_FOLDER = 'static/export/'
 
 # RUN_PY_FILE = "run_spider.bat"
 if os.name == 'nt':
-    # RUN_PY_FILE = 'D:\workspace\pyWorks\spiderShow\\run_spider.bat'
-    RUN_PY_FILE = 'run_spider.bat'
+    RUN_PY_FILE = 'D:\workspace\pyWorks\spiderShow\\run_spider.bat'
+    RUN_SHELL_FILE = 'run_spider.bat'
 else:
-    # RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/allsite_url_rule_manual.py'
-    RUN_PY_FILE = 'run_spider.sh'
+    RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/allsite_url_rule_manual.py'
+    RUN_SHELL_FILE = './run_spider.sh'
 
 
 # def is_me(form, field): #自定义check函数
@@ -84,7 +84,7 @@ else:
 class RegexForm(Form):
     select = BooleanField(label=u'选择', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    weight = SelectField(label=u'权重', choices=[('100', u'确定'), ('50', u'可能'), ('30', u'。。。')])
+    weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
@@ -209,7 +209,7 @@ class MySqlDrive(object):
         return start_url, site_domain, black_domain
 
     def set_current_main_setting(self, start_url, site_domain, black_domain, setting_json):
-        print 'set_current_main_setting', black_domain
+        # print 'set_current_main_setting() start'
         # 提取主页、域名
         sqlStr1 = "DELETE FROM current_domain_setting"
         sqlStr2 = "INSERT INTO current_domain_setting(start_url,site_domain,black_domain,setting_json) " \
@@ -692,7 +692,8 @@ def setting_main_save_and_run():
     if cnt == 1:
         flash(u"MySQL保存完毕，执行中...")
     else:
-        flash(u"MySQL保存失败，执行中...")
+        flash(u"MySQL保存失败.")
+        return render_template('setting.html', inputForm=inputForm)
 
     # 执行抓取程序 RUN_PY_FILE
     # 修改配置文件的执行入口信息
@@ -700,9 +701,12 @@ def setting_main_save_and_run():
                   black_domain_list="\'" + black_domain_list + "\'")
     # DOS "start" command
     if os.name == 'nt':
-        os.startfile(RUN_PY_FILE)
+        print 'run as windows'
+        # os.startfile(RUN_PY_FILE)
+        os.startfile(RUN_SHELL_FILE)
     else:
-        print os.system('./run_spider.sh')
+        print 'run as linux'
+        subprocess.Popen(['/bin/sh','-c' ,'./run_spider.sh'])
         # os.popen("python " + RUN_PY_FILE)
         # print p.read()
 

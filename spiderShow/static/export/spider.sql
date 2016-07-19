@@ -38,12 +38,6 @@ CREATE TABLE `current_domain_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='初始化配置，只有一条当前配置记录。';
 
 #
-# Data for table "current_domain_setting"
-#
-
-INSERT INTO `current_domain_setting` VALUES (0,'http://bbs.tianya.cn','bbs.tianya.cn','blog.tianya.cn','{\"detail_regex_save_list\": [[\"thread\", \"100\"], [\"post-\", \"100\"], [\"pic-\", \"100\"]], \"site_domain\": \"bbs.tianya.cn\", \"list_regex_save_list\": [[\"\\/$\", \"100\"], [\"list\", \"100\"], [\"index\", \"100\"]], \"start_url\": \"http://bbs.tianya.cn\"}');
-
-#
 # Structure for table "url_rule"
 #
 
@@ -61,9 +55,3 @@ CREATE TABLE `url_rule` (
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_url`,`site_domain`)
 ) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
-
-#
-# Data for table "url_rule"
-#
-
-INSERT INTO `url_rule` VALUES (182,'http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','1','thread',NULL),(183,'http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','1','post-',NULL),(184,'http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','1','pic-',NULL),(185,'http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','1','/$',NULL),(186,'http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','1','list',NULL),(187,'http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','1','index',NULL);

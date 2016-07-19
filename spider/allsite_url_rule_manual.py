@@ -26,9 +26,9 @@ class MySpider(spider.Spider):
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://bbs.tianya.cn'
-        self.site_domain = 'bbs.tianya.cn'
-        self.black_domain_list = 'blog.tianya.cn'
+        self.start_urls = 'http://cpt.xtu.edu.cn/'
+        self.site_domain = 'cpt.xtu.edu.cn'
+        self.black_domain_list = ''
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
@@ -102,10 +102,10 @@ class MySpider(spider.Spider):
         urls = self.cleaner.url_clean(urls)
         # 跨域检查
         urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
-        print 'filter_links() check_cross_domain', len(urls)
+        # print 'filter_links() check_cross_domain', len(urls)
         # 黑名单过滤
         urls = filter(lambda x: not self.cleaner.in_black_list(x), urls)  # bbs. mail.
-        print 'filter_links() in_black_list', len(urls)
+        # print 'filter_links() in_black_list', len(urls)
         # 链接时间过滤
         # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
         # 非第一页链接过滤

@@ -2,7 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1b296a14-ea3b-4b0a-a81f-2a89bb6ce81c" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/spiderShow/test.sh" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/spiderShow/static/export/全站爬虫-手工配置说明.xlsx" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources.xml" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/pyWorks.iml" afterPath="$PROJECT_DIR$/.idea/pyWorks.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spider/allsite_url_rule_manual.py" afterPath="$PROJECT_DIR$/spider/allsite_url_rule_manual.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spiderShow/allsite_web_run.py" afterPath="$PROJECT_DIR$/spiderShow/allsite_web_run.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spiderShow/static/export/process_show_temp.json" afterPath="$PROJECT_DIR$/spiderShow/static/export/process_show_temp.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spiderShow/static/export/result-detail.log" afterPath="$PROJECT_DIR$/spiderShow/static/export/result-detail.log" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spiderShow/static/export/result-list.log" afterPath="$PROJECT_DIR$/spiderShow/static/export/result-list.log" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spiderShow/static/export/spider.sql" afterPath="$PROJECT_DIR$/spiderShow/static/export/spider.sql" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/spiderShow/test1.py" afterPath="$PROJECT_DIR$/spiderShow/test1.py" />
     </list>
     <ignored path="pyWorks.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -16,21 +28,22 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/pyWorks$syq_allsite.coverage" NAME="syq_allsite Coverage Results" MODIFIED="1466274262612" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
     <SUITE FILE_PATH="coverage/pyWorks$syq_allsite_old.coverage" NAME="syq_allsite_old Coverage Results" MODIFIED="1466277496254" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
-    <SUITE FILE_PATH="coverage/pyWorks$syq_crumb.coverage" NAME="syq_crumb Coverage Results" MODIFIED="1466924074150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
+    <SUITE FILE_PATH="coverage/pyWorks$syq_url_rule_manual.coverage" NAME="syq_url_rule_manual Coverage Results" MODIFIED="1468507038742" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
+    <SUITE FILE_PATH="coverage/pyWorks$url_rule_manual.coverage" NAME="url_rule_manual Coverage Results" MODIFIED="1468568966838" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
+    <SUITE FILE_PATH="coverage/pyWorks$ScanDB.coverage" NAME="ScanDB Coverage Results" MODIFIED="1466091594395" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
+    <SUITE FILE_PATH="coverage/pyWorks$allsite_clean_url.coverage" NAME="allsite_clean_url Coverage Results" MODIFIED="1468906972819" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
+    <SUITE FILE_PATH="coverage/pyWorks$test.coverage" NAME="test Coverage Results" MODIFIED="1468405215670" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
+    <SUITE FILE_PATH="coverage/pyWorks$syq_allsite.coverage" NAME="syq_allsite Coverage Results" MODIFIED="1466274262612" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
+    <SUITE FILE_PATH="coverage/pyWorks$allsite_url_rule_manual.coverage" NAME="allsite_url_rule_manual Coverage Results" MODIFIED="1468938672766" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
+    <SUITE FILE_PATH="coverage/pyWorks$syq_crumbs1.coverage" NAME="syq_crumbs1 Coverage Results" MODIFIED="1467124541514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
+    <SUITE FILE_PATH="coverage/pyWorks$test1.coverage" NAME="test1 Coverage Results" MODIFIED="1468942677735" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
     <SUITE FILE_PATH="coverage/pyWorks$syq_url_rule_detail_bs4.coverage" NAME="syq_url_rule_detail_bs4 Coverage Results" MODIFIED="1467734566108" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
     <SUITE FILE_PATH="coverage/pyWorks$syq_url_rule_bs4.coverage" NAME="syq_url_rule_bs4 Coverage Results" MODIFIED="1467727598733" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
-    <SUITE FILE_PATH="coverage/pyWorks$syq_crumbs1.coverage" NAME="syq_crumbs1 Coverage Results" MODIFIED="1467124541514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
-    <SUITE FILE_PATH="coverage/pyWorks$syq_url_rule_manual.coverage" NAME="syq_url_rule_manual Coverage Results" MODIFIED="1468507038742" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
-    <SUITE FILE_PATH="coverage/pyWorks$test.coverage" NAME="test Coverage Results" MODIFIED="1468405215670" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
-    <SUITE FILE_PATH="coverage/pyWorks$allsite_url_rule_manual.coverage" NAME="allsite_url_rule_manual Coverage Results" MODIFIED="1468920198703" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
     <SUITE FILE_PATH="coverage/pyWorks$syq_crumbs2.coverage" NAME="syq_crumbs2 Coverage Results" MODIFIED="1466505557469" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
-    <SUITE FILE_PATH="coverage/pyWorks$allsite_clean_url.coverage" NAME="allsite_clean_url Coverage Results" MODIFIED="1468906972819" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
-    <SUITE FILE_PATH="coverage/pyWorks$allsite_web_run.coverage" NAME="allsite_web_run Coverage Results" MODIFIED="1468922956953" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
-    <SUITE FILE_PATH="coverage/pyWorks$ScanDB.coverage" NAME="ScanDB Coverage Results" MODIFIED="1466091594395" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
+    <SUITE FILE_PATH="coverage/pyWorks$syq_crumb.coverage" NAME="syq_crumb Coverage Results" MODIFIED="1466924074150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spider" />
     <SUITE FILE_PATH="coverage/pyWorks$processShow.coverage" NAME="processShow Coverage Results" MODIFIED="1466171292996" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
-    <SUITE FILE_PATH="coverage/pyWorks$url_rule_manual.coverage" NAME="url_rule_manual Coverage Results" MODIFIED="1468568966838" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
+    <SUITE FILE_PATH="coverage/pyWorks$allsite_web_run.coverage" NAME="allsite_web_run Coverage Results" MODIFIED="1468942764681" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spiderShow" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -54,16 +67,58 @@
       <file leaf-file-name="allsite_web_run.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/spiderShow/allsite_web_run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="531">
-              <caret line="726" column="51" selection-start-line="726" selection-start-column="51" selection-end-line="726" selection-end-column="51" />
+            <state relative-caret-position="998">
+              <caret line="700" column="2" selection-start-line="700" selection-start-column="2" selection-end-line="700" selection-end-column="2" />
               <folding>
                 <element signature="e#37#46#0" expanded="true" />
-                <element signature="e#1294#1331#0" expanded="false" />
-                <marker date="1468922947059" expanded="true" signature="5890:5986" ph="DELETE FROM " />
-                <marker date="1468922947059" expanded="true" signature="7835:7920" ph="SELECT * FRO... current_main_setting" />
-                <marker date="1468922947059" expanded="true" signature="8512:8546" ph="DELETE FROM " />
-                <marker date="1468922947059" expanded="true" signature="9307:9341" ph="DELETE FROM " />
+                <element signature="e#1298#1335#0" expanded="false" />
+                <marker date="1468942751000" expanded="true" signature="5890:5986" ph="DELETE FROM " />
+                <marker date="1468942751000" expanded="true" signature="7835:7920" ph="SELECT start... current_domain_setting" />
+                <marker date="1468942751000" expanded="true" signature="8508:8542" ph="DELETE FROM " />
+                <marker date="1468942751000" expanded="true" signature="9303:9337" ph="DELETE FROM " />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spiderShow/test.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="154">
+              <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test1.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spiderShow/test1.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="66">
+              <caret line="3" column="6" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="53" />
+              <folding>
+                <element signature="e#0#14#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="run_spider.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spiderShow/run_spider.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spiderShow/test.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="22">
+              <caret line="1" column="15" selection-start-line="1" selection-start-column="15" selection-end-line="1" selection-end-column="15" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -71,39 +126,12 @@
       <file leaf-file-name="allsite_url_rule_manual.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/spider/allsite_url_rule_manual.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-5924">
-              <caret line="20" column="46" selection-start-line="20" selection-start-column="46" selection-end-line="20" selection-end-column="46" />
+            <state relative-caret-position="865">
+              <caret line="43" column="30" selection-start-line="43" selection-start-column="30" selection-end-line="43" selection-end-column="30" />
               <folding>
                 <element signature="e#38#47#0" expanded="true" />
-                <marker date="1468915423529" expanded="true" signature="17506:17540" ph="SELECT * FRO... current_main_setting" />
-                <marker date="1468915423529" expanded="true" signature="18019:18051" ph="DELETE FROM " />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="setting.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/spiderShow/templates/setting.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="594">
-              <caret line="161" column="10" selection-start-line="161" selection-start-column="10" selection-end-line="161" selection-end-column="10" />
-              <folding>
-                <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <marker date="1468913542517" expanded="false" signature="9171:9198" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="show.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/spiderShow/templates/show.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="530">
-              <caret line="158" column="47" selection-start-line="158" selection-start-column="47" selection-end-line="158" selection-end-column="47" />
-              <folding>
-                <element signature="n#style#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#3;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <marker date="1468942804000" expanded="true" signature="17499:17533" ph="SELECT * FRO... current_main_setting" />
+                <marker date="1468942804000" expanded="true" signature="18012:18044" ph="DELETE FROM " />
               </folding>
             </state>
           </provider>
@@ -112,24 +140,39 @@
       <file leaf-file-name="show-result.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/spiderShow/templates/show-result.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="320">
-              <caret line="20" column="41" selection-start-line="20" selection-start-column="41" selection-end-line="20" selection-end-column="41" />
-              <folding>
-                <element signature="n#style#0;n#div#0;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#1;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-              </folding>
+            <state relative-caret-position="1144">
+              <caret line="52" column="32" selection-start-line="52" selection-start-column="32" selection-end-line="52" selection-end-column="32" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="export.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/spiderShow/templates/export.html">
+      <file leaf-file-name="allsite_run.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spider/allsite_run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
-              <caret line="19" column="30" selection-start-line="19" selection-start-column="30" selection-end-line="19" selection-end-column="30" />
-              <folding>
-                <element signature="n#style#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
-              </folding>
+            <state relative-caret-position="3300">
+              <caret line="154" column="39" selection-start-line="154" selection-start-column="39" selection-end-line="154" selection-end-column="39" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="syq_people_spiderdefault.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spider/syq_people_spiderdefault.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="660">
+              <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="spider.conf" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/spider/spider.conf">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1012">
+              <caret line="46" column="7" selection-start-line="46" selection-start-column="7" selection-end-line="46" selection-end-column="7" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -195,11 +238,14 @@
         <option value="$PROJECT_DIR$/spider/allsite_clean_url.py" />
         <option value="$PROJECT_DIR$/spiderShow/templates/export.html" />
         <option value="$PROJECT_DIR$/spiderShow/templates/setting.html" />
-        <option value="$PROJECT_DIR$/spider/allsite_url_rule_manual.py" />
-        <option value="$PROJECT_DIR$/spiderShow/static/export/process_show_temp.json" />
         <option value="$PROJECT_DIR$/spiderShow/run_spider.bat" />
         <option value="$PROJECT_DIR$/spider/allsite_run.py" />
         <option value="$PROJECT_DIR$/spider/spider.py" />
+        <option value="$PROJECT_DIR$/spiderShow/static/export/spider.sql" />
+        <option value="$PROJECT_DIR$/spider/allsite_url_rule_manual.py" />
+        <option value="$PROJECT_DIR$/spiderShow/static/export/process_show_temp.json" />
+        <option value="$PROJECT_DIR$/spiderShow/test.sh" />
+        <option value="$PROJECT_DIR$/spiderShow/test1.py" />
         <option value="$PROJECT_DIR$/spiderShow/allsite_web_run.py" />
       </list>
     </option>
@@ -211,10 +257,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="66" />
-    <option name="y" value="-8" />
-    <option name="width" value="1862" />
-    <option name="height" value="1096" />
+    <option name="x" value="1440" />
+    <option name="y" value="23" />
+    <option name="width" value="1920" />
+    <option name="height" value="1057" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -353,12 +399,6 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="UPDATED" />
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/misc.xml</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/pyWorks.iml</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/workspace.xml</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/spiderShow/allsite_web_run.py</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/spiderShow/run_spider.sh</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/spiderShow/test1.py</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Created" />
@@ -366,6 +406,7 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="CREATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/spiderShow/static/export/help.xlsx</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Deleted" />
@@ -473,24 +514,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="syq_url_rule_manual" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/spider" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="pyWorks" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="D:\workspace\pyWorks\spider\allsite_url_rule_manual.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="allsite_web_run" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -541,6 +564,24 @@
       <module name="pyWorks" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spider/allsite_clean_url.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="test1" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/spiderShow" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pyWorks" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spiderShow/test1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -766,18 +807,18 @@
     </configuration>
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.url_rule_manual" />
-      <item index="1" class="java.lang.String" itemvalue="Python.syq_url_rule_manual" />
-      <item index="2" class="java.lang.String" itemvalue="Python.allsite_web_run" />
-      <item index="3" class="java.lang.String" itemvalue="Python.allsite_url_rule_manual" />
-      <item index="4" class="java.lang.String" itemvalue="Python.allsite_clean_url" />
+      <item index="1" class="java.lang.String" itemvalue="Python.allsite_web_run" />
+      <item index="2" class="java.lang.String" itemvalue="Python.allsite_url_rule_manual" />
+      <item index="3" class="java.lang.String" itemvalue="Python.allsite_clean_url" />
+      <item index="4" class="java.lang.String" itemvalue="Python.test1" />
     </list>
     <recent_temporary>
       <list size="5">
         <item index="0" class="java.lang.String" itemvalue="Python.allsite_web_run" />
-        <item index="1" class="java.lang.String" itemvalue="Python.allsite_url_rule_manual" />
-        <item index="2" class="java.lang.String" itemvalue="Python.allsite_clean_url" />
-        <item index="3" class="java.lang.String" itemvalue="Python.url_rule_manual" />
-        <item index="4" class="java.lang.String" itemvalue="Python.syq_url_rule_manual" />
+        <item index="1" class="java.lang.String" itemvalue="Python.test1" />
+        <item index="2" class="java.lang.String" itemvalue="Python.allsite_url_rule_manual" />
+        <item index="3" class="java.lang.String" itemvalue="Python.allsite_clean_url" />
+        <item index="4" class="java.lang.String" itemvalue="Python.url_rule_manual" />
       </list>
     </recent_temporary>
   </component>
@@ -949,14 +990,7 @@
       <option name="project" value="LOCAL" />
       <updated>1468921999227</updated>
     </task>
-    <task id="LOCAL-00023" summary="Merge remote-tracking branch 'origin/master'&#10;">
-      <created>1468923043960</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1468923043960</updated>
-    </task>
-    <option name="localTasksCounter" value="24" />
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TodoView">
@@ -969,21 +1003,20 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="66" y="-8" width="1862" height="1096" extended-state="6" />
+    <frame x="1440" y="23" width="1920" height="1057" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30828306" sideWeight="0.49307957" order="4" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22087507" sideWeight="0.49307957" order="4" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32912782" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24520022" sideWeight="0.51226157" order="11" side_tool="true" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24520022" sideWeight="0.48773843" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2826962" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24512388" sideWeight="0.48773843" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28085575" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32693362" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20422535" sideWeight="0.49589685" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32577753" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39400208" sideWeight="0.49589685" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24908693" sideWeight="0.4917408" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2627537" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24840765" sideWeight="0.50825924" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24949698" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24904701" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -991,6 +1024,7 @@
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Database Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39637828" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2826962" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -1017,7 +1051,6 @@
     </layout-to-restore>
   </component>
   <component name="UnknownFeatures">
-    <option featureType="com.intellij.fileTypeFactory" implementationName="*.conf" />
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bat" />
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -1044,37 +1077,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="uml://DATABASE/e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b.TABLE:spider.setting">
-      <provider selected="true" editor-type-id="UmlEditorProvider">
-        <state>
-          <ID>DATABASE</ID>
-          <OriginalElement>e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b.TABLE:spider.setting</OriginalElement>
-          <nodes>
-            <node x="" y="">e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b.TABLE:spider.setting</node>
-          </nodes>
-          <notes />
-          <edges />
-          <settings layout="Hierarchic Group" zoom="1.0" x="87.0" y="57.0" />
-          <SelectedNodes />
-          <Categories>
-            <Category>Columns</Category>
-            <Category>Key columns</Category>
-          </Categories>
-          <SCOPE>All</SCOPE>
-        </state>
-      </provider>
-    </entry>
-    <entry file="dbDummy://dbtable:/ae637ccc/e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b/spider.keywords" />
-    <entry file="dbDummy://dbtable:/ae637ccc/e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b/spider.setting" />
-    <entry file="file://$PROJECT_DIR$/spiderShow/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="112">
-          <caret line="7" column="26" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/templates/show-detal.html" />
-    <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b/console_1.sql" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/e62a02ba-0bb3-40d2-a15d-9ffa3a3cf21b/console.sql">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1087,7 +1089,6 @@
     <entry file="file://$PROJECT_DIR$/../venv/lib/python2.7/site-packages/flask/app.py" />
     <entry file="file://$PROJECT_DIR$/../venv/lib/python2.7/site-packages/werkzeug/debug/__init__.py" />
     <entry file="dbDummy://dbtable:/a09ad0bb/3d81a008-79de-4954-8da7-8236072b8ea8/spider.current_main_setting" />
-    <entry file="dbDummy://dbtable:/a09ad0bb/3d81a008-79de-4954-8da7-8236072b8ea8/spider.url_rule" />
     <entry file="file://$PROJECT_DIR$/spiderShow/url_selecter.py" />
     <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/3d81a008-79de-4954-8da7-8236072b8ea8/console.sql">
       <provider selected="true" editor-type-id="text-editor">
@@ -1103,21 +1104,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python27/Lib/site-packages/flask/app.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="1624" column="0" selection-start-line="1624" selection-start-column="0" selection-end-line="1624" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python27/Lib/site-packages/flask/app.py" />
     <entry file="file://$PROJECT_DIR$/bugzilly/reportslib/db.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="368">
           <caret line="45" column="28" selection-start-line="45" selection-start-column="16" selection-end-line="45" selection-end-column="28" />
-          <folding>
-            <marker date="1465811580696" expanded="true" signature="6961:7048" ph="SELECT thete... longdescs" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1125,7 +1116,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1133,27 +1123,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#15#29#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python27/Lib/site-packages/flask/exthook.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="464">
-          <caret line="84" column="74" selection-start-line="84" selection-start-column="74" selection-end-line="84" selection-end-column="74" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python27/Lib/site-packages/flask/exthook.py" />
     <entry file="file://$PROJECT_DIR$/spiderShow/ScanDB.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1467875561999" expanded="true" signature="1536:1557" ph="select * fro... process" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1161,7 +1138,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="229">
           <caret line="452" column="0" selection-start-line="452" selection-start-column="0" selection-end-line="454" selection-end-column="70" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1169,7 +1145,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="14" selection-start-line="0" selection-start-column="14" selection-end-line="0" selection-end-column="14" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1177,124 +1152,65 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1864">
           <caret line="20" column="77" selection-start-line="20" selection-start-column="77" selection-end-line="20" selection-end-column="77" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/static/setting/sina_regex_20160520.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="224">
-          <caret line="14" column="68" selection-start-line="14" selection-start-column="68" selection-end-line="14" selection-end-column="68" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/spiderShow/static/setting/sina_regex_20160520.json" />
     <entry file="file://$PROJECT_DIR$/spider/log.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="288">
           <caret line="21" column="7" selection-start-line="21" selection-start-column="7" selection-end-line="21" selection-end-column="7" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python27/Lib/site-packages/flask/helpers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-599">
-          <caret line="473" column="24" selection-start-line="473" selection-start-column="11" selection-end-line="473" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python27/Lib/site-packages/flask/helpers.py" />
     <entry file="file://$PROJECT_DIR$/spiderShow/templates/menu.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="336">
           <caret line="21" column="6" selection-start-line="21" selection-start-column="6" selection-end-line="21" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="dbDummy://dbtable:/ae637ccc/3d81a008-79de-4954-8da7-8236072b8ea8/spider.current_domain_setting">
-      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
-        <state>
-          <filtering enabled="true" />
-        </state>
-      </provider>
-      <provider editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="dbDummy://dbtable:/ae637ccc/3d81a008-79de-4954-8da7-8236072b8ea8/spider.url_rule">
-      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
-        <state>
-          <filtering enabled="true" />
-        </state>
-      </provider>
-      <provider editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/static/export/spider.sql">
+    <entry file="file://$PROJECT_DIR$/spiderShow/templates/show.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="3476">
+          <caret line="158" column="47" selection-start-line="158" selection-start-column="47" selection-end-line="158" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-762174762/__builtin__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="3334" column="8" selection-start-line="3334" selection-start-column="8" selection-end-line="3334" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="dbDummy://dbtable:/ae637ccc/3d81a008-79de-4954-8da7-8236072b8ea8/spider.current_domain_setting" />
+    <entry file="dbDummy://dbtable:/ae637ccc/3d81a008-79de-4954-8da7-8236072b8ea8/spider.url_rule" />
+    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-762174762/__builtin__.py" />
     <entry file="file://$PROJECT_DIR$/spider/allsite_clean_url.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
           <caret line="47" column="21" selection-start-line="47" selection-start-column="8" selection-end-line="47" selection-end-column="21" />
-          <folding>
-            <element signature="e#34#43#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/spiderShow/templates/export.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
+        <state relative-caret-position="418">
           <caret line="19" column="30" selection-start-line="19" selection-start-column="30" selection-end-line="19" selection-end-column="30" />
-          <folding>
-            <element signature="n#style#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python27/Lib/site-packages/redis/client.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
-          <caret line="1681" column="59" selection-start-line="1681" selection-start-column="56" selection-end-line="1681" selection-end-column="59" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/static/export/process_show_temp.json">
+    <entry file="file://C:/Python27/Lib/site-packages/redis/client.py" />
+    <entry file="file://$PROJECT_DIR$/spiderShow/templates/setting.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="3542">
+          <caret line="161" column="10" selection-start-line="161" selection-start-column="10" selection-end-line="161" selection-end-column="10" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python27/Lib/site-packages/daemon/runner.py">
+    <entry file="file://C:/Python27/Lib/site-packages/daemon/runner.py" />
+    <entry file="file://$PROJECT_DIR$/spiderShow/templates/show-result.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="256" column="8" selection-start-line="256" selection-start-column="8" selection-end-line="256" selection-end-column="8" />
+        <state relative-caret-position="1144">
+          <caret line="52" column="32" selection-start-line="52" selection-start-column="32" selection-end-line="52" selection-end-column="32" />
           <folding />
         </state>
       </provider>
@@ -1303,7 +1219,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
           <caret line="352" column="15" selection-start-line="352" selection-start-column="15" selection-end-line="352" selection-end-column="15" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1311,6 +1226,21 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
           <caret line="27" column="73" selection-start-line="27" selection-start-column="23" selection-end-line="27" selection-end-column="73" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spider/spider.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1012">
+          <caret line="46" column="7" selection-start-line="46" selection-start-column="7" selection-end-line="46" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spider/syq_people_spiderdefault.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
           <folding />
         </state>
       </provider>
@@ -1319,6 +1249,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="138">
           <caret line="290" column="11" selection-start-line="290" selection-start-column="11" selection-end-line="290" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spider/allsite_run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3300">
+          <caret line="154" column="39" selection-start-line="154" selection-start-column="39" selection-end-line="154" selection-end-column="39" />
           <folding />
         </state>
       </provider>
@@ -1327,7 +1264,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="16">
           <caret line="1" column="79" selection-start-line="1" selection-start-column="79" selection-end-line="1" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1335,91 +1271,109 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spiderShow/Xterm.log.songdeMacBook-Air.local.2016.07.18.22.14.08.935" />
+    <entry file="file://$PROJECT_DIR$/spiderShow/static/export/spider.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="16" column="21" selection-start-line="16" selection-start-column="21" selection-end-line="16" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="dbDummy://dbtable:/a09ad0bb/3d81a008-79de-4954-8da7-8236072b8ea8/spider.url_rule">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+      <provider editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="dbDummy://dbtable:/a09ad0bb/3d81a008-79de-4954-8da7-8236072b8ea8/spider.current_domain_setting">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+      <provider editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/spiderShow/static/export/process_show_temp.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/spider/allsite_url_rule_manual.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-5924">
-          <caret line="20" column="46" selection-start-line="20" selection-start-column="46" selection-end-line="20" selection-end-column="46" />
+        <state relative-caret-position="865">
+          <caret line="43" column="30" selection-start-line="43" selection-start-column="30" selection-end-line="43" selection-end-column="30" />
           <folding>
             <element signature="e#38#47#0" expanded="true" />
-            <marker date="1468915423529" expanded="true" signature="17506:17540" ph="SELECT * FRO... current_main_setting" />
-            <marker date="1468915423529" expanded="true" signature="18019:18051" ph="DELETE FROM " />
+            <marker date="1468942804000" expanded="true" signature="17499:17533" ph="SELECT * FRO... current_main_setting" />
+            <marker date="1468942804000" expanded="true" signature="18012:18044" ph="DELETE FROM " />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/templates/setting.html">
+    <entry file="file://$PROJECT_DIR$/spiderShow/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="161" column="10" selection-start-line="161" selection-start-column="10" selection-end-line="161" selection-end-column="10" />
-          <folding>
-            <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <marker date="1468913542517" expanded="false" signature="9171:9198" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/templates/show.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="530">
-          <caret line="158" column="47" selection-start-line="158" selection-start-column="47" selection-end-line="158" selection-end-column="47" />
-          <folding>
-            <element signature="n#style#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#2;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#3;n#body#0;n#html#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spider/syq_people_spiderdefault.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
+        <state relative-caret-position="154">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spider/spider.conf">
+    <entry file="file://$PROJECT_DIR$/spiderShow/test.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="592">
-          <caret line="37" column="7" selection-start-line="37" selection-start-column="7" selection-end-line="37" selection-end-column="7" />
+        <state relative-caret-position="22">
+          <caret line="1" column="15" selection-start-line="1" selection-start-column="15" selection-end-line="1" selection-end-column="15" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spider/allsite_run.py">
+    <entry file="file://$PROJECT_DIR$/spiderShow/run_spider.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="274" column="20" selection-start-line="274" selection-start-column="20" selection-end-line="274" selection-end-column="20" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/spiderShow/templates/show-result.html">
+    <entry file="file://$PROJECT_DIR$/spiderShow/test1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="320">
-          <caret line="20" column="41" selection-start-line="20" selection-start-column="41" selection-end-line="20" selection-end-column="41" />
+        <state relative-caret-position="66">
+          <caret line="3" column="6" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="53" />
           <folding>
-            <element signature="n#style#0;n#div#0;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#1;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#0#14#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/spiderShow/allsite_web_run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="531">
-          <caret line="726" column="51" selection-start-line="726" selection-start-column="51" selection-end-line="726" selection-end-column="51" />
+        <state relative-caret-position="998">
+          <caret line="700" column="2" selection-start-line="700" selection-start-column="2" selection-end-line="700" selection-end-column="2" />
           <folding>
             <element signature="e#37#46#0" expanded="true" />
-            <element signature="e#1294#1331#0" expanded="false" />
-            <marker date="1468922947059" expanded="true" signature="5890:5986" ph="DELETE FROM " />
-            <marker date="1468922947059" expanded="true" signature="7835:7920" ph="SELECT * FRO... current_main_setting" />
-            <marker date="1468922947059" expanded="true" signature="8512:8546" ph="DELETE FROM " />
-            <marker date="1468922947059" expanded="true" signature="9307:9341" ph="DELETE FROM " />
+            <element signature="e#1298#1335#0" expanded="false" />
+            <marker date="1468942751000" expanded="true" signature="5890:5986" ph="DELETE FROM " />
+            <marker date="1468942751000" expanded="true" signature="7835:7920" ph="SELECT start... current_domain_setting" />
+            <marker date="1468942751000" expanded="true" signature="8508:8542" ph="DELETE FROM " />
+            <marker date="1468942751000" expanded="true" signature="9303:9337" ph="DELETE FROM " />
           </folding>
         </state>
       </provider>
