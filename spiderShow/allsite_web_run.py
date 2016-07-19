@@ -656,9 +656,11 @@ def setting_main_save_and_run():
         flash(u"详情页正则表达式有重复。")
         return render_template('setting.html', inputForm=inputForm)
 
-    if list(set(list_regex_save_list).intersection(set(detail_regex_save_list))) == 0:
-        flash(u"列表和详情页中的正则表达式不能重复。")
-        return render_template('setting.html', inputForm=inputForm)
+    for regex, weight in list_regex_save_list:
+        for r,w in detail_regex_save_list:
+            if r == regex:
+                flash(u"列表和详情页中的正则表达式不能重复。")
+                return render_template('setting.html', inputForm=inputForm)
 
     # 保存到json文件
     export_file = {'start_url': start_url,
