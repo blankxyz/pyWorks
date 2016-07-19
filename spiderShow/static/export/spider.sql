@@ -55,7 +55,7 @@ CREATE TABLE `url_rule` (
   `detail_or_list` char(1) DEFAULT '0' COMMENT '0:detail,1:list',
   `scope` char(1) NOT NULL DEFAULT '0' COMMENT '0:netloc,1:path,2:query',
   `white_or_black` char(1) NOT NULL DEFAULT '0' COMMENT '0:white,1:black',
-  `weight` char(1) NOT NULL DEFAULT '0' COMMENT '0:高，1：中，2：低',
+  `weight` char(3) NOT NULL DEFAULT '0' COMMENT '0:高，1：中，2：低',
   `regex` varchar(255) DEFAULT NULL COMMENT '正则表达式',
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`),
