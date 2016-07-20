@@ -290,6 +290,97 @@ class MySqlDrive(object):
         return regexs
 
 
+CONFIG_JSON = 'config.json'
+
+
+class FileDrive(object):
+    def __init__(self):
+        self.fd = open(CONFIG_JSON, 'wr')
+
+    def __del__(self):
+        self.fd.close()
+
+    def save_all_setting(self, start_url, site_domain, setting_json, detail_regex_save_list,
+                         list_regex_save_list):
+        ret_cnt = 0
+        try:
+            # detail_or_list = '0'  # 0:detail,1:list
+            # scope = '0'           # 0:netloc,1:path,2:query
+            # white_or_black = '0'  # 0:white,1:black
+            # weight = '0'          # 0:高，1：中，2：低
+
+            for regex, weight in detail_regex_save_list:
+                detail_or_list = '0'
+                scope = '1'
+                white_or_black = '0'
+                ret_cnt = 1
+                self.fd.write((start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex))
+
+            for regex, weight in list_regex_save_list:
+                detail_or_list = '1'
+                scope = '1'
+                white_or_black = '0'
+                self.fd.write((start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex))
+                ret_cnt = 1
+                self.fd.write()
+
+            self.fd.flush()
+
+        except Exception, e:
+            ret_cnt = 0
+            print '[error]save_to_mysql()', e
+            self.fd.close()
+
+        return ret_cnt
+
+    def get_current_main_setting(self):
+        # 提取主页、域名
+        start_url = ''
+        site_domain = ''
+        black_domain = ''
+        setting_json = ''
+        try:
+            (start_url, site_domain, black_domain, setting_json) = json.load(self.fd, encoding=MYSQLDB_CHARSET)
+        except Exception, e:
+            print 'get_current_main_setting()', e
+
+        return start_url, site_domain, black_domain, setting_json
+
+    def set_current_main_setting(self, start_url, site_domain, black_domain, setting_json):
+        # 提取主页、域名
+        try:
+            json.dump(self.fd, (start_url, site_domain, black_domain, setting_json))
+        except Exception, e:
+            print '[error]set_current_main_setting()', e
+
+        return start_url, site_domain, setting_json
+
+    def clean_current_main_setting(self):
+        # 提取主页、域名
+        try:
+            self.fd.write('')
+            self.fd.flush()
+        except Exception, e:
+            print '[error]get_current_main_setting()', e
+
+    def get_regexs(self, type):
+        regexs = []
+        # 提取主页、域名
+        start_url, site_domain, black_domain, setting_json = self.get_current_main_setting()
+        try:
+            rs = json.load(CONFIG_JSON)['setting_json']
+            for r in rs:
+                (scope, white_or_black, weight, regex, etc) = r
+                if type == 'detail': # 0:detail,1:list
+                    detail_or_list = '0'
+                else:
+                    detail_or_list = '1'
+                regexs.append((scope, white_or_black, weight, regex, etc))
+        except Exception, e:
+            print '[error]get_regexs()', e
+        return regexs
+
+
 class RedisDrive(object):
     def __init__(self, start_url, site_domain):
         self.site_domain = site_domain
