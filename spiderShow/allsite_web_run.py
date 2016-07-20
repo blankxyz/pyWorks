@@ -25,24 +25,28 @@ from werkzeug.utils import secure_filename
 # sys.path.append(r'')
 # import
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'success'
-app.config['EXPORT_FOLDER'] = 'static/export/'
-bootstrap = Bootstrap(app)
-
+####################################################################
+INIT_CONFIG = '/web_run.dev.ini'
+# INIT_CONFIG = '/web_run.deploy.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
 _cur_path = os.path.dirname(__file__)
-config.read(_cur_path + '/web_run.ini')
+if len(config.read(_cur_path + INIT_CONFIG)) == 0:
+    print '[error]cannot read the config file.'
+    exit(-1)
+else:
+    print '[info] read the config file.', INIT_CONFIG
+
 # redis
-REDIS_SETTING = config.get('redis', 'redis_server')
-dedup_setting = config.get('redis', 'dedup_server')
+REDIS_SERVER = config.get('redis', 'redis_server')
+DEDUP_SETTING = config.get('redis', 'dedup_server')
 # mysql
 MYSQLDB_HOST = config.get('mysql', 'mysql_host')
 MYSQLDB_USER = config.get('mysql', 'mysql_user')
 MYSQLDB_PORT = config.getint('mysql', 'mysql_port')
 MYSQLDB_PASSWORD = config.get('mysql', 'mysql_password')
 MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
+MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
 # show json
 PROCESS_SHOW_JSON = config.get('mysql', 'mysql_password')
 SHOW_MAX = config.getint('show', 'show_max')
@@ -50,17 +54,20 @@ SHOW_MAX = config.getint('show', 'show_max')
 EXPORT_FOLDER = 'static/export/'
 
 if os.name == 'nt':
-    RUN_PY_FILE = config.get('windows', 'run_py_file')
-    RUN_SHELL_FILE = config.get('windows', 'run_shell_file')
+    RUN_FILE = config.get('windows', 'run_file')
+    SHELL_CMD = config.get('windows', 'shell_cmd')
 else:
-    RUN_PY_FILE = config.get('linux', 'run_py_file')
-    RUN_SHELL_FILE = config.get('linux', 'run_shell_file')
+    RUN_FILE = config.get('linux', 'run_file')
+    SHELL_CMD = config.get('linux', 'shell_cmd')
 
-MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
 ####################################################################
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'success'
+app.config['EXPORT_FOLDER'] = 'static/export/'
+bootstrap = Bootstrap(app)
 
 global process_id
 
@@ -209,7 +216,7 @@ class MySqlDrive(object):
 
         except Exception, e:
             ret_cnt = 0
-            print '[ERROR]save_to_mysql()', e
+            print '[error]save_to_mysql()', e
             self.conn.rollback()
 
         return ret_cnt
@@ -244,8 +251,8 @@ class MySqlDrive(object):
             cnt = self.cur.execute(sqlStr2)
             self.conn.commit()
         except Exception, e:
-            print '[ERROR]set_current_main_setting()', e, sqlStr1
-            print '[ERROR]set_current_main_setting()', e, sqlStr2
+            print '[error]set_current_main_setting()', e, sqlStr1
+            print '[error]set_current_main_setting()', e, sqlStr2
 
         return start_url, site_domain, setting_json
 
@@ -257,7 +264,7 @@ class MySqlDrive(object):
             self.conn.commit()
             # print 'get_current_main_setting()', sqlStr
         except Exception, e:
-            print '[ERROR]get_current_main_setting()', e
+            print '[error]get_current_main_setting()', e
 
     def get_regexs(self, type):
         # 0:detail,1:list
@@ -279,7 +286,7 @@ class MySqlDrive(object):
             self.conn.commit()
             # print 'get_regexs()', cnt, sqlStr
         except Exception, e:
-            print '[ERROR]get_regexs()', e
+            print '[error]get_regexs()', e
         return regexs
 
 
@@ -287,7 +294,7 @@ class RedisDrive(object):
     def __init__(self, start_url, site_domain):
         self.site_domain = site_domain
         self.start_url = start_url
-        self.conn = redis.StrictRedis.from_url(REDIS_SETTING)
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
         self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
@@ -322,6 +329,7 @@ class RedisDrive(object):
         return float(cnt) / len(urls)
 
     def get_keywords_match(self):
+        # todo
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         matched_cnt = ','.join(['99', '2', '10', '30', '1'])
@@ -343,7 +351,7 @@ class RedisDrive(object):
                     'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
         self.conn.hset(
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
-        print cnt_info
+        # print cnt_info
         jsonStr = json.dumps(cnt_info)
         fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'a')
         fp.write(jsonStr)
@@ -437,43 +445,20 @@ def convert_regex_format(rule):
     return ret
 
 
-def modify_pyfile(start_urls, site_domain, black_domain_list):
-    config = ConfigParser.ConfigParser()
-    _cur_path = os.path.dirname(__file__)
-    config.read(_cur_path + '/web_run.ini')
-    config.set('spider', 'start_urls', start_urls)
-    config.set('spider', 'site_domain', site_domain)
-    config.set('spider', 'black_domain_list', black_domain_list)
-
-    # try:
-    #     lines = open(py_file, 'r').readlines()
-    #     # print type(lines)
-    #     i = 0
-    #     for line in lines:
-    #         s = line.strip()
-    #         i += 1
-    #         if s != '' and s[0] == '#':
-    #             continue
-    #         else:
-    #             if i < 100:
-    #                 if re.search(r'self\.start_urls\s*?=', s):
-    #                     lines[i - 1] = line[:line.find('=') + 1] + ' ' + start_urls + '\n'
-    #                     print 'modify_pyfile()', lines[i - 1]
-    #
-    #                 if re.search(r'self\.site_domain\s*?=', s):
-    #                     lines[i - 1] = line[:line.find('=') + 1] + ' ' + site_domain + '\n'
-    #                     print 'modify_pyfile()', lines[i - 1]
-    #
-    #                 if re.search(r'self\.black_domain_list\s*?=', s):
-    #                     lines[i - 1] = line[:line.find('=') + 1] + ' ' + black_domain_list + '\n'
-    #                     print 'modify_pyfile()', lines[i - 1]
-    #
-    #     open(py_file, 'w').writelines(lines)
-    #     return True
-    #
-    # except Exception, e:
-    #     print 'modify_pyfile()', e
-    #     return False
+def modify_config(start_urls, site_domain, black_domain_list):
+    try:
+        config = ConfigParser.ConfigParser()
+        _cur_path = os.path.dirname(__file__)
+        config.read(_cur_path + INIT_CONFIG)
+        config.set('spider', 'start_urls', start_urls)
+        config.set('spider', 'site_domain', site_domain)
+        config.set('spider', 'black_domain_list', black_domain_list)
+        fp = open(_cur_path + INIT_CONFIG, "w")
+        config.write(fp)
+        return True
+    except Exception, e:
+        print "[error] modify_config(): %s" % e
+        return False
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -730,24 +715,22 @@ def setting_main_save_and_run():
         flash(u"MySQL保存失败.")
         return render_template('setting.html', inputForm=inputForm)
 
-    # 执行抓取程序 RUN_PY_FILE
+    # 执行抓取程序
     # 修改配置文件的执行入口信息
-    ret = modify_pyfile(start_urls=start_url, site_domain=site_domain, black_domain_list=black_domain_list)
+    ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_list=black_domain_list)
     if ret == False:
-        flash(u"执行文件" + RUN_PY_FILE + u"配置失败.")
+        flash(u"修改" + INIT_CONFIG + u"文件失败.")
         return render_template('setting.html', inputForm=inputForm)
 
     # DOS "start" command
     if os.name == 'nt':
-        print 'run as windows'
-        # os.startfile(RUN_PY_FILE)
-        os.startfile(RUN_SHELL_FILE)
+        print '[info] run windows'
+        os.startfile(RUN_FILE)
     else:
-        print 'run as linux'
-        p = subprocess.Popen(['/bin/sh', '-c', './run_spider.sh'])
+        print '[info] run linux'
+        p = subprocess.Popen(SHELL_CMD, shell=True)
         process_id = p.pid
-        # os.popen("python " + RUN_PY_FILE)
-        # print p.read()
+        print '[info] process_id:', process_id
 
     return render_template('setting.html', inputForm=inputForm)
 

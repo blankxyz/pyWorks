@@ -15,22 +15,35 @@ from bs4 import BeautifulSoup, Comment
 import requests
 import allsite_clean_url
 
-#############################################################################
+####################################################################
+INIT_CONFIG = '/../spiderShow/web_run.dev.ini'
+# INIT_CONFIG = '/../spiderShow/web_run.deploy.ini'
+####################################################################
 config = ConfigParser.ConfigParser()
 _cur_path = os.path.dirname(__file__)
-config.read(_cur_path + '../../spiderShow/web_run.ini')
+if len(config.read(_cur_path + INIT_CONFIG)) == 0:
+    print '[ERROR]cannot read the config file.', _cur_path + INIT_CONFIG
+    exit(-1)
+else:
+    print '[INFO] read the config file.', INIT_CONFIG
 
-#spider
-START_URLS = config.get('spider','start_urls')
-SITE_DOMAIN = config.get('spider','site_domain')
-BLACK_DOMAIN_LIST = config.get('spider','black_domain_list')
+# redis
+REDIS_SERVER = config.get('redis', 'redis_server')
+DEDUP_SETTING = config.get('redis', 'dedup_server')
 
-#mysql
-MYSQLDB_HOST = config.get('mysql','mysql_host')
-MYSQLDB_USER = config.get('mysql','mysql_user')
-MYSQLDB_PORT = config.getint('mysql','mysql_port')
-MYSQLDB_PASSWORD = config.get('mysql','mysql_password')
-MYSQLDB_SELECT_DB = config.get('mysql','mysql_select_db')
+# spider
+START_URLS = config.get('spider', 'start_urls')
+SITE_DOMAIN = config.get('spider', 'site_domain')
+BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
+
+# mysql
+MYSQLDB_HOST = config.get('mysql', 'mysql_host')
+MYSQLDB_USER = config.get('mysql', 'mysql_user')
+MYSQLDB_PORT = config.getint('mysql', 'mysql_port')
+MYSQLDB_PASSWORD = config.get('mysql', 'mysql_password')
+MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
+MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
+
 #############################################################################
 
 class MySpider(spider.Spider):
@@ -49,8 +62,7 @@ class MySpider(spider.Spider):
         self.site_domain = SITE_DOMAIN
         self.black_domain_list = BLACK_DOMAIN_LIST
         self.encoding = 'utf-8'
-        # self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
-        self.conn = redis.StrictRedis.from_url('redis://192.168.100.15/14')
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain  # 自动算法规则
@@ -64,13 +76,10 @@ class MySpider(spider.Spider):
         self.detail_level = 99
         self.dedup_key = 'dedup'
         self.mysql_db = MySqlDrive()
-
-        # self.cleaner = syq_clean_url.Cleaner(
-        #     self.site_domain, redis.StrictRedis.from_url('redis://192.168.110.110/0'))
         self.cleaner = allsite_clean_url.Cleaner(
             site_domain=self.site_domain,
             black_domain_list=self.black_domain_list,
-            conn=redis.StrictRedis.from_url('redis://192.168.100.15/14')) # redis://127.0.0.1/0
+            conn=redis.StrictRedis.from_url(REDIS_SERVER))
 
     def convert_regex_format(self, rule):
         '''
@@ -187,7 +196,7 @@ class MySpider(spider.Spider):
         return False
 
     def path_is_list(self, soup, url):
-        print 'path_is_list() start'
+        # print 'path_is_list() start'
         # print 'detail_manual_regexs:',self.detail_manual_regexs
         # print 'list_manual_regexs:', self.list_manual_regexs
 
@@ -221,8 +230,8 @@ class MySpider(spider.Spider):
         # if self.is_current_page(soup, url) == True:
         #     # print 'is_current_page() True'
         #     return False
-        print '[unkownn]',url
-        print 'path_is_list() end'
+        print '[unkownn]', url
+        # print 'path_is_list() end'
         return True
 
     def convert_path_to_rule0(self, url):
@@ -434,14 +443,14 @@ class MySqlDrive(object):
     def __init__(self):
         import sys
         reload(sys)
-        sys.setdefaultencoding('utf8')
+        sys.setdefaultencoding(MYSQLDB_CHARSET)
         self.host = MYSQLDB_HOST
         self.user = MYSQLDB_USER
         self.password = MYSQLDB_PASSWORD
-        self.port = 3306
+        self.port = MYSQLDB_PORT
         self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
-                                    charset="utf8")
-        self.conn.select_db('spider')
+                                    charset=MYSQLDB_CHARSET)
+        self.conn.select_db(MYSQLDB_SELECT_DB)
         self.cur = self.conn.cursor()
 
     def __del__(self):
