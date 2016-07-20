@@ -27,6 +27,8 @@
 </div>
 <div id="config" class="form-group center" style="width:80%; margin-left:50px">
     <hr/>
+    <a class="bottom" href="{{ url_for('static', filename='export/help.xlsx') }}">下载帮助文档</a>
+    <hr/>
     <a class="bottom" href="{{ url_for('static', filename='export/export.json') }}">下载设置信息（json）</a>
     <hr/>
     <form action="export_upload" method="post" enctype="multipart/form-data">

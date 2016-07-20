@@ -8,6 +8,7 @@ import json
 import datetime
 import dedup
 import MySQLdb
+import ConfigParser
 import subprocess
 from flask import Flask, render_template, request, url_for, flash, redirect
 from flask import send_from_directory
@@ -29,19 +30,39 @@ app.config['SECRET_KEY'] = 'success'
 app.config['EXPORT_FOLDER'] = 'static/export/'
 bootstrap = Bootstrap(app)
 
-REDIS_SETTING = 'redis://127.0.0.1/14'
-dedup_setting = 'redis://192.168.110.110/0'
-PROCESS_SHOW_JSON = "process_show_temp.json"
+####################################################################
+config = ConfigParser.ConfigParser()
+_cur_path = os.path.dirname(__file__)
+config.read(_cur_path + '/web_run.ini')
+#redis
+REDIS_SETTING = config.get('redis','redis_server')
+dedup_setting = config.get('redis','dedup_server')
+#mysql
+MYSQLDB_HOST = config.get('mysql','mysql_host')
+MYSQLDB_USER = config.get('mysql','mysql_user')
+MYSQLDB_PORT = config.getint('mysql','mysql_port')
+MYSQLDB_PASSWORD = config.get('mysql','mysql_password')
+MYSQLDB_SELECT_DB = config.get('mysql','mysql_select_db')
+#show json
+PROCESS_SHOW_JSON = config.get('mysql','mysql_password')
+SHOW_MAX = config.getint('show','show_max')
+#export path
 EXPORT_FOLDER = 'static/export/'
 
-# RUN_PY_FILE = "run_spider.bat"
 if os.name == 'nt':
-    RUN_PY_FILE = 'D:\workspace\pyWorks\spiderShow\\run_spider.bat'
-    RUN_SHELL_FILE = 'run_spider.bat'
+    RUN_PY_FILE = config.get('windows','run_py_file')
+    RUN_SHELL_FILE = config.get('windows','run_shell_file')
 else:
-    RUN_PY_FILE = '/Users/song/workspace/pyWorks/spider/allsite_url_rule_manual.py'
-    RUN_SHELL_FILE = './run_spider.sh'
+    RUN_PY_FILE = config.get('linux','run_py_file')
+    RUN_SHELL_FILE = config.get('linux','run_shell_file')
 
+MYSQLDB_CHARSET = config.get('mysql','mysql_charset')
+#deploy
+DEPLOY_HOST=config.get('deploy','deploy_host')
+DEPLOY_PORT=config.get('deploy','deploy_port')
+####################################################################
+
+global process_id
 
 # def is_me(form, field): #自定义check函数
 #     if field.data != 'yes':
@@ -133,14 +154,14 @@ class MySqlDrive(object):
     def __init__(self):
         import sys
         reload(sys)
-        sys.setdefaultencoding('utf8')
-        self.host = 'localhost'
-        self.user = 'root'
-        self.password = 'root'
+        sys.setdefaultencoding(MYSQLDB_CHARSET)
+        self.host = MYSQLDB_HOST
+        self.user = MYSQLDB_USER
+        self.password = MYSQLDB_PASSWORD
         self.port = 3306
         self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
-                                    charset="utf8")
-        self.conn.select_db('spider')
+                                    charset=MYSQLDB_CHARSET)
+        self.conn.select_db(MYSQLDB_SELECT_DB)
         self.cur = self.conn.cursor()
 
     def __del__(self):
@@ -161,7 +182,7 @@ class MySqlDrive(object):
             # detail_or_list = '0'  # 0:detail,1:list
             # scope = '0'           # 0:netloc,1:path,2:query
             # white_or_black = '0'  # 0:white,1:black
-            # weight = '0'          # 100:高，50：中，20：低
+            # weight = '0'          # 0:高，1：中，2：低
 
             for regex, weight in detail_regex_save_list:
                 detail_or_list = '0'
@@ -186,6 +207,7 @@ class MySqlDrive(object):
                 self.conn.commit()
 
         except Exception, e:
+            ret_cnt = 0
             print '[ERROR]save_to_mysql()', e
             self.conn.rollback()
 
@@ -270,7 +292,7 @@ class RedisDrive(object):
         self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.manual_detail_urls_rule_zset_key = 'manual_detail_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
-        self.show_max =200
+        self.show_max = SHOW_MAX
         self.todo_flg = -1
         self.done_flg = 0
         # print 'RedisDrive init()', self.site_domain, self.start_url, self.conn
@@ -412,34 +434,43 @@ def convert_regex_format(rule):
     return ret
 
 
-def modify_pyfile(py_file, start_urls, site_domain, black_domain_list):
-    try:
-        lines = open(py_file, 'r').readlines()
-        # print type(lines)
-        i = 0
-        for line in lines:
-            s = line.strip()
-            i += 1
-            if s != '' and s[0] == '#':
-                continue
-            else:
-                if i < 100:
-                    if re.search(r'self\.start_urls\s*?=', s):
-                        lines[i - 1] = line[:line.find('=') + 1] + ' ' + start_urls + '\n'
-                        print 'modify_pyfile()', lines[i - 1]
+def modify_pyfile(start_urls, site_domain, black_domain_list):
+    config = ConfigParser.ConfigParser()
+    _cur_path = os.path.dirname(__file__)
+    config.read(_cur_path + '/web_run.ini')
+    config.set('spider','start_urls',start_urls)
+    config.set('spider', 'site_domain',site_domain)
+    config.set('spider', 'black_domain_list',black_domain_list)
 
-                    if re.search(r'self\.site_domain\s*?=', s):
-                        lines[i - 1] = line[:line.find('=') + 1] + ' ' + site_domain + '\n'
-                        print 'modify_pyfile()', lines[i - 1]
-
-                    if re.search(r'self\.black_domain_list\s*?=', s):
-                        lines[i - 1] = line[:line.find('=') + 1] + ' ' + black_domain_list + '\n'
-                        print 'modify_pyfile()', lines[i - 1]
-
-        open(py_file, 'w').writelines(lines)
-
-    except Exception, e:
-        print 'modify_pyfile()', e
+    # try:
+    #     lines = open(py_file, 'r').readlines()
+    #     # print type(lines)
+    #     i = 0
+    #     for line in lines:
+    #         s = line.strip()
+    #         i += 1
+    #         if s != '' and s[0] == '#':
+    #             continue
+    #         else:
+    #             if i < 100:
+    #                 if re.search(r'self\.start_urls\s*?=', s):
+    #                     lines[i - 1] = line[:line.find('=') + 1] + ' ' + start_urls + '\n'
+    #                     print 'modify_pyfile()', lines[i - 1]
+    #
+    #                 if re.search(r'self\.site_domain\s*?=', s):
+    #                     lines[i - 1] = line[:line.find('=') + 1] + ' ' + site_domain + '\n'
+    #                     print 'modify_pyfile()', lines[i - 1]
+    #
+    #                 if re.search(r'self\.black_domain_list\s*?=', s):
+    #                     lines[i - 1] = line[:line.find('=') + 1] + ' ' + black_domain_list + '\n'
+    #                     print 'modify_pyfile()', lines[i - 1]
+    #
+    #     open(py_file, 'w').writelines(lines)
+    #     return True
+    #
+    # except Exception, e:
+    #     print 'modify_pyfile()', e
+    #     return False
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -608,6 +639,7 @@ def setting_main_init():
 
 @app.route('/save_and_run', methods=['POST'])
 def setting_main_save_and_run():
+    global process_id
     inputForm = InputForm(request.form)
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
@@ -690,15 +722,19 @@ def setting_main_save_and_run():
     cnt = mysql_db.save_all_setting(start_url, site_domain, seeting_json, detail_regex_save_list,
                                     list_regex_save_list)
     if cnt == 1:
-        flash(u"MySQL保存完毕，执行中...")
+        flash(u"MySQL保存完毕.")
     else:
         flash(u"MySQL保存失败.")
         return render_template('setting.html', inputForm=inputForm)
 
     # 执行抓取程序 RUN_PY_FILE
     # 修改配置文件的执行入口信息
-    modify_pyfile(py_file=RUN_PY_FILE, start_urls="\'" + start_url + "\'", site_domain="\'" + site_domain + "\'",
+    ret = modify_pyfile(py_file=RUN_PY_FILE, start_urls="\'" + start_url + "\'", site_domain="\'" + site_domain + "\'",
                   black_domain_list="\'" + black_domain_list + "\'")
+    if ret == False:
+        flash(u"执行文件"+ RUN_PY_FILE +u"配置失败.")
+        return render_template('setting.html', inputForm=inputForm)
+
     # DOS "start" command
     if os.name == 'nt':
         print 'run as windows'
@@ -706,7 +742,8 @@ def setting_main_save_and_run():
         os.startfile(RUN_SHELL_FILE)
     else:
         print 'run as linux'
-        subprocess.Popen(['/bin/sh','-c' ,'./run_spider.sh'])
+        p = subprocess.Popen(['/bin/sh','-c' ,'./run_spider.sh'])
+        process_id = p.pid
         # os.popen("python " + RUN_PY_FILE)
         # print p.read()
 
@@ -734,7 +771,12 @@ def export_upload():
 
 @app.route('/kill', methods=['GET', 'POST'])
 def kill():
-    subprocess.Popen(['/bin/sh','-c','./kill.sh'])
+    if os.name == 'nt':
+        flash(u"请手工关闭windows控制台.")
+        # os.system("taskkill /PID %s /F" % process_id)
+    else:
+        flash(u"已经结束进程.")
+        subprocess.Popen(['/bin/sh','-c','./kill.sh'])
     return redirect(url_for('show_process'), 302)
 
 @app.route('/export_setting_json', methods=['GET', 'POST'])
@@ -753,6 +795,7 @@ def export_import():
 
 
 if __name__ == '__main__':
+    # app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
     app.run(debug=True)
 
     # -------------------unit test-----------------------------------

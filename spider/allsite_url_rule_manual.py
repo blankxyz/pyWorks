@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import re
+import os
 import datetime
 import urlparse
 import redis
@@ -9,10 +10,28 @@ import MySQLdb
 import spider
 import setting
 import urllib
+import ConfigParser
 from bs4 import BeautifulSoup, Comment
 import requests
 import allsite_clean_url
 
+#############################################################################
+config = ConfigParser.ConfigParser()
+_cur_path = os.path.dirname(__file__)
+config.read(_cur_path + '../../spiderShow/web_run.ini')
+
+#spider
+START_URLS = config.get('spider','start_urls')
+SITE_DOMAIN = config.get('spider','site_domain')
+BLACK_DOMAIN_LIST = config.get('spider','black_domain_list')
+
+#mysql
+MYSQLDB_HOST = config.get('mysql','mysql_host')
+MYSQLDB_USER = config.get('mysql','mysql_user')
+MYSQLDB_PORT = config.getint('mysql','mysql_port')
+MYSQLDB_PASSWORD = config.get('mysql','mysql_password')
+MYSQLDB_SELECT_DB = config.get('mysql','mysql_select_db')
+#############################################################################
 
 class MySpider(spider.Spider):
     def __init__(self,
@@ -26,11 +45,12 @@ class MySpider(spider.Spider):
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
-        self.start_urls = 'http://bbs.tianya.cn'
-        self.site_domain = 'bbs.tianya.cn'
-        self.black_domain_list = ''
+        self.start_urls = START_URLS
+        self.site_domain = SITE_DOMAIN
+        self.black_domain_list = BLACK_DOMAIN_LIST
         self.encoding = 'utf-8'
-        self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
+        # self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
+        self.conn = redis.StrictRedis.from_url('redis://192.168.100.15/14')
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain  # 自动算法规则
@@ -50,7 +70,7 @@ class MySpider(spider.Spider):
         self.cleaner = allsite_clean_url.Cleaner(
             site_domain=self.site_domain,
             black_domain_list=self.black_domain_list,
-            conn=redis.StrictRedis.from_url('redis://127.0.0.1/0'))
+            conn=redis.StrictRedis.from_url('redis://192.168.100.15/14')) # redis://127.0.0.1/0
 
     def convert_regex_format(self, rule):
         '''
@@ -167,7 +187,7 @@ class MySpider(spider.Spider):
         return False
 
     def path_is_list(self, soup, url):
-        # print 'path_is_list() start'
+        print 'path_is_list() start'
         # print 'detail_manual_regexs:',self.detail_manual_regexs
         # print 'list_manual_regexs:', self.list_manual_regexs
 
@@ -201,8 +221,8 @@ class MySpider(spider.Spider):
         # if self.is_current_page(soup, url) == True:
         #     # print 'is_current_page() True'
         #     return False
-        # print 'path_is_list() end'
         print '[unkownn]',url
+        print 'path_is_list() end'
         return True
 
     def convert_path_to_rule0(self, url):
@@ -374,7 +394,6 @@ class MySpider(spider.Spider):
     def get_start_urls(self, data=None):
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
-
         return [self.start_urls]
 
     def parse(self, response):
@@ -382,7 +401,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        # print 'parse_detail_page() start'
+        print 'parse_detail_page() start'
         result = []
         if response is None: return result
 
@@ -416,9 +435,9 @@ class MySqlDrive(object):
         import sys
         reload(sys)
         sys.setdefaultencoding('utf8')
-        self.host = 'localhost'
-        self.user = 'root'
-        self.password = 'root'
+        self.host = MYSQLDB_HOST
+        self.user = MYSQLDB_USER
+        self.password = MYSQLDB_PASSWORD
         self.port = 3306
         self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
                                     charset="utf8")
@@ -440,7 +459,7 @@ class MySqlDrive(object):
             if cnt == 1:
                 (id, start_url, site_domain, setting_json) = self.cur.fetchone()
                 self.conn.commit()
-                # print 'get_current_main_setting()', cnt, sqlStr
+                print 'get_current_main_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_current_main_setting()', e
         return start_url, site_domain  # , setting_json
@@ -473,7 +492,7 @@ class MySqlDrive(object):
                 (scope, white_or_black, weight, regex, etc) = r
                 regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
-            # print 'get_regexs()', cnt, sqlStr
+            print 'get_regexs()', cnt, sqlStr
         except Exception, e:
             print 'get_regexs()', e
         return regexs
@@ -514,7 +533,7 @@ def test(unit_test):
             mySpider.init_dedup()
             mySpider.init_downloader()
             start_urls = mySpider.get_start_urls()  # get_start_urls()
-            # print 'start_urls:', start_urls
+            print '[test]start_urls:', start_urls
             __detail_page_urls(start_urls, mySpider.parse)  # parse()
 
             # --equal to run.py detail_page_thread() -------------------------
