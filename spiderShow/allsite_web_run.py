@@ -34,35 +34,36 @@ bootstrap = Bootstrap(app)
 config = ConfigParser.ConfigParser()
 _cur_path = os.path.dirname(__file__)
 config.read(_cur_path + '/web_run.ini')
-#redis
-REDIS_SETTING = config.get('redis','redis_server')
-dedup_setting = config.get('redis','dedup_server')
-#mysql
-MYSQLDB_HOST = config.get('mysql','mysql_host')
-MYSQLDB_USER = config.get('mysql','mysql_user')
-MYSQLDB_PORT = config.getint('mysql','mysql_port')
-MYSQLDB_PASSWORD = config.get('mysql','mysql_password')
-MYSQLDB_SELECT_DB = config.get('mysql','mysql_select_db')
-#show json
-PROCESS_SHOW_JSON = config.get('mysql','mysql_password')
-SHOW_MAX = config.getint('show','show_max')
-#export path
+# redis
+REDIS_SETTING = config.get('redis', 'redis_server')
+dedup_setting = config.get('redis', 'dedup_server')
+# mysql
+MYSQLDB_HOST = config.get('mysql', 'mysql_host')
+MYSQLDB_USER = config.get('mysql', 'mysql_user')
+MYSQLDB_PORT = config.getint('mysql', 'mysql_port')
+MYSQLDB_PASSWORD = config.get('mysql', 'mysql_password')
+MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
+# show json
+PROCESS_SHOW_JSON = config.get('mysql', 'mysql_password')
+SHOW_MAX = config.getint('show', 'show_max')
+# export path
 EXPORT_FOLDER = 'static/export/'
 
 if os.name == 'nt':
-    RUN_PY_FILE = config.get('windows','run_py_file')
-    RUN_SHELL_FILE = config.get('windows','run_shell_file')
+    RUN_PY_FILE = config.get('windows', 'run_py_file')
+    RUN_SHELL_FILE = config.get('windows', 'run_shell_file')
 else:
-    RUN_PY_FILE = config.get('linux','run_py_file')
-    RUN_SHELL_FILE = config.get('linux','run_shell_file')
+    RUN_PY_FILE = config.get('linux', 'run_py_file')
+    RUN_SHELL_FILE = config.get('linux', 'run_shell_file')
 
-MYSQLDB_CHARSET = config.get('mysql','mysql_charset')
-#deploy
-DEPLOY_HOST=config.get('deploy','deploy_host')
-DEPLOY_PORT=config.get('deploy','deploy_port')
+MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
+# deploy
+DEPLOY_HOST = config.get('deploy', 'deploy_host')
+DEPLOY_PORT = config.get('deploy', 'deploy_port')
 ####################################################################
 
 global process_id
+
 
 # def is_me(form, field): #自定义check函数
 #     if field.data != 'yes':
@@ -298,10 +299,12 @@ class RedisDrive(object):
         # print 'RedisDrive init()', self.site_domain, self.start_url, self.conn
 
     def get_detail_urls(self):
-        return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0, num=self.show_max)
+        return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0,
+                                       num=self.show_max)
 
     def get_list_urls(self):
-        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg,start=0, num=self.show_max)
+        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
+                                       num=self.show_max)
 
     def get_matched_rate(self):
         cnt = 0
@@ -438,9 +441,9 @@ def modify_pyfile(start_urls, site_domain, black_domain_list):
     config = ConfigParser.ConfigParser()
     _cur_path = os.path.dirname(__file__)
     config.read(_cur_path + '/web_run.ini')
-    config.set('spider','start_urls',start_urls)
-    config.set('spider', 'site_domain',site_domain)
-    config.set('spider', 'black_domain_list',black_domain_list)
+    config.set('spider', 'start_urls', start_urls)
+    config.set('spider', 'site_domain', site_domain)
+    config.set('spider', 'black_domain_list', black_domain_list)
 
     # try:
     #     lines = open(py_file, 'r').readlines()
@@ -689,7 +692,7 @@ def setting_main_save_and_run():
         return render_template('setting.html', inputForm=inputForm)
 
     for regex, weight in list_regex_save_list:
-        for r,w in detail_regex_save_list:
+        for r, w in detail_regex_save_list:
             if r == regex:
                 flash(u"列表和详情页中的正则表达式不能重复。")
                 return render_template('setting.html', inputForm=inputForm)
@@ -729,10 +732,9 @@ def setting_main_save_and_run():
 
     # 执行抓取程序 RUN_PY_FILE
     # 修改配置文件的执行入口信息
-    ret = modify_pyfile(py_file=RUN_PY_FILE, start_urls="\'" + start_url + "\'", site_domain="\'" + site_domain + "\'",
-                  black_domain_list="\'" + black_domain_list + "\'")
+    ret = modify_pyfile(start_urls=start_url, site_domain=site_domain, black_domain_list=black_domain_list)
     if ret == False:
-        flash(u"执行文件"+ RUN_PY_FILE +u"配置失败.")
+        flash(u"执行文件" + RUN_PY_FILE + u"配置失败.")
         return render_template('setting.html', inputForm=inputForm)
 
     # DOS "start" command
@@ -742,7 +744,7 @@ def setting_main_save_and_run():
         os.startfile(RUN_SHELL_FILE)
     else:
         print 'run as linux'
-        p = subprocess.Popen(['/bin/sh','-c' ,'./run_spider.sh'])
+        p = subprocess.Popen(['/bin/sh', '-c', './run_spider.sh'])
         process_id = p.pid
         # os.popen("python " + RUN_PY_FILE)
         # print p.read()
@@ -769,6 +771,7 @@ def export_upload():
         flash(u"上传成功.")
         return render_template('export.html')
 
+
 @app.route('/kill', methods=['GET', 'POST'])
 def kill():
     if os.name == 'nt':
@@ -776,8 +779,9 @@ def kill():
         # os.system("taskkill /PID %s /F" % process_id)
     else:
         flash(u"已经结束进程.")
-        subprocess.Popen(['/bin/sh','-c','./kill.sh'])
+        subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
     return redirect(url_for('show_process'), 302)
+
 
 @app.route('/export_setting_json', methods=['GET', 'POST'])
 def export_setting():
