@@ -29,18 +29,14 @@
     <hr/>
     <a class="bottom" href="{{ url_for('static', filename='export/help.xlsx') }}">下载帮助文档</a>
     <hr/>
-    <a class="bottom" href="{{ url_for('static', filename='export/export.json') }}">下载设置信息（json）</a>
+    <a class="bottom" href="{{ url_for('static', filename='export/setting.json') }}">下载设置信息（json）</a>
     <hr/>
     <form action="export_upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" value="选择导入文件"/>
         <br>
         <input type="submit" value="导入文件(请使用英文名称)"/>
     </form>
-
     <hr/>
-    <form action="export_setting_json" method="post">
-        <input type="submit" value="导出mysql"/> {{ setting_json }}
-    </form>
 </div>
 </body>
 </html>

@@ -48,25 +48,25 @@ MYSQLDB_PASSWORD = config.get('mysql', 'mysql_password')
 MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
 MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
 # show json
-PROCESS_SHOW_JSON = config.get('mysql', 'mysql_password')
+PROCESS_SHOW_JSON = config.get('show', 'process_show_json')
 SHOW_MAX = config.getint('show', 'show_max')
 # export path
-EXPORT_FOLDER = 'static/export/'
-
+EXPORT_FOLDER = config.get('export', 'export_folder')
+CONFIG_JSON = config.get('export', 'config_json')
+# windows or linux or mac
 if os.name == 'nt':
     RUN_FILE = config.get('windows', 'run_file')
     SHELL_CMD = config.get('windows', 'shell_cmd')
 else:
     RUN_FILE = config.get('linux', 'run_file')
     SHELL_CMD = config.get('linux', 'shell_cmd')
-
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
 ####################################################################
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'success'
-app.config['EXPORT_FOLDER'] = 'static/export/'
+app.config['EXPORT_FOLDER'] = EXPORT_FOLDER
 bootstrap = Bootstrap(app)
 
 global process_id
@@ -158,7 +158,7 @@ class OutputForm(Form):
     refresh = SubmitField(label=u'刷新')
 
 
-class MySqlDrive(object):
+class __MySqlDrive(object):
     def __init__(self):
         import sys
         reload(sys)
@@ -176,7 +176,7 @@ class MySqlDrive(object):
         self.cur.close()
         self.conn.close()
 
-    def save_all_setting(self, start_url, site_domain, setting_json, detail_regex_save_list,
+    def save_all_setting(self, start_url, site_domain, setting_json, black_domain_list, detail_regex_save_list,
                          list_regex_save_list):
         # print 'save_to_mysql() start...', start_url, site_domain
 
@@ -254,17 +254,14 @@ class MySqlDrive(object):
             print '[error]set_current_main_setting()', e, sqlStr1
             print '[error]set_current_main_setting()', e, sqlStr2
 
-        return start_url, site_domain, setting_json
-
     def clean_current_main_setting(self):
         # 提取主页、域名
         sqlStr = "DELETE FROM current_domain_setting"
         try:
             self.cur.execute(sqlStr)
             self.conn.commit()
-            # print 'get_current_main_setting()', sqlStr
         except Exception, e:
-            print '[error]get_current_main_setting()', e
+            print '[error]clean_current_main_setting()', e
 
     def get_regexs(self, type):
         # 0:detail,1:list
@@ -290,17 +287,16 @@ class MySqlDrive(object):
         return regexs
 
 
-CONFIG_JSON = 'config.json'
-
-
-class FileDrive(object):
+class MySqlDrive(object):
     def __init__(self):
-        self.fd = open(CONFIG_JSON, 'wr')
+        # self.fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r+')
+        pass
 
     def __del__(self):
-        self.fd.close()
+        # self.fd.close()
+        pass
 
-    def save_all_setting(self, start_url, site_domain, setting_json, detail_regex_save_list,
+    def save_all_setting(self, start_url, site_domain, black_domain_list, setting_json, detail_regex_save_list,
                          list_regex_save_list):
         ret_cnt = 0
         try:
@@ -309,27 +305,20 @@ class FileDrive(object):
             # white_or_black = '0'  # 0:white,1:black
             # weight = '0'          # 0:高，1：中，2：低
 
-            for regex, weight in detail_regex_save_list:
-                detail_or_list = '0'
-                scope = '1'
-                white_or_black = '0'
-                ret_cnt = 1
-                self.fd.write((start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex))
-
-            for regex, weight in list_regex_save_list:
-                detail_or_list = '1'
-                scope = '1'
-                white_or_black = '0'
-                self.fd.write((start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex))
-                ret_cnt = 1
-                self.fd.write()
-
-            self.fd.flush()
-
+            # 保存到json文件
+            fd = open(EXPORT_FOLDER + CONFIG_JSON, 'w')
+            export_obj = {'start_url': start_url,
+                          'site_domain': site_domain,
+                          'black_domain_list': black_domain_list,
+                          'detail_regex_save_list': detail_regex_save_list,
+                          'list_regex_save_list': list_regex_save_list
+                          }
+            json.dump(fp=fd, obj=export_obj, sort_keys=True)
+            fd.close()
+            ret_cnt = 1
         except Exception, e:
             ret_cnt = 0
             print '[error]save_to_mysql()', e
-            self.fd.close()
 
         return ret_cnt
 
@@ -337,47 +326,45 @@ class FileDrive(object):
         # 提取主页、域名
         start_url = ''
         site_domain = ''
-        black_domain = ''
+        black_domain_list = ''
         setting_json = ''
         try:
-            (start_url, site_domain, black_domain, setting_json) = json.load(self.fd, encoding=MYSQLDB_CHARSET)
+            fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r')
+            j = json.load(fp=fd, encoding=MYSQLDB_CHARSET)
+            start_url = j['start_url']
+            site_domain = j['site_domain']
+            black_domain_list = j['black_domain_list']
+            fd.close()
         except Exception, e:
-            print 'get_current_main_setting()', e
+            print '[error]get_current_main_setting()', e
 
-        return start_url, site_domain, black_domain, setting_json
+        return start_url, site_domain, black_domain_list
 
     def set_current_main_setting(self, start_url, site_domain, black_domain, setting_json):
-        # 提取主页、域名
-        try:
-            json.dump(self.fd, (start_url, site_domain, black_domain, setting_json))
-        except Exception, e:
-            print '[error]set_current_main_setting()', e
-
-        return start_url, site_domain, setting_json
+        return
 
     def clean_current_main_setting(self):
         # 提取主页、域名
         try:
-            self.fd.write('')
-            self.fd.flush()
+            fd = open(EXPORT_FOLDER + CONFIG_JSON, 'w')
+            fd.write('')
+            fd.close()
         except Exception, e:
-            print '[error]get_current_main_setting()', e
+            print '[error]clean_current_main_setting()', e
 
     def get_regexs(self, type):
         regexs = []
-        # 提取主页、域名
-        start_url, site_domain, black_domain, setting_json = self.get_current_main_setting()
-        try:
-            rs = json.load(CONFIG_JSON)['setting_json']
-            for r in rs:
-                (scope, white_or_black, weight, regex, etc) = r
-                if type == 'detail': # 0:detail,1:list
-                    detail_or_list = '0'
-                else:
-                    detail_or_list = '1'
-                regexs.append((scope, white_or_black, weight, regex, etc))
-        except Exception, e:
-            print '[error]get_regexs()', e
+        fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r')
+        json_str = json.load(fd)
+        fd.close()
+        if type == 'detail':  # 0:detail,1:list
+            details = json_str['detail_regex_save_list']
+            for item in details:
+                regexs.append(('0', '0', item['weight'], item['regex'], ''))
+        else:
+            lists = json_str['list_regex_save_list']
+            for item in lists:
+                regexs.append(('0', '0', item['weight'], item['regex'], ''))
         return regexs
 
 
@@ -424,7 +411,7 @@ class RedisDrive(object):
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         matched_cnt = ','.join(['99', '2', '10', '30', '1'])
-        print keywords, matched_cnt
+        # print keywords, matched_cnt
         return keywords, matched_cnt
 
     def covert_redis_cnt_to_json(self):
@@ -441,7 +428,7 @@ class RedisDrive(object):
         cnt_info = {'times': t_stamp, 'rule0_cnt': rule0_cnt, 'rule1_cnt': rule1_cnt,
                     'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
         self.conn.hset(
-            self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info))
+            self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info, sort_keys=True))
         # print cnt_info
         jsonStr = json.dumps(cnt_info)
         fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'a')
@@ -546,6 +533,7 @@ def modify_config(start_urls, site_domain, black_domain_list):
         config.set('spider', 'black_domain_list', black_domain_list)
         fp = open(_cur_path + INIT_CONFIG, "w")
         config.write(fp)
+        print '[info] modify_config ok.'
         return True
     except Exception, e:
         print "[error] modify_config(): %s" % e
@@ -575,7 +563,7 @@ def convert_to_regex():
     ret = {}
     convert_url = request.args.get('convert_url')
     ret['regex'] = convert_path_to_rule(convert_url)
-    jsonStr = json.dumps(ret)
+    jsonStr = json.dumps(ret, sort_keys=True)
     print 'convert_to_regex()', convert_url, '->', jsonStr
     return jsonStr
 
@@ -740,7 +728,8 @@ def setting_main_save_and_run():
         score = r['score']
         if select and regex != '':
             detail_regex_cnt += 1
-            detail_regex_save_list.append((regex, weight))
+            # detail_regex_save_list.append((regex, weight))
+            detail_regex_save_list.append({'regex': regex, 'weight': weight})
 
     # 正则保存对象-列表页
     list_regex_list = inputForm.list_regex_list.data
@@ -753,52 +742,52 @@ def setting_main_save_and_run():
         score = r['score']
         if select and regex != '':
             list_regex_cnt += 1
-            list_regex_save_list.append((regex, weight))
+            # list_regex_save_list.append((regex, weight))
+            list_regex_save_list.append({'regex': regex, 'weight': weight})
 
     if len(list_regex_save_list) + len(detail_regex_save_list) == 0:
         flash(u"请填写并勾选要执行的 列表/详情页正则表达式。")
         return render_template('setting.html', inputForm=inputForm)
 
-    if len(list_regex_save_list) != len(set(list_regex_save_list)):
-        flash(u"列表页正则表达式有重复。")
-        return render_template('setting.html', inputForm=inputForm)
+    # if len(list_regex_save_list) != len(set(list_regex_save_list)):
+    #     flash(u"列表页正则表达式有重复。")
+    #     return render_template('setting.html', inputForm=inputForm)
 
-    if len(detail_regex_save_list) != len(set(detail_regex_save_list)):
-        flash(u"详情页正则表达式有重复。")
-        return render_template('setting.html', inputForm=inputForm)
+    # if len(detail_regex_save_list) != len(set(detail_regex_save_list)):
+    #     flash(u"详情页正则表达式有重复。")
+    #     return render_template('setting.html', inputForm=inputForm)
+    #
+    # for regex, weight in list_regex_save_list:
+    #     for r, w in detail_regex_save_list:
+    #         if r == regex:
+    #             flash(u"列表和详情页中的正则表达式不能重复。")
+    #             return render_template('setting.html', inputForm=inputForm)
 
-    for regex, weight in list_regex_save_list:
-        for r, w in detail_regex_save_list:
-            if r == regex:
+    for item in list_regex_save_list:
+        for i in detail_regex_save_list:
+            if i['regex'] == item['regex']:
                 flash(u"列表和详情页中的正则表达式不能重复。")
                 return render_template('setting.html', inputForm=inputForm)
-
-    # 保存到json文件
-    export_file = {'start_url': start_url,
-                   'site_domain': site_domain,
-                   'detail_regex_save_list': detail_regex_save_list,
-                   'list_regex_save_list': list_regex_save_list
-                   }
-    seeting_json = json.dumps(export_file)
-    open(EXPORT_FOLDER + 'export.json', 'w').write(seeting_json)
 
     # 保存手工配置规则到Redis
     redis_db = RedisDrive(start_url=start_url,
                           site_domain=site_domain)
     for regex in redis_db.conn.zrange(redis_db.manual_list_urls_rule_zset_key, start=0, end=-1):
         redis_db.conn.zrem(redis_db.manual_list_urls_rule_zset_key, regex)
-    for (regex, weight) in list_regex_save_list:
-        redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, regex)
+    for item in list_regex_save_list:
+        redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, item['regex'])
 
     for regex in redis_db.conn.zrange(redis_db.manual_detail_urls_rule_zset_key, start=0, end=-1):
         redis_db.conn.zrem(redis_db.manual_detail_urls_rule_zset_key, regex)
-    for (regex, weight) in detail_regex_save_list:
-        redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, regex)
+    for item in detail_regex_save_list:
+        redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, item['regex'])
 
     # 保存所有手工配置信息到MySql
+    setting_json = ''
     mysql_db = MySqlDrive()
-    mysql_db.set_current_main_setting(start_url, site_domain, inputForm.black_domain_list.data, seeting_json)
-    cnt = mysql_db.save_all_setting(start_url, site_domain, seeting_json, detail_regex_save_list,
+    mysql_db.set_current_main_setting(start_url, site_domain, inputForm.black_domain_list.data,
+                                      setting_json)
+    cnt = mysql_db.save_all_setting(start_url, site_domain, black_domain_list, setting_json, detail_regex_save_list,
                                     list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
@@ -855,15 +844,6 @@ def kill():
         flash(u"已经结束进程.")
         subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
     return redirect(url_for('show_process'), 302)
-
-
-@app.route('/export_setting_json', methods=['GET', 'POST'])
-def export_setting():
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
-    setting_json = ''
-    flash(u"MySQL导出结果。")
-    return render_template('export.html', setting_json=setting_json)
 
 
 @app.route('/export_init')

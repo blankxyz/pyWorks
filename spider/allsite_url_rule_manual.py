@@ -6,7 +6,6 @@ import os
 import datetime
 import urlparse
 import redis
-import MySQLdb
 import spider
 import setting
 import urllib
@@ -16,13 +15,12 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-INIT_CONFIG = '/../spiderShow/web_run.dev.ini'
-# INIT_CONFIG = '/../spiderShow/web_run.deploy.ini'
+# INIT_CONFIG = '/../spiderShow/web_run.dev.ini'
+INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
-_cur_path = os.path.dirname(__file__)
-if len(config.read(_cur_path + INIT_CONFIG)) == 0:
-    print '[ERROR]cannot read the config file.', _cur_path + INIT_CONFIG
+if len(config.read(INIT_CONFIG)) == 0:
+    print '[ERROR]cannot read the config file.', INIT_CONFIG
     exit(-1)
 else:
     print '[INFO] read the config file.', INIT_CONFIG
@@ -35,15 +33,6 @@ DEDUP_SETTING = config.get('redis', 'dedup_server')
 START_URLS = config.get('spider', 'start_urls')
 SITE_DOMAIN = config.get('spider', 'site_domain')
 BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
-
-# mysql
-MYSQLDB_HOST = config.get('mysql', 'mysql_host')
-MYSQLDB_USER = config.get('mysql', 'mysql_user')
-MYSQLDB_PORT = config.getint('mysql', 'mysql_port')
-MYSQLDB_PASSWORD = config.get('mysql', 'mysql_password')
-MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
-MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
-
 #############################################################################
 
 class MySpider(spider.Spider):
@@ -75,7 +64,6 @@ class MySpider(spider.Spider):
         self.max_level = 7  # 最大级别
         self.detail_level = 99
         self.dedup_key = 'dedup'
-        self.mysql_db = MySqlDrive()
         self.cleaner = allsite_clean_url.Cleaner(
             site_domain=self.site_domain,
             black_domain_list=self.black_domain_list,
@@ -410,7 +398,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        print 'parse_detail_page() start'
+        # print 'parse_detail_page() start'
         result = []
         if response is None: return result
 
@@ -437,74 +425,6 @@ class MySpider(spider.Spider):
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result
-
-
-class MySqlDrive(object):
-    def __init__(self):
-        import sys
-        reload(sys)
-        sys.setdefaultencoding(MYSQLDB_CHARSET)
-        self.host = MYSQLDB_HOST
-        self.user = MYSQLDB_USER
-        self.password = MYSQLDB_PASSWORD
-        self.port = MYSQLDB_PORT
-        self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
-                                    charset=MYSQLDB_CHARSET)
-        self.conn.select_db(MYSQLDB_SELECT_DB)
-        self.cur = self.conn.cursor()
-
-    def __del__(self):
-        self.cur.close()
-        self.conn.close()
-
-    def get_current_main_setting(self):
-        # 提取主页、域名
-        start_url = ''
-        site_domain = ''
-        # setting_json = ''
-        sqlStr = "SELECT * FROM current_main_setting"
-        try:
-            cnt = self.cur.execute(sqlStr)
-            if cnt == 1:
-                (id, start_url, site_domain, setting_json) = self.cur.fetchone()
-                self.conn.commit()
-                print 'get_current_main_setting()', cnt, sqlStr
-        except Exception, e:
-            print 'get_current_main_setting()', e
-        return start_url, site_domain  # , setting_json
-
-    def clean_current_main_setting(self):
-        # 提取主页、域名
-        sqlStr = "DELETE FROM current_main_setting"
-        try:
-            self.cur.execute(sqlStr)
-            self.conn.commit()
-            print 'clean_current_main_setting()', sqlStr
-        except Exception, e:
-            print 'clean_current_main_setting()', e
-
-    def get_regexs(self, type):
-        # 0:detail,1:list
-        if type == 'detail':
-            detail_or_list = '0'
-        else:
-            detail_or_list = '1'
-        regexs = []
-        # 提取主页、域名
-        start_url, site_domain = self.get_current_main_setting()
-        sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule " \
-                 "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
-        try:
-            cnt = self.cur.execute(sqlStr)
-            rs = self.cur.fetchall()
-            for r in rs:
-                (scope, white_or_black, weight, regex, etc) = r
-                regexs.append((scope, white_or_black, weight, regex, etc))
-            self.conn.commit()
-            print 'get_regexs()', cnt, sqlStr
-        except Exception, e:
-            print 'get_regexs()', e
-        return regexs
 
 
 # ---------- test run function-----------------------------
