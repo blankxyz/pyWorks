@@ -407,11 +407,15 @@ class RedisDrive(object):
         return float(cnt) / len(urls)
 
     def get_keywords_match(self):
-        # todo
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
-        keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
-        matched_cnt = ','.join(['99', '2', '10', '30', '1'])
-        # print keywords, matched_cnt
+        rules = self.conn.zrevrangebyscore(self.manual_detail_urls_rule_zset_key,
+                                           max=999999, min=0, start=0, num=5, withscores=True)
+        score_list = []
+        for rule, score in dict(rules).iteritems():
+            score_list.append(str(score))
+
+        keywords = ['No.1', 'No.2', 'No.3', 'No.4', 'No.5']
+        matched_cnt = ','.join(score_list)
         return keywords, matched_cnt
 
     def covert_redis_cnt_to_json(self):
@@ -804,10 +808,10 @@ def setting_main_save_and_run():
 
     # DOS "start" command
     if os.name == 'nt':
-        print '[info] run windows'
-        os.startfile(RUN_FILE)
+        print '[info] run windows',SHELL_CMD
+        os.startfile(SHELL_CMD)
     else:
-        print '[info] run linux'
+        print '[info] run linux',SHELL_CMD
         p = subprocess.Popen(SHELL_CMD, shell=True)
         process_id = p.pid
         print '[info] process_id:', process_id
