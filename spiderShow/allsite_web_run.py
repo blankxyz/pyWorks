@@ -12,8 +12,8 @@ import ConfigParser
 import subprocess
 from flask import Flask, render_template, request, url_for, flash, redirect
 from flask import send_from_directory
-from flask.ext.bootstrap import Bootstrap
-from flask.ext.wtf import Form
+from flask_bootstrap import Bootstrap
+from flask_wtf import Form
 from wtforms import validators
 from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
@@ -408,13 +408,15 @@ class RedisDrive(object):
 
     def get_keywords_match(self):
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
-        rules = self.conn.zrevrangebyscore(self.manual_detail_urls_rule_zset_key,
-                                           max=999999, min=0, start=0, num=5, withscores=True)
+        rules = self.conn.zrangebyscore(self.manual_detail_urls_rule_zset_key,
+                                        max=999999, min=0, start=0, num=5, withscores=True)
         score_list = []
+        keywords = []
         for rule, score in dict(rules).iteritems():
             score_list.append(str(score))
+            keywords.append(rule)
+            print 'get_keywords_match()',rule, score
 
-        keywords = ['No.1', 'No.2', 'No.3', 'No.4', 'No.5']
         matched_cnt = ','.join(score_list)
         return keywords, matched_cnt
 
@@ -678,27 +680,29 @@ def setting_main_init():
     # 设置/还原 正则表达式-详情页
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail'):
-        regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(0))])
+        if redis_db.conn.zrank(redis_db.manual_detail_urls_rule_zset_key, regex) is None:
+            redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, regex)
+            score = 0
+        else:
+            score = redis_db.conn.zscore(redis_db.manual_detail_urls_rule_zset_key, regex)
+        regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.detail_regex_list.entries[i] = regexForm
-
-        if redis_db.conn.zrank(redis_db.manual_detail_urls_rule_zset_key, regex) is None:
-            redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, regex)
-
         i += 1
 
     # 设置/还原 正则表达式-列表页
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list'):
-        regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(0))])
+        if redis_db.conn.zrank(redis_db.manual_list_urls_rule_zset_key, regex) is None:
+            redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, regex)
+            score = 0
+        else:
+            score = redis_db.conn.zscore(redis_db.manual_list_urls_rule_zset_key, regex)
+        regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.list_regex_list.entries[i] = regexForm
-
-        if redis_db.conn.zrank(redis_db.manual_list_urls_rule_zset_key, regex) is None:
-            redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, regex)
-
         i += 1
 
     # 清除原有所有规则
@@ -808,10 +812,10 @@ def setting_main_save_and_run():
 
     # DOS "start" command
     if os.name == 'nt':
-        print '[info] run windows',SHELL_CMD
+        print '[info] run windows', SHELL_CMD
         os.startfile(SHELL_CMD)
     else:
-        print '[info] run linux',SHELL_CMD
+        print '[info] run linux', SHELL_CMD
         p = subprocess.Popen(SHELL_CMD, shell=True)
         process_id = p.pid
         print '[info] process_id:', process_id

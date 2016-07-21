@@ -15,7 +15,8 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-INIT_CONFIG = '/../spiderShow/web_run.dev.ini'
+# INIT_CONFIG = '/../spiderShow/web_run.dev.ini'
+INIT_CONFIG = '/Users/song/workspace/pyWorks/spiderShow/web_run.dev.ini'
 # INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
