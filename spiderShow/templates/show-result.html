@@ -29,7 +29,7 @@
                     "sZeroRecords": "没有检索到数据",
                     "sProcessing": "<img src='./loading.gif' />"
                 },
-                "bFilter": true,
+                "bFilter": false,
                 "bLengthChange": true,
                 "aLengthMenu": [10, 20, 50, "All"],
                 "sDom": '<"top"flip>rt<"clear">'
@@ -50,7 +50,7 @@
                     "sZeroRecords": "没有检索到数据",
                     "sProcessing": "<img src='./loading.gif' />"
                 },
-                "bFilter": true,
+                "bFilter": false,
                 "bLengthChange": true,
                 "aLengthMenu": [10, 20, 50, "All"],
                 "sDom": '<"top"flip>rt<"clear">'
@@ -78,7 +78,7 @@
         <table id="list-urls-tab">
             <thead>
             <tr>
-                <th>列表页一览</th>
+                <th>列表页一览({{outputForm.list_urls_cnt}}件)</th>
                 <th>正误</th>
             </tr>
             </thead>
@@ -92,20 +92,19 @@
             </tbody>
         </table>
     </div>
-    {#    <hr style="width:2px;height:100px;"></hr>#}
     <div id="detail-urls" class="form-group" style="float:right;width:45%;margin-left:10px">
         <a class="top-right" href="{{ url_for('static', filename='export/result-detail.log') }}">下载抓取结果(详情页)</a>
         <hr/>
         <table id="detail-urls-tab">
             <thead>
             <tr>
-                <th>详情页一览</th>
+                <th>详情页一览({{outputForm.detail_urls_cnt}}件)</th>
                 <th>正误</th>
             </tr>
             </thead>
             <tbody>
             {% for row in outputForm.detail_urls_list %}
-                <tr id="{{ loop.index }}">
+                <tr id={{ loop.index }}>
                     <td>{{ row.detail_url(size=70) }}</td>
                     <td>&nbsp;&nbsp;{{ row.select() }}</td>
                 </tr>

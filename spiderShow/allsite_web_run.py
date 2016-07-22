@@ -26,13 +26,14 @@ from werkzeug.utils import secure_filename
 # import
 
 ####################################################################
-INIT_CONFIG = '/web_run.dev.ini'
-# INIT_CONFIG = '/web_run.deploy.ini'
+INIT_CONFIG = './web_run.dev.ini'
+# INIT_CONFIG = './web_run.deploy.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
-_cur_path = os.path.dirname(__file__)
-if len(config.read(_cur_path + INIT_CONFIG)) == 0:
-    print '[error]cannot read the config file.'
+# _cur_path = os.path.dirname(__file__)
+# print _cur_path
+if len(config.read(INIT_CONFIG)) == 0:
+    print '[error]cannot read the config file.', INIT_CONFIG
     exit(-1)
 else:
     print '[info] read the config file.', INIT_CONFIG
@@ -127,7 +128,7 @@ class ListUrlForm(Form):
     select = BooleanField(label=u'正误', default=False)
 
 
-class InputForm(Form):
+class RegexInputForm(Form):
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
@@ -148,17 +149,32 @@ class InputForm(Form):
     import_setting = SubmitField(label=u'导入')
 
 
-class OutputForm(Form):
-    show_max = 200
-
-    detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=show_max)
-
-    list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=show_max)
-
+class RegexOutputForm(Form):
+    detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=SHOW_MAX)
+    detail_urls_cnt = 0
+    list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=SHOW_MAX)
+    list_urls_cnt = 0
     refresh = SubmitField(label=u'刷新')
 
 
-class __MySqlDrive(object):
+class UserInputForm(Form):
+    user = StringField(label=u'用户ID')
+    start_url = StringField(label=u'主页')
+    site_domain = StringField(label=u'限定域名')
+    search = SubmitField(label=u'检索')
+
+class UserOutputForm(Form):
+
+    white_list = StringField(label=u'白名单')
+
+    black_domain_list = StringField(label=u'域名黑名单')
+
+    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=50)
+
+    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=50)
+
+
+class MySqlDrive(object):
     def __init__(self):
         import sys
         reload(sys)
@@ -178,7 +194,7 @@ class __MySqlDrive(object):
 
     def save_all_setting(self, start_url, site_domain, setting_json, black_domain_list, detail_regex_save_list,
                          list_regex_save_list):
-        # print 'save_to_mysql() start...', start_url, site_domain
+        # print 'save_all_setting() start...', start_url, site_domain
 
         ret_cnt = 0
         try:
@@ -192,31 +208,35 @@ class __MySqlDrive(object):
             # white_or_black = '0'  # 0:white,1:black
             # weight = '0'          # 0:高，1：中，2：低
 
-            for regex, weight in detail_regex_save_list:
+            for item in detail_regex_save_list:
+                regex = item['regex']
+                weight = item['weight']
                 detail_or_list = '0'
                 scope = '1'
                 white_or_black = '0'
                 sqlStr2 = "INSERT INTO url_rule(start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
                           "VALUES ('" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
                           scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
-                # print 'save_to_mysql() detail', sqlStr2
+                print '[info]save_all_setting() detail', sqlStr2
                 ret_cnt = self.cur.execute(sqlStr2)
                 self.conn.commit()
 
-            for regex, weight in list_regex_save_list:
+            for item in list_regex_save_list:
+                regex = item['regex']
+                weight = item['weight']
                 detail_or_list = '1'
                 scope = '1'
                 white_or_black = '0'
                 sqlStr2 = "INSERT INTO url_rule(start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
                           "VALUES ('" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
                           scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
-                # print 'save_to_mysql() list', sqlStr2
+                print '[info]save_all_setting() list', sqlStr2
                 ret_cnt = self.cur.execute(sqlStr2)
                 self.conn.commit()
 
         except Exception, e:
             ret_cnt = 0
-            print '[error]save_to_mysql()', e
+            print '[error]save_all_setting()', e
             self.conn.rollback()
 
         return ret_cnt
@@ -287,7 +307,7 @@ class __MySqlDrive(object):
         return regexs
 
 
-class MySqlDrive(object):
+class FileDrive(object):
     def __init__(self):
         # self.fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r+')
         pass
@@ -378,18 +398,17 @@ class RedisDrive(object):
         self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.manual_detail_urls_rule_zset_key = 'manual_detail_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
-        self.show_max = SHOW_MAX
         self.todo_flg = -1
         self.done_flg = 0
         # print 'RedisDrive init()', self.site_domain, self.start_url, self.conn
 
     def get_detail_urls(self):
         return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0,
-                                       num=self.show_max)
+                                       num=SHOW_MAX)
 
     def get_list_urls(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
-                                       num=self.show_max)
+                                       num=SHOW_MAX)
 
     def get_matched_rate(self):
         cnt = 0
@@ -408,14 +427,19 @@ class RedisDrive(object):
 
     def get_keywords_match(self):
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
-        rules = self.conn.zrangebyscore(self.manual_detail_urls_rule_zset_key,
-                                        max=999999, min=0, start=0, num=5, withscores=True)
         score_list = []
         keywords = []
-        for rule, score in dict(rules).iteritems():
+        list_rules = self.conn.zrevrangebyscore(self.manual_list_urls_rule_zset_key,
+                                                max=999999, min=0, start=0, num=5, withscores=True)
+        for rule, score in dict(list_rules).iteritems():
             score_list.append(str(score))
             keywords.append(rule)
-            print 'get_keywords_match()',rule, score
+
+        detail_rules = self.conn.zrevrangebyscore(self.manual_detail_urls_rule_zset_key,
+                                                  max=999999, min=0, start=0, num=5, withscores=True)
+        for rule, score in dict(detail_rules).iteritems():
+            score_list.append(str(score))
+            keywords.append(rule)
 
         matched_cnt = ','.join(score_list)
         return keywords, matched_cnt
@@ -576,7 +600,7 @@ def convert_to_regex():
 
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
-    inputForm = InputForm()
+    inputForm = RegexInputForm()
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -615,7 +639,7 @@ def show_process():
 
 @app.route('/show_result', methods=['GET', 'POST'])
 def get_show_result():
-    outputForm = OutputForm()
+    outputForm = RegexOutputForm()
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -643,16 +667,22 @@ def get_show_result():
         i += 1
 
     # result-list.log
+    i = 0
     fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
     for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
+        i += 1
     fp.close()
+    outputForm.list_urls_cnt = i
 
+    i = 0
     # result-detail.log
     fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
     for line in redis_db.conn.zrange(redis_db.detail_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
+        i += 1
     fp.close()
+    outputForm.detail_urls_cnt = i
 
     return render_template('show-result.html', outputForm=outputForm)
 
@@ -662,7 +692,7 @@ def setting_main_init():
     '''
     从MySql初始化Web页面和Redis
     '''
-    inputForm = InputForm(request.form)
+    inputForm = RegexInputForm(request.form)
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_list = mysql_db.get_current_main_setting()
@@ -715,7 +745,7 @@ def setting_main_init():
 @app.route('/save_and_run', methods=['POST'])
 def setting_main_save_and_run():
     global process_id
-    inputForm = InputForm(request.form)
+    inputForm = RegexInputForm(request.form)
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
     start_url = inputForm.start_url.data
@@ -854,6 +884,14 @@ def kill():
     return redirect(url_for('show_process'), 302)
 
 
+@app.route('/resetZero', methods=['GET', 'POST'])
+def reset_zero():
+    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'w')
+    fp.write('')
+    fp.close()
+    return redirect(url_for('show_process'), 302)
+
+
 @app.route('/export_init')
 def export_import():
     flash(u"请选择导入/导出操作。")
@@ -861,8 +899,10 @@ def export_import():
 
 
 if __name__ == '__main__':
-    # app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    app.run(debug=True)
+    if INIT_CONFIG.find('deploy')>0:
+        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    else:
+        app.run(debug=True)
 
     # -------------------unit test-----------------------------------
     # mysql = MySqlDrive()

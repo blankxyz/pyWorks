@@ -15,9 +15,9 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-# INIT_CONFIG = '/../spiderShow/web_run.dev.ini'
-INIT_CONFIG = '/Users/song/workspace/pyWorks/spiderShow/web_run.dev.ini'
-# INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini'
+INIT_CONFIG = '../spiderShow/web_run.dev.ini' #windows
+# INIT_CONFIG = '../spiderShow/web_run.dev.ini' #mac
+# INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini' #linux
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -186,18 +186,9 @@ class MySpider(spider.Spider):
 
     def path_is_list(self, soup, url):
         # print 'path_is_list() start'
-        # print 'detail_manual_regexs:',self.detail_manual_regexs
-        # print 'list_manual_regexs:', self.list_manual_regexs
 
-        # 最优先确定规则 todo 做入 web正则中
+        # 最优先确定规则
         path = urlparse.urlparse(url).path
-        # if len(path) == 0:
-        #     return True
-        # if path == '/':
-        #     return True
-        # if path[-1] == '/':
-        #     return True
-        # regex: \/$
 
         # 页面手工配置规则
         if self.is_manual_detail_rule(path) == True:
@@ -208,13 +199,14 @@ class MySpider(spider.Spider):
 
         # 自动归纳规则
         # 优先使用rule1
-        if self.is_detail_rule_1(url) == True:
-            # print 'is_detail_rule_1()', True
-            return False
-        # # 使用rule0
-        if self.is_detail_rule_0(url) == True:
-            # print 'is_detail_rule_0()', True
-            return False
+        # if self.is_detail_rule_1(url) == True:
+        #     # print 'is_detail_rule_1()', True
+        #     return False
+        # # # 使用rule0
+        # if self.is_detail_rule_0(url) == True:
+        #     # print 'is_detail_rule_0()', True
+        #     return False
+
         # 判断面包屑中有无的‘正文’
         # if self.is_current_page(soup, url) == True:
         #     # print 'is_current_page() True'
@@ -279,14 +271,15 @@ class MySpider(spider.Spider):
                     }
         return text
 
-    def get_clean_soup(self, url):
-        headers = self.header_maker()
-        try:
-            data = requests.get(url, headers=headers, timeout=5)
-        except Exception, e:
-            print "[ERROR]get_clean_soup()", e
-            return None
-        soup = BeautifulSoup(data.content, 'lxml')
+    def get_clean_soup(self, response):
+        # headers = self.header_maker()
+        # try:
+        #     data = requests.get(url, headers=headers, timeout=5)
+        # except Exception, e:
+        #     print "[ERROR]get_clean_soup()", e
+        #     return None
+        # soup = BeautifulSoup(data.content, 'lxml')
+        soup = BeautifulSoup(response.content,'lxml')
         # print 'before',soup.prettify()
         comments = soup.findAll(text=lambda text: isinstance(text, Comment))
         [comment.extract() for comment in comments]
@@ -409,11 +402,13 @@ class MySpider(spider.Spider):
             org_url = response.url
 
         try:
-            soup = self.get_clean_soup(org_url)
+            # soup = self.get_clean_soup(org_url)
+            soup = self.get_clean_soup(response)
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
             for link in links:
-                s = self.get_clean_soup(link)
+                # s = self.get_clean_soup(link)
+                s = None #手工规则不需要soup
                 if self.path_is_list(s, link):
                     # print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
