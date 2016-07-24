@@ -1,0 +1,71 @@
+{% extends "bootstrap/base.html" %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8"
+            src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#search-result-tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sZeroRecords": "没有检索到",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "Redis没有数据",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有检索到数据",
+                    "sProcessing": "<img src='./img/loading.gif' />"
+                },
+                "bFilter": false,
+                "bLengthChange": false,
+                "aLengthMenu": [10, 50, "All"]
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <h3 align="center">查询用户设定的配置信息</h3>
+    <hr/>
+    <div id="search-cond-div" class="form-group center" style="width:80%; margin-left:50px">
+        <form id="search-cond" method="POST" action="/user_search">
+            {{ inputForm.user.label }}&nbsp; {{ inputForm.user(size=20) }}
+            {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
+            {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
+            {{ inputForm.search() }}
+        </form>
+    </div>
+    <hr/>
+    <div id="search-result" class="form-group" style="width:80%; margin-left:50px">
+        <label for="name">检索结果</label><br>
+        <table id="search-result-tab">
+            <thead>
+            <tr>
+                <th>选择</th>
+                <th>正则表达式</th>
+                <th>权重</th>
+                <th>匹配数</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in outputForm.search_result_list %}
+                <tr id={{ loop.index }}>
+                    <td>{{ row['select'] }}</td>
+                    <td>{{ row['regex'] }}</td>
+                    <td>{{ row['weight'] }}</td>
+                    <td>{{ row['score'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

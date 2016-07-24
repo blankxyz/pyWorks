@@ -72,44 +72,19 @@ bootstrap = Bootstrap(app)
 
 global process_id
 
+class SearchCondForm(Form):
+    user = StringField(label=u'用户ID',default='admin')
+    start_url = StringField(label=u'主页',default='http://bbs.tianya.cn')
+    site_domain = StringField(label=u'限定域名',default='bbs.tianya.cn')
+    search = SubmitField(label=u'检索')
 
-# def is_me(form, field): #自定义check函数
-#     if field.data != 'yes':
-#         raise validators.ValidationError('Must input "yes"') #FormField对象
-#
-# class addressForm(Form):
-#     city = IntegerField('city', [validators.required()])
-#     area = IntegerField('area', [validators.required()])
-#     building = StringField('building')
-#
-#
-# class InputForm(Form):
-#     me = StringField('Is your self info?',[is_me,validators.Length(min=1,max=3)])
-#     name = StringField('What is your name?',
-#                        [validators.InputRequired('name'),
-#                        validators.Regexp('\w+', message="Must contain 0-9 aA-zZ")],
-#                        description='must input your name.',default=u'songyq')
-#     birthday  = DateTimeField('Your Birthday', format='%m/%d/%y')
-#     sex  = RadioField('Sex', choices=[(1,'man'),(2,'women')])
-#     age = DecimalField('How old are you?',
-#                        [validators.DataRequired('must be number!'),
-#                         validators.NumberRange(min=10, max=100, message='10~100')],
-#                        description='must input your age.')
-#     national = SelectField('national', choices=[('cn', 'china'), ('en', 'usa'), ('jp', 'japan')])
-#     address1 = TextAreaField('Address1', [validators.optional(), validators.length(max=200)])
-#     address2 = FormField(addressForm)
-#     phone = IntegerField('What is your phone number?',
-#                          [validators.InputRequired('phone')],
-#                          description='must input your phone.')
-#     password = PasswordField('New Password',
-#                              [validators.Required()])
-#     confirm = PasswordField('Repeat Password',
-#                             [validators.Required(),
-#                              validators.EqualTo('password', message='Passwords must match')])
-#     accept_tos = BooleanField('singe boy', [validators.Required()])
-#     email = TextField('Email Address', [validators.Length(min=6, message=(u'Little short for an email address?')),
-#                                         validators.Email(message=(u'That\'s not a valid email address.'))])
-#     submit = SubmitField('Submit')
+class SearchResultForm(Form):
+    select = BooleanField(label=u'选择', default=False)
+    detail_or_list = BooleanField(label=u'列表/详情', default=False)
+    regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
+    weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
+    score = IntegerField(label=u'匹配数', default=0)
+
 
 class RegexForm(Form):
     select = BooleanField(label=u'选择', default=False)
@@ -139,14 +114,11 @@ class RegexInputForm(Form):
     url = StringField(label=u'URL例子')
 
     list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=50)
-
     detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=50)
 
     reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
-
-    submit = SubmitField(label=u'保存并执行')
-
-    import_setting = SubmitField(label=u'导入')
+    save_run = SubmitField(label=u'保存并执行')
+    pre_run = SubmitField(label=u'试算')
 
 
 class RegexOutputForm(Form):
@@ -157,21 +129,10 @@ class RegexOutputForm(Form):
     refresh = SubmitField(label=u'刷新')
 
 
-class UserInputForm(Form):
-    user = StringField(label=u'用户ID')
-    start_url = StringField(label=u'主页')
-    site_domain = StringField(label=u'限定域名')
-    search = SubmitField(label=u'检索')
-
 class UserOutputForm(Form):
-
     white_list = StringField(label=u'白名单')
-
     black_domain_list = StringField(label=u'域名黑名单')
-
-    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=50)
-
-    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=50)
+    search_result_list = FieldList(FormField(RegexForm), label=u'正则表达式', min_entries=50)  # 列表+详情
 
 
 class MySqlDrive(object):
@@ -240,6 +201,25 @@ class MySqlDrive(object):
             self.conn.rollback()
 
         return ret_cnt
+
+    def search_by_user(self, user,start_url,site_domain):
+        search_result_list = []
+        sqlStr = "SELECT start_url,site_domain,detail_or_list,scope,white_or_black,weight,regex FROM url_rule " \
+                 "WHERE user='" + user + "' AND start_url like '%"+ start_url+ "%' AND site_domain like '%"+ site_domain+"%'"
+        try:
+            cnt = self.cur.execute(sqlStr)
+            rs = self.cur.fetchall()
+            for r in rs:
+                search_result_list.append({'start_url': r[0], 'site_domain': r[1],
+                                           'detail_or_list': r[2], 'scope': r[3],
+                                           'white_or_black': r[4], 'weight': r[5],
+                                           'regex': r[6]})
+            self.conn.commit()
+            print '[info]search_by_user()', cnt, sqlStr
+        except Exception, e:
+            print '[error]search_by_user()', e
+
+        return search_result_list
 
     def get_current_main_setting(self):
         # 提取主页、域名
@@ -400,7 +380,6 @@ class RedisDrive(object):
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
-        # print 'RedisDrive init()', self.site_domain, self.start_url, self.conn
 
     def get_detail_urls(self):
         return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0,
@@ -596,6 +575,27 @@ def convert_to_regex():
     jsonStr = json.dumps(ret, sort_keys=True)
     print 'convert_to_regex()', convert_url, '->', jsonStr
     return jsonStr
+
+
+@app.route('/user_search', methods=['GET', 'POST'])
+def user_search():
+    inputForm = SearchCondForm(request.form)
+    # inputForm.user.data = 'admin'
+    # inputForm.start_url.data =''
+    # inputForm.site_domain.data = 'bbs.tianya.cn'
+    user = inputForm.user.data
+    start_url = inputForm.start_url.data
+    site_domain = inputForm.site_domain.data
+    if user.strip() == '':
+        flash(u'请输入检索条件。')
+
+    # if inputForm.validate_on_submit():
+    # if request.method == 'POST' and inputForm.validate():
+    outputForm = SearchResultForm()
+    mysql_db = MySqlDrive()
+    outputForm.search_result_list = mysql_db.search_by_user(user,start_url,site_domain)
+
+    return render_template('user.html', inputForm=inputForm, outputForm=outputForm)
 
 
 @app.route('/show_process', methods=['GET', 'POST'])
@@ -899,12 +899,12 @@ def export_import():
 
 
 if __name__ == '__main__':
-    if INIT_CONFIG.find('deploy')>0:
+    if INIT_CONFIG.find('deploy') > 0:
         app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
     else:
         app.run(debug=True)
 
-    # -------------------unit test-----------------------------------
-    # mysql = MySqlDrive()
-    # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
-    # print mysql.get_current_main_setting()
+        # -------------------unit test-----------------------------------
+        # mysql = MySqlDrive()
+        # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
+        # print mysql.get_current_main_setting()

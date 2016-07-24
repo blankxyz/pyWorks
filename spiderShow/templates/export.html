@@ -1,15 +1,9 @@
-<!DOCTYPE html>
+{% extends "bootstrap/base.html" %}
+{% block scripts %}
+{#todo#}
+{% endblock %}
 
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <title>导入导出</title>
-    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
-</head>
-
-<body>
+{% block content %}
 <h3 align="center">导入/导出
     <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
 </h3>
@@ -38,5 +32,4 @@
     </form>
     <hr/>
 </div>
-</body>
-</html>
+{% endblock %}

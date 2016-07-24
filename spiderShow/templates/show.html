@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>process count show</title>
-    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+{% extends "bootstrap/base.html" %}
+{% block scripts %}
+    {{ super() }}
     <script src="{{ url_for('static', filename='highcharts.js') }}"></script>
     <script src="{{ url_for('static', filename='exporting.js') }}"></script>
     <script type="text/javascript">
@@ -153,8 +148,9 @@
             });
         });
     </script>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 <h3 align="center">抓取过程展示
     <small> 2分钟之内,列表页数 = 列表页(扫描完成数) 恒定时，抓取结束，可以手工</small><a href="kill">强制终止</a><small>来结束程序。</small>
     <small>累计处理过程绘图清零请点击</small><a href="resetZero">清零</a>
@@ -182,5 +178,4 @@
         <label>No.{{ loop.index }}&nbsp;&nbsp;&nbsp;</label>{{ regex }}<br>
     {% endfor %}
 </div>
-</body>
-</html>
+{% endblock %}

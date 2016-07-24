@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>error code:  {{err.code}} </title>
-    <script type="text/javascript" src="../static/jquery.min.js"></script>
+{% extends "bootstrap/base.html" %}
+{% block scripts %}
+    {{ super() }}
     <script type="text/javascript" src="../static/highcharts.js"></script>
     <script type="text/javascript">
         $(function () {
@@ -93,9 +90,10 @@
             });
         });
     </script>
-</head>
-<body>
-<p align="center">discription is :{{err}}</p>
-<div id="container" style="max-width:800px;height:400px;margin:20px auto;"></div>
-</body>
-</html>
+{% endblock %}
+
+{% block content %}
+    <title>error code:  {{err.code}} </title>
+    <p align="center">discription is :{{err}}</p>
+    <div id="container" style="max-width:800px;height:400px;margin:20px auto;"></div>
+{% endblock %}
