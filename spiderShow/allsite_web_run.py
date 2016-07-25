@@ -77,14 +77,16 @@ global recover_flg
 ##################################################################################################
 class SearchCondForm(Form):
     user = StringField(label=u'用户ID', default='admin')
-    start_url = StringField(label=u'主页', default='http://bbs.tianya.cn')
-    site_domain = StringField(label=u'限定域名', default='bbs.tianya.cn')
+    start_url = StringField(label=u'主页', default='')
+    site_domain = StringField(label=u'限定域名', default='')
     search = SubmitField(label=u'查询')
     recover = SubmitField(label=u'导入')
 
 
 class SearchResultForm(Form):
     select = BooleanField(label=u'选择', default=False)
+    start_url = StringField(label=u'主页', default='')
+    site_domain = StringField(label=u'限定域名', default='')
     detail_or_list = BooleanField(label=u'列表/详情', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
@@ -282,9 +284,9 @@ class MySqlDrive(object):
         sqlStr2 = "INSERT INTO current_domain_setting(start_url,site_domain,black_domain,setting_json) " \
                   "VALUES ('" + start_url + "','" + site_domain + "','" + black_domain + "','" + setting_json + "')"
         try:
-            # print 'set_current_main_setting()', sqlStr1
+            print '[info]set_current_main_setting()', sqlStr1
             self.cur.execute(sqlStr1)
-            # print 'set_current_main_setting()', sqlStr2
+            print '[info]set_current_main_setting()', sqlStr2
             cnt = self.cur.execute(sqlStr2)
             self.conn.commit()
         except Exception, e:
@@ -650,25 +652,25 @@ def convert_to_regex():
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
     inputForm = SearchCondForm(request.form)
+    user = inputForm.user.data
+    start_url = inputForm.start_url.data
+    site_domain = inputForm.site_domain.data
     outputForm = SearchResultForm()
     mysql_db = MySqlDrive()
+    outputForm.search_result_list = mysql_db.search_regex_by_user(user, start_url, site_domain)
 
-    if inputForm.search.data:
-        user = inputForm.user.data
-        start_url = inputForm.start_url.data
-        site_domain = inputForm.site_domain.data
-        if user.strip() == '':
-            flash(u'请输入查询条件。')
-        else:
-            flash(u'请输入查询条件，点击查询。')
-        # if inputForm.validate_on_submit():
-        # if request.method == 'POST' and inputForm.validate():
-        outputForm.search_result_list = mysql_db.search_regex_by_user(user, start_url, site_domain)
-
-    if inputForm.recover.data:
+    if inputForm.recover.data:  # 点击 导入
         if len(outputForm.search_result_list) > 0:
-            global recover_flg
-            recover_flg = True
+            d = set()
+            for i in outputForm.search_result_list:
+                start_url = i['start_url']
+                site_domain = i['site_domain']
+                d.add(start_url+site_domain)
+
+            if len(d) == 1:
+                mysql_db.set_current_main_setting(start_url, site_domain, '', '')
+            else:
+                flash(u'请选择唯一的首页和域名进行导入。')
         else:
             flash(u'请检索取得结果后再导入。')
 
@@ -687,8 +689,7 @@ def show_process():
         return render_template('show.html', inputForm=inputForm)
 
     # 从redis提取实时信息，转换成json文件
-    redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain)
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     redis_db.covert_redis_cnt_to_json()
 
     collage = CollageProcessInfo()
@@ -728,8 +729,7 @@ def get_show_result():
         return render_template('show-result.html', outputForm=outputForm)
 
     # 从redis提取实时信息，转换成json文件
-    redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain)
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
     i = 0
     for list_url in redis_db.get_list_urls():
@@ -784,8 +784,7 @@ def setting_main_init():
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_list.data = black_domain_list
 
-    redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain)
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     # 设置/还原 正则表达式-详情页
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail'):
@@ -845,7 +844,6 @@ def setting_main_save_and_run():
         score = r['score']
         if select and regex != '':
             detail_regex_cnt += 1
-            # detail_regex_save_list.append((regex, weight))
             detail_regex_save_list.append({'regex': regex, 'weight': weight})
 
     # 正则保存对象-列表页
@@ -859,7 +857,6 @@ def setting_main_save_and_run():
         score = r['score']
         if select and regex != '':
             list_regex_cnt += 1
-            # list_regex_save_list.append((regex, weight))
             list_regex_save_list.append({'regex': regex, 'weight': weight})
 
     if len(list_regex_save_list) + len(detail_regex_save_list) == 0:
@@ -887,8 +884,7 @@ def setting_main_save_and_run():
                 return render_template('setting.html', inputForm=inputForm)
 
     # 保存手工配置规则到Redis
-    redis_db = RedisDrive(start_url=start_url,
-                          site_domain=site_domain)
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     for regex in redis_db.conn.zrange(redis_db.manual_list_urls_rule_zset_key, start=0, end=-1):
         redis_db.conn.zrem(redis_db.manual_list_urls_rule_zset_key, regex)
     for item in list_regex_save_list:
@@ -902,8 +898,7 @@ def setting_main_save_and_run():
     # 保存所有手工配置信息到MySql
     setting_json = ''
     mysql_db = MySqlDrive()
-    mysql_db.set_current_main_setting(start_url, site_domain, inputForm.black_domain_list.data,
-                                      setting_json)
+    mysql_db.set_current_main_setting(start_url, site_domain, black_domain_list, setting_json)
     cnt = mysql_db.save_all_setting(start_url, site_domain, black_domain_list, setting_json, detail_regex_save_list,
                                     list_regex_save_list)
     if cnt == 1:
