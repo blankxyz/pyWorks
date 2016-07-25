@@ -16,7 +16,7 @@ import allsite_clean_url
 
 ####################################################################
 INIT_CONFIG = '../spiderShow/web_run.dev.ini' #windows
-# INIT_CONFIG = '../spiderShow/web_run.dev.ini' #mac
+#INIT_CONFIG = '../spiderShow/web_run.dev.ini' #mac
 # INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini' #linux
 ####################################################################
 config = ConfigParser.ConfigParser()
