@@ -16,7 +16,7 @@ import allsite_clean_url
 
 ####################################################################
 INIT_CONFIG = '../spiderShow/web_run.dev.ini' #windows
-# INIT_CONFIG = '../spiderShow/web_run.dev.ini' #mac
+#INIT_CONFIG = '../spiderShow/web_run.dev.ini' #mac
 # INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini' #linux
 ####################################################################
 config = ConfigParser.ConfigParser()
@@ -109,36 +109,39 @@ class MySpider(spider.Spider):
         return ret
 
     def filter_links(self, urls):
-        # print 'filter_links() start', len(urls), urls
-        # 下载页
-        urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
-        # print 'filter_links() is_download', len(urls)
-        # 错误url识别
-        urls = filter(lambda x: not self.cleaner.is_error_url(x), urls)
-        # print 'filter_links() is_error_url', len(urls)
-        # 清洗无效参数#?
-        urls = self.cleaner.url_clean(urls)
-        # 跨域检查
-        urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
-        # print 'filter_links() check_cross_domain', len(urls)
-        # 黑名单过滤
-        urls = filter(lambda x: not self.cleaner.in_black_list(x), urls)  # bbs. mail.
-        # print 'filter_links() in_black_list', len(urls)
-        # 链接时间过滤
-        # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
-        # 非第一页链接过滤
-        urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
-        # print 'filter_links() is_next_page', len(urls)
-        # for url in urls:
-        #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
-        #         print 'remove:', url
-        #         urls.remove(url)
-        # 去重
-        urls = list(set(urls))
-        # print 'filter_links() set', len(urls)
-        # 404
-        # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
-        # print 'filter_links() end', len(urls), urls
+        # print '[INFO]filter_links() start', len(urls), urls
+        try:
+            # 下载页
+            urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
+            # print 'filter_links() is_download', len(urls)
+            # 错误url识别
+            urls = filter(lambda x: not self.cleaner.is_error_url(x), urls)
+            # print 'filter_links() is_error_url', len(urls)
+            # 清洗无效参数#?
+            urls = self.cleaner.url_clean(urls)
+            # 跨域检查
+            urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
+            # print 'filter_links() check_cross_domain', len(urls)
+            # 黑名单过滤
+            urls = filter(lambda x: not self.cleaner.in_black_list(x), urls)  # bbs. mail.
+            # print 'filter_links() in_black_list', len(urls)
+            # 链接时间过滤
+            # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
+            # 非第一页链接过滤
+            urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
+            # print 'filter_links() is_next_page', len(urls)
+            # for url in urls:
+            #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
+            #         print 'remove:', url
+            #         urls.remove(url)
+            # 去重
+            urls = list(set(urls))
+            # print 'filter_links() set', len(urls)
+            # 404
+            # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
+            # print '[INFO]filter_links() end', len(urls), urls
+        except Exception, e:
+            print '[ERROR]filter_links()', e
         return urls
 
     def is_detail_rule_0(self, url):
@@ -188,13 +191,14 @@ class MySpider(spider.Spider):
         # print 'path_is_list() start'
 
         # 最优先确定规则
-        path = urlparse.urlparse(url).path
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        new_url = urlparse.urlunparse(('', '', path, params, query, ''))
 
         # 页面手工配置规则
-        if self.is_manual_detail_rule(path) == True:
+        if self.is_manual_detail_rule(new_url) == True:
             return False
 
-        if self.is_manual_list_rule(path) == True:
+        if self.is_manual_list_rule(new_url) == True:
             return True
 
         # 自动归纳规则
@@ -211,7 +215,7 @@ class MySpider(spider.Spider):
         # if self.is_current_page(soup, url) == True:
         #     # print 'is_current_page() True'
         #     return False
-        print '[unkownn]', url
+        print '[unkownn]', new_url
         # print 'path_is_list() end'
         return True
 
@@ -293,6 +297,7 @@ class MySpider(spider.Spider):
         return soup
 
     def urls_join(self, org_url, links):
+        # print '[INFO]urls_join() start',org_url,links
         urls = []
         for link in links:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(link.strip())
@@ -301,13 +306,16 @@ class MySpider(spider.Spider):
             else:
                 link = urlparse.urlunparse(('', '', path, params, query, ''))
                 # url = urlparse.urljoin(org_url, urllib.quote(link))
+                # print '[INFO]urljoin()', org_url, link
                 url = urlparse.urljoin(org_url, link)
+
             urls.append(url)
 
+        # print '[INFO]urls_join() end', urls
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
-        # print 'get_page_valid_urls() start'
+        # print '[INFO]get_page_valid_urls() start'
         all_links = []
         remove_links = []
         try:
@@ -333,7 +341,7 @@ class MySpider(spider.Spider):
                     #             remove_links.append(t['href'])
 
         except Exception, e:
-            print '[ERROR] get_page_valid_urls()', e
+            print '[ERROR]get_page_valid_urls()', e
 
         removed = list(set(all_links) - set(remove_links))
 
@@ -343,7 +351,7 @@ class MySpider(spider.Spider):
         # print len(removed), removed
         # print len(urls), urls
         urls = self.filter_links(urls)
-        # print 'get_page_valid_urls() end', urls
+        # print '[INFO]get_page_valid_urls() end'
         return urls
 
     def is_current_page(self, soup, org_url):
@@ -392,7 +400,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        # print 'parse_detail_page() start'
+        # print '[INFO]parse_detail_page() start'
         result = []
         if response is None: return result
 
@@ -416,8 +424,9 @@ class MySpider(spider.Spider):
                 else:
                     # print 'detail:', link
                     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
-                        self.conn.zadd(self.detail_urls_zset_key, 0, urllib.unquote(link))
-                        # print 'parse_detail_page() end'
+                        self.conn.zadd(self.detail_urls_zset_key, self.done_flg, urllib.unquote(link))
+
+            # print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result

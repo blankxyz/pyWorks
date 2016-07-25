@@ -38,9 +38,6 @@
                     borderWidth: 1
                 },
                 series: [{
-                    name: '详情页-正则表达式',
-                    data: {{ rule1_cnt }}
-                }, {
                     name: '详情页数',
                     data: {{ detail_cnt }}
                 }, {
@@ -61,7 +58,7 @@
                     plotShadow: false
                 },
                 title: {
-                    text: '与去重库匹配的情况'
+                    text: '列表页完成情况'
                 },
                 tooltip: {
                     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -80,11 +77,11 @@
                 },
                 series: [{
                     type: 'pie',
-                    name: '匹配率',
+                    name: '完成率',
                     data: [
-                        ['匹配', {{ matched_rate }}],
+                        ['完成', {{ matched_rate }}],
                         {
-                            name: '不匹配',
+                            name: '未完成',
                             y: {{ un_match_rate }},
                             sliced: true,
                             selected: true
