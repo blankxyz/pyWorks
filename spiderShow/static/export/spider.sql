@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version: 5.6.20)
-# Date: 2016-07-22 19:22:17
+# Date: 2016-07-25 22:35:06
 # Generator: MySQL-Front 5.3  (Build 4.214)
 
 /*!40101 SET NAMES utf8 */;
@@ -42,7 +42,7 @@ CREATE TABLE `current_domain_setting` (
 # Data for table "current_domain_setting"
 #
 
-INSERT INTO `current_domain_setting` VALUES (0,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','');
+INSERT INTO `current_domain_setting` VALUES (0,NULL,'http://bbs.tianya.cn','bbs.tianya.cn','blog.tianya.cn','');
 
 #
 # Structure for table "url_rule"
@@ -62,13 +62,13 @@ CREATE TABLE `url_rule` (
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_url`,`site_domain`)
-) ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
+) ENGINE=InnoDB AUTO_INCREMENT=275 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
 
 #
 # Data for table "url_rule"
 #
 
-INSERT INTO `url_rule` VALUES (256,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','post-',NULL),(257,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','pic-',NULL),(258,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','/$',NULL),(259,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','list',NULL),(260,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','index',NULL);
+INSERT INTO `url_rule` VALUES (331,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','post-',NULL),(332,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','pic-',NULL),(333,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','compose.jsp',NULL),(334,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','nextid',NULL),(335,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','/$',NULL),(336,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','list',NULL),(337,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','index',NULL),(338,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','hotArticle',NULL);
 
 #
 # Structure for table "user"
@@ -82,7 +82,7 @@ CREATE TABLE `user` (
   `Authorization` char(1) DEFAULT NULL COMMENT '0:admin,1:normal',
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "user"
