@@ -71,12 +71,17 @@ app.config['EXPORT_FOLDER'] = EXPORT_FOLDER
 bootstrap = Bootstrap(app)
 
 global process_id
+global recover_flg
 
+
+##################################################################################################
 class SearchCondForm(Form):
-    user = StringField(label=u'用户ID',default='admin')
-    start_url = StringField(label=u'主页',default='http://bbs.tianya.cn')
-    site_domain = StringField(label=u'限定域名',default='bbs.tianya.cn')
-    search = SubmitField(label=u'检索')
+    user = StringField(label=u'用户ID', default='admin')
+    start_url = StringField(label=u'主页', default='http://bbs.tianya.cn')
+    site_domain = StringField(label=u'限定域名', default='bbs.tianya.cn')
+    search = SubmitField(label=u'查询')
+    recover = SubmitField(label=u'导入')
+
 
 class SearchResultForm(Form):
     select = BooleanField(label=u'选择', default=False)
@@ -84,6 +89,7 @@ class SearchResultForm(Form):
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
+    search_result_list = []
 
 
 class RegexForm(Form):
@@ -122,6 +128,7 @@ class RegexInputForm(Form):
 
 
 class RegexOutputForm(Form):
+    show_max = SHOW_MAX
     detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=SHOW_MAX)
     detail_urls_cnt = 0
     list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=SHOW_MAX)
@@ -135,6 +142,7 @@ class UserOutputForm(Form):
     search_result_list = FieldList(FormField(RegexForm), label=u'正则表达式', min_entries=50)  # 列表+详情
 
 
+##################################################################################################
 class MySqlDrive(object):
     def __init__(self):
         import sys
@@ -202,24 +210,53 @@ class MySqlDrive(object):
 
         return ret_cnt
 
-    def search_by_user(self, user,start_url,site_domain):
+    def search_regex_by_user(self, user, start_url, site_domain):
         search_result_list = []
         sqlStr = "SELECT start_url,site_domain,detail_or_list,scope,white_or_black,weight,regex FROM url_rule " \
-                 "WHERE user='" + user + "' AND start_url like '%"+ start_url+ "%' AND site_domain like '%"+ site_domain+"%'"
+                 "WHERE user='" + user + "' AND start_url like '%" + start_url + "%' AND site_domain like '%" + site_domain + "%'"
         try:
             cnt = self.cur.execute(sqlStr)
             rs = self.cur.fetchall()
             for r in rs:
+                if r[2] == '0':
+                    detail_or_list = u'详情规则'
+                else:
+                    detail_or_list = u'列表规则'
+
+                if r[5] == '0':
+                    weight = u'确定'
+                elif r[5] == '1':
+                    weight = u'可能'
+                else:
+                    weight = u'。。。'
+
                 search_result_list.append({'start_url': r[0], 'site_domain': r[1],
-                                           'detail_or_list': r[2], 'scope': r[3],
-                                           'white_or_black': r[4], 'weight': r[5],
+                                           'detail_or_list': detail_or_list, 'scope': r[3],
+                                           'white_or_black': r[4], 'weight': weight,
                                            'regex': r[6]})
             self.conn.commit()
-            print '[info]search_by_user()', cnt, sqlStr
+            print '[info]search_regex_by_user()', cnt, sqlStr
         except Exception, e:
-            print '[error]search_by_user()', e
+            print '[error]search_regex_by_user()', e
 
         return search_result_list
+
+    def check_password(self, user, password):
+        sqlStr = "SELECT password FROM user WHERE user='" + user + "'"
+        try:
+            cnt = self.cur.execute(sqlStr)
+            if cnt == 1:
+                r = self.cur.fetchone()
+                self.conn.commit()
+                if password.strip() == r[0]:
+                    print '[info]check_password() ok', user
+                    return True
+            else:
+                print '[error]check_password() has more then one user ', cnt
+                return False
+        except Exception, e:
+            print '[error]check_password()', e
+            return False
 
     def get_current_main_setting(self):
         # 提取主页、域名
@@ -287,6 +324,7 @@ class MySqlDrive(object):
         return regexs
 
 
+##################################################################################################
 class FileDrive(object):
     def __init__(self):
         # self.fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r+')
@@ -368,6 +406,7 @@ class FileDrive(object):
         return regexs
 
 
+##################################################################################################
 class RedisDrive(object):
     def __init__(self, start_url, site_domain):
         self.site_domain = site_domain
@@ -389,6 +428,10 @@ class RedisDrive(object):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
                                        num=SHOW_MAX)
 
+    def get_done_list_urls(self):
+        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0,
+                                       num=SHOW_MAX)
+
     def get_matched_rate(self):
         cnt = 0
         urls = self.get_detail_urls()
@@ -403,6 +446,15 @@ class RedisDrive(object):
             cnt = 1
 
         return float(cnt) / len(urls)
+
+    def get_done_list_rate(self):
+        cnt = 0
+        urls = self.get_list_urls()
+        if len(urls) == 0:
+            return 0.0
+
+        done = self.get_done_list_urls()
+        return float(len(done)) / len(urls)
 
     def get_keywords_match(self):
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
@@ -446,6 +498,7 @@ class RedisDrive(object):
         fp.close()
 
 
+##################################################################################################
 class CollageProcessInfo(object):
     def __init__(self):
         self.json_file = PROCESS_SHOW_JSON
@@ -471,6 +524,7 @@ class CollageProcessInfo(object):
         return times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt
 
 
+##################################################################################################
 def convert_path_to_rule(url):
     scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
     # print path
@@ -549,7 +603,23 @@ def modify_config(start_urls, site_domain, black_domain_list):
         return False
 
 
-@app.route('/', methods=['GET', 'POST'])
+##################################################################################################
+@app.route("/", methods=['POST', 'GET'])
+def login():
+    error = None
+    if request.method == 'POST':
+        user = request.form['username']
+        password = request.form['password']
+        mysql_db = MySqlDrive()
+        if mysql_db.check_password(user, password):
+            return redirect(url_for('menu'))
+        else:
+            error = u"输入密码不正确。"
+
+    return render_template('login.html', error=error)
+
+
+@app.route('/menu', methods=['GET', 'POST'])
 def menu():
     # 清空主页、域名
     db = MySqlDrive()
@@ -580,20 +650,27 @@ def convert_to_regex():
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
     inputForm = SearchCondForm(request.form)
-    # inputForm.user.data = 'admin'
-    # inputForm.start_url.data =''
-    # inputForm.site_domain.data = 'bbs.tianya.cn'
-    user = inputForm.user.data
-    start_url = inputForm.start_url.data
-    site_domain = inputForm.site_domain.data
-    if user.strip() == '':
-        flash(u'请输入检索条件。')
-
-    # if inputForm.validate_on_submit():
-    # if request.method == 'POST' and inputForm.validate():
     outputForm = SearchResultForm()
     mysql_db = MySqlDrive()
-    outputForm.search_result_list = mysql_db.search_by_user(user,start_url,site_domain)
+
+    if inputForm.search.data:
+        user = inputForm.user.data
+        start_url = inputForm.start_url.data
+        site_domain = inputForm.site_domain.data
+        if user.strip() == '':
+            flash(u'请输入查询条件。')
+        else:
+            flash(u'请输入查询条件，点击查询。')
+        # if inputForm.validate_on_submit():
+        # if request.method == 'POST' and inputForm.validate():
+        outputForm.search_result_list = mysql_db.search_regex_by_user(user, start_url, site_domain)
+
+    if inputForm.recover.data:
+        if len(outputForm.search_result_list) > 0:
+            global recover_flg
+            recover_flg = True
+        else:
+            flash(u'请检索取得结果后再导入。')
 
     return render_template('user.html', inputForm=inputForm, outputForm=outputForm)
 
@@ -618,7 +695,9 @@ def show_process():
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = collage.convert_file_to_list()
     times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
 
-    matched_rate = redis_db.get_matched_rate() * 100.0
+    # matched_rate = redis_db.get_matched_rate() * 100.0
+    # print list_done_cnt[-1],list_cnt[-1]
+    matched_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
     un_match_rate = 100.0 - matched_rate
 
     keywords, matched_cnt = redis_db.get_keywords_match()

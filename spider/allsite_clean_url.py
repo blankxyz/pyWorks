@@ -10,6 +10,7 @@ import urlparse
 import requests
 import redis
 
+import traceback
 
 class myexc(Exception):
     def __init__(self, error_info):
@@ -29,7 +30,7 @@ class Cleaner(object):
         # 域名正则黑名单
         self.now_year = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y'), '%Y')
         self.hash_black_path_regex_key = 'hash_black_path_regex'
-        self.black_path_regex =[]
+        self.black_path_regex = []
         self.black_domain_regex = self.get_black_path_regex(black_domain_list)  # black_domain_list 以 ; 分割的字符串
 
     def get_black_path_regex(self, black_domain_list):
@@ -39,7 +40,7 @@ class Cleaner(object):
         default_regex = ['/', '^$']
         compile_list = []
         for regex_str in black_domain_list.split(';'):
-            if regex_str!='': compile_list.append(regex_str)
+            if regex_str != '': compile_list.append(regex_str)
 
         compile_list.extend(default_regex)
 
@@ -105,32 +106,45 @@ class Cleaner(object):
                     is_detail = True
                     break
             except Exception as e:
-                print e
+                print '[ERROR]is_detail_by_regex()', e
                 continue
         return is_detail
 
     def url_sort(self, url):
-        '''url参数排序'''
-        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-        keyvals = urlparse.parse_qsl(query, keep_blank_values=1)
-        keyvals.sort()
-        query = urllib.urlencode(keyvals)
-        return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+        try:
+            '''url参数排序'''
+            if isinstance(url, unicode):
+                url = url.encode('utf8')
+
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+            keyvals = urlparse.parse_qsl(query, keep_blank_values=1)
+            keyvals.sort()
+            query = urllib.urlencode(keyvals)
+            return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+        except Exception as e:
+            print '[ERROR]url_sort()',url, e
+            # print traceback.format_exc()
+            return url
 
     def url_clean(self, urls):
-        '''清洗无效参数并排序'''
         new_urls = []
-        for url in urls:
-            # 清理锚 # 之后的
-            url = url.split('#')[0]
-            # 汉字参数转义
-            # url = urllib.unquote(url)
-            # 参数排序
-            url = self.url_sort(url)
-            # 去'/'
-            # url = url.strip('/')
-            #
-            new_urls.append(url)
+        url = ''
+        try:
+            '''清洗无效参数并排序'''
+            for url in urls:
+                # 清理锚 # 之后的
+                url = url.split('#')[0]
+                # 汉字参数转义
+                url = urllib.unquote(url)
+                # 参数排序
+                url = self.url_sort(url)
+                # 去'/'
+                # url = url.strip('/')
+                #
+                new_urls.append(url)
+        except Exception as e:
+            print '[ERROR]url_clean()', url, e
+
         return new_urls
 
     def is_next_page(self, url):
@@ -263,11 +277,7 @@ def get_unicode_page(url, encoding):
 
 
 if __name__ == '__main__':
-    url = 'http://aa.bb.com'
-    cleaner = Cleaner(site_domain='news.sina.com.cn',black_domain_list='aa.bb.com;cc.dd.com')
-    # print cleaner.is_detail_by_regex('http://news.sina.com.cn/richtalk/news/society/society_beijingribao.html')
-    # text = get_unicode_page('http://bbs.yuloo.com/404.html', 'gbk')
-    # print cleaner.is_error_page(text)
-    # print cleaner.is_old_page(text)
-    print cleaner.in_black_list(url)
-
+    url = u'http://bbs.tianya.cn/compose.jsp?item=107&sub=全部&aaa=777'
+    print url
+    cleaner = Cleaner(site_domain='bbs.tianya.cn', black_domain_list='blog.tianya.cn')
+    print cleaner.url_sort(url)

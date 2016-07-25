@@ -2,12 +2,12 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="ef09fa5a-d0ef-4a14-81f1-d77024ddc3a9" name="192.168.65.201" url="http://192.168.65.201">
-        <fileTransfer host="192.168.65.201" port="21" username="root">
+      <webServer id="d071ac52-6ce0-4017-8db8-c281838c7190" name="192.168.67.55" url="http://192.168.67.55">
+        <fileTransfer host="192.168.67.55" port="51120" privateKey="C:\Users\ZHXG\Desktop\id_rsa_1024" rootFolder="/work" accessType="SFTP" username="root" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
-          <option name="port" value="21" />
+          <option name="port" value="51120" />
         </fileTransfer>
       </webServer>
     </option>
