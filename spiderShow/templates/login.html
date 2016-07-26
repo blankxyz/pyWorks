@@ -64,20 +64,17 @@
 </head>
 
 <body>
-
 <div class="container">
-
     <form action="" method="post" class="form-signin">
-        <h2 class="form-signin-heading">登录全站爬虫系统</h2>
+        <h2 class="form-signin-heading">登录系统</h2>
         <input type="text" name="username" value="{{ request.form.username }}" class="input-block-level"
-               placeholder="username">
-        <input type="password" name="password" class="input-block-level" placeholder="password">
-        <label class="checkbox">
-            <input type="checkbox" value="remember-me">记住
-        </label>
+               placeholder="用户ID">
+        <input type="password" name="password" class="input-block-level" placeholder="密码">
+        {#        <label class="checkbox">#}
+        {#            <input type="checkbox" value="remember-me">记住#}
+        {#        </label>#}
         <button class="btn btn-primary" type="submit" value="Login">登录</button>
     </form>
-
 </div> <!-- /container -->
 
 <!-- Le javascript

@@ -39,7 +39,7 @@ class Cleaner(object):
         '''
         default_regex = ['/', '^$']
         compile_list = []
-        for regex_str in black_domain_list.split(';'):
+        for regex_str in black_domain_list.split('@'):
             if regex_str != '': compile_list.append(regex_str)
 
         compile_list.extend(default_regex)

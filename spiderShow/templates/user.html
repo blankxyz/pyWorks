@@ -50,7 +50,7 @@
 
     <div id="search-cond-div" class="form-group center" style="width:80%; margin-left:50px">
         <form id="search-cond" method="POST" action="/user_search">
-            {{ inputForm.user.label }}&nbsp; {{ inputForm.user(size=20) }}
+            <label>用户ID&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
             {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
             {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
             {{ inputForm.search() }}

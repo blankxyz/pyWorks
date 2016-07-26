@@ -48,7 +48,8 @@
                 },
                 "bFilter": false,
                 "bLengthChange": false,
-                "aLengthMenu": [5, 10, 50, "All"]
+                "aLengthMenu": [5, 10, 50, "All"],
+                "bStateSave": true
             });
             var list_t = $('#list-regex-tab').DataTable({
                 "oLanguage": {
@@ -68,7 +69,8 @@
                 },
                 "bFilter": false,
                 "bLengthChange": false,
-                "aLengthMenu": [5, 10, 50, "All"]
+                "aLengthMenu": [5, 10, 50, "All"],
+                "bStateSave": true
             });
             $('#addRow').on('click', function () {
                 detail_t.row.add([

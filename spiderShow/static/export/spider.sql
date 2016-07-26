@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version: 5.6.20)
-# Date: 2016-07-25 22:35:06
+# Date: 2016-07-26 18:49:15
 # Generator: MySQL-Front 5.3  (Build 4.214)
 
 /*!40101 SET NAMES utf8 */;
@@ -30,7 +30,7 @@ CREATE TABLE `content_rule` (
 DROP TABLE IF EXISTS `current_domain_setting`;
 CREATE TABLE `current_domain_setting` (
   `Id` int(11) NOT NULL DEFAULT '0',
-  `user` varchar(255) DEFAULT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
   `start_url` varchar(255) DEFAULT NULL,
   `site_domain` varchar(255) DEFAULT NULL,
   `black_domain` varchar(255) DEFAULT NULL COMMENT '以 ; 分割的列表',
@@ -42,7 +42,7 @@ CREATE TABLE `current_domain_setting` (
 # Data for table "current_domain_setting"
 #
 
-INSERT INTO `current_domain_setting` VALUES (0,NULL,'http://bbs.tianya.cn','bbs.tianya.cn','blog.tianya.cn','');
+INSERT INTO `current_domain_setting` VALUES (0,'user','','','','');
 
 #
 # Structure for table "url_rule"
@@ -51,7 +51,7 @@ INSERT INTO `current_domain_setting` VALUES (0,NULL,'http://bbs.tianya.cn','bbs.
 DROP TABLE IF EXISTS `url_rule`;
 CREATE TABLE `url_rule` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `user` varchar(255) NOT NULL DEFAULT 'admin' COMMENT 'user',
+  `user_id` varchar(255) NOT NULL DEFAULT 'admin' COMMENT 'user',
   `start_url` varchar(255) NOT NULL DEFAULT '' COMMENT 'homepage',
   `site_domain` varchar(255) NOT NULL DEFAULT '' COMMENT 'domain',
   `detail_or_list` char(1) DEFAULT '0' COMMENT '0:detail,1:list',
@@ -62,13 +62,13 @@ CREATE TABLE `url_rule` (
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_url`,`site_domain`)
-) ENGINE=InnoDB AUTO_INCREMENT=275 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
+) ENGINE=InnoDB AUTO_INCREMENT=339 DEFAULT CHARSET=utf8 COMMENT='url匹配规则';
 
 #
 # Data for table "url_rule"
 #
 
-INSERT INTO `url_rule` VALUES (331,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','post-',NULL),(332,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','pic-',NULL),(333,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','compose.jsp',NULL),(334,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','nextid',NULL),(335,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','/$',NULL),(336,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','list',NULL),(337,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','index',NULL),(338,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','hotArticle',NULL);
+INSERT INTO `url_rule` VALUES (1,'user','http://test.com','test.com','1','1','0','0','test',NULL),(331,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','post-',NULL),(332,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','pic-',NULL),(333,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','compose.jsp',NULL),(334,'admin','http://bbs.tianya.cn','bbs.tianya.cn','0','1','0','0','nextid',NULL),(335,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','/$',NULL),(336,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','list',NULL),(337,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','index',NULL),(338,'admin','http://bbs.tianya.cn','bbs.tianya.cn','1','1','0','0','hotArticle',NULL);
 
 #
 # Structure for table "user"
@@ -77,7 +77,7 @@ INSERT INTO `url_rule` VALUES (331,'admin','http://bbs.tianya.cn','bbs.tianya.cn
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `user` varchar(255) DEFAULT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `Authorization` char(1) DEFAULT NULL COMMENT '0:admin,1:normal',
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',

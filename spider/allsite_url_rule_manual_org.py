@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # coding=utf-8
 
 import re
@@ -15,7 +15,9 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-INIT_CONFIG = './run_allsite.ini'
+INIT_CONFIG = '../spiderShow/web_run.dev.ini' #windows
+#INIT_CONFIG = '../spiderShow/web_run.dev.ini' #mac
+# INIT_CONFIG = '/work/spiderShow/web_run.deploy.ini' #linux
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -32,9 +34,6 @@ DEDUP_SETTING = config.get('redis', 'dedup_server')
 START_URLS = config.get('spider', 'start_urls')
 SITE_DOMAIN = config.get('spider', 'site_domain')
 BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
-DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
-LIST_RULE_LIST = config.get('spider', 'list_rule_list')
-
 #############################################################################
 
 class MySpider(spider.Spider):
@@ -55,10 +54,11 @@ class MySpider(spider.Spider):
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
-        self.manual_list_rule_list_key = 'manual_list_rule_list_%s' % self.site_domain  # 手工配置规则
-        self.manual_detail_rule_list_key = 'manual_detail_rule_list_%s' % self.site_domain  # 手工配置规则
-        self.detail_rules = []
-        self.list_rules = []
+        self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
+        self.detail_urls_rule0_zset_key = 'detail_rule0_urls_zset_%s' % self.site_domain  # 自动算法规则
+        self.detail_urls_rule1_zset_key = 'detail_rule1_urls_zset_%s' % self.site_domain  # 自动算法规则
+        self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_detail_urls_rule_zset_key = 'manual_detail_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.todo_urls_limits = 10
         self.todo_flg = -1
         self.done_flg = 0
@@ -69,6 +69,44 @@ class MySpider(spider.Spider):
             site_domain=self.site_domain,
             black_domain_list=self.black_domain_list,
             conn=redis.StrictRedis.from_url(REDIS_SERVER))
+
+    def convert_regex_format(self, rule):
+        '''
+        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
+        /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
+        '''
+        ret = ''
+        digit = '\d'
+        word = '[a-zA-Z]'
+        cnt = 0
+        pos = 0
+        temp = ''
+        while pos <= len(rule):
+            if rule[pos:pos + len(digit)] == digit:
+                if temp.find(digit) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d}' % (digit, cnt)
+                pos = pos + len(digit)
+            elif rule[pos:pos + len(word)] == word:
+                if temp.find(word) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d}' % (word, cnt)
+                pos = pos + len(word)
+            elif pos == len(rule):
+                ret = ret + temp
+                break
+            else:
+                ret = ret + temp + rule[pos]
+                temp = ''
+                cnt = 0
+                pos = pos + 1
+        return ret
 
     def filter_links(self, urls):
         # print '[INFO]filter_links() start', len(urls), urls
@@ -106,21 +144,50 @@ class MySpider(spider.Spider):
             print '[ERROR]filter_links()', e
         return urls
 
+    def is_detail_rule_0(self, url):
+        rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
+        rules = self.conn.zrevrangebyscore(self.detail_urls_rule0_zset_key,
+                                           max=999999, min=0, start=0, num=rule0_cnt, withscores=False)
+        for rule0 in rules:
+            if re.search(rule0, url):
+                print '[detail-rule0-auto]', rule0, '<-', url
+                return True  # 符合详情页规则
+        return False  # 不确定
+
+    def is_detail_rule_1(self, url):
+        rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
+        rules = self.conn.zrevrangebyscore(self.detail_urls_rule1_zset_key,
+                                           max=999999, min=0, start=0, num=rule1_cnt, withscores=False)
+        for rule1 in rules:
+            if re.search(rule1, url):
+                self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule1, amount=1)
+                print '[detail-rule1-auto]', rule1, '<-', url
+                return True  # 符合详情页规则
+        return False  # 不确定
+
     def is_manual_detail_rule(self, url):
-        for rule in self.detail_rules:
+        rule_cnt = self.conn.zcard(self.manual_detail_urls_rule_zset_key)
+        rules = self.conn.zrevrangebyscore(self.manual_detail_urls_rule_zset_key,
+                                           max=999999, min=0, start=0, num=rule_cnt, withscores=False)
+        for rule in rules:
             if re.search(rule, url):
+                self.conn.zincrby(self.manual_detail_urls_rule_zset_key, value=rule, amount=1)
                 print '[detail-manual]', rule, '<-', url
                 return True  # 符合详情页规则
         return False
 
     def is_manual_list_rule(self, url):
-        for rule in self.list_rules:
+        rule_cnt = self.conn.zcard(self.manual_list_urls_rule_zset_key)
+        rules = self.conn.zrevrangebyscore(self.manual_list_urls_rule_zset_key,
+                                           max=999999, min=0, start=0, num=rule_cnt, withscores=False)
+        for rule in rules:
             if re.search(rule, url):
+                self.conn.zincrby(self.manual_list_urls_rule_zset_key, value=rule, amount=1)
                 print '[list-manual]', rule, '<-', url
                 return True  # 符合详情页规则
         return False
 
-    def path_is_list(self, url):
+    def path_is_list(self, soup, url):
         # print 'path_is_list() start'
 
         # 最优先确定规则
@@ -134,9 +201,55 @@ class MySpider(spider.Spider):
         if self.is_manual_list_rule(new_url) == True:
             return True
 
+        # 自动归纳规则
+        # 优先使用rule1
+        # if self.is_detail_rule_1(url) == True:
+        #     # print 'is_detail_rule_1()', True
+        #     return False
+        # # # 使用rule0
+        # if self.is_detail_rule_0(url) == True:
+        #     # print 'is_detail_rule_0()', True
+        #     return False
+
+        # 判断面包屑中有无的‘正文’
+        # if self.is_current_page(soup, url) == True:
+        #     # print 'is_current_page() True'
+        #     return False
         print '[unkownn]', new_url
         # print 'path_is_list() end'
         return True
+
+    def convert_path_to_rule0(self, url):
+        '''
+        http://baike.k618.cn/20140515/thread-3327665-1-1.html ->
+        http://baike.k618.cn/20140515/[a-zA-Z]{6}-\d{7}-\d{1}-\d{1}.html
+        '''
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        pos1 = path.rfind('/')
+        pos2 = path.find('.')
+        if pos2 < 0: pos2 = len(path)
+        regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
+        regex = re.sub(r'\d', '\d', regex)
+        regex = path[:pos1 + 1] + regex + path[pos2:]
+        regex = urlparse.urlunparse((scheme, netloc, regex, '', '', ''))
+        return self.convert_regex_format(regex)
+
+    def convert_path_to_rule1(self, rule0):
+        '''
+        http://baike.k618.cn/20140515/[a-zA-Z]{6}-\d{7}-\d{1}-\d{1}.html ->
+        http://baike.k618.cn/\d{8}/[a-zA-Z]{6}-\d{7}-\d{1}-\d{1}.html
+        '''
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(rule0)
+        if path.count('/') >= 2:
+            pos2 = path.rfind('/')
+            pos1 = path[:pos2 - 1].rfind('/')
+            regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', path[pos1 + 1:pos2])
+            regex = re.sub(r'\d', '\d', regex)
+            rule1 = self.convert_regex_format(regex)
+            rule1 = path[:pos1 + 1] + rule1 + path[pos2:]
+            return urlparse.urlunparse((scheme, netloc, rule1, '', '', ''))
+        else:
+            return None
 
     def get_todo_urls(self):
         urls = []
@@ -170,7 +283,7 @@ class MySpider(spider.Spider):
         #     print "[ERROR]get_clean_soup()", e
         #     return None
         # soup = BeautifulSoup(data.content, 'lxml')
-        soup = BeautifulSoup(response.content, 'lxml')
+        soup = BeautifulSoup(response.content,'lxml')
         # print 'before',soup.prettify()
         comments = soup.findAll(text=lambda text: isinstance(text, Comment))
         [comment.extract() for comment in comments]
@@ -241,13 +354,43 @@ class MySpider(spider.Spider):
         # print '[INFO]get_page_valid_urls() end'
         return urls
 
+    def is_current_page(self, soup, org_url):
+        links = []
+        for tag in soup.find_all(text=re.compile(u"正文")):
+            parent = tag.find_parent(recursive=False)
+            if len(parent.find_all('a')) > 0:
+                for link in parent.find_all('a'):
+                    if link.has_attr('href'):
+                        links.append(link['href'])
+                # 保存面包屑
+                urls = self.urls_join(org_url, links)
+                for url in urls:
+                    if self.conn.zrank(self.list_urls_zset_key, url) is None:
+                        self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
+                return True
+
+        return False
+
+    def extract_detail_rule_0(self, url):
+        # rule0 是无条件转换（url一定是详情页）
+        url_rule = self.convert_path_to_rule0(url)
+        if url_rule:
+            self.conn.zincrby(self.detail_urls_rule0_zset_key, value=url_rule, amount=1)
+        else:
+            print '[ERROR] extract_detail_rule_0()', url
+        return
+
+    def extract_detail_rule_1(self):
+        rules_0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
+        rules_0 = self.conn.zrevrangebyscore(self.detail_urls_rule0_zset_key,
+                                             max=999999, min=0, start=0, num=rules_0_cnt, withscores=True)
+        for rule_0, score_0 in dict(rules_0).iteritems():
+            rule_1 = self.convert_path_to_rule1(rule_0)
+            if rule_1:
+                self.conn.zincrby(self.detail_urls_rule1_zset_key, value=rule_1, amount=score_0)
+        return
+
     def get_start_urls(self, data=None):
-        self.detail_rules = [x.strip() for x in DETAIL_RULE_LIST.split('@') if x!='']
-        # self.detail_rules = self.conn.lrange(self.manual_detail_rule_list_key, start=0, end=-1)
-        print DETAIL_RULE_LIST, '->',self.detail_rules
-        self.list_rules = [x.strip() for x in LIST_RULE_LIST.split('@') if x!='']
-        # self.list_rules = self.conn.lrange(self.manual_list_rule_list_key, start=0, end=-1)
-        print LIST_RULE_LIST,'->',self.list_rules
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
         return [self.start_urls]
@@ -272,16 +415,18 @@ class MySpider(spider.Spider):
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
             for link in links:
-                if self.path_is_list(link):
+                # s = self.get_clean_soup(link)
+                s = None #手工规则不需要soup
+                if self.path_is_list(s, link):
                     # print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
-                        # else:
-                        #     # print 'detail:', link
-                        #     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
-                        #         self.conn.zadd(self.detail_urls_zset_key, self.done_flg, urllib.unquote(link))
+                else:
+                    # print 'detail:', link
+                    if self.conn.zrank(self.detail_urls_zset_key, link) is None:
+                        self.conn.zadd(self.detail_urls_zset_key, self.done_flg, urllib.unquote(link))
 
-                        # print 'parse_detail_page() end'
+            # print 'parse_detail_page() end'
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result
@@ -291,7 +436,7 @@ class MySpider(spider.Spider):
 def test(unit_test):
     if unit_test is False:  # spider simulation
         print '[spider simulation] now starting ..........'
-        for cnt in range(10000):
+        for cnt in range(1000):
             print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
             detail_job_list = []  # equal to run.py detail_job_queue
 
@@ -335,18 +480,16 @@ def test(unit_test):
                         print k, v
     else:  # ---------- unit test -----------------------------
         print '[unit test] now starting ..........'
-        url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
-        # url = 'http://cpt.xtu.edu.cn/a/keyanchengguo/keyanxiangmu/2013/0414/109.html'
+        # url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
+        url = 'http://cpt.xtu.edu.cn/a/keyanchengguo/keyanxiangmu/2013/0414/109.html'
         print 'url:', url
         mySpider = MySpider()
         # 预置数据
         # 预置匹配规则
         mySpider.get_start_urls()
-        # mySpider.init_downloader()
-        # resp = mySpider.download(url)
-        # soup = mySpider.get_clean_soup(resp)
+        soup = mySpider.get_clean_soup(url)
         # ----------------------------------------------------------
-        print mySpider.path_is_list(url)
+        print mySpider.path_is_list(soup, url)
         # ----------------------------------------------------------
         # rule0 = mySpider.convert_path_to_rule0(url)
         # print url, '->', rule0
@@ -356,6 +499,6 @@ def test(unit_test):
 
 if __name__ == '__main__':
     test(unit_test=False)
-    # test(unit_test=True)
+    # test(unit_test = True)
     # import cProfile
     # cProfile.run("test(unit_test = False)")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # coding=utf-8
 import re
 import os
@@ -10,7 +10,7 @@ import dedup
 import MySQLdb
 import ConfigParser
 import subprocess
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, session, url_for, flash, redirect
 from flask import send_from_directory
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
@@ -76,7 +76,6 @@ global recover_flg
 
 ##################################################################################################
 class SearchCondForm(Form):
-    user = StringField(label=u'用户ID', default='admin')
     start_url = StringField(label=u'主页', default='')
     site_domain = StringField(label=u'限定域名', default='')
     search = SubmitField(label=u'查询')
@@ -212,10 +211,10 @@ class MySqlDrive(object):
 
         return ret_cnt
 
-    def search_regex_by_user(self, user, start_url, site_domain):
+    def search_regex_by_user(self, user_id, start_url, site_domain):
         search_result_list = []
         sqlStr = "SELECT start_url,site_domain,detail_or_list,scope,white_or_black,weight,regex FROM url_rule " \
-                 "WHERE user='" + user + "' AND start_url like '%" + start_url + "%' AND site_domain like '%" + site_domain + "%'"
+                 "WHERE user_id='" + user_id + "' AND start_url like '%" + start_url + "%' AND site_domain like '%" + site_domain + "%'"
         try:
             cnt = self.cur.execute(sqlStr)
             rs = self.cur.fetchall()
@@ -243,29 +242,29 @@ class MySqlDrive(object):
 
         return search_result_list
 
-    def check_password(self, user, password):
-        sqlStr = "SELECT password FROM user WHERE user='" + user + "'"
+    def check_password(self, user_id, password):
+        sqlStr = "SELECT password FROM user WHERE user_id='" + user_id + "'"
         try:
             cnt = self.cur.execute(sqlStr)
             if cnt == 1:
                 r = self.cur.fetchone()
                 self.conn.commit()
                 if password.strip() == r[0]:
-                    print '[info]check_password() ok', user
+                    print '[info]check_password() ok', user_id
                     return True
             else:
-                print '[error]check_password() has more then one user ', cnt
+                print '[error]check_password() has more then one user_id ', cnt
                 return False
         except Exception, e:
             print '[error]check_password()', e
             return False
 
-    def get_current_main_setting(self):
+    def get_current_main_setting(self, user_id):
         # 提取主页、域名
         start_url = ''
         site_domain = ''
         black_domain = ''
-        sqlStr = "SELECT start_url, site_domain, black_domain, setting_json FROM current_domain_setting"
+        sqlStr = "SELECT start_url, site_domain, black_domain, setting_json FROM current_domain_setting WHERE user_id='" + user_id + "'"
         try:
             cnt = self.cur.execute(sqlStr)
             if cnt == 1:
@@ -277,12 +276,12 @@ class MySqlDrive(object):
 
         return start_url, site_domain, black_domain
 
-    def set_current_main_setting(self, start_url, site_domain, black_domain, setting_json):
+    def set_current_main_setting(self, user_id='', start_url='', site_domain='', black_domain='', setting_json=''):
         # print 'set_current_main_setting() start'
         # 提取主页、域名
-        sqlStr1 = "DELETE FROM current_domain_setting"
-        sqlStr2 = "INSERT INTO current_domain_setting(start_url,site_domain,black_domain,setting_json) " \
-                  "VALUES ('" + start_url + "','" + site_domain + "','" + black_domain + "','" + setting_json + "')"
+        sqlStr1 = "DELETE FROM current_domain_setting WHERE user_id='" + user_id + "'"
+        sqlStr2 = "INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain,setting_json) " \
+                  "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain + "','" + setting_json + "')"
         try:
             print '[info]set_current_main_setting()', sqlStr1
             self.cur.execute(sqlStr1)
@@ -293,16 +292,16 @@ class MySqlDrive(object):
             print '[error]set_current_main_setting()', e, sqlStr1
             print '[error]set_current_main_setting()', e, sqlStr2
 
-    def clean_current_main_setting(self):
+    def clean_current_main_setting(self, user_id):
         # 提取主页、域名
-        sqlStr = "DELETE FROM current_domain_setting"
+        sqlStr = "DELETE FROM current_domain_setting WHERE user_id = '" + user_id + "'"
         try:
             self.cur.execute(sqlStr)
             self.conn.commit()
         except Exception, e:
             print '[error]clean_current_main_setting()', e
 
-    def get_regexs(self, type):
+    def get_regexs(self, type, user_id):
         # 0:detail,1:list
         if type == 'detail':
             detail_or_list = '0'
@@ -310,9 +309,8 @@ class MySqlDrive(object):
             detail_or_list = '1'
         regexs = []
         # 提取主页、域名
-        start_url, site_domain, black_domain = self.get_current_main_setting()
-        sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule " \
-                 "WHERE start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
+        start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
+        sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule WHERE user_id='" + user_id + "' AND start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
         try:
             cnt = self.cur.execute(sqlStr)
             rs = self.cur.fetchall()
@@ -610,22 +608,22 @@ def modify_config(start_urls, site_domain, black_domain_list):
 def login():
     error = None
     if request.method == 'POST':
-        user = request.form['username']
+        user_id = request.form['username']
         password = request.form['password']
         mysql_db = MySqlDrive()
-        if mysql_db.check_password(user, password):
-            return redirect(url_for('menu'))
+        if mysql_db.check_password(user_id, password):
+            session['user_id'] = user_id # password OK！
+            mysql_db.set_current_main_setting(user_id=user_id)
+            # return redirect(url_for('menu'))
+            return render_template('menu.html', user_id=session.get('user_id'))
         else:
-            error = u"输入密码不正确。"
+            flash(u"输入密码不正确。")
 
-    return render_template('login.html', error=error)
+    return render_template('login.html')
 
 
 @app.route('/menu', methods=['GET', 'POST'])
 def menu():
-    # 清空主页、域名
-    db = MySqlDrive()
-    db.clean_current_main_setting()
     return render_template('menu.html')
 
 
@@ -651,13 +649,15 @@ def convert_to_regex():
 
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
+    user_id = session.get('user_id')
+    print '[info]user_search()',user_id
     inputForm = SearchCondForm(request.form)
-    user = inputForm.user.data
     start_url = inputForm.start_url.data
     site_domain = inputForm.site_domain.data
+
     outputForm = SearchResultForm()
     mysql_db = MySqlDrive()
-    outputForm.search_result_list = mysql_db.search_regex_by_user(user, start_url, site_domain)
+    outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
 
     if inputForm.recover.data:  # 点击 导入
         if len(outputForm.search_result_list) > 0:
@@ -665,25 +665,25 @@ def user_search():
             for i in outputForm.search_result_list:
                 start_url = i['start_url']
                 site_domain = i['site_domain']
-                d.add(start_url+site_domain)
+                d.add(start_url + site_domain)
 
             if len(d) == 1:
-                mysql_db.set_current_main_setting(start_url, site_domain, '', '')
+                mysql_db.set_current_main_setting(user_id, start_url, site_domain, '', '')
             else:
                 flash(u'请选择唯一的首页和域名进行导入。')
         else:
             flash(u'请检索取得结果后再导入。')
 
-    return render_template('user.html', inputForm=inputForm, outputForm=outputForm)
+    return render_template('user.html',user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
 
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
+    user_id = session.get('user_id')
     inputForm = RegexInputForm()
-
     # 提取主页、域名
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', inputForm=inputForm)
@@ -719,11 +719,12 @@ def show_process():
 
 @app.route('/show_result', methods=['GET', 'POST'])
 def get_show_result():
+    user_id = session.get('user_id')
     outputForm = RegexOutputForm()
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show-result.html', outputForm=outputForm)
@@ -771,10 +772,11 @@ def setting_main_init():
     '''
     从MySql初始化Web页面和Redis
     '''
+    user_id = session.get('user_id')
     inputForm = RegexInputForm(request.form)
 
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_list = mysql_db.get_current_main_setting()
+    start_url, site_domain, black_domain_list = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -787,7 +789,7 @@ def setting_main_init():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     # 设置/还原 正则表达式-详情页
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail'):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail',user_id):
         if redis_db.conn.zrank(redis_db.manual_detail_urls_rule_zset_key, regex) is None:
             redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, regex)
             score = 0
@@ -801,7 +803,7 @@ def setting_main_init():
 
     # 设置/还原 正则表达式-列表页
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list'):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list',user_id):
         if redis_db.conn.zrank(redis_db.manual_list_urls_rule_zset_key, regex) is None:
             redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, regex)
             score = 0
