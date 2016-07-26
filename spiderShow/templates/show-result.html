@@ -75,14 +75,14 @@
             <thead>
             <tr>
                 <th>列表页一览({{outputForm.list_urls_cnt}}件)</th>
-                <th>正误</th>
+{#                <th>正误</th>#}
             </tr>
             </thead>
             <tbody>
             {% for row in outputForm.list_urls_list %}
                 <tr id="{{ loop.index }}">
                     <td>{{ row.list_url(size=70) }}</td>
-                    <td>&nbsp;&nbsp;{{ row.select() }}</td>
+{#                    <td>&nbsp;&nbsp;{{ row.select() }}</td>#}
                 </tr>
             {% endfor %}
             </tbody>
