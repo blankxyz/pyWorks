@@ -1,0 +1,2 @@
+INSERT INTO spider.user (user_id, password, Authorization, etc) VALUES ('admin', 'admin', '0', 'admin');
+INSERT INTO spider.user (user_id, password, Authorization, etc) VALUES ('user', 'user', '1', 'normal user');
