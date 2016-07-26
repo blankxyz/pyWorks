@@ -58,9 +58,12 @@ CONFIG_JSON = config.get('export', 'config_json')
 if os.name == 'nt':
     RUN_FILE = config.get('windows', 'run_file')
     SHELL_CMD = config.get('windows', 'shell_cmd')
+    RUN_ALLSITE_INI = config.get('windows', 'run_allsite_ini')
+
 else:
     RUN_FILE = config.get('linux', 'run_file')
     SHELL_CMD = config.get('linux', 'shell_cmd')
+    RUN_ALLSITE_INI = config.get('linux', 'run_allsite_ini')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
@@ -162,14 +165,14 @@ class MySqlDrive(object):
         self.cur.close()
         self.conn.close()
 
-    def save_all_setting(self, start_url, site_domain, setting_json, black_domain_list, detail_regex_save_list,
+    def save_all_setting(self, user_id, start_url, site_domain, setting_json, black_domain_list, detail_regex_save_list,
                          list_regex_save_list):
         # print 'save_all_setting() start...', start_url, site_domain
 
         ret_cnt = 0
         try:
             sqlStr1 = (
-                "DELETE FROM url_rule WHERE start_url= '" + start_url + "' AND site_domain= '" + site_domain + "'")
+                "DELETE FROM url_rule WHERE user_id = '" + user_id + "' AND start_url= '" + start_url + "' AND site_domain= '" + site_domain + "'")
             self.cur.execute(sqlStr1)
             self.conn.commit()
 
@@ -184,8 +187,8 @@ class MySqlDrive(object):
                 detail_or_list = '0'
                 scope = '1'
                 white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
-                          "VALUES ('" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
+                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
+                          "VALUES ( '" + user_id + "','" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
                           scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
                 print '[info]save_all_setting() detail', sqlStr2
                 ret_cnt = self.cur.execute(sqlStr2)
@@ -197,8 +200,8 @@ class MySqlDrive(object):
                 detail_or_list = '1'
                 scope = '1'
                 white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
-                          "VALUES ('" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
+                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
+                          "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
                           scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
                 print '[info]save_all_setting() list', sqlStr2
                 ret_cnt = self.cur.execute(sqlStr2)
@@ -586,15 +589,16 @@ def convert_regex_format(rule):
     return ret
 
 
-def modify_config(start_urls, site_domain, black_domain_list):
+def modify_config(start_urls, site_domain, black_domain_list, detail_rule_str, list_rule_str):
     try:
         config = ConfigParser.ConfigParser()
-        _cur_path = os.path.dirname(__file__)
-        config.read(_cur_path + INIT_CONFIG)
+        config.read(RUN_ALLSITE_INI)
         config.set('spider', 'start_urls', start_urls)
         config.set('spider', 'site_domain', site_domain)
         config.set('spider', 'black_domain_list', black_domain_list)
-        fp = open(_cur_path + INIT_CONFIG, "w")
+        config.set('spider', 'detail_rule_list', detail_rule_str)
+        config.set('spider', 'list_rule_list', list_rule_str)
+        fp = open(RUN_ALLSITE_INI, "w")
         config.write(fp)
         print '[info] modify_config ok.'
         return True
@@ -604,7 +608,7 @@ def modify_config(start_urls, site_domain, black_domain_list):
 
 
 ##################################################################################################
-@app.route("/", methods=['POST', 'GET'])
+@app.route("/aaaaaaaaa", methods=['POST', 'GET'])
 def login():
     error = None
     if request.method == 'POST':
@@ -612,7 +616,7 @@ def login():
         password = request.form['password']
         mysql_db = MySqlDrive()
         if mysql_db.check_password(user_id, password):
-            session['user_id'] = user_id # password OK！
+            session['user_id'] = user_id  # password OK！
             mysql_db.set_current_main_setting(user_id=user_id)
             # return redirect(url_for('menu'))
             return render_template('menu.html', user_id=session.get('user_id'))
@@ -622,7 +626,7 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/menu', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def menu():
     return render_template('menu.html')
 
@@ -649,8 +653,9 @@ def convert_to_regex():
 
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
-    user_id = session.get('user_id')
-    print '[info]user_search()',user_id
+    # user_id = session.get('user_id')
+    user_id = 'admin'
+    print '[info]user_search()', user_id
     inputForm = SearchCondForm(request.form)
     start_url = inputForm.start_url.data
     site_domain = inputForm.site_domain.data
@@ -674,16 +679,18 @@ def user_search():
         else:
             flash(u'请检索取得结果后再导入。')
 
-    return render_template('user.html',user_id=user_id, inputForm=inputForm, outputForm=outputForm)
+    return render_template('user.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
 
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
-    user_id = session.get('user_id')
+    # user_id = session.get('user_id')
+    user_id = 'admin'
     inputForm = RegexInputForm()
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    print 'get_show_result()', user_id, start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', inputForm=inputForm)
@@ -719,17 +726,18 @@ def show_process():
 
 @app.route('/show_result', methods=['GET', 'POST'])
 def get_show_result():
-    user_id = session.get('user_id')
+    # user_id = session.get('user_id')
+    user_id = 'admin'
     outputForm = RegexOutputForm()
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    print 'get_show_result()', start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show-result.html', outputForm=outputForm)
 
-    # 从redis提取实时信息，转换成json文件
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
     i = 0
@@ -772,7 +780,8 @@ def setting_main_init():
     '''
     从MySql初始化Web页面和Redis
     '''
-    user_id = session.get('user_id')
+    # user_id = session.get('user_id')
+    user_id = 'admin'
     inputForm = RegexInputForm(request.form)
 
     mysql_db = MySqlDrive()
@@ -789,7 +798,7 @@ def setting_main_init():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     # 设置/还原 正则表达式-详情页
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail',user_id):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail', user_id):
         if redis_db.conn.zrank(redis_db.manual_detail_urls_rule_zset_key, regex) is None:
             redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, regex)
             score = 0
@@ -803,7 +812,7 @@ def setting_main_init():
 
     # 设置/还原 正则表达式-列表页
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list',user_id):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list', user_id):
         if redis_db.conn.zrank(redis_db.manual_list_urls_rule_zset_key, regex) is None:
             redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, regex)
             score = 0
@@ -824,6 +833,8 @@ def setting_main_init():
 
 @app.route('/save_and_run', methods=['POST'])
 def setting_main_save_and_run():
+    # user_id = session['user_id']
+    user_id = 'admin'
     global process_id
     inputForm = RegexInputForm(request.form)
     # if inputForm.validate_on_submit():
@@ -886,23 +897,29 @@ def setting_main_save_and_run():
                 return render_template('setting.html', inputForm=inputForm)
 
     # 保存手工配置规则到Redis
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    for regex in redis_db.conn.zrange(redis_db.manual_list_urls_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_list_urls_rule_zset_key, regex)
+    # redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    # for regex in redis_db.conn.zrange(redis_db.manual_list_urls_rule_zset_key, start=0, end=-1):
+    #     redis_db.conn.zrem(redis_db.manual_list_urls_rule_zset_key, regex)
+    # for item in list_regex_save_list:
+    #     redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, item['regex'])
+    detail_rule_str = ''
     for item in list_regex_save_list:
-        redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, item['regex'])
-
-    for regex in redis_db.conn.zrange(redis_db.manual_detail_urls_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_detail_urls_rule_zset_key, regex)
+        detail_rule_str += item['regex'] + '@'
+    # for regex in redis_db.conn.zrange(redis_db.manual_detail_urls_rule_zset_key, start=0, end=-1):
+    #     redis_db.conn.zrem(redis_db.manual_detail_urls_rule_zset_key, regex)
+    # for item in detail_regex_save_list:
+    #     redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, item['regex'])
+    list_rule_str = ''
     for item in detail_regex_save_list:
-        redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, item['regex'])
+        list_rule_str += item['regex'] + '@'
 
     # 保存所有手工配置信息到MySql
     setting_json = ''
     mysql_db = MySqlDrive()
-    mysql_db.set_current_main_setting(start_url, site_domain, black_domain_list, setting_json)
-    cnt = mysql_db.save_all_setting(start_url, site_domain, black_domain_list, setting_json, detail_regex_save_list,
-                                    list_regex_save_list)
+    mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
+                                      black_domain=black_domain_list, setting_json=setting_json)
+    cnt = mysql_db.save_all_setting(user_id, start_url, site_domain, black_domain_list, setting_json,
+                                    detail_regex_save_list, list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
     else:
@@ -911,7 +928,8 @@ def setting_main_save_and_run():
 
     # 执行抓取程序
     # 修改配置文件的执行入口信息
-    ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_list=black_domain_list)
+    ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_list=black_domain_list,
+                        detail_rule_str=detail_rule_str, list_rule_str=list_rule_str)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
         return render_template('setting.html', inputForm=inputForm)
