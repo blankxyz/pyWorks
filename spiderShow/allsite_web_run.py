@@ -80,6 +80,7 @@ global recover_flg
 ##################################################################################################
 class SearchCondForm(Form):
     start_url = StringField(label=u'主页', default='')
+    start_url_sel = SelectField(label=u'履历选择', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
     search = SubmitField(label=u'查询')
     recover = SubmitField(label=u'导入')
@@ -89,6 +90,7 @@ class SearchResultForm(Form):
     select = BooleanField(label=u'选择', default=False)
     start_url = StringField(label=u'主页', default='')
     site_domain = StringField(label=u'限定域名', default='')
+    black_domain_str = StringField(label=u'域名黑名单', default='')
     detail_or_list = BooleanField(label=u'列表/详情', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
@@ -117,7 +119,7 @@ class RegexInputForm(Form):
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
-    black_domain_list = StringField(label=u'域名黑名单')
+    black_domain_str = StringField(label=u'域名黑名单')
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
@@ -140,10 +142,11 @@ class RegexOutputForm(Form):
     refresh = SubmitField(label=u'刷新')
 
 
-class UserOutputForm(Form):
-    white_list = StringField(label=u'白名单')
-    black_domain_list = StringField(label=u'域名黑名单')
-    search_result_list = FieldList(FormField(RegexForm), label=u'正则表达式', min_entries=50)  # 列表+详情
+class DetailPageForm(Form):
+    title = StringField(label=u'标题')
+    author = StringField(label=u'作者')
+    create_date = StringField(label=u'作成时间')
+    content = StringField(label=u'作成时间')
 
 
 ##################################################################################################
@@ -165,7 +168,7 @@ class MySqlDrive(object):
         self.cur.close()
         self.conn.close()
 
-    def save_all_setting(self, user_id, start_url, site_domain, setting_json, black_domain_list, detail_regex_save_list,
+    def save_all_setting(self, user_id, start_url, site_domain, setting_json, black_domain_str, detail_regex_save_list,
                          list_regex_save_list):
         # print 'save_all_setting() start...', start_url, site_domain
 
@@ -187,8 +190,8 @@ class MySqlDrive(object):
                 detail_or_list = '0'
                 scope = '1'
                 white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
-                          "VALUES ( '" + user_id + "','" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
+                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) " \
+                          "VALUES ( '" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain_str + "','" + detail_or_list + "','" + \
                           scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
                 print '[info]save_all_setting()-detail', sqlStr2
                 ret_cnt = self.cur.execute(sqlStr2)
@@ -200,8 +203,8 @@ class MySqlDrive(object):
                 detail_or_list = '1'
                 scope = '1'
                 white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,detail_or_list, scope,white_or_black,weight,regex) " \
-                          "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + detail_or_list + "','" + \
+                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) " \
+                          "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain_str + "','" + detail_or_list + "','" + \
                           scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
                 print '[info]save_all_setting()-list', sqlStr2
                 ret_cnt = self.cur.execute(sqlStr2)
@@ -216,32 +219,53 @@ class MySqlDrive(object):
 
     def search_regex_by_user(self, user_id, start_url, site_domain):
         search_result_list = []
-        sqlStr = "SELECT start_url,site_domain,detail_or_list,scope,white_or_black,weight,regex FROM url_rule " \
+        sqlStr = "SELECT start_url,site_domain,black_domain_str,detail_or_list,scope,white_or_black,weight,regex FROM url_rule " \
                  "WHERE user_id='" + user_id + "' AND start_url like '%" + start_url + "%' AND site_domain like '%" + site_domain + "%'"
         try:
             cnt = self.cur.execute(sqlStr)
             rs = self.cur.fetchall()
             for r in rs:
-                if r[2] == '0':
+                # code 表意翻译
+                if r[3] == '0':
                     detail_or_list = u'详情规则'
                 else:
                     detail_or_list = u'列表规则'
 
-                if r[5] == '0':
+                if r[2] == '' or r[2] is None:
+                    black_domain_str = u'无'
+                else:
+                    black_domain_str = r[2]
+
+                if r[6] == '0':
                     weight = u'确定'
-                elif r[5] == '1':
+                elif r[6] == '1':
                     weight = u'可能'
                 else:
                     weight = u'。。。'
 
-                search_result_list.append({'start_url': r[0], 'site_domain': r[1],
-                                           'detail_or_list': detail_or_list, 'scope': r[3],
-                                           'white_or_black': r[4], 'weight': weight,
-                                           'regex': r[6]})
+                search_result_list.append({'start_url': r[0], 'site_domain': r[1], 'black_domain_str': black_domain_str,
+                                           'detail_or_list': detail_or_list, 'scope': r[4],
+                                           'white_or_black': r[5], 'weight': weight,
+                                           'regex': r[7]})
             self.conn.commit()
             print '[info]search_regex_by_user()', cnt, sqlStr
         except Exception, e:
             print '[error]search_regex_by_user()', e
+
+        return search_result_list
+
+    def search_start_url_by_user(self, user_id):
+        search_result_list = []
+        sqlStr = "SELECT DISTINCT(start_url) FROM url_rule WHERE user_id='" + user_id + "' ORDER BY start_url ASC"
+        try:
+            cnt = self.cur.execute(sqlStr)
+            rs = self.cur.fetchall()
+            for r in rs:
+                search_result_list.append(r[0])
+            self.conn.commit()
+            print '[info]search_start_url_by_user()', cnt, sqlStr
+        except Exception, e:
+            print '[error]search_start_url_by_user()', e
 
         return search_result_list
 
@@ -266,25 +290,25 @@ class MySqlDrive(object):
         # 提取主页、域名
         start_url = ''
         site_domain = ''
-        black_domain = ''
-        sqlStr = "SELECT start_url, site_domain, black_domain, setting_json FROM current_domain_setting WHERE user_id='" + user_id + "'"
+        black_domain_str = ''
+        sqlStr = "SELECT start_url, site_domain, black_domain_str, setting_json FROM current_domain_setting WHERE user_id='" + user_id + "'"
         try:
             cnt = self.cur.execute(sqlStr)
             if cnt == 1:
-                (start_url, site_domain, black_domain, setting_json) = self.cur.fetchone()
+                (start_url, site_domain, black_domain_str, setting_json) = self.cur.fetchone()
                 self.conn.commit()
                 # print 'get_current_main_setting()', cnt, sqlStr
         except Exception, e:
             print 'get_current_main_setting()', e
 
-        return start_url, site_domain, black_domain
+        return start_url, site_domain, black_domain_str
 
-    def set_current_main_setting(self, user_id='', start_url='', site_domain='', black_domain='', setting_json=''):
+    def set_current_main_setting(self, user_id='', start_url='', site_domain='', black_domain_str='', setting_json=''):
         # print 'set_current_main_setting() start'
         # 提取主页、域名
         sqlStr1 = "DELETE FROM current_domain_setting WHERE user_id='" + user_id + "'"
-        sqlStr2 = "INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain,setting_json) " \
-                  "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain + "','" + setting_json + "')"
+        sqlStr2 = "INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain_str,setting_json) " \
+                  "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain_str + "','" + setting_json + "')"
         try:
             print '[info]set_current_main_setting()', sqlStr1
             self.cur.execute(sqlStr1)
@@ -337,7 +361,7 @@ class FileDrive(object):
         # self.fd.close()
         pass
 
-    def save_all_setting(self, start_url, site_domain, black_domain_list, setting_json, detail_regex_save_list,
+    def save_all_setting(self, start_url, site_domain, black_domain_str, setting_json, detail_regex_save_list,
                          list_regex_save_list):
         ret_cnt = 0
         try:
@@ -350,7 +374,7 @@ class FileDrive(object):
             fd = open(EXPORT_FOLDER + CONFIG_JSON, 'w')
             export_obj = {'start_url': start_url,
                           'site_domain': site_domain,
-                          'black_domain_list': black_domain_list,
+                          'black_domain_str': black_domain_str,
                           'detail_regex_save_list': detail_regex_save_list,
                           'list_regex_save_list': list_regex_save_list
                           }
@@ -367,21 +391,21 @@ class FileDrive(object):
         # 提取主页、域名
         start_url = ''
         site_domain = ''
-        black_domain_list = ''
+        black_domain_str = ''
         setting_json = ''
         try:
             fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r')
             j = json.load(fp=fd, encoding=MYSQLDB_CHARSET)
             start_url = j['start_url']
             site_domain = j['site_domain']
-            black_domain_list = j['black_domain_list']
+            black_domain_str = j['black_domain_str']
             fd.close()
         except Exception, e:
             print '[error]get_current_main_setting()', e
 
-        return start_url, site_domain, black_domain_list
+        return start_url, site_domain, black_domain_str
 
-    def set_current_main_setting(self, start_url, site_domain, black_domain, setting_json):
+    def set_current_main_setting(self, start_url, site_domain, black_domain_str, setting_json):
         return
 
     def clean_current_main_setting(self):
@@ -589,13 +613,13 @@ def convert_regex_format(rule):
     return ret
 
 
-def modify_config(start_urls, site_domain, black_domain_list, detail_rule_str, list_rule_str):
+def modify_config(start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str):
     try:
         config = ConfigParser.ConfigParser()
         config.read(RUN_ALLSITE_INI)
         config.set('spider', 'start_urls', start_urls)
         config.set('spider', 'site_domain', site_domain)
-        config.set('spider', 'black_domain_list', black_domain_list)
+        config.set('spider', 'black_domain_list', black_domain_str)
         config.set('spider', 'list_rule_list', list_rule_str)
         config.set('spider', 'detail_rule_list', detail_rule_str)
         fp = open(RUN_ALLSITE_INI, "w")
@@ -659,15 +683,34 @@ def user_search():
     # user_id = session.get('user_id')
     user_id = 'admin'
     print '[info]user_search()', user_id
+    mysql_db = MySqlDrive()
+
     inputForm = SearchCondForm(request.form)
     start_url = inputForm.start_url.data
     site_domain = inputForm.site_domain.data
+    # 设定域名选项
+    select_items = [(i, i) for i in mysql_db.search_start_url_by_user(user_id)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.start_url_sel.choices = select_items
+    start_url_sel = inputForm.start_url_sel.data
 
     outputForm = SearchResultForm()
-    mysql_db = MySqlDrive()
     outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
 
-    if inputForm.recover.data:  # 点击 导入
+    if len(outputForm.search_result_list) == 0:
+        flash(u'请输入合适的查询条件（ 主页，限定域名   支持like查询 ）。')
+    else:
+        flash(u'请确认的查询结果。')
+
+    # 点击 查询
+    if inputForm.search.data:
+        if start_url_sel != '':
+            start_url = start_url_sel
+        outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
+
+    # 点击 导入
+    if inputForm.recover.data:
         if len(outputForm.search_result_list) > 0:
             d = set()
             for i in outputForm.search_result_list:
@@ -693,7 +736,7 @@ def show_process():
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print 'get_show_result()', user_id, start_url, site_domain, black_domain
+    print 'show_process()', user_id, start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', inputForm=inputForm)
@@ -738,8 +781,8 @@ def get_show_result():
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print 'get_show_result()', start_url, site_domain, black_domain
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    # print 'get_show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show-result.html', outputForm=outputForm)
@@ -791,7 +834,7 @@ def setting_main_init():
     inputForm = RegexInputForm(request.form)
 
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_list = mysql_db.get_current_main_setting(user_id)
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -799,7 +842,7 @@ def setting_main_init():
     else:
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
-        inputForm.black_domain_list.data = black_domain_list
+        inputForm.black_domain_str.data = black_domain_str
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     # 设置/还原 正则表达式-详情页
@@ -849,7 +892,7 @@ def setting_main_save_and_run():
     # if request.method == 'POST' and inputForm.validate():
     start_url = inputForm.start_url.data
     site_domain = inputForm.site_domain.data
-    black_domain_list = inputForm.black_domain_list.data
+    black_domain_str = inputForm.black_domain_str.data
     if start_url.strip() == '' or site_domain.strip() == '':
         flash(u'必须设置主页、域名信息！')
         return render_template('setting.html', inputForm=inputForm)
@@ -925,9 +968,13 @@ def setting_main_save_and_run():
     setting_json = ''
     mysql_db = MySqlDrive()
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
-                                      black_domain=black_domain_list, setting_json=setting_json)
-    cnt = mysql_db.save_all_setting(user_id, start_url, site_domain, black_domain_list, setting_json,
-                                    detail_regex_save_list, list_regex_save_list)
+                                      black_domain_str=black_domain_str, setting_json=setting_json)
+
+    print 'save_all_setting', black_domain_str
+    cnt = mysql_db.save_all_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
+                                    setting_json=setting_json, black_domain_str=black_domain_str,
+                                    detail_regex_save_list=detail_regex_save_list,
+                                    list_regex_save_list=list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
     else:
@@ -936,7 +983,7 @@ def setting_main_save_and_run():
 
     # 执行抓取程序
     # 修改配置文件的执行入口信息
-    ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_list=black_domain_list,
+    ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                         list_rule_str=list_rule_str, detail_rule_str=detail_rule_str)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
@@ -1001,12 +1048,12 @@ def export_import():
 
 
 if __name__ == '__main__':
-    if INIT_CONFIG.find('deploy') > 0:
-        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    else:
-        app.run(debug=True)
+    # if INIT_CONFIG.find('deploy') > 0:
+    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    # else:
+    #     app.run(debug=True)
 
-        # -------------------unit test-----------------------------------
-        # mysql = MySqlDrive()
-        # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
-        # print mysql.get_current_main_setting()
+    # -------------------unit test-----------------------------------
+    # mysql = MySqlDrive()
+    # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
+    # print mysql.get_current_main_setting()
