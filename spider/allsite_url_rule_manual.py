@@ -15,8 +15,8 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-INIT_CONFIG = './run_allsite.ini' #windows,linux
-#INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
+# INIT_CONFIG = './run_allsite.ini' #windows,linux
+INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -56,8 +56,8 @@ class MySpider(spider.Spider):
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
-        self.manual_list_rule_list_key = 'manual_list_rule_list_%s' % self.site_domain  # 手工配置规则
-        self.manual_detail_rule_list_key = 'manual_detail_rule_list_%s' % self.site_domain  # 手工配置规则
+        self.manual_list_rule_zset_key = 'manual_list_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_detail_rule_zset_key = 'manual_detail_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.detail_rules = []
         self.list_rules = []
         self.todo_urls_limits = 10
@@ -110,6 +110,7 @@ class MySpider(spider.Spider):
     def is_manual_detail_rule(self, url):
         for rule in self.detail_rules:
             if re.search(rule, url):
+                self.conn.zincrby(self.manual_detail_rule_zset_key, value=rule, amount=1)
                 print '[detail-manual]', rule, '<-', url
                 return True  # 符合详情页规则
         return False
@@ -117,6 +118,7 @@ class MySpider(spider.Spider):
     def is_manual_list_rule(self, url):
         for rule in self.list_rules:
             if re.search(rule, url):
+                self.conn.zincrby(self.manual_list_rule_zset_key, value=rule, amount=1)
                 print '[list-manual]', rule, '<-', url
                 return True  # 符合详情页规则
         return False
@@ -152,16 +154,16 @@ class MySpider(spider.Spider):
             print "[ERROR] get_todo_urls(): %s" % e
         return urls
 
-    def header_maker(self, text=''):
-        if not text:
-            text = {'Proxy-Connection': 'keep-alive',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Upgrade-Insecure-Requests': 1,
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
-                    'Accept-Encoding': 'gzip, deflate, sdch',
-                    'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4'
-                    }
-        return text
+    # def header_maker(self, text=''):
+    #     if not text:
+    #         text = {'Proxy-Connection': 'keep-alive',
+    #                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    #                 'Upgrade-Insecure-Requests': 1,
+    #                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
+    #                 'Accept-Encoding': 'gzip, deflate, sdch',
+    #                 'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4'
+    #                 }
+    #     return text
 
     def get_clean_soup(self, response):
         # headers = self.header_maker()
@@ -244,10 +246,8 @@ class MySpider(spider.Spider):
 
     def get_start_urls(self, data=None):
         self.detail_rules = [x.strip() for x in DETAIL_RULE_LIST.split('@') if x!='']
-        # self.detail_rules = self.conn.lrange(self.manual_detail_rule_list_key, start=0, end=-1)
         print DETAIL_RULE_LIST, '->',self.detail_rules
         self.list_rules = [x.strip() for x in LIST_RULE_LIST.split('@') if x!='']
-        # self.list_rules = self.conn.lrange(self.manual_list_rule_list_key, start=0, end=-1)
         print LIST_RULE_LIST,'->',self.list_rules
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)

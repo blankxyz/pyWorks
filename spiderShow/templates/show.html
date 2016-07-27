@@ -76,10 +76,10 @@
                     type: 'pie',
                     name: '完成率',
                     data: [
-                        ['完成', {{ matched_rate }}],
+                        ['完成', {{ done_rate }}],
                         {
                             name: '未完成',
-                            y: {{ un_match_rate }},
+                            y: {{ todo_rate }},
                             sliced: true,
                             selected: true
                         }
@@ -141,35 +141,95 @@
                 }]
             });
         });
+        $(function () {
+            $('#regexs-div').highcharts({
+                chart: {
+                    type: 'bar'
+                },
+                title: {
+                    text: '规则匹配次数统计'
+                },
+                subtitle: {
+                    text: '详情top5 + 列表top5'
+                },
+                xAxis: {
+                    categories: ['No.1', 'No.2', 'No.3', 'No.4', 'No.5','No.6','No.7','No.8','No.9','No.10'],
+                    title: {
+                        text: null
+                    }
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: '次数',
+                        align: 'high'
+                    },
+                    labels: {
+                        overflow: 'justify'
+                    }
+                },
+                tooltip: {
+                    valueSuffix: ' 次数'
+                },
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: -40,
+                    y: 100,
+                    floating: true,
+                    borderWidth: 1,
+                    backgroundColor: '#FFFFFF',
+                    shadow: true
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    name: '匹配',
+                    data: [{{ matched_cnt }}]
+                }]
+            });
+        });
     </script>
 {% endblock %}
 
 {% block content %}
-<h3 align="center">抓取过程展示
-    <small> 2分钟之内,列表页数 = 列表页(扫描完成数) 恒定时，抓取结束，可以手工</small><a href="kill">强制终止</a><small>来结束程序。</small>
-    <small>累计处理过程绘图清零请点击</small><a href="resetZero">清零</a>
-</h3>
-<hr/>
-<div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:50px">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class=flashes>
-                {% for message in messages %}
-                    <label>{{ message }}</label>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-</div>
-<hr>
-<div id="process-div" style="min-width:700px;height:400px"></div>
-{#<hr>#}
-{#<div id="keywords-div" style="float:left;width:70%;height:300px"></div>#}
-{#<div id="dedup-div" style="float:right;width:30%;height:300px"></div>#}
-{#<hr>#}
-{#<div id="regexs" style="width:40%; margin-left:50px">#}
-{#    {% for regex in keywords %}#}
-{#        <label>No.{{ loop.index }}&nbsp;&nbsp;&nbsp;</label>{{ regex }}<br>#}
-{#    {% endfor %}#}
-{#</div>#}
+    <h3 align="center">抓取过程展示
+        <small> 2分钟之内,列表页数 = 列表页(扫描完成数) 恒定时，抓取结束，可以手工</small>
+        <a href="kill">强制终止</a>
+        <small>来结束程序。</small>
+        <small>累计处理过程绘图清零请点击</small>
+        <a href="resetZero">清零</a>
+    </h3>
+    <hr/>
+    <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:50px">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <label>{{ message }}</label>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <hr>
+    <div id="process-div" style="min-width:700px;height:400px"></div>
+    <hr>
+    <div id="regexs-div" style="float:left;width:70%;height:300px"></div>
+    <div id="dedup-div" style="float:right;width:30%;height:300px"></div>
+    <hr>
+    <div id="regexs" style="width:40%; margin-left:50px">
+        {% for regex in keywords %}
+            <label>No.{{ loop.index }}&nbsp;&nbsp;&nbsp;</label>{{ regex }}<br>
+        {% endfor %}
+    </div>
 {% endblock %}

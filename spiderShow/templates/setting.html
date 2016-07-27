@@ -123,16 +123,16 @@
                     <th>选择</th>
                     <th>正则表达式</th>
                     <th>权重</th>
-{#                    <th>匹配数</th>#}
+                    <th>匹配次数</th>
                 </tr>
                 </thead>
-                <tbody>å
+                <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id={{ loop.index }}>
                         <td>{{ row.select() }}</td>
                         <td>{{ row.regex(size=100) }}</td>
                         <td>{{ row.weight() }}</td>
-{#                        <td>{{ row.score(size=6) }}</td>#}
+                        <td>{{ row.score(size=6) }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -148,7 +148,7 @@
                     <th>选择</th>
                     <th>正则表达式</th>
                     <th>权重</th>
-{#                    <th>匹配数</th>#}
+                    <th>匹配数</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -157,7 +157,7 @@
                         <td>&nbsp;&nbsp;{{ row.select() }}</td>
                         <td>{{ row.regex(size=100) }}</td>
                         <td>{{ row.weight() }}</td>
-{#                        <td readonly="readonly">{{ row.score(size=6) }}</td>#}
+                        <td readonly="readonly">{{ row.score(size=6) }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -441,8 +441,8 @@ class RedisDrive(object):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
-        self.manual_list_urls_rule_zset_key = 'manual_list_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
-        self.manual_detail_urls_rule_zset_key = 'manual_detail_urls_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_list_rule_zset_key = 'manual_list_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_detail_rule_zset_key = 'manual_detail_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
@@ -487,13 +487,13 @@ class RedisDrive(object):
         # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         score_list = []
         keywords = []
-        list_rules = self.conn.zrevrangebyscore(self.manual_list_urls_rule_zset_key,
+        list_rules = self.conn.zrevrangebyscore(self.manual_list_rule_zset_key,
                                                 max=999999, min=0, start=0, num=5, withscores=True)
         for rule, score in dict(list_rules).iteritems():
             score_list.append(str(score))
             keywords.append(rule)
 
-        detail_rules = self.conn.zrevrangebyscore(self.manual_detail_urls_rule_zset_key,
+        detail_rules = self.conn.zrevrangebyscore(self.manual_detail_rule_zset_key,
                                                   max=999999, min=0, start=0, num=5, withscores=True)
         for rule, score in dict(detail_rules).iteritems():
             score_list.append(str(score))
@@ -736,7 +736,7 @@ def show_process():
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print 'show_process()', user_id, start_url, site_domain, black_domain
+    print '[info]show_process()', user_id, start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show.html', inputForm=inputForm)
@@ -749,13 +749,11 @@ def show_process():
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = collage.convert_file_to_list()
     times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
 
-    # matched_rate = redis_db.get_matched_rate() * 100.0
     # print list_done_cnt[-1],list_cnt[-1]
     if len(list_cnt) == 0 or list_cnt[-1] == 0:
-        matched_rate = 0
+        done_rate = 0
     else:
-        matched_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
-    un_match_rate = 100.0 - matched_rate
+        done_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
 
     keywords, matched_cnt = redis_db.get_keywords_match()
 
@@ -767,8 +765,8 @@ def show_process():
                            detail_cnt=detail_cnt,
                            list_cnt=list_cnt,
                            list_done_cnt=list_done_cnt,
-                           matched_rate=matched_rate,
-                           un_match_rate=un_match_rate,
+                           done_rate=done_rate,
+                           todo_rate=(100.0 - done_rate),
                            keywords=keywords,
                            matched_cnt=matched_cnt)
 
@@ -785,7 +783,7 @@ def get_show_result():
     # print 'get_show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('show-result.html', outputForm=outputForm)
+        return render_template('show_result.html', outputForm=outputForm)
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
@@ -821,7 +819,7 @@ def get_show_result():
     fp.close()
     outputForm.detail_urls_cnt = i
 
-    return render_template('show-result.html', outputForm=outputForm)
+    return render_template('show_result.html', outputForm=outputForm)
 
 
 @app.route('/setting_main_init', methods=['GET', 'POST'])
@@ -844,38 +842,37 @@ def setting_main_init():
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
 
+    #### 设置/还原 redis 和 页面(详情页)
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    # 设置/还原 正则表达式-详情页
+
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail', user_id):
-        # if redis_db.conn.zrank(redis_db.manual_detail_urls_rule_zset_key, regex) is None:
-        #     redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, regex)
-        #     score = 0
-        # else:
-        #     score = redis_db.conn.zscore(redis_db.manual_detail_urls_rule_zset_key, regex)
-        score = 0
+        if redis_db.conn.zrank(redis_db.manual_detail_rule_zset_key, regex) is None:
+            redis_db.conn.zadd(redis_db.manual_detail_rule_zset_key, 0, regex)
+            score = 0
+        else:
+            score = redis_db.conn.zscore(redis_db.manual_detail_rule_zset_key, regex)
         regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.detail_regex_list.entries[i] = regexForm
         i += 1
 
-    # 设置/还原 正则表达式-列表页
+    ####  设置/还原 redis 和 页面(列表页)
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list', user_id):
-        # if redis_db.conn.zrank(redis_db.manual_list_urls_rule_zset_key, regex) is None:
-        #     redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, regex)
-        #     score = 0
-        # else:
-        #     score = redis_db.conn.zscore(redis_db.manual_list_urls_rule_zset_key, regex)
-        score = 0
+        if redis_db.conn.zrank(redis_db.manual_list_rule_zset_key, regex) is None:
+            redis_db.conn.zadd(redis_db.manual_list_rule_zset_key, 0, regex)
+            score = 0
+        else:
+            score = redis_db.conn.zscore(redis_db.manual_list_rule_zset_key, regex)
         regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.list_regex_list.entries[i] = regexForm
         i += 1
 
-    # 清除原有所有规则
+    #### 清除原有所有规则
     # db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key, min=0, max=99999999)
 
     flash(u'初始化配置完成')
@@ -897,74 +894,58 @@ def setting_main_save_and_run():
         flash(u'必须设置主页、域名信息！')
         return render_template('setting.html', inputForm=inputForm)
 
-    # 正则保存对象-详情页
-    detail_regex_list = inputForm.detail_regex_list.data
+    #### 保存详情页配置
     detail_regex_save_list = []
-    detail_regex_cnt = 0
-    for r in detail_regex_list:
+    for r in inputForm.detail_regex_list.data:
         select = r['select']
         regex = r['regex']
         weight = r['weight']
         score = r['score']
         if select and regex != '':
-            detail_regex_cnt += 1
             detail_regex_save_list.append({'regex': regex, 'weight': weight})
 
-    # 正则保存对象-列表页
-    list_regex_list = inputForm.list_regex_list.data
+    #### 保存列表页配置
     list_regex_save_list = []
-    list_regex_cnt = 0
-    for r in list_regex_list:
+    for r in inputForm.list_regex_list.data:
         select = r['select']
         regex = r['regex']
         weight = r['weight']
         score = r['score']
         if select and regex != '':
-            list_regex_cnt += 1
             list_regex_save_list.append({'regex': regex, 'weight': weight})
 
+    #### check 详情页/列表页 正则表达式的整合性
     if len(list_regex_save_list) + len(detail_regex_save_list) == 0:
         flash(u"请填写并勾选要执行的 列表/详情页正则表达式。")
         return render_template('setting.html', inputForm=inputForm)
 
-    # if len(list_regex_save_list) != len(set(list_regex_save_list)):
-    #     flash(u"列表页正则表达式有重复。")
-    #     return render_template('setting.html', inputForm=inputForm)
+    if len(list_regex_save_list) != len(set([i['regex'] + i['weight'] for i in list_regex_save_list])):
+        flash(u"列表页正则表达式有重复。")
+        return render_template('setting.html', inputForm=inputForm)
 
-    # if len(detail_regex_save_list) != len(set(detail_regex_save_list)):
-    #     flash(u"详情页正则表达式有重复。")
-    #     return render_template('setting.html', inputForm=inputForm)
-    #
-    # for regex, weight in list_regex_save_list:
-    #     for r, w in detail_regex_save_list:
-    #         if r == regex:
-    #             flash(u"列表和详情页中的正则表达式不能重复。")
-    #             return render_template('setting.html', inputForm=inputForm)
+    if len(detail_regex_save_list) != len(set([i['regex'] + i['weight'] for i in detail_regex_save_list])):
+        flash(u"详情页正则表达式有重复。")
+        return render_template('setting.html', inputForm=inputForm)
 
+    if len(set([i['regex'] for i in list_regex_save_list]).intersection(
+            set([i['regex'] for i in detail_regex_save_list]))) > 0:
+        flash(u"列表和详情页中的正则表达式不能重复。")
+        return render_template('setting.html', inputForm=inputForm)
+
+    #### 清空所有Redis,保存手工配置,用于匹配次数积分。
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+
+    for regex in redis_db.conn.zrange(redis_db.manual_list_rule_zset_key, start=0, end=-1):
+        redis_db.conn.zrem(redis_db.manual_list_rule_zset_key, regex)
     for item in list_regex_save_list:
-        for i in detail_regex_save_list:
-            if i['regex'] == item['regex']:
-                flash(u"列表和详情页中的正则表达式不能重复。")
-                return render_template('setting.html', inputForm=inputForm)
+        redis_db.conn.zadd(redis_db.manual_list_rule_zset_key, 0, item['regex'])
 
-    # 保存手工配置规则到Redis
-    # redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    # for regex in redis_db.conn.zrange(redis_db.manual_list_urls_rule_zset_key, start=0, end=-1):
-    #     redis_db.conn.zrem(redis_db.manual_list_urls_rule_zset_key, regex)
-    # for item in list_regex_save_list:
-    #     redis_db.conn.zadd(redis_db.manual_list_urls_rule_zset_key, 0, item['regex'])
-    detail_rule_str = ''
+    for regex in redis_db.conn.zrange(redis_db.manual_detail_rule_zset_key, start=0, end=-1):
+        redis_db.conn.zrem(redis_db.manual_detail_rule_zset_key, regex)
     for item in detail_regex_save_list:
-        detail_rule_str += item['regex'] + '@'
-    # for regex in redis_db.conn.zrange(redis_db.manual_detail_urls_rule_zset_key, start=0, end=-1):
-    #     redis_db.conn.zrem(redis_db.manual_detail_urls_rule_zset_key, regex)
-    # for item in detail_regex_save_list:
-    #     redis_db.conn.zadd(redis_db.manual_detail_urls_rule_zset_key, 0, item['regex'])
-    list_rule_str = ''
-    for item in list_regex_save_list:
-        list_rule_str += item['regex'] + '@'
+        redis_db.conn.zadd(redis_db.manual_detail_rule_zset_key, 0, item['regex'])
 
-    # 保存所有手工配置信息到MySql
+    #### 保存所有手工配置信息到MySql
     setting_json = ''
     mysql_db = MySqlDrive()
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
@@ -977,20 +958,31 @@ def setting_main_save_and_run():
                                     list_regex_save_list=list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
+        print u'[info]setting_main_save_and_run() MySQL保存完毕.'
     else:
         flash(u"MySQL保存失败.")
+        print u'[error]setting_main_save_and_run() MySQL保存失败.'
         return render_template('setting.html', inputForm=inputForm)
 
-    # 执行抓取程序
-    # 修改配置文件的执行入口信息
+    #### 修改配置文件的执行入口信息
+    detail_rule_str = ''
+    for item in detail_regex_save_list:
+        detail_rule_str += item['regex'] + '@'
+
+    list_rule_str = ''
+    for item in list_regex_save_list:
+        list_rule_str += item['regex'] + '@'
+
     ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                         list_rule_str=list_rule_str, detail_rule_str=detail_rule_str)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
+        print u'[error]setting_main_save_and_run() 修改' + INIT_CONFIG + u'文件失败.'
         return render_template('setting.html', inputForm=inputForm)
 
-    # DOS "start" command
+    # 执行抓取程序
     if os.name == 'nt':
+        # DOS "start" command
         print '[info] run windows', SHELL_CMD
         os.startfile(SHELL_CMD)
     else:
@@ -1048,12 +1040,12 @@ def export_import():
 
 
 if __name__ == '__main__':
-    # if INIT_CONFIG.find('deploy') > 0:
-    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    # else:
-    #     app.run(debug=True)
+    if INIT_CONFIG.find('deploy') > 0:
+        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    else:
+        app.run(debug=True)
 
-    # -------------------unit test-----------------------------------
-    # mysql = MySqlDrive()
-    # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
-    # print mysql.get_current_main_setting()
+        # -------------------unit test-----------------------------------
+        # mysql = MySqlDrive()
+        # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
+        # print mysql.get_current_main_setting()
