@@ -12,46 +12,79 @@
             {#            alert($("div[id^=div_1_]").text());#}
             for (var i = 0; i < 100; i++) {
                 {#                if ($("td[id^=log_" + i + "_]").text().search("manual") > 0) {#}
-                if ($("div[id^=div_" + i + "_]").text().search("list-manual") > 0) {
-                    alert_css = "alert alert-success";
-                } else if ($("div[id^=div_" + i + "_]").text().search("detail-manual") > 0) {
-                    alert_css = "alert alert-info";
-                } else if ($("div[id^=div_" + i + "_]").text().search("unkownn") > 0) {
-                    alert_css = "alert alert-warning";
+                if ($("#log_" + i + "_").text().search("list-manual") > 0) {
+                    badge = "列表";
+                    badge_color = "green";
+                } else if ($("#log_" + i + "_").text().search("detail-manual") > 0) {
+                    badge = "详情";
+                    badge_color = "blue";
+                } else if ($("#log_" + i + "_").text().search("unkownn") > 0) {
+                    badge = "未知";
+                    badge_color = "Orange";
                 } else {
-                    alert_css = "alert";
+                    badge = "系统";
+                    badge_color = "gray";
                 }
-                $("div[id^=div_" + i + "_]").attr("class", alert_css);
+                $("#type_" + i + "_").text(badge);
+                $("#type_" + i + "_").css("background-color", badge_color);
             }
         });
     </script>
 {% endblock %}
 
 {% block content %}
-    <h3 align="center">抓取结果log
-        <small> 最后100行</small>
-    </h3>
-    <hr>
-    <div id="server_log" style="width:100%; margin-left:50px">
-        {#        <table id="server_log-tab" class="table table-striped table-hover">#}
-        {#        <table id="server_log-tab">#}
-        {#            <thead>#}
-        {#            <tr>#}
-        {#                <th id="th_no">行号</th>#}
-        {#                <th id="th_log">内容</th>#}
-        {#            </tr>#}
-        {#            </thead>#}
-        {#            <tbody>#}
-        {% for log in server_log_list %}
-            <div style="max-height: 20px" id={{ 'div_' ~ loop.index ~ '_' }}>
-                <label>{{ loop.index }}</label> &nbsp;&nbsp;&nbsp; {{ log }}
-                {#                <tr id={{ 'tr_' ~ loop.index  ~ '_' }}>#}
-                {#                    <td id={{ 'no_' ~ loop.index  ~ '_' }}>{{ loop.index }}</td>#}
-                {#                    <td id={{ 'log_' ~ loop.index  ~ '_' }}>{{ log }}</td>#}
-                {#                </tr>#}
-            </div>
-        {% endfor %}
-        {#    </tbody>#}
-        {#    </table>#}
+    {#    <h3 align="center">抓取结果log#}
+    {#        <small> 最后100行</small>#}
+    {#    </h3>#}
+    {#    <hr>#}
+    <div id="server_log_left_div" style="float:left;width:49%; margin-left:10px">
+        <table id="server_log_left_tab" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>行</th>
+                <th>类别</th>
+                <th>内容</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in server_log_list[:50] %}
+                <tr style="max-height: 20px;" id={{ 'tr_' ~ loop.index ~ '_' }}>
+                    <td id={{ 'no_' ~ loop.index ~ '_' }}>{{ loop.index }}</td>
+                    <td><span class="badge pull-right" id={{ 'type_' ~ loop.index ~ '_' }}>列表</span></td>
+                    <td nowrap="nowrap" id={{ 'log_' ~ loop.index ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {#        {% for log in server_log_list[:50] %}#}
+        {#            <div style="max-height: 20px;margin:0px auto;padding:0px;" id={{ 'div_' ~ loop.index ~ '_' }}>#}
+        {#                <label>{{ loop.index }}</label> &nbsp;&nbsp;&nbsp; {{ log }}#}
+        {#            </div>#}
+        {#        {% endfor %}#}
+    </div>
+    <div id="server_log_right_div" style="float:right;width:49%; margin-left:10px">
+        <table id="server_log_right_tab" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>行</th>
+                <th>类别</th>
+                <th>内容</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in server_log_list[51:] %}
+                <tr style="max-height: 20px;" id={{ 'tr_' ~ (loop.index + 50) ~ '_' }}>
+                    <td id={{ 'no_' ~ (loop.index + 50) ~ '_' }}>{{ loop.index + 50 }}</td>
+                    <td><span class="badge pull-right" id={{ 'type_' ~ (loop.index + 50) ~ '_' }}>列表</span></td>
+                    <td nowrap="nowrap" id={{ 'log_' ~ (loop.index + 50) ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {#        {% for log in server_log_list[51:] %}#}
+        {#            <div style="max-height: 20px;margin:0px auto;padding:0px;" id={{ 'div_' ~ loop.index ~ '_' }}>#}
+        {#                <label>{{ loop.index + 50 }}</label> &nbsp;&nbsp;&nbsp; {{ log }}#}
+        {#            </div>#}
+        {#        {% endfor %}#}
     </div>
 {% endblock %}
