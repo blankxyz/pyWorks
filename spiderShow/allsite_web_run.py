@@ -821,6 +821,11 @@ def get_show_result():
 
     return render_template('show_result.html', outputForm=outputForm)
 
+@app.route('/show_server_log', methods=['GET', 'POST'])
+def show_server_log():
+    p = subprocess.Popen(['/bin/bash', '-c', 'tail -100 ./web_server.log'], stdout=subprocess.PIPE)
+    server_log_list = p.stdout.readlines()
+    return render_template('show_server_log.html', server_log_list=[x.encode('utf8') for x in server_log_list])
 
 @app.route('/setting_main_init', methods=['GET', 'POST'])
 def setting_main_init():
