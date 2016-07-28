@@ -5,6 +5,7 @@ import ConfigParser
 import zipfile
 import os
 import traceback
+import binascii
 
 ####################################################################
 INIT_CONFIG = './web_run.dev.ini'
@@ -255,26 +256,27 @@ class MySqlDrive(object):
     def save_result_file(self, start_url, site_domain):
         # user_id = session['user_id']
         user_id = 'admin'
-
+        tmp_path = ''
         f = zipfile.ZipFile(EXPORT_FOLDER + 'result-list.zip', 'w', zipfile.ZIP_DEFLATED)
         f.write(EXPORT_FOLDER + "result-list.log")
         f.close()
 
-        f = open(EXPORT_FOLDER + 'result-list.zip', "rb")
+        f = open(EXPORT_FOLDER + 'result-list.zip')
+        # f = open(EXPORT_FOLDER + 'test.jpeg', 'rb')
         b = f.read()
         f.close()
-        os.remove(EXPORT_FOLDER + 'result-list.zip')
+        # os.remove(EXPORT_FOLDER + 'result-list.zip')
 
         # 将.zip写入表
-        sql_str1 = "DELETE FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'"%\
+        sql_str1 = "DELETE FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'" % \
                    (user_id, start_url, site_domain)
-        sql_str2 = "INSERT INTO result_file_list (user_id,start_url,site_domain,result_file,temp_path) VALUES ('%s','%s','%s',%s,'%s')"%\
-                   (user_id, start_url, site_domain, MySQLdb.Binary(b), temp_path)
+        sql_str2 = "INSERT INTO result_file_list(user_id,start_url,site_domain,result_file,tmp_path) VALUES(%s,%s,%s,_binary%s,%s)"
+
         try:
             print '[info]save_result_file()', sql_str1
             self.cur.execute(sql_str1)
             print '[info]save_result_file()', sql_str2
-            cnt = self.cur.execute(sql_str2)
+            cnt = self.cur.execute(sql_str2, (user_id, start_url, site_domain, b, tmp_path,))
             self.conn.commit()
         except Exception, e:
             traceback.format_exc()
@@ -284,7 +286,7 @@ class MySqlDrive(object):
         # user_id = session['user_id']
         user_id = 'admin'
         # 从mysql表中读取.zip，还原下载文件。
-        sql_str = "SELECT result_file FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'"%\
+        sql_str = "SELECT result_file FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'" % \
                   (user_id, start_url, site_domain)
         try:
             cnt = self.cur.execute(sql_str)

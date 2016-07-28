@@ -8,10 +8,7 @@
         $(document).ready(function () {
             {#            alert("on call!");#}
             {#            alert($("th[id^=th_no]").text());#}
-            {#            alert($("td[id^=log_1_]").text());#}
-            {#            alert($("div[id^=div_1_]").text());#}
             for (var i = 0; i < 100; i++) {
-                {#                if ($("td[id^=log_" + i + "_]").text().search("manual") > 0) {#}
                 if ($("#log_" + i + "_").text().search("list-manual") > 0) {
                     badge = "列表";
                     badge_color = "green";
@@ -20,7 +17,7 @@
                     badge_color = "blue";
                 } else if ($("#log_" + i + "_").text().search("unkownn") > 0) {
                     badge = "未知";
-                    badge_color = "Orange";
+                    badge_color = "orange";
                 } else {
                     badge = "系统";
                     badge_color = "gray";
@@ -50,7 +47,7 @@
             {% for log in server_log_list[:50] %}
                 <tr style="max-height: 20px;" id={{ 'tr_' ~ loop.index ~ '_' }}>
                     <td id={{ 'no_' ~ loop.index ~ '_' }}>{{ loop.index }}</td>
-                    <td><span class="badge pull-right" id={{ 'type_' ~ loop.index ~ '_' }}>列表</span></td>
+                    <td><span class="badge pull-left" id={{ 'type_' ~ loop.index ~ '_' }}>XX</span></td>
                     <td nowrap="nowrap" id={{ 'log_' ~ loop.index ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
                 </tr>
             {% endfor %}
@@ -75,7 +72,7 @@
             {% for log in server_log_list[51:] %}
                 <tr style="max-height: 20px;" id={{ 'tr_' ~ (loop.index + 50) ~ '_' }}>
                     <td id={{ 'no_' ~ (loop.index + 50) ~ '_' }}>{{ loop.index + 50 }}</td>
-                    <td><span class="badge pull-right" id={{ 'type_' ~ (loop.index + 50) ~ '_' }}>列表</span></td>
+                    <td><span class="badge pull-left" id={{ 'type_' ~ (loop.index + 50) ~ '_' }}>XX</span></td>
                     <td nowrap="nowrap" id={{ 'log_' ~ (loop.index + 50) ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
                 </tr>
             {% endfor %}
