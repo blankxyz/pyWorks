@@ -34,7 +34,7 @@
 {% endblock %}
 
 {% block content %}
-    <h3 align="center">配置信息-履历</h3>
+    <h3 align="center">配置信息-历史记录</h3>
     <hr/>
     <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:50px">
         {% with messages = get_flashed_messages() %}
@@ -53,6 +53,7 @@
             <label>用户ID&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
             {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
             {{ inputForm.start_url_sel.label }}&nbsp; {{ inputForm.start_url_sel() }}
+            {{ inputForm.download() }}
             {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
             {{ inputForm.search() }}
 {#            {{ inputForm.recover() }}#}

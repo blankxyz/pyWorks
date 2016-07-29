@@ -257,12 +257,12 @@ class MySqlDrive(object):
         # user_id = session['user_id']
         user_id = 'admin'
         tmp_path = ''
-        f = zipfile.ZipFile(EXPORT_FOLDER + 'result-list.zip', 'w', zipfile.ZIP_DEFLATED)
-        f.write(EXPORT_FOLDER + "result-list.log")
-        f.close()
+        # f = zipfile.ZipFile(EXPORT_FOLDER + 'result-list.zip', 'w', zipfile.ZIP_DEFLATED)
+        # f.write(EXPORT_FOLDER + "result-list.log")
+        # # f.write(EXPORT_FOLDER+"test.jpeg")
+        # f.close()
 
-        f = open(EXPORT_FOLDER + 'result-list.zip')
-        # f = open(EXPORT_FOLDER + 'test.jpeg', 'rb')
+        f = open(EXPORT_FOLDER + 'result-list.log')
         b = f.read()
         f.close()
         # os.remove(EXPORT_FOLDER + 'result-list.zip')
@@ -294,16 +294,16 @@ class MySqlDrive(object):
         except Exception, e:
             print '[error]get_result_file()', e
 
-        f = open(EXPORT_FOLDER + "result-list.zip", "wb")
+        f = open(EXPORT_FOLDER + "result-list_copy.log", "wb")
         f.write(d)
         f.close()
 
-        f = zipfile.ZipFile(EXPORT_FOLDER + "result-list.zip", 'w', zipfile.ZIP_DEFLATED)
-        f.zipfile.ZipFile('result-list.log')
-        f.extractall()
-        f.close()
+        # f = zipfile.ZipFile(EXPORT_FOLDER + "result-list_aaa.zip", 'w', zipfile.ZIP_DEFLATED)
+        # zipfile.ZipFile('result-list_aaa.jpeg')
+        # f.extractall()
+        # f.close()
 
-        return EXPORT_FOLDER + "result-list.log"
+        return EXPORT_FOLDER + "result-list_copy.log"
 
 
 if __name__ == '__main__':
@@ -312,4 +312,4 @@ if __name__ == '__main__':
     temp_path = 'd:\\workspace\\pyWorks\\spiderShow\\'
     mysql_db = MySqlDrive()
     mysql_db.save_result_file(start_url, site_domain)
-    # mysql_db.get_result_file(start_url, site_domain)
+    mysql_db.get_result_file(start_url, site_domain)

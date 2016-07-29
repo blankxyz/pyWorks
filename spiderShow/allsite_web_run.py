@@ -10,6 +10,7 @@ import dedup
 import MySQLdb
 import ConfigParser
 import subprocess
+import traceback
 from flask import Flask, render_template, request, session, url_for, flash, redirect
 from flask import send_from_directory
 from flask_bootstrap import Bootstrap
@@ -80,9 +81,10 @@ global recover_flg
 ##################################################################################################
 class SearchCondForm(Form):
     start_url = StringField(label=u'主页', default='')
-    start_url_sel = SelectField(label=u'履历选择', choices=[('', '')], default=('', ''))
+    start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
     search = SubmitField(label=u'查询')
+    download = SubmitField(label=u'下载')
     recover = SubmitField(label=u'导入')
 
 
@@ -115,7 +117,7 @@ class ListUrlForm(Form):
     select = BooleanField(label=u'正误', default=False)
 
 
-class RegexInputForm(Form):
+class ListRegexInputForm(Form):
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
@@ -133,7 +135,7 @@ class RegexInputForm(Form):
     pre_run = SubmitField(label=u'试算')
 
 
-class RegexOutputForm(Form):
+class ListRegexOutputForm(Form):
     show_max = SHOW_MAX
     detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=SHOW_MAX)
     detail_urls_cnt = 0
@@ -142,11 +144,13 @@ class RegexOutputForm(Form):
     refresh = SubmitField(label=u'刷新')
 
 
-class DetailPageForm(Form):
-    title = StringField(label=u'标题')
-    author = StringField(label=u'作者')
-    create_date = StringField(label=u'作成时间')
-    content = StringField(label=u'作成时间')
+class DetailRegexForm(Form):
+    list_regex = SelectField(label=u'列表页正则', choices=[('', '')])
+    content = StringField(label=u'内容')
+
+class DetailPageInputForm(Form):
+    detail_xpath_list = FieldList(FormField(DetailRegexForm), label=u'提取结果一览-列表页')
+    save_run = SubmitField(label=u'保存并执行')
 
 
 ##################################################################################################
@@ -350,6 +354,79 @@ class MySqlDrive(object):
             print '[error]get_regexs()', e
         return regexs
 
+    def save_result_file(self, start_url, site_domain):
+        # user_id = session['user_id']
+        user_id = 'admin'
+        tmp_path = ''
+        # f = zipfile.ZipFile(EXPORT_FOLDER + 'result-list.zip', 'w', zipfile.ZIP_DEFLATED)
+        # f.write(EXPORT_FOLDER + "result-list.log")
+        # # f.write(EXPORT_FOLDER+"test.jpeg")
+        # f.close()
+
+        f = open(EXPORT_FOLDER + 'result-list.log')
+        b = f.read()
+        f.close()
+        # os.remove(EXPORT_FOLDER + 'result-list.zip')
+
+        # 将.zip写入表
+        sql_str1 = "DELETE FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'" % \
+                   (user_id, start_url, site_domain)
+        sql_str2 = "INSERT INTO result_file_list(user_id,start_url,site_domain,result_file,tmp_path) VALUES(%s,%s,%s,_binary%s,%s)"
+
+        try:
+            print '[info]save_result_file()', sql_str1
+            self.cur.execute(sql_str1)
+            print '[info]save_result_file()', sql_str2
+            cnt = self.cur.execute(sql_str2, (user_id, start_url, site_domain, b, tmp_path,))
+            self.conn.commit()
+        except Exception, e:
+            # traceback.format_exc()
+            print '[error]save_result_file()', e
+
+    def get_result_file(self, start_url):
+        '''
+        Args:
+            start_url: is not empty string.
+        Returns:
+            copy_file: copy the log file from DB to EXPORT_FOLDER. with out path.
+            cnt: 0:not found, >0: must be 1.
+        '''
+        if start_url is None or start_url == '':
+            print '[error]get_result_file() start_url is None.'
+            return None, 0
+
+        # user_id = session['user_id']
+        user_id = 'admin'
+        # 从mysql表中读取log，还原下载文件。
+        sql_str = "SELECT site_domain, result_file FROM result_file_list WHERE user_id='%s' AND start_url='%s'" % \
+                  (user_id, start_url)
+        try:
+            print '[info]get_result_file()', sql_str
+            cnt = self.cur.execute(sql_str)
+            (site_domain, txt) = self.cur.fetchone()
+            self.conn.commit()
+
+            if cnt == 0:
+                print '[info]get_result_file() DB not found.', start_url
+                return None, 0
+            else:
+                copy_file = 'result-list_(' + site_domain + ').log'
+                f = open(EXPORT_FOLDER + copy_file, "wb")
+                f.write(txt)
+                f.close()
+                print '[info]get_result_file() DB >>', copy_file
+                return copy_file, cnt
+
+        except Exception, e:
+            traceback.format_exc()
+            print '[error]get_result_file()', start_url, e
+            return None, 0
+
+            # f = zipfile.ZipFile(EXPORT_FOLDER + "result-list_aaa.zip", 'w', zipfile.ZIP_DEFLATED)
+            # zipfile.ZipFile('result-list_aaa.jpeg')
+            # f.extractall()
+            # f.close()
+
 
 ##################################################################################################
 class FileDrive(object):
@@ -484,7 +561,6 @@ class RedisDrive(object):
         return float(len(done)) / len(urls)
 
     def get_keywords_match(self):
-        # keywords = "'" + "','".join(['list', 'index', 'detail', 'post', 'content']) + "'"
         score_list = []
         keywords = []
         list_rules = self.conn.zrevrangebyscore(self.manual_list_rule_zset_key,
@@ -698,18 +774,32 @@ def user_search():
     outputForm = SearchResultForm()
     outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
 
-    if len(outputForm.search_result_list) == 0:
-        flash(u'请输入合适的查询条件（ 主页，限定域名   支持like查询 ）。')
-    else:
-        flash(u'请确认的查询结果。')
-
-    # 点击 查询
+    # 点击 查询 按钮
     if inputForm.search.data:
+        if len(outputForm.search_result_list) == 0:
+            flash(u'请输入合适的查询条件（ 主页，限定域名   支持like查询 ）。')
+        else:
+            flash(u'请确认的查询结果。')
+
         if start_url_sel != '':
             start_url = start_url_sel
         outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
 
-    # 点击 导入
+    # 点击 导出历史结果 按钮
+    if inputForm.download.data:
+        if start_url_sel == '':
+            flash(u'请从历史记录中选择主页。')
+        else:
+            copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            if copy_file is not None and cnt != 0:
+                flash(u'历史记录下载成功。')
+                return send_from_directory(app.config['EXPORT_FOLDER'], copy_file, as_attachment=True)
+
+            if cnt == 0:
+                flash(u'没有历史记录。')
+                print '[error]user_search() get_result_file() not found.', start_url_sel
+
+    # 点击 导入 按钮
     if inputForm.recover.data:
         if len(outputForm.search_result_list) > 0:
             d = set()
@@ -732,7 +822,7 @@ def user_search():
 def show_process():
     # user_id = session.get('user_id')
     user_id = 'admin'
-    inputForm = RegexInputForm()
+    inputForm = ListRegexInputForm()
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
@@ -757,6 +847,8 @@ def show_process():
 
     keywords, matched_cnt = redis_db.get_keywords_match()
 
+    regexs_str =  ("'" + "','".join(keywords) + "'")
+    # from flask import Markup
     # 将json映射到html
     flash(u'每隔10秒刷新 ' + start_url + u' 的实时采集信息。')
     return render_template('show.html',
@@ -768,14 +860,28 @@ def show_process():
                            done_rate=done_rate,
                            todo_rate=(100.0 - done_rate),
                            keywords=keywords,
+                           regexs_str=regexs_str,
                            matched_cnt=matched_cnt)
+
+
+@app.route('/save_finally_result', methods=['GET', 'POST'])
+def save_finally_result():
+    # user_id = session.get('user_id')
+    user_id = 'admin'
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    # 将实时结果作为最终结果保存到DB
+    mysql_db.save_result_file(start_url, site_domain)
+    flash(u'列表页结果保存DB成功。')
+    print '[info]save finally result to DB OK.'
+    return redirect(url_for('show_process'), 302)
 
 
 @app.route('/show_result', methods=['GET', 'POST'])
 def get_show_result():
     # user_id = session.get('user_id')
     user_id = 'admin'
-    outputForm = RegexOutputForm()
+    outputForm = ListRegexInputForm()
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -821,20 +927,52 @@ def get_show_result():
 
     return render_template('show_result.html', outputForm=outputForm)
 
+
 @app.route('/show_server_log', methods=['GET', 'POST'])
 def show_server_log():
-    p = subprocess.Popen(['/bin/bash', '-c', 'tail -100 ./web_server.log'], stdout=subprocess.PIPE)
-    server_log_list = p.stdout.readlines()
+    # user_id = session.get('user_id')
+    user_id = 'admin'
+
+    # windows
+    import random
+    f = open('web_server.log', 'r').readlines()
+    l = []
+    for i in range(100):
+        num = random.random()
+        n = int(num * len(f))
+        l.append(f[n])
+    server_log_list = l
+
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    # print 'get_show_result()', start_url, site_domain, black_domain_str
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('show_server_log.html', server_log_list=[])
+
+    # p = subprocess.Popen(['/bin/bash', '-c', 'tail -100 ./web_server.log'], stdout=subprocess.PIPE)
+    # server_log_list = p.stdout.readlines()
+
+    # 保存 实时 列表页结果
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
+    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
+        fp.write(line + '\n')
+        i += 1
+    fp.close()
+
     return render_template('show_server_log.html', server_log_list=[x.encode('utf8') for x in server_log_list])
 
-@app.route('/setting_main_init', methods=['GET', 'POST'])
-def setting_main_init():
+
+@app.route('/setting_list_init', methods=['GET', 'POST'])
+def setting_list_init():
     '''
     从MySql初始化Web页面和Redis
     '''
     # user_id = session.get('user_id')
     user_id = 'admin'
-    inputForm = RegexInputForm(request.form)
+    inputForm = ListRegexInputForm(request.form)
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
@@ -885,11 +1023,11 @@ def setting_main_init():
 
 
 @app.route('/save_and_run', methods=['POST'])
-def setting_main_save_and_run():
+def setting_list_save_and_run():
     # user_id = session['user_id']
     user_id = 'admin'
     global process_id
-    inputForm = RegexInputForm(request.form)
+    inputForm = ListRegexInputForm(request.form)
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
     start_url = inputForm.start_url.data
@@ -963,10 +1101,10 @@ def setting_main_save_and_run():
                                     list_regex_save_list=list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
-        print u'[info]setting_main_save_and_run() MySQL保存完毕.'
+        print u'[info]setting_list_save_and_run() MySQL保存完毕.'
     else:
         flash(u"MySQL保存失败.")
-        print u'[error]setting_main_save_and_run() MySQL保存失败.'
+        print u'[error]setting_list_save_and_run() MySQL保存失败.'
         return render_template('setting.html', inputForm=inputForm)
 
     #### 修改配置文件的执行入口信息
@@ -1037,6 +1175,10 @@ def reset_zero():
     fp.close()
     return redirect(url_for('show_process'), 302)
 
+@app.route('/setting_detail_init', methods=['GET', 'POST'])
+def setting_detail_init():
+    inputForm = None
+    return render_template('setting_detail.html', inputForm=inputForm)
 
 @app.route('/export_init')
 def export_import():

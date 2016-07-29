@@ -18,6 +18,9 @@
                 } else if ($("#log_" + i + "_").text().search("unkownn") > 0) {
                     badge = "未知";
                     badge_color = "orange";
+                } else if ($("#log_" + i + "_").text().toLowerCase().search("error") > 0) {
+                    badge = "错误";
+                    badge_color = "red";
                 } else {
                     badge = "系统";
                     badge_color = "gray";
@@ -34,19 +37,21 @@
     {#        <small> 最后100行</small>#}
     {#    </h3>#}
     {#    <hr>#}
+    <div id="download" style="margin-left:50px">
+        <a class="top-left" href="{{ url_for('static', filename='export/result-list.log') }}">下载列表页&nbsp;实时结果</a>
+    </div>
+    <hr>
     <div id="server_log_left_div" style="float:left;width:49%; margin-left:10px">
         <table id="server_log_left_tab" class="table table-striped table-hover">
             <thead>
             <tr>
-                <th>行</th>
                 <th>类别</th>
-                <th>内容</th>
+                <th>行号>>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;内&nbsp;&nbsp;&nbsp;容</th>
             </tr>
             </thead>
             <tbody>
             {% for log in server_log_list[:50] %}
                 <tr style="max-height: 20px;" id={{ 'tr_' ~ loop.index ~ '_' }}>
-                    <td id={{ 'no_' ~ loop.index ~ '_' }}>{{ loop.index }}</td>
                     <td><span class="badge pull-left" id={{ 'type_' ~ loop.index ~ '_' }}>XX</span></td>
                     <td nowrap="nowrap" id={{ 'log_' ~ loop.index ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
                 </tr>
@@ -63,15 +68,13 @@
         <table id="server_log_right_tab" class="table table-striped table-hover">
             <thead>
             <tr>
-                <th>行</th>
                 <th>类别</th>
-                <th>内容</th>
+                <th>行号>>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;内&nbsp;&nbsp;&nbsp;容</th>
             </tr>
             </thead>
             <tbody>
             {% for log in server_log_list[51:] %}
                 <tr style="max-height: 20px;" id={{ 'tr_' ~ (loop.index + 50) ~ '_' }}>
-                    <td id={{ 'no_' ~ (loop.index + 50) ~ '_' }}>{{ loop.index + 50 }}</td>
                     <td><span class="badge pull-left" id={{ 'type_' ~ (loop.index + 50) ~ '_' }}>XX</span></td>
                     <td nowrap="nowrap" id={{ 'log_' ~ (loop.index + 50) ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
                 </tr>
