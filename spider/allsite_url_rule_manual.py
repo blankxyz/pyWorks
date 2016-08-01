@@ -15,8 +15,8 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-# INIT_CONFIG = './run_allsite.ini' #windows,linux
-INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
+INIT_CONFIG = './run_allsite.ini' #windows,linux
+# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
