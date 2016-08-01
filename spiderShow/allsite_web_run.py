@@ -167,7 +167,6 @@ class MySqlDrive(object):
     def save_all_setting(self, user_id, start_url, site_domain, setting_json, black_domain_str, detail_regex_save_list,
                          list_regex_save_list):
         # print 'save_all_setting() start...', start_url, site_domain
-
         ret_cnt = 0
         try:
             sqlStr1 = (
