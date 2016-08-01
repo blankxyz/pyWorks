@@ -2,10 +2,9 @@
 {% block scripts %}
     {{ super() }}
     <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
     <!-- DataTables -->
-    <script type="text/javascript" charset="utf8"
-            src="http://cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(function () {
@@ -30,7 +29,7 @@
         });
 
         $(document).ready(function () {
-            var detail_t = $('#detail-regex-tab').DataTable({
+            var detail_t = $('#detail-regex-tab-aaa').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
                     "sZeroRecords": "没有检索到",
@@ -51,7 +50,7 @@
                 "aLengthMenu": [5, 10, 50, "All"],
                 "bStateSave": true
             });
-            var list_t = $('#list-regex-tab').DataTable({
+            var list_t = $('#list-regex-tab-aaaa').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
                     "sZeroRecords": "没有检索到",
@@ -87,7 +86,7 @@
         <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
     </h3>
     <hr/>
-    <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
+    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <ul class=flashes>
@@ -101,26 +100,25 @@
 
     <form id="setting" method="POST" action="/save_and_run">
         <hr/>
-        <div id="config" class="form-group center" style="width:80%; margin-left:50px">
+        <div id="config" class="form-group center" style="width:80%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。<br>
         </div>
         <hr/>
-        <div id="convert-ajax" class="form-group" style="width:80%; margin-left:50px">
+        <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
             <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
                 /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
             <input type=text size=70 id="convert_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
             <label id="regex_result"> 请确认转换后的表达式， 编辑（拷贝） 到下面列表中。 </label>
         </div>
-        <hr/>
-        <div id="list-regex" class="form-group" style="width:80%; margin-left:50px">
-            <label for="name">列表页-正则表达式(最多50条)</label>
+        <hr>
+        <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
+            <label for="name">列表页-正则表达式(10条)</label>
             <table id="list-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>选择</th>
                     <th>正则表达式</th>
                     <th>权重</th>
                     <th>匹配次数</th>
@@ -129,8 +127,7 @@
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id={{ loop.index }}>
-                        <td>{{ row.select() }}</td>
-                        <td>{{ row.regex(size=100) }}</td>
+                        <td>{{ row.regex(size=60) }}</td>
                         <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6) }}</td>
                     </tr>
@@ -138,14 +135,11 @@
                 </tbody>
             </table>
         </div>
-
-        <hr/>
-        <div id="detail-regex" class="form-group" style="width:80%; margin-left:50px">
-            <label for="name">详情页-正则表达式(最多50条)</label><br>
+        <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-left:10px">
+            <label for="name">详情页-正则表达式(10条)</label><br>
             <table id="detail-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>选择</th>
                     <th>正则表达式</th>
                     <th>权重</th>
                     <th>匹配数</th>
@@ -154,8 +148,7 @@
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
                     <tr id="{{ loop.index }}">
-                        <td>&nbsp;&nbsp;{{ row.select() }}</td>
-                        <td>{{ row.regex(size=100) }}</td>
+                        <td>{{ row.regex(size=60) }}</td>
                         <td>{{ row.weight() }}</td>
                         <td readonly="readonly">{{ row.score(size=6) }}</td>
                     </tr>
@@ -163,10 +156,8 @@
                 </tbody>
             </table>
         </div>
-        <hr/>
-        <div id="submit" class="form-group" style="width:80%; margin-left:50px">
+        <div id="title" class="form-group" style="float:left;width:100%; margin-left:10px">
             <button type="button" class="btn">{{ inputForm.save_run() }}</button>
-{#            <button type="button" class="btn disabled">{{ inputForm.pre_run() }}</button>#}
         </div>
     </form>
 

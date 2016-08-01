@@ -1,7 +1,7 @@
 {% extends "bootstrap/base.html" %}
 {% block scripts %}
     {{ super() }}
-    <script type="text/javascript" src="../static/highcharts.js"></script>
+    <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
     <script type="text/javascript">
         $(function () {
             $('#container').highcharts({

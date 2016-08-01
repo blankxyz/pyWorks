@@ -79,7 +79,7 @@ global recover_flg
 
 
 ##################################################################################################
-class SearchCondForm(Form):
+class SearchCondForm(Form): #user search
     start_url = StringField(label=u'主页', default='')
     start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
@@ -88,8 +88,8 @@ class SearchCondForm(Form):
     recover = SubmitField(label=u'导入')
 
 
-class SearchResultForm(Form):
-    select = BooleanField(label=u'选择', default=False)
+class SearchResultForm(Form): #user search
+    # select = BooleanField(label=u'选择', default=False)
     start_url = StringField(label=u'主页', default='')
     site_domain = StringField(label=u'限定域名', default='')
     black_domain_str = StringField(label=u'域名黑名单', default='')
@@ -100,24 +100,14 @@ class SearchResultForm(Form):
     search_result_list = []
 
 
-class RegexForm(Form):
-    select = BooleanField(label=u'选择', default=False)
+class RegexForm(Form): #setting
+    # select = BooleanField(label=u'选择', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
-class DetailUrlForm(Form):
-    detail_url = StringField(label=u'详情页')
-    select = BooleanField(label=u'正误', default=False)
-
-
-class ListUrlForm(Form):
-    list_url = StringField(label=u'列表页')
-    select = BooleanField(label=u'正误', default=False)
-
-
-class ListRegexInputForm(Form):
+class ListRegexInputForm(Form): #setting
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
@@ -127,30 +117,30 @@ class ListRegexInputForm(Form):
     convert = SubmitField(label=u'<< 转换')
     url = StringField(label=u'URL例子')
 
-    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=50)
-    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=50)
+    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=10)
+    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=10)
 
-    reset = BooleanField(label=u'将原有正则表达式的score清零', default=False)
     save_run = SubmitField(label=u'保存并执行')
-    pre_run = SubmitField(label=u'试算')
+    # pre_run = SubmitField(label=u'试算')
 
 
-class ListRegexOutputForm(Form):
+class DetailUrlForm(Form): #提取结果一览
+    detail_url = StringField(label=u'详情页')
+    select = BooleanField(label=u'正误', default=False)
+
+
+class ListUrlForm(Form): #提取结果一览
+    list_url = StringField(label=u'列表页')
+    select = BooleanField(label=u'正误', default=False)
+
+
+class ListRegexOutputForm(Form): #提取结果一览
     show_max = SHOW_MAX
     detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=SHOW_MAX)
     detail_urls_cnt = 0
     list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=SHOW_MAX)
     list_urls_cnt = 0
     refresh = SubmitField(label=u'刷新')
-
-
-class DetailRegexForm(Form):
-    list_regex = SelectField(label=u'列表页正则', choices=[('', '')])
-    content = StringField(label=u'内容')
-
-class DetailPageInputForm(Form):
-    detail_xpath_list = FieldList(FormField(DetailRegexForm), label=u'提取结果一览-列表页')
-    save_run = SubmitField(label=u'保存并执行')
 
 
 ##################################################################################################
@@ -881,7 +871,7 @@ def save_finally_result():
 def get_show_result():
     # user_id = session.get('user_id')
     user_id = 'admin'
-    outputForm = ListRegexInputForm()
+    inputForm = ListRegexInputForm()
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -889,7 +879,7 @@ def get_show_result():
     # print 'get_show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_result.html', outputForm=outputForm)
+        return render_template('show_result.html', inputForm=inputForm)
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
@@ -897,14 +887,14 @@ def get_show_result():
     for list_url in redis_db.get_list_urls():
         list_url_data = MultiDict([('list_url', list_url), ('select', True)])
         list_url_form = ListUrlForm(list_url_data)
-        outputForm.list_urls_list.entries[i] = list_url_form
+        inputForm.list_regex_list.entries[i] = list_url_form
         i += 1
 
     i = 0
     for detail_url in redis_db.get_detail_urls():
         detail_url_data = MultiDict([('detail_url', detail_url), ('select', True)])
         detail_url_form = DetailUrlForm(detail_url_data)
-        outputForm.detail_urls_list.entries[i] = detail_url_form
+        inputForm.detail_regex_list.entries[i] = detail_url_form
         i += 1
 
     # result-list.log
@@ -914,7 +904,7 @@ def get_show_result():
         fp.write(line + '\n')
         i += 1
     fp.close()
-    outputForm.list_urls_cnt = i
+    inputForm.list_urls_cnt = i
 
     i = 0
     # result-detail.log
@@ -923,9 +913,9 @@ def get_show_result():
         fp.write(line + '\n')
         i += 1
     fp.close()
-    outputForm.detail_urls_cnt = i
+    inputForm.detail_urls_cnt = i
 
-    return render_template('show_result.html', outputForm=outputForm)
+    return render_template('show_result.html', inputForm=inputForm)
 
 
 @app.route('/show_server_log', methods=['GET', 'POST'])
@@ -959,7 +949,6 @@ def show_server_log():
     fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
     for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
-        i += 1
     fp.close()
 
     return render_template('show_server_log.html', server_log_list=[x.encode('utf8') for x in server_log_list])
@@ -995,7 +984,7 @@ def setting_list_init():
             score = 0
         else:
             score = redis_db.conn.zscore(redis_db.manual_detail_rule_zset_key, regex)
-        regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(score))])
+        regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.detail_regex_list.entries[i] = regexForm
@@ -1009,7 +998,7 @@ def setting_list_init():
             score = 0
         else:
             score = redis_db.conn.zscore(redis_db.manual_list_rule_zset_key, regex)
-        regex_data = MultiDict([('select', True), ('regex', regex), ('weight', weight), ('score', int(score))])
+        regex_data = MultiDict([ ('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.list_regex_list.entries[i] = regexForm
@@ -1040,21 +1029,21 @@ def setting_list_save_and_run():
     #### 保存详情页配置
     detail_regex_save_list = []
     for r in inputForm.detail_regex_list.data:
-        select = r['select']
+        # select = r['select']
         regex = r['regex']
         weight = r['weight']
         score = r['score']
-        if select and regex != '':
+        if regex != '':
             detail_regex_save_list.append({'regex': regex, 'weight': weight})
 
     #### 保存列表页配置
     list_regex_save_list = []
     for r in inputForm.list_regex_list.data:
-        select = r['select']
+        # select = r['select']
         regex = r['regex']
         weight = r['weight']
         score = r['score']
-        if select and regex != '':
+        if regex != '':
             list_regex_save_list.append({'regex': regex, 'weight': weight})
 
     #### check 详情页/列表页 正则表达式的整合性

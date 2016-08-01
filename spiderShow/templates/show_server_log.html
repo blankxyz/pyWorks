@@ -1,8 +1,8 @@
 {% extends "bootstrap/base.html" %}
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='highcharts.js') }}"></script>
-    <script src="{{ url_for('static', filename='exporting.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
     <script type="text/javascript">
         setTimeout('window.location.reload()', 10 * 1000);
         $(document).ready(function () {
