@@ -58,12 +58,14 @@ CONFIG_JSON = config.get('export', 'config_json')
 # windows or linux or mac
 if os.name == 'nt':
     RUN_FILE = config.get('windows', 'run_file')
-    SHELL_CMD = config.get('windows', 'shell_cmd')
+    SHELL_LIST_CMD = config.get('windows', 'shell_list_cmd')
+    SHELL_DETAIL_CMD = config.get('windows', 'shell_detail_cmd')
     RUN_ALLSITE_INI = config.get('windows', 'run_allsite_ini')
 
 else:
     RUN_FILE = config.get('linux', 'run_file')
-    SHELL_CMD = config.get('linux', 'shell_cmd')
+    SHELL_LIST_CMD = config.get('linux', 'shell_list_cmd')
+    SHELL_DETAIL_CMD = config.get('linux', 'shell_detail_cmd')
     RUN_ALLSITE_INI = config.get('linux', 'run_allsite_ini')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
@@ -79,7 +81,7 @@ global recover_flg
 
 
 ##################################################################################################
-class SearchCondForm(Form): #user search
+class SearchCondForm(Form):  # user search
     start_url = StringField(label=u'主页', default='')
     start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
@@ -88,7 +90,7 @@ class SearchCondForm(Form): #user search
     recover = SubmitField(label=u'导入')
 
 
-class SearchResultForm(Form): #user search
+class SearchResultForm(Form):  # user search
     # select = BooleanField(label=u'选择', default=False)
     start_url = StringField(label=u'主页', default='')
     site_domain = StringField(label=u'限定域名', default='')
@@ -100,14 +102,14 @@ class SearchResultForm(Form): #user search
     search_result_list = []
 
 
-class RegexForm(Form): #setting
+class RegexForm(Form):  # setting
     # select = BooleanField(label=u'选择', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
-class ListRegexInputForm(Form): #setting
+class ListRegexInputForm(Form):  # setting
     start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
     site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
     white_list = StringField(label=u'白名单')
@@ -120,21 +122,21 @@ class ListRegexInputForm(Form): #setting
     list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=10)
     detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=10)
 
-    save_run = SubmitField(label=u'保存并执行')
-    # pre_run = SubmitField(label=u'试算')
+    save_run_list = SubmitField(label=u'保存-执行(列表页)')
+    save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
 
-class DetailUrlForm(Form): #提取结果一览
+class DetailUrlForm(Form):  # 提取结果一览
     detail_url = StringField(label=u'详情页')
     select = BooleanField(label=u'正误', default=False)
 
 
-class ListUrlForm(Form): #提取结果一览
+class ListUrlForm(Form):  # 提取结果一览
     list_url = StringField(label=u'列表页')
     select = BooleanField(label=u'正误', default=False)
 
 
-class ListRegexOutputForm(Form): #提取结果一览
+class ListRegexOutputForm(Form):  # 提取结果一览
     show_max = SHOW_MAX
     detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=SHOW_MAX)
     detail_urls_cnt = 0
@@ -507,16 +509,16 @@ class RedisDrive(object):
         self.start_url = start_url
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
-        self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果
+        self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输出详情页URL
         self.manual_list_rule_zset_key = 'manual_list_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.manual_detail_rule_zset_key = 'manual_detail_rule_zset_%s' % self.site_domain  # 手工配置规则
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
+        self.detail_flg = 9
 
     def get_detail_urls(self):
-        return self.conn.zrangebyscore(self.detail_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0,
-                                       num=SHOW_MAX)
+        return self.conn.smembers(self.detail_urls_set_key)
 
     def get_list_urls(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
@@ -573,14 +575,20 @@ class RedisDrive(object):
         # rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
         rule0_cnt = 0
         rule1_cnt = 0
-        detail_cnt = self.conn.zcard(self.detail_urls_zset_key)
+        detail_cnt = self.conn.scard(self.detail_urls_set_key)
         list_cnt = self.conn.zcard(self.list_urls_zset_key)
         list_done_urls = self.conn.zrangebyscore(
             self.list_urls_zset_key, self.done_flg, self.done_flg)
         list_done_cnt = len(list_done_urls)
+
+        detail_done_urls = self.conn.zrangebyscore(
+            self.list_urls_zset_key, self.detail_flg, self.detail_flg)
+        detail_done_cnt = len(detail_done_urls)
+
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cnt_info = {'times': t_stamp, 'rule0_cnt': rule0_cnt, 'rule1_cnt': rule1_cnt,
-                    'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
+                    'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt,
+                    'detail_done_cnt': detail_done_cnt}
         self.conn.hset(
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info, sort_keys=True))
         # print cnt_info
@@ -602,6 +610,7 @@ class CollageProcessInfo(object):
         detail_cnt = []
         list_cnt = []
         list_done_cnt = []
+        detail_done_cnt = []
         times = []
 
         fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'r')
@@ -613,8 +622,9 @@ class CollageProcessInfo(object):
             detail_cnt.append(dic.get('detail_cnt'))
             list_cnt.append(dic.get('list_cnt'))
             list_done_cnt.append(dic.get('list_done_cnt'))
+            detail_done_cnt.append(dic.get('detail_done_cnt'))
         fp.close()
-        return times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt
+        return times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt
 
 
 ##################################################################################################
@@ -819,36 +829,44 @@ def show_process():
     print '[info]show_process()', user_id, start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('show.html', inputForm=inputForm)
+        return render_template('show_process.html', inputForm=inputForm)
 
     # 从redis提取实时信息，转换成json文件
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     redis_db.covert_redis_cnt_to_json()
 
     collage = CollageProcessInfo()
-    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt = collage.convert_file_to_list()
+    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt = collage.convert_file_to_list()
     times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
 
     # print list_done_cnt[-1],list_cnt[-1]
     if len(list_cnt) == 0 or list_cnt[-1] == 0:
-        done_rate = 0
+        list_done_rate = 0
     else:
-        done_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
+        list_done_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
+
+    if len(list_cnt) == 0 or list_cnt[-1] == 0:
+        detail_done_rate = 0
+    else:
+        detail_done_rate = float(detail_done_cnt[-1]) / list_cnt[-1] * 100.0
 
     keywords, matched_cnt = redis_db.get_keywords_match()
 
-    regexs_str =  ("'" + "','".join(keywords) + "'")
+    regexs_str = ("'" + "','".join(keywords) + "'")
     # from flask import Markup
     # 将json映射到html
     flash(u'每隔10秒刷新 ' + start_url + u' 的实时采集信息。')
-    return render_template('show.html',
+    return render_template('show_process.html',
                            times=times,
                            rule1_cnt=rule1_cnt,
                            detail_cnt=detail_cnt,
                            list_cnt=list_cnt,
                            list_done_cnt=list_done_cnt,
-                           done_rate=done_rate,
-                           todo_rate=(100.0 - done_rate),
+                           detail_done_cnt=detail_done_cnt,
+                           list_done_rate=list_done_rate,
+                           list_todo_rate=(100.0 - list_done_rate),
+                           detail_done_rate=detail_done_rate,
+                           detail_todo_rate=(100.0 - detail_done_rate),
                            keywords=keywords,
                            regexs_str=regexs_str,
                            matched_cnt=matched_cnt)
@@ -909,7 +927,7 @@ def get_show_result():
     i = 0
     # result-detail.log
     fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
-    for line in redis_db.conn.zrange(redis_db.detail_urls_zset_key, 0, -1, withscores=False):
+    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
         fp.write(line + '\n')
         i += 1
     fp.close()
@@ -998,7 +1016,7 @@ def setting_list_init():
             score = 0
         else:
             score = redis_db.conn.zscore(redis_db.manual_list_rule_zset_key, regex)
-        regex_data = MultiDict([ ('regex', regex), ('weight', weight), ('score', int(score))])
+        regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.list_regex_list.entries[i] = regexForm
@@ -1113,15 +1131,27 @@ def setting_list_save_and_run():
         return render_template('setting.html', inputForm=inputForm)
 
     # 执行抓取程序
-    if os.name == 'nt':
-        # DOS "start" command
-        print '[info] run windows', SHELL_CMD
-        os.startfile(SHELL_CMD)
-    else:
-        print '[info] run linux', SHELL_CMD
-        p = subprocess.Popen(SHELL_CMD, shell=True)
-        process_id = p.pid
-        print '[info] process_id:', process_id
+    if inputForm.save_run_list.data:
+        if os.name == 'nt':
+            # DOS "start" command
+            print '[info] run windows', SHELL_LIST_CMD
+            os.startfile(SHELL_LIST_CMD)
+        else:
+            print '[info] run linux', SHELL_LIST_CMD
+            p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
+            process_id = p.pid
+            print '[info] process_id:', process_id
+
+    if inputForm.save_run_detail.data:
+        if os.name == 'nt':
+            # DOS "start" command
+            print '[info] run windows', SHELL_DETAIL_CMD
+            os.startfile(SHELL_DETAIL_CMD)
+        else:
+            print '[info] run linux', SHELL_DETAIL_CMD
+            p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True)
+            process_id = p.pid
+            print '[info] process_id:', process_id
 
     return render_template('setting.html', inputForm=inputForm)
 
@@ -1164,10 +1194,12 @@ def reset_zero():
     fp.close()
     return redirect(url_for('show_process'), 302)
 
+
 @app.route('/setting_detail_init', methods=['GET', 'POST'])
 def setting_detail_init():
     inputForm = None
     return render_template('setting_detail.html', inputForm=inputForm)
+
 
 @app.route('/export_init')
 def export_import():
