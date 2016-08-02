@@ -126,13 +126,19 @@ class ListRegexInputForm(Form):  # setting
 
 
 class ContentItemForm(Form):  # 内容提取
-    item = StringField(label=u'项目') # 标题，内容，作者，创建时间，
-    type = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')])
-    expression = StringField(label=u'表达式')
+    # 标题，内容，作者，创建时间，
+    title_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    title_exp = StringField(label=u'表达式')
 
+    content_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    content_exp = StringField(label=u'表达式')
 
-class ContentExtractForm(Form):  # 提取结果一览
-    extract_list = FieldList(FormField(ContentItemForm), label=u'', min_entries=4)
+    auth_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    auth_exp = StringField(label=u'表达式')
+
+    ctime_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    ctime_exp = StringField(label=u'表达式')
+
     save_run = SubmitField(label=u'保存并执行')
 
 
@@ -160,10 +166,8 @@ class MySqlDrive(object):
         # print 'save_all_setting() start...', start_url, site_domain
         ret_cnt = 0
         try:
-            sqlStr1 = (
-                "DELETE FROM url_rule WHERE user_id = '" + user_id + "' AND start_url= '" + start_url + "' AND site_domain= '" + site_domain + "'")
-            self.cur.execute(sqlStr1)
-            self.conn.commit()
+            sqlStr1 = ("DELETE FROM url_rule WHERE user_id = %s AND start_url= %s AND site_domain= %s")
+            self.cur.execute(sqlStr1, (user_id, start_url, site_domain))
 
             # detail_or_list = '0'  # 0:detail,1:list
             # scope = '0'           # 0:netloc,1:path,2:query
@@ -176,11 +180,11 @@ class MySqlDrive(object):
                 detail_or_list = '0'
                 scope = '1'
                 white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) " \
-                          "VALUES ( '" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain_str + "','" + detail_or_list + "','" + \
-                          scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
+                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
+                          "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
                 print '[info]save_all_setting()-detail', sqlStr2
-                ret_cnt = self.cur.execute(sqlStr2)
+                ret_cnt = self.cur.execute(sqlStr2, (user_id, start_url, site_domain, black_domain_str,
+                                                     detail_or_list, scope, white_or_black, weight, regex))
                 self.conn.commit()
 
             for item in list_regex_save_list:
@@ -189,11 +193,11 @@ class MySqlDrive(object):
                 detail_or_list = '1'
                 scope = '1'
                 white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) " \
-                          "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain_str + "','" + detail_or_list + "','" + \
-                          scope + "','" + white_or_black + "','" + weight + "','" + regex + "')"
+                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
+                          "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
                 print '[info]save_all_setting()-list', sqlStr2
-                ret_cnt = self.cur.execute(sqlStr2)
+                ret_cnt = self.cur.execute(sqlStr2, (user_id, start_url, site_domain, black_domain_str,
+                                                     detail_or_list, scope, white_or_black, weight, regex))
                 self.conn.commit()
 
         except Exception, e:
@@ -690,6 +694,31 @@ def modify_config(start_urls, site_domain, black_domain_str, detail_rule_str, li
         config.set('spider', 'detail_rule_list', detail_rule_str)
         fp = open(RUN_ALLSITE_INI, "w")
         config.write(fp)
+        # write_ready = False
+        # copy_list = []
+        # fp = open('../spider/config.py', "r")
+        # for row in fp.readlines():
+        #     if row.find('spider-modify-start')>=0: write_ready = True
+        #     if row.find('spider-modify-end')>=0: write_ready = False
+        #     if write_ready:
+        #         if row.find('START_URLS')>=0:
+        #             row = "START_URLS = '" + start_urls + "'\n"
+        #         if row.find('SITE_DOMAIN')>=0:
+        #             row = "SITE_DOMAIN = '"+ site_domain + "'\n"
+        #         if row.find('BLACK_DOMAIN_LIST')>=0:
+        #             row = "BLACK_DOMAIN_LIST = '"+ black_domain_str + "'\n"
+        #         if row.find('DETAIL_RULE_LIST')>=0:
+        #             row = "DETAIL_RULE_LIST = '"+ detail_rule_str + "'\n"
+        #         if row.find('LIST_RULE_LIST')>=0:
+        #             row = "LIST_RULE_LIST = '"+ list_rule_str + "'\n"
+        #     copy_list.append(row)
+        #
+        # fp.close()
+        #
+        # fp = open('../spider/config.py', "w")
+        # for row in copy_list: fp.write(row)
+        # fp.close()
+
         print '[info] modify_config() ok.'
         return True
     except Exception, e:
@@ -961,14 +990,11 @@ def setting_list_init():
         inputForm.list_regex_list.entries[i] = regexForm
         i += 1
 
-    #### 清除原有所有规则
-    # db.conn.zremrangebyscore(db.detail_urls_rule1_zset_key, min=0, max=99999999)
-
     flash(u'初始化配置完成')
     return render_template('setting.html', inputForm=inputForm)
 
 
-@app.route('/save_and_run', methods=['POST'])
+@app.route('/list_save_and_run', methods=['POST'])
 def setting_list_save_and_run():
     # user_id = session['user_id']
     user_id = 'admin'
@@ -1047,10 +1073,10 @@ def setting_list_save_and_run():
                                     list_regex_save_list=list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
-        print u'[info]setting_list_save_and_run() MySQL保存完毕.'
+        print u'[info]setting_list_save_and_run() MySQL save success.'
     else:
         flash(u"MySQL保存失败.")
-        print u'[error]setting_list_save_and_run() MySQL保存失败.'
+        print u'[error]setting_list_save_and_run() MySQL save failure.'
         return render_template('setting.html', inputForm=inputForm)
 
     #### 修改配置文件的执行入口信息
@@ -1066,7 +1092,7 @@ def setting_list_save_and_run():
                         list_rule_str=list_rule_str, detail_rule_str=detail_rule_str)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
-        print u'[error]setting_main_save_and_run() 修改' + INIT_CONFIG + u'文件失败.'
+        print u'[error]setting_main_save_and_run() modify ' + INIT_CONFIG + u' failure.'
         return render_template('setting.html', inputForm=inputForm)
 
     # 执行抓取程序
@@ -1099,7 +1125,7 @@ def setting_list_save_and_run():
 def setting_content_init():
     # user_id = session['user_id']
     user_id = 'admin'
-    inputForm = ContentExtractForm(request.form)
+    inputForm = ContentItemForm(request.form)
     return render_template('setting_content.html', inputForm=inputForm)
 
 
@@ -1145,7 +1171,7 @@ def reset_zero():
 @app.route('/setting_detail_init', methods=['GET', 'POST'])
 def setting_detail_init():
     inputForm = None
-    return render_template('setting_detail.html', inputForm=inputForm)
+    return render_template('setting_content.html', inputForm=inputForm)
 
 
 @app.route('/export_init')
@@ -1164,3 +1190,4 @@ if __name__ == '__main__':
         # mysql = MySqlDrive()
         # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
         # print mysql.get_current_main_setting()
+        # modify_config('http://bbs.tianya.cn','bbs.tianya.cn','blog.tianya.cn','\/$@/[a-zA-Z]{1,}/[a-zA-Z]{1,}/d{4}/?d{4}/d{1,}.html@/L/d{1,}.shtml@','list@index@')
