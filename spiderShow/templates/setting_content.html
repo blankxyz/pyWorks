@@ -1,0 +1,49 @@
+{% extends "bootstrap/base.html" %}
+{% block scripts %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+    <h3 align="center">设定内容提取
+        <small>标题，内容，作者，创建时间 的表达式</small>
+    </h3>
+    <hr>
+    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <label>{{ message }}</label>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <form id="setting" method="POST" action="/content_save_and_run">
+        <hr>
+        <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
+            <label for="name">内容提取</label>
+            <table id="list-regex-tab" class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>项目</th>
+                    <th>提取方法</th>
+                    <th>表达式</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in inputForm.extract_list %}
+                    <tr id={{ loop.index }}>
+                        <td>{{ row.item(size=10) }}</td>
+                        <td>{{ row.type() }}</td>
+                        <td>{{ row.expression(size=60) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="title" class="form-group" style="width:100%; margin-left:10px">
+            <button type="button" class="btn">{{ inputForm.save_run }}</button>
+        </div>
+    </form>
+
+{% endblock %}

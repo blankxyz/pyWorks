@@ -85,7 +85,7 @@
     <h3 align="center">设定抓取信息
         <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
     </h3>
-    <hr/>
+    <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -99,14 +99,14 @@
     </div>
 
     <form id="setting" method="POST" action="/save_and_run">
-        <hr/>
+        <hr>
         <div id="config" class="form-group center" style="width:80%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。<br>
         </div>
-        <hr/>
+        <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
             <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
                 /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>

@@ -16,8 +16,8 @@ import allsite_clean_url
 
 ####################################################################
 # INIT_CONFIG = '/work/spider/run_allsite.ini' #linux
-# INIT_CONFIG = './run_allsite.ini' #windows
-INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
+INIT_CONFIG = './run_allsite.ini' #windows
+# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -247,9 +247,9 @@ class MySpider(spider.Spider):
 
     def get_start_urls(self, data=None):
         self.detail_rules = [x.strip() for x in DETAIL_RULE_LIST.split('@') if x!='']
-        print DETAIL_RULE_LIST, '->',self.detail_rules
+        print 'get_start_urls() detail ini:',DETAIL_RULE_LIST, '->',self.detail_rules
         self.list_rules = [x.strip() for x in LIST_RULE_LIST.split('@') if x!='']
-        print LIST_RULE_LIST,'->',self.list_rules
+        print 'get_start_urls() list ini:',LIST_RULE_LIST,'->',self.list_rules
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
         return [self.start_urls]

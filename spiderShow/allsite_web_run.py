@@ -61,7 +61,6 @@ if os.name == 'nt':
     SHELL_LIST_CMD = config.get('windows', 'shell_list_cmd')
     SHELL_DETAIL_CMD = config.get('windows', 'shell_detail_cmd')
     RUN_ALLSITE_INI = config.get('windows', 'run_allsite_ini')
-
 else:
     RUN_FILE = config.get('linux', 'run_file')
     SHELL_LIST_CMD = config.get('linux', 'shell_list_cmd')
@@ -126,23 +125,15 @@ class ListRegexInputForm(Form):  # setting
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
 
-class DetailUrlForm(Form):  # 提取结果一览
-    detail_url = StringField(label=u'详情页')
-    select = BooleanField(label=u'正误', default=False)
+class ContentItemForm(Form):  # 内容提取
+    item = StringField(label=u'项目') # 标题，内容，作者，创建时间，
+    type = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')])
+    expression = StringField(label=u'表达式')
 
 
-class ListUrlForm(Form):  # 提取结果一览
-    list_url = StringField(label=u'列表页')
-    select = BooleanField(label=u'正误', default=False)
-
-
-class ListRegexOutputForm(Form):  # 提取结果一览
-    show_max = SHOW_MAX
-    detail_urls_list = FieldList(FormField(DetailUrlForm), label=u'提取结果一览-详情页', min_entries=SHOW_MAX)
-    detail_urls_cnt = 0
-    list_urls_list = FieldList(FormField(ListUrlForm), label=u'提取结果一览-列表页', min_entries=SHOW_MAX)
-    list_urls_cnt = 0
-    refresh = SubmitField(label=u'刷新')
+class ContentExtractForm(Form):  # 提取结果一览
+    extract_list = FieldList(FormField(ContentItemForm), label=u'', min_entries=4)
+    save_run = SubmitField(label=u'保存并执行')
 
 
 ##################################################################################################
@@ -222,9 +213,9 @@ class MySqlDrive(object):
             for r in rs:
                 # code 表意翻译
                 if r[3] == '0':
-                    detail_or_list = u'详情规则'
+                    detail_or_list = u'详情'
                 else:
-                    detail_or_list = u'列表规则'
+                    detail_or_list = u'列表'
 
                 if r[2] == '' or r[2] is None:
                     black_domain_str = u'无'
@@ -884,57 +875,6 @@ def save_finally_result():
     return redirect(url_for('show_process'), 302)
 
 
-@app.route('/show_result', methods=['GET', 'POST'])
-def get_show_result():
-    # user_id = session.get('user_id')
-    user_id = 'admin'
-    inputForm = ListRegexInputForm()
-
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    # print 'get_show_result()', start_url, site_domain, black_domain_str
-    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_result.html', inputForm=inputForm)
-
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-
-    i = 0
-    for list_url in redis_db.get_list_urls():
-        list_url_data = MultiDict([('list_url', list_url), ('select', True)])
-        list_url_form = ListUrlForm(list_url_data)
-        inputForm.list_regex_list.entries[i] = list_url_form
-        i += 1
-
-    i = 0
-    for detail_url in redis_db.get_detail_urls():
-        detail_url_data = MultiDict([('detail_url', detail_url), ('select', True)])
-        detail_url_form = DetailUrlForm(detail_url_data)
-        inputForm.detail_regex_list.entries[i] = detail_url_form
-        i += 1
-
-    # result-list.log
-    i = 0
-    fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
-    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
-        fp.write(line + '\n')
-        i += 1
-    fp.close()
-    inputForm.list_urls_cnt = i
-
-    i = 0
-    # result-detail.log
-    fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
-    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-        fp.write(line + '\n')
-        i += 1
-    fp.close()
-    inputForm.detail_urls_cnt = i
-
-    return render_template('show_result.html', inputForm=inputForm)
-
-
 @app.route('/show_server_log', methods=['GET', 'POST'])
 def show_server_log():
     # user_id = session.get('user_id')
@@ -1153,6 +1093,14 @@ def setting_list_save_and_run():
             print '[info] process_id:', process_id
 
     return render_template('setting.html', inputForm=inputForm)
+
+
+@app.route('/setting_content_init', methods=['GET', 'POST'])
+def setting_content_init():
+    # user_id = session['user_id']
+    user_id = 'admin'
+    inputForm = ContentExtractForm(request.form)
+    return render_template('setting_content.html', inputForm=inputForm)
 
 
 @app.route('/export/<path:filename>')
