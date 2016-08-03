@@ -16,8 +16,8 @@ import allsite_clean_url
 
 ####################################################################
 # INIT_CONFIG = '/work/spider/run_allsite.ini' #linux
-# INIT_CONFIG = './run_allsite.ini' #windows
-INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
+INIT_CONFIG = './run_allsite.ini' #windows
+# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -29,6 +29,14 @@ else:
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
+
+# spider-modify-start
+# START_URLS = None
+# SITE_DOMAIN = None
+# BLACK_DOMAIN_LIST = None
+# DETAIL_RULE_LIST = None
+# LIST_RULE_LIST = None
+# spider-modify-end
 
 # spider
 START_URLS = config.get('spider', 'start_urls')
@@ -58,8 +66,10 @@ class MySpider(spider.Spider):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 输入列表页URL
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输出详情页URL
-        self.manual_list_rule_zset_key = 'manual_list_rule_zset_%s' % self.site_domain  # 手工配置规则
-        self.manual_detail_rule_zset_key = 'manual_detail_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则（白）
+        self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
+        self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则（白）
+        self.manual_b_detail_rule_zset_key = 'manual_b_detail_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.detail_rules = []
         self.list_rules = []
         self.todo_urls_limits = 10
@@ -112,37 +122,55 @@ class MySpider(spider.Spider):
 
     def is_manual_detail_rule(self, url):
         for rule in self.detail_rules:
-            if re.search(rule, url):
-                self.conn.zincrby(self.manual_detail_rule_zset_key, value=rule, amount=1)
-                print '[detail-manual]', rule, '<-', url
-                return True  # 符合详情页规则
-        return False
+            if rule.find('/^') < 0:  # 白
+                if re.search(rule, url):
+                    self.conn.zincrby(self.manual_w_detail_rule_zset_key, value=rule, amount=1)
+                    print '[detail-white]', rule, '<-', url
+                    return True  # 符合详情页规则（白）
+
+            else:  # 黑
+                if re.search(rule[2:-1], url): # 去掉 /^xxxxxx/ 中的 '/^','/'
+                    self.conn.zincrby(self.manual_b_detail_rule_zset_key, value=rule, amount=1)
+                    print '[detail-black]', rule, '<-', url
+                    return False  # 符合详情页规则（黑）
+
+        return None  # 未知
 
     def is_manual_list_rule(self, url):
         for rule in self.list_rules:
-            if re.search(rule, url):
-                self.conn.zincrby(self.manual_list_rule_zset_key, value=rule, amount=1)
-                print '[list-manual]', rule, '<-', url
-                return True  # 符合详情页规则
-        return False
+            if rule.find('/^') < 0:  # 白
+                if re.search(rule, url):
+                    self.conn.zincrby(self.manual_w_list_rule_zset_key, value=rule, amount=1)
+                    print '[list-white]', rule, '<-', url
+                    return True  # 符合详情页规则（白）
+
+            else: # 黑
+                if re.search(rule[2:-1], url): # 去掉 /^xxxxxx/ 中的 '/^','/'
+                    self.conn.zincrby(self.manual_b_list_rule_zset_key, value=rule, amount=1)
+                    print '[list-black]', rule, '<-', url
+                    return False  # 符合详情页规则（黑）
+
+        return None  # 未知
 
     def path_is_list(self, url):
         # print 'path_is_list() start'
-
+        ret = None  # 未知
         # 最优先确定规则
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         new_url = urlparse.urlunparse(('', '', path, params, query, ''))
 
         # 页面手工配置规则
-        if self.is_manual_detail_rule(new_url) == True:
-            return False
+        ret = self.is_manual_detail_rule(new_url)
+        if ret is not None:  # 未知
+            return not ret
 
-        if self.is_manual_list_rule(new_url) == True:
-            return True
+        ret = self.is_manual_list_rule(new_url)
+        if ret is not None:  # 未知
+            return ret
 
         print '[unkownn]', new_url
         # print 'path_is_list() end'
-        return True
+        return True # 未知的当做列表页处理
 
     def get_todo_urls(self):
         urls = []

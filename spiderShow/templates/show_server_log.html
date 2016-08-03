@@ -12,11 +12,11 @@
             var system_cnt = 0;
             var error_cnt = 0;
             for (var i = 0; i < 100; i++) {
-                if ($("#log_" + i + "_").text().search("list-manual") > 0) {
+                if ($("#log_" + i + "_").text().search("list-") > 0) {
                     badge = "列表";
                     badge_color = "green";
                     list_cnt++;
-                } else if ($("#log_" + i + "_").text().search("detail-manual") > 0) {
+                } else if ($("#log_" + i + "_").text().search("detail-") > 0) {
                     badge = "详情";
                     badge_color = "blue";
                     detail_cnt++;

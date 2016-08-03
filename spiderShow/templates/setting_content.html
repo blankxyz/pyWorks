@@ -34,26 +34,26 @@
                 <tr>
                     <td>标题</td>
                     <td>{{ inputForm.title_sel }}</td>
-                    <td>{{ inputForm.title_exp(size=60) }}</td>
+                    <td>{{ inputForm.title_exp(size=100) }}</td>
                 </tr>
                 <tr>
                     <td>内容</td>
                     <td>{{ inputForm.content_sel }}</td>
-                    <td>{{ inputForm.content_exp(size=60) }}</td>
+                    <td>{{ inputForm.content_exp(size=100) }}</td>
                 </tr>
                 <tr>
                     <td>作者</td>
-                    <td>{{ inputForm.auth_sel }}</td>
-                    <td>{{ inputForm.auth_exp(size=60) }}</td>
+                    <td>{{ inputForm.author_sel }}</td>
+                    <td>{{ inputForm.author_exp(size=100) }}</td>
                 </tr>
                 <tr>
                     <td>创建时间</td>
                     <td>{{ inputForm.ctime_sel }}</td>
-                    <td>{{ inputForm.ctime_exp(size=60) }}</td>
+                    <td>{{ inputForm.ctime_exp(size=100) }}</td>
                 </tr>
                 </tbody>
             </table>
-            <hr><hr>
+            <hr>
             <button type="button" class="btn">{{ inputForm.save_run }}</button>
         </form>
     </div>

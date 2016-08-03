@@ -5,6 +5,7 @@ import re
 import os
 import datetime
 import urlparse
+import htmlparser
 import redis
 import spider
 import setting
@@ -31,20 +32,23 @@ REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-START_URLS = None
-SITE_DOMAIN = None
-BLACK_DOMAIN_LIST = None
-DETAIL_RULE_LIST = None
-LIST_RULE_LIST = None
-
-
+# START_URLS = None
+# SITE_DOMAIN = None
+# BLACK_DOMAIN_LIST = None
+# DETAIL_RULE_LIST = None
+# LIST_RULE_LIST = None
 # spider-modify-end
 
-# START_URLS = config.get('spider', 'start_urls')
-# SITE_DOMAIN = config.get('spider', 'site_domain')
-# BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
-# DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
-# LIST_RULE_LIST = config.get('spider', 'list_rule_list')
+START_URLS = config.get('spider', 'start_urls')
+SITE_DOMAIN = config.get('spider', 'site_domain')
+BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
+DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
+LIST_RULE_LIST = config.get('spider', 'list_rule_list')
+
+TITLE_EXP = None
+CONTENT_EXP = None
+AUTHOR_EXP = None
+CTIME_EXP = None
 
 #############################################################################
 

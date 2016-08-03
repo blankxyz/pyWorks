@@ -85,7 +85,8 @@ class SearchCondForm(Form):  # user search
     start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
     search = SubmitField(label=u'查询')
-    download = SubmitField(label=u'下载')
+    list_download = SubmitField(label=u'列表页结果下载')
+    detail_download = SubmitField(label=u'详情页结果下载')
     recover = SubmitField(label=u'导入')
 
 
@@ -133,8 +134,8 @@ class ContentItemForm(Form):  # 内容提取
     content_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
     content_exp = StringField(label=u'表达式')
 
-    auth_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
-    auth_exp = StringField(label=u'表达式')
+    author_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    author_exp = StringField(label=u'表达式')
 
     ctime_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
     ctime_exp = StringField(label=u'表达式')
@@ -179,10 +180,15 @@ class MySqlDrive(object):
                 weight = item['weight']
                 detail_or_list = '0'
                 scope = '1'
-                white_or_black = '0'
+                if regex.find('/^') >= 0:
+                    white_or_black = '1'  # 黑名单
+                else:
+                    white_or_black = '0'
                 sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                print '[info]save_all_setting()-detail', sqlStr2
+                print '[info]save_all_setting()-detail', sqlStr2 % (user_id, start_url, site_domain, black_domain_str,
+                                                                    detail_or_list, scope, white_or_black, weight,
+                                                                    regex)
                 ret_cnt = self.cur.execute(sqlStr2, (user_id, start_url, site_domain, black_domain_str,
                                                      detail_or_list, scope, white_or_black, weight, regex))
                 self.conn.commit()
@@ -192,10 +198,14 @@ class MySqlDrive(object):
                 weight = item['weight']
                 detail_or_list = '1'
                 scope = '1'
-                white_or_black = '0'
+                if regex.find('/^') >= 0:
+                    white_or_black = '1'  # 黑名单
+                else:
+                    white_or_black = '0'
                 sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                print '[info]save_all_setting()-list', sqlStr2
+                print '[info]save_all_setting()-list', sqlStr2 % (user_id, start_url, site_domain, black_domain_str,
+                                                                  detail_or_list, scope, white_or_black, weight, regex)
                 ret_cnt = self.cur.execute(sqlStr2, (user_id, start_url, site_domain, black_domain_str,
                                                      detail_or_list, scope, white_or_black, weight, regex))
                 self.conn.commit()
@@ -203,6 +213,56 @@ class MySqlDrive(object):
         except Exception, e:
             ret_cnt = 0
             print '[error]save_all_setting()', e
+            self.conn.rollback()
+
+        return ret_cnt
+
+    def save_content_setting(self, user_id, start_url, site_domain, title_exp, author_exp, content_exp, ctime_exp):
+        # print 'save_content_setting() start...', start_url, site_domain
+        ret_cnt = 0
+        try:
+            sqlStr1 = ("DELETE FROM content_rule WHERE user_id = %s AND start_url= %s AND site_domain= %s")
+            self.cur.execute(sqlStr1, (user_id, start_url, site_domain))
+            list_regex = ''
+            regex_or_xpath = '0'
+            # title
+            sql_title = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
+                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+            print '[info]save_content_setting()', sql_title % (user_id, start_url, site_domain, list_regex,
+                                                             regex_or_xpath, 'title', title_exp)
+            ret_cnt = self.cur.execute(sql_title, (user_id, start_url, site_domain, list_regex,
+                                                 regex_or_xpath, 'title', title_exp))
+            # author
+            sql_author = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
+                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+            print '[info]save_content_setting()', sql_author % (user_id, start_url, site_domain, list_regex,
+                                                             regex_or_xpath, 'author', author_exp)
+            ret_cnt = self.cur.execute(sql_author, (user_id, start_url, site_domain, list_regex,
+                                                 regex_or_xpath, 'author', author_exp))
+            # content
+            sql_content = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
+                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+            print '[info]save_content_setting()', sql_content % (user_id, start_url, site_domain, list_regex,
+                                                             regex_or_xpath, 'content', content_exp)
+            ret_cnt = self.cur.execute(sql_content, (user_id, start_url, site_domain, list_regex,
+                                                 regex_or_xpath, 'content', content_exp))
+            # ctime
+            sql_ctime = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
+                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+            print '[info]save_content_setting()', sql_ctime % (user_id, start_url, site_domain, list_regex,
+                                                             regex_or_xpath, 'ctime', ctime_exp)
+            ret_cnt = self.cur.execute(sql_ctime, (user_id, start_url, site_domain, list_regex,
+                                                 regex_or_xpath, 'ctime', ctime_exp))
+
+            self.conn.commit()
+
+        except Exception, e:
+            ret_cnt = 0
+            print '[error]save_content_setting()', e
             self.conn.rollback()
 
         return ret_cnt
@@ -343,27 +403,31 @@ class MySqlDrive(object):
     def save_result_file(self, start_url, site_domain):
         # user_id = session['user_id']
         user_id = 'admin'
-        tmp_path = ''
         # f = zipfile.ZipFile(EXPORT_FOLDER + 'result-list.zip', 'w', zipfile.ZIP_DEFLATED)
         # f.write(EXPORT_FOLDER + "result-list.log")
         # # f.write(EXPORT_FOLDER+"test.jpeg")
         # f.close()
 
         f = open(EXPORT_FOLDER + 'result-list.log')
-        b = f.read()
+        list_b = f.read()
         f.close()
+
+        f = open(EXPORT_FOLDER + 'result-detail.log')
+        detail_b = f.read()
+        f.close()
+
         # os.remove(EXPORT_FOLDER + 'result-list.zip')
 
         # 将.zip写入表
         sql_str1 = "DELETE FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'" % \
                    (user_id, start_url, site_domain)
-        sql_str2 = "INSERT INTO result_file_list(user_id,start_url,site_domain,result_file,tmp_path) VALUES(%s,%s,%s,_binary%s,%s)"
+        sql_str2 = "INSERT INTO result_file_list(user_id,start_url,site_domain,list_result_file,detail_result_file) VALUES(%s,%s,%s,_binary%s,_binary%s)"
 
         try:
             print '[info]save_result_file()', sql_str1
             self.cur.execute(sql_str1)
             print '[info]save_result_file()', sql_str2
-            cnt = self.cur.execute(sql_str2, (user_id, start_url, site_domain, b, tmp_path,))
+            cnt = self.cur.execute(sql_str2, (user_id, start_url, site_domain, list_b, detail_b,))
             self.conn.commit()
         except Exception, e:
             # traceback.format_exc()
@@ -374,39 +438,46 @@ class MySqlDrive(object):
         Args:
             start_url: is not empty string.
         Returns:
-            copy_file: copy the log file from DB to EXPORT_FOLDER. with out path.
+            list_copy_file: copy the log file from DB to EXPORT_FOLDER. with out path.
+            detail_copy_file: ...
             cnt: 0:not found, >0: must be 1.
         '''
         if start_url is None or start_url == '':
             print '[error]get_result_file() start_url is None.'
-            return None, 0
+            return None, None, 0
 
         # user_id = session['user_id']
         user_id = 'admin'
         # 从mysql表中读取log，还原下载文件。
-        sql_str = "SELECT site_domain, result_file FROM result_file_list WHERE user_id='%s' AND start_url='%s'" % \
+        sql_str = "SELECT site_domain, list_result_file, detail_result_file FROM result_file_list WHERE user_id='%s' AND start_url='%s'" % \
                   (user_id, start_url)
         try:
             print '[info]get_result_file()', sql_str
             cnt = self.cur.execute(sql_str)
-            (site_domain, txt) = self.cur.fetchone()
+            (site_domain, list_txt, detail_txt) = self.cur.fetchone()
             self.conn.commit()
 
             if cnt == 0:
                 print '[info]get_result_file() DB not found.', start_url
-                return None, 0
+                return None, None, 0
             else:
-                copy_file = 'result-list_(' + site_domain + ').log'
-                f = open(EXPORT_FOLDER + copy_file, "wb")
-                f.write(txt)
+                list_copy_file = 'result-list_(' + site_domain + ').log'
+                f = open(EXPORT_FOLDER + list_copy_file, "wb")
+                f.write(list_txt)
                 f.close()
-                print '[info]get_result_file() DB >>', copy_file
-                return copy_file, cnt
+
+                detail_copy_file = 'result-detail_(' + site_domain + ').log'
+                f = open(EXPORT_FOLDER + detail_copy_file, "wb")
+                f.write(detail_txt)
+                f.close()
+
+                print '[info]get_result_file() DB >>', list_copy_file, detail_copy_file
+                return list_copy_file, detail_copy_file, cnt
 
         except Exception, e:
             traceback.format_exc()
             print '[error]get_result_file()', start_url, e
-            return None, 0
+            return None, None, 0
 
             # f = zipfile.ZipFile(EXPORT_FOLDER + "result-list_aaa.zip", 'w', zipfile.ZIP_DEFLATED)
             # zipfile.ZipFile('result-list_aaa.jpeg')
@@ -504,8 +575,10 @@ class RedisDrive(object):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输出详情页URL
-        self.manual_list_rule_zset_key = 'manual_list_rule_zset_%s' % self.site_domain  # 手工配置规则
-        self.manual_detail_rule_zset_key = 'manual_detail_rule_zset_%s' % self.site_domain  # 手工配置规则
+        self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
+        self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
+        self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
+        self.manual_b_detail_rule_zset_key = 'manual_b_detail_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.todo_flg = -1
         self.done_flg = 0
@@ -549,13 +622,13 @@ class RedisDrive(object):
     def get_keywords_match(self):
         score_list = []
         keywords = []
-        list_rules = self.conn.zrevrangebyscore(self.manual_list_rule_zset_key,
+        list_rules = self.conn.zrevrangebyscore(self.manual_w_list_rule_zset_key,
                                                 max=999999, min=0, start=0, num=5, withscores=True)
         for rule, score in dict(list_rules).iteritems():
             score_list.append(str(score))
             keywords.append(rule)
 
-        detail_rules = self.conn.zrevrangebyscore(self.manual_detail_rule_zset_key,
+        detail_rules = self.conn.zrevrangebyscore(self.manual_w_detail_rule_zset_key,
                                                   max=999999, min=0, start=0, num=5, withscores=True)
         for rule, score in dict(detail_rules).iteritems():
             score_list.append(str(score))
@@ -804,18 +877,32 @@ def user_search():
             start_url = start_url_sel
         outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
 
-    # 点击 导出历史结果 按钮
-    if inputForm.download.data:
+    # 点击 导出列表页历史结果 按钮
+    if inputForm.list_download.data:
         if start_url_sel == '':
             flash(u'请从历史记录中选择主页。')
         else:
-            copy_file, cnt = mysql_db.get_result_file(start_url_sel)
-            if copy_file is not None and cnt != 0:
-                flash(u'历史记录下载成功。')
-                return send_from_directory(app.config['EXPORT_FOLDER'], copy_file, as_attachment=True)
+            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            if list_copy_file is not None and cnt != 0:
+                flash(u'列表页历史记录下载成功。')
+                return send_from_directory(app.config['EXPORT_FOLDER'], list_copy_file, as_attachment=True)
 
             if cnt == 0:
-                flash(u'没有历史记录。')
+                flash(u'没有列表页历史记录。')
+                print '[error]user_search() get_result_file() not found.', start_url_sel
+
+    # 点击 导出详情页历史结果 按钮
+    if inputForm.detail_download.data:
+        if start_url_sel == '':
+            flash(u'请从历史记录中选择主页。')
+        else:
+            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            if detail_copy_file is not None and cnt != 0:
+                flash(u'详情页历史记录下载成功。')
+                return send_from_directory(app.config['EXPORT_FOLDER'], detail_copy_file, as_attachment=True)
+
+            if cnt == 0:
+                flash(u'没有详情页历史记录。')
                 print '[error]user_search() get_result_file() not found.', start_url_sel
 
     # 点击 导入 按钮
@@ -909,16 +996,6 @@ def show_server_log():
     # user_id = session.get('user_id')
     user_id = 'admin'
 
-    # windows
-    import random
-    f = open('web_server.log', 'r').readlines()
-    l = []
-    for i in range(100):
-        num = random.random()
-        n = int(num * len(f))
-        l.append(f[n])
-    server_log_list = l
-
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
@@ -927,13 +1004,31 @@ def show_server_log():
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show_server_log.html', server_log_list=[])
 
-    # p = subprocess.Popen(['/bin/bash', '-c', 'tail -100 ./web_server.log'], stdout=subprocess.PIPE)
-    # server_log_list = p.stdout.readlines()
+    # windows
+    if os.name == 'nt':
+        import random
+        f = open('web_server.log', 'r').readlines()
+        l = []
+        for i in range(100):
+            num = random.random()
+            n = int(num * len(f))
+            l.append(f[n])
+        server_log_list = l
+
+    else:
+        p = subprocess.Popen(['/bin/bash', '-c', 'tail -100 ./web_server.log'], stdout=subprocess.PIPE)
+        server_log_list = p.stdout.readlines()
 
     # 保存 实时 列表页结果
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
     for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
+        fp.write(line + '\n')
+    fp.close()
+
+    # 保存 实时 详情页结果
+    fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
+    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
         fp.write(line + '\n')
     fp.close()
 
@@ -960,30 +1055,45 @@ def setting_list_init():
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
 
-    #### 设置/还原 redis 和 页面(详情页)
+    #### 从MySql 设置/还原 redis 和 页面(详情页)
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail', user_id):
-        if redis_db.conn.zrank(redis_db.manual_detail_rule_zset_key, regex) is None:
-            redis_db.conn.zadd(redis_db.manual_detail_rule_zset_key, 0, regex)
-            score = 0
-        else:
-            score = redis_db.conn.zscore(redis_db.manual_detail_rule_zset_key, regex)
+        if regex.find('/^') < 0:  # 白名单
+            if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
+                score = 0
+            else:
+                score = redis_db.conn.zscore(redis_db.manual_w_detail_rule_zset_key, regex)
+        else:  # 黑名单
+            if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
+                score = 0
+            else:
+                score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
         regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
         inputForm.detail_regex_list.entries[i] = regexForm
         i += 1
 
-    ####  设置/还原 redis 和 页面(列表页)
+    ####  从MySql 设置/还原 redis 和 页面(列表页)
     i = 0
     for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list', user_id):
-        if redis_db.conn.zrank(redis_db.manual_list_rule_zset_key, regex) is None:
-            redis_db.conn.zadd(redis_db.manual_list_rule_zset_key, 0, regex)
-            score = 0
-        else:
-            score = redis_db.conn.zscore(redis_db.manual_list_rule_zset_key, regex)
+        if regex.find('/^') < 0:  # 白名单
+            if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
+                score = 0
+            else:
+                score = redis_db.conn.zscore(redis_db.manual_w_list_rule_zset_key, regex)
+        else:  # 黑名单
+            if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
+                score = 0
+            else:
+                score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
+
         regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
         regexForm = RegexForm(regex_data)
         # inputForm.regex_list.append_entry(regexForm)
@@ -1050,15 +1160,29 @@ def setting_list_save_and_run():
     #### 清空所有Redis,保存手工配置,用于匹配次数积分。
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
-    for regex in redis_db.conn.zrange(redis_db.manual_list_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_list_rule_zset_key, regex)
+    for regex in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, start=0, end=-1):
+        redis_db.conn.zrem(redis_db.manual_w_list_rule_zset_key, regex)
     for item in list_regex_save_list:
-        redis_db.conn.zadd(redis_db.manual_list_rule_zset_key, 0, item['regex'])
+        if item['regex'].find('/^') < 0:
+            redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, item['regex'])
 
-    for regex in redis_db.conn.zrange(redis_db.manual_detail_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_detail_rule_zset_key, regex)
+    for regex in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, start=0, end=-1):
+        redis_db.conn.zrem(redis_db.manual_b_list_rule_zset_key, regex)
+    for item in list_regex_save_list:
+        if item['regex'].find('/^') >= 0:
+            redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, item['regex'])
+
+    for regex in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, start=0, end=-1):
+        redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex)
     for item in detail_regex_save_list:
-        redis_db.conn.zadd(redis_db.manual_detail_rule_zset_key, 0, item['regex'])
+        if item['regex'].find('/^') < 0:
+            redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, item['regex'])
+
+    for regex in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, start=0, end=-1):
+        redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex)
+    for item in detail_regex_save_list:
+        if item['regex'].find('/^') >= 0:
+            redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, item['regex'])
 
     #### 保存所有手工配置信息到MySql
     setting_json = ''
@@ -1066,7 +1190,6 @@ def setting_list_save_and_run():
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                       black_domain_str=black_domain_str, setting_json=setting_json)
 
-    print 'save_all_setting', black_domain_str
     cnt = mysql_db.save_all_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                     setting_json=setting_json, black_domain_str=black_domain_str,
                                     detail_regex_save_list=detail_regex_save_list,
@@ -1126,6 +1249,44 @@ def setting_content_init():
     # user_id = session['user_id']
     user_id = 'admin'
     inputForm = ContentItemForm(request.form)
+    return render_template('setting_content.html', inputForm=inputForm)
+
+
+@app.route('/content_save_and_run', methods=['GET', 'POST'])
+def content_save_and_run():
+    # user_id = session['user_id']
+    user_id = 'admin'
+    inputForm = ContentItemForm(request.form)
+
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    print '[info]content_save_and_run()', user_id, start_url, site_domain, black_domain
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('setting_content.html', inputForm=inputForm)
+
+    cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
+                                        title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
+                                        content_exp=inputForm.content_exp.data,ctime_exp=inputForm.ctime_exp.data)
+    if cnt == 1:
+        flash(u"MySQL保存完毕.")
+        print u'[info]content_save_and_run() MySQL save success.'
+    else:
+        flash(u"MySQL保存失败.")
+        print u'[error]content_save_and_run() MySQL save failure.'
+        return render_template('setting_content.html', inputForm=inputForm)
+
+    if os.name == 'nt':
+        # DOS "start" command
+        print '[info] run windows', SHELL_CONTENT_CMD
+        os.startfile(SHELL_CONTENT_CMD)
+    else:
+        print '[info] run linux', SHELL_CONTENT_CMD
+        p = subprocess.Popen(SHELL_CONTENT_CMD, shell=True)
+        process_id = p.pid
+        print '[info] process_id:', process_id
+
     return render_template('setting_content.html', inputForm=inputForm)
 
 

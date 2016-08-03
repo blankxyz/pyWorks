@@ -100,7 +100,7 @@
 
     <form id="setting" method="POST" action="/list_save_and_run">
         <hr>
-        <div id="config" class="form-group center" style="width:80%; margin-left:20px">
+        <div id="config" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
@@ -115,11 +115,10 @@
         </div>
         <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
-            <label for="name">列表页-正则表达式(10条)</label>
             <table id="list-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>正则表达式</th>
+                    <th>列表页-正则表达式</th>
                     <th>权重</th>
                     <th>匹配次数</th>
                 </tr>
@@ -136,11 +135,10 @@
             </table>
         </div>
         <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-left:10px">
-            <label for="name">详情页-正则表达式(10条)</label><br>
             <table id="detail-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>正则表达式</th>
+                    <th>详情页-正则表达式</th>
                     <th>权重</th>
                     <th>匹配数</th>
                 </tr>
