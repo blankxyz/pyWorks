@@ -81,8 +81,8 @@ class SearchCondForm(Form):  # user search
     start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
     search = SubmitField(label=u'查询')
-    list_download = SubmitField(label=u'列表页结果下载')
-    detail_download = SubmitField(label=u'详情页结果下载')
+    list_download = SubmitField(label=u'列表页结果')
+    detail_download = SubmitField(label=u'详情页结果')
     recover = SubmitField(label=u'导入')
 
 
@@ -123,6 +123,10 @@ class ListRegexInputForm(Form):  # setting
     save_run_list = SubmitField(label=u'保存-执行(列表页)')
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
+
+class ShowServerLogInputForm(Form):  # show_server_log
+    unkown_sel = BooleanField(label=u'仅未匹配', default=False)
+    refresh = SubmitField(label=u'刷新')
 
 class ContentItemForm(Form):  # 内容提取
     # 标题，内容，作者，创建时间，
@@ -188,7 +192,7 @@ class MySqlDrive(object):
                 parameter2 = (user_id, start_url, site_domain, black_domain_str,
                               detail_or_list, scope, white_or_black, weight, regex)
                 sql_str2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
-                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)" % parameter2
+                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
                 print '[info]save_all_setting()-detail', sql_str2 % parameter2
                 ret_cnt = self.cur.execute(sql_str2, parameter2)
@@ -306,7 +310,7 @@ class MySqlDrive(object):
     def search_start_url_by_user(self, user_id):
         search_result_list = []
         sql_str = "SELECT DISTINCT(start_url) FROM url_rule WHERE user_id=%s ORDER BY start_url ASC"
-        parameter = user_id
+        parameter = (user_id,)
         try:
             cnt = self.cur.execute(sql_str, parameter)
             rs = self.cur.fetchall()
@@ -344,7 +348,7 @@ class MySqlDrive(object):
         black_domain_str = ''
 
         sql_str = "SELECT start_url, site_domain, black_domain_str, setting_json FROM current_domain_setting WHERE user_id=%s"
-        parameter = user_id
+        parameter = (user_id,)
 
         try:
             cnt = self.cur.execute(sql_str, parameter)
@@ -361,7 +365,7 @@ class MySqlDrive(object):
         # print 'set_current_main_setting() start'
         # 提取主页、域名
         sql_str1 = "DELETE FROM current_domain_setting WHERE user_id=%s"
-        parameter1 = user_id
+        parameter1 = (user_id,)
 
         sql_str2 = "INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain_str,setting_json) " \
                    "VALUES (%s,%s,%s,%s,%s)"
@@ -382,7 +386,7 @@ class MySqlDrive(object):
     def clean_current_main_setting(self, user_id):
         # 提取主页、域名
         sql_str = "DELETE FROM current_domain_setting WHERE user_id =%s"
-        parameter = user_id
+        parameter = (user_id,)
         try:
             self.cur.execute(sql_str, parameter)
             self.conn.commit()
@@ -421,7 +425,7 @@ class MySqlDrive(object):
         # # f.write(EXPORT_FOLDER+"test.jpeg")
         # f.close()
 
-        f = open(EXPORT_FOLDER + 'result-list.log','r')
+        f = open(EXPORT_FOLDER + 'result-list.log', 'r')
         list_b = f.read()
         f.close()
 
@@ -933,14 +937,14 @@ def save_finally_result():
 def show_server_log():
     # user_id = session.get('user_id')
     user_id = 'admin'
-
+    inputForm = ShowServerLogInputForm(request.form)
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    # print 'get_show_result()', start_url, site_domain, black_domain_str
+    print 'show_server_log()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_server_log.html', server_log_list=[])
+        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
 
     # windows
     if os.name == 'nt':
@@ -954,8 +958,17 @@ def show_server_log():
         server_log_list = l
 
     else:
-        p = subprocess.Popen(['/bin/bash', '-c', 'tail -100 ./web_server.log'], stdout=subprocess.PIPE)
+        if inputForm.unkown_sel.data:
+            cmd = 'tail -10000 ./web_server.log | grep unkown |tail -80'
+        else:
+            cmd = 'tail -80 ./web_server.log'
+
+        p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
         server_log_list = p.stdout.readlines()
+
+    if len(server_log_list) == 0:
+        flash(u'请使用 ./web_start.sh 生成 web_server.log 。')
+        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
 
     # 保存 实时 列表页结果
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
@@ -970,7 +983,8 @@ def show_server_log():
         fp.write(line + '\n')
     fp.close()
 
-    return render_template('show_server_log.html', server_log_list=[x.encode('utf8') for x in server_log_list])
+    return render_template('show_server_log.html', inputForm=inputForm,
+                           server_log_list=[x.encode('utf8') for x in server_log_list])
 
 
 @app.route('/setting_list_init', methods=['GET', 'POST'])
@@ -1273,7 +1287,7 @@ def reset_zero():
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
 
-    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '('+ site_domain + ').json', 'w')
+    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
     fp.write('')
     fp.close()
     return redirect(url_for('show_process'), 302)
