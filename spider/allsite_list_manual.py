@@ -164,7 +164,7 @@ class MySpider(spider.Spider):
         if ret is not None:  # 未知
             return ret
 
-        print '[unkownn]', new_url
+        print '[unkown]', new_url
 
         if MODE == 'all':
             return True

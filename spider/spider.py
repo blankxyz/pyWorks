@@ -442,7 +442,7 @@ class Spider(object):
                         else:
                             if k in ('detail_page_record_list', ):
                                 limits = 10
-                                print "%s :" % ( k ), u"总数 {} 最大显示条数 {}".format(len(v), limits)
+                                print "%s :" % ( k ), u"total {} max {}".format(len(v), limits)
                                 v = v[:limits]
                                 print " %s" % ( pprint.pformat(v) )
                             else:
