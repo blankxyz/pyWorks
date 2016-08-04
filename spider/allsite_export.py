@@ -4,7 +4,7 @@ import redis
 import ConfigParser
 
 ####################################################################
-INIT_CONFIG = './run_allsite.ini'
+INIT_CONFIG = './allsite.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:

@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version 5.6.20)
-# Date: 2016-08-03 21:15:00
+# Date: 2016-08-04 14:31:13
 # Generator: MySQL-Front 5.3  (Build 7.6)
 
 /*!40101 SET NAMES utf8 */;
@@ -36,14 +36,14 @@ CREATE TABLE `current_domain_setting` (
   `black_domain_str` varchar(255) DEFAULT NULL COMMENT '以 ; 分割的列表',
   `setting_json` longtext COMMENT '配置简报，json版',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=utf8;
 
 #
-# Structure for table "result_file_list"
+# Structure for table "result_file"
 #
 
-DROP TABLE IF EXISTS `result_file_list`;
-CREATE TABLE `result_file_list` (
+DROP TABLE IF EXISTS `result_file`;
+CREATE TABLE `result_file` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` varchar(255) NOT NULL DEFAULT '',
   `start_url` varchar(255) NOT NULL DEFAULT '',
@@ -74,7 +74,7 @@ CREATE TABLE `url_rule` (
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_url`,`site_domain`)
-) ENGINE=InnoDB AUTO_INCREMENT=426 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=442 DEFAULT CHARSET=utf8;
 
 #
 # Structure for table "user"

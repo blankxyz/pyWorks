@@ -21,11 +21,6 @@ from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalFie
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
-#
-# import sys
-# sys.path.append(r'')
-# import
-
 ####################################################################
 INIT_CONFIG = './web_run.dev.ini'
 # INIT_CONFIG = './web_run.deploy.ini'
@@ -60,12 +55,14 @@ if os.name == 'nt':
     RUN_FILE = config.get('windows', 'run_file')
     SHELL_LIST_CMD = config.get('windows', 'shell_list_cmd')
     SHELL_DETAIL_CMD = config.get('windows', 'shell_detail_cmd')
-    RUN_ALLSITE_INI = config.get('windows', 'run_allsite_ini')
+    SHELL_CONTENT_CMD = config.get('windows', 'shell_content_cmd')
+    ALLSITE_INI = config.get('windows', 'allsite_ini')
 else:
     RUN_FILE = config.get('linux', 'run_file')
     SHELL_LIST_CMD = config.get('linux', 'shell_list_cmd')
     SHELL_DETAIL_CMD = config.get('linux', 'shell_detail_cmd')
-    RUN_ALLSITE_INI = config.get('linux', 'run_allsite_ini')
+    SHELL_CONTENT_CMD = config.get('linux', 'shell_content_cmd')
+    ALLSITE_INI = config.get('linux', 'allsite_ini')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
@@ -76,7 +73,6 @@ app.config['EXPORT_FOLDER'] = EXPORT_FOLDER
 bootstrap = Bootstrap(app)
 
 global process_id
-global recover_flg
 
 
 ##################################################################################################
@@ -121,6 +117,8 @@ class ListRegexInputForm(Form):  # setting
 
     list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=10)
     detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=10)
+
+    mode = BooleanField(label=u'精确匹配', default=True)
 
     save_run_list = SubmitField(label=u'保存-执行(列表页)')
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
@@ -167,8 +165,10 @@ class MySqlDrive(object):
         # print 'save_all_setting() start...', start_url, site_domain
         ret_cnt = 0
         try:
-            sqlStr1 = ("DELETE FROM url_rule WHERE user_id = %s AND start_url= %s AND site_domain= %s")
-            self.cur.execute(sqlStr1, (user_id, start_url, site_domain))
+            sql_str1 = ("DELETE FROM url_rule WHERE user_id =%s AND start_url=%s AND site_domain=%s")
+            parameter1 = (user_id, start_url, site_domain)
+            print '[info]save_all_setting()', sql_str1 % parameter1
+            self.cur.execute(sql_str1, parameter1)
 
             # detail_or_list = '0'  # 0:detail,1:list
             # scope = '0'           # 0:netloc,1:path,2:query
@@ -184,13 +184,14 @@ class MySqlDrive(object):
                     white_or_black = '1'  # 黑名单
                 else:
                     white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
-                          "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                print '[info]save_all_setting()-detail', sqlStr2 % (user_id, start_url, site_domain, black_domain_str,
-                                                                    detail_or_list, scope, white_or_black, weight,
-                                                                    regex)
-                ret_cnt = self.cur.execute(sqlStr2, (user_id, start_url, site_domain, black_domain_str,
-                                                     detail_or_list, scope, white_or_black, weight, regex))
+
+                parameter2 = (user_id, start_url, site_domain, black_domain_str,
+                              detail_or_list, scope, white_or_black, weight, regex)
+                sql_str2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
+                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)" % parameter2
+
+                print '[info]save_all_setting()-detail', sql_str2 % parameter2
+                ret_cnt = self.cur.execute(sql_str2, parameter2)
                 self.conn.commit()
 
             for item in list_regex_save_list:
@@ -202,12 +203,13 @@ class MySqlDrive(object):
                     white_or_black = '1'  # 黑名单
                 else:
                     white_or_black = '0'
-                sqlStr2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
-                          "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                print '[info]save_all_setting()-list', sqlStr2 % (user_id, start_url, site_domain, black_domain_str,
-                                                                  detail_or_list, scope, white_or_black, weight, regex)
-                ret_cnt = self.cur.execute(sqlStr2, (user_id, start_url, site_domain, black_domain_str,
-                                                     detail_or_list, scope, white_or_black, weight, regex))
+
+                sql_str3 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
+                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                parameter3 = (user_id, start_url, site_domain, black_domain_str,
+                              detail_or_list, scope, white_or_black, weight, regex)
+                print '[info]save_all_setting()-list', sql_str3 % parameter3
+                ret_cnt = self.cur.execute(sql_str3, parameter3)
                 self.conn.commit()
 
         except Exception, e:
@@ -221,42 +223,36 @@ class MySqlDrive(object):
         # print 'save_content_setting() start...', start_url, site_domain
         ret_cnt = 0
         try:
-            sqlStr1 = ("DELETE FROM content_rule WHERE user_id = %s AND start_url= %s AND site_domain= %s")
-            self.cur.execute(sqlStr1, (user_id, start_url, site_domain))
+            sql_str = ("DELETE FROM content_rule WHERE user_id =%s AND start_url=%s AND site_domain=%s")
+            parameter = (user_id, start_url, site_domain)
+            self.cur.execute(sql_str, parameter)
+
             list_regex = ''
             regex_or_xpath = '0'
             # title
             sql_title = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-
-            print '[info]save_content_setting()', sql_title % (user_id, start_url, site_domain, list_regex,
-                                                             regex_or_xpath, 'title', title_exp)
-            ret_cnt = self.cur.execute(sql_title, (user_id, start_url, site_domain, list_regex,
-                                                 regex_or_xpath, 'title', title_exp))
+                        "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            parameter_title = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'title', title_exp)
+            print '[info]save_content_setting()', sql_title % parameter_title
+            ret_cnt = self.cur.execute(sql_title, parameter_title)
             # author
             sql_author = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-
-            print '[info]save_content_setting()', sql_author % (user_id, start_url, site_domain, list_regex,
-                                                             regex_or_xpath, 'author', author_exp)
-            ret_cnt = self.cur.execute(sql_author, (user_id, start_url, site_domain, list_regex,
-                                                 regex_or_xpath, 'author', author_exp))
+                         "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            parameter_author = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'author', author_exp)
+            print '[info]save_content_setting()', sql_author % parameter_author
+            ret_cnt = self.cur.execute(sql_author, parameter_author)
             # content
             sql_content = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-
-            print '[info]save_content_setting()', sql_content % (user_id, start_url, site_domain, list_regex,
-                                                             regex_or_xpath, 'content', content_exp)
-            ret_cnt = self.cur.execute(sql_content, (user_id, start_url, site_domain, list_regex,
-                                                 regex_or_xpath, 'content', content_exp))
+                          "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            parameter_content = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'content', content_exp)
+            print '[info]save_content_setting()', sql_content % parameter_content
+            ret_cnt = self.cur.execute(sql_content, parameter_content)
             # ctime
             sql_ctime = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                      "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-
-            print '[info]save_content_setting()', sql_ctime % (user_id, start_url, site_domain, list_regex,
-                                                             regex_or_xpath, 'ctime', ctime_exp)
-            ret_cnt = self.cur.execute(sql_ctime, (user_id, start_url, site_domain, list_regex,
-                                                 regex_or_xpath, 'ctime', ctime_exp))
+                        "VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            parameter_ctime = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'ctime', ctime_exp)
+            print '[info]save_content_setting()', sql_ctime % parameter_ctime
+            ret_cnt = self.cur.execute(sql_ctime, parameter_ctime)
 
             self.conn.commit()
 
@@ -269,10 +265,13 @@ class MySqlDrive(object):
 
     def search_regex_by_user(self, user_id, start_url, site_domain):
         search_result_list = []
-        sqlStr = "SELECT start_url,site_domain,black_domain_str,detail_or_list,scope,white_or_black,weight,regex FROM url_rule " \
-                 "WHERE user_id='" + user_id + "' AND start_url like '%" + start_url + "%' AND site_domain like '%" + site_domain + "%'"
+
+        sql_str = "SELECT start_url,site_domain,black_domain_str,detail_or_list,scope,white_or_black,weight,regex" \
+                  " FROM url_rule  WHERE user_id='" + user_id + "' AND start_url LIKE '%" + start_url + "%' AND site_domain LIKE '%" + site_domain + "%'"
+        # parameter = (user_id, start_url, site_domain)
+
         try:
-            cnt = self.cur.execute(sqlStr)
+            cnt = self.cur.execute(sql_str)
             rs = self.cur.fetchall()
             for r in rs:
                 # code 表意翻译
@@ -298,36 +297,38 @@ class MySqlDrive(object):
                                            'white_or_black': r[5], 'weight': weight,
                                            'regex': r[7]})
             self.conn.commit()
-            print '[info]search_regex_by_user()', cnt, sqlStr
+            print '[info]search_regex_by_user()', cnt, sql_str
         except Exception, e:
-            print '[error]search_regex_by_user()', e
+            print '[error]search_regex_by_user()', e, sql_str
 
         return search_result_list
 
     def search_start_url_by_user(self, user_id):
         search_result_list = []
-        sqlStr = "SELECT DISTINCT(start_url) FROM url_rule WHERE user_id='" + user_id + "' ORDER BY start_url ASC"
+        sql_str = "SELECT DISTINCT(start_url) FROM url_rule WHERE user_id=%s ORDER BY start_url ASC"
+        parameter = user_id
         try:
-            cnt = self.cur.execute(sqlStr)
+            cnt = self.cur.execute(sql_str, parameter)
             rs = self.cur.fetchall()
             for r in rs:
                 search_result_list.append(r[0])
             self.conn.commit()
-            print '[info]search_start_url_by_user()', cnt, sqlStr
+            print '[info]search_start_url_by_user()', cnt, sql_str % parameter
         except Exception, e:
             print '[error]search_start_url_by_user()', e
 
         return search_result_list
 
     def check_password(self, user_id, password):
-        sqlStr = "SELECT password FROM user WHERE user_id='" + user_id + "'"
+        sql_str = "SELECT password FROM user WHERE user_id=%s"
+        parameter = user_id
         try:
-            cnt = self.cur.execute(sqlStr)
+            cnt = self.cur.execute(sql_str, parameter)
             if cnt == 1:
                 r = self.cur.fetchone()
                 self.conn.commit()
                 if password.strip() == r[0]:
-                    print '[info]check_password() ok', user_id
+                    print '[info]check_password() ok', parameter
                     return True
             else:
                 print '[error]check_password() has more then one user_id ', cnt
@@ -341,13 +342,16 @@ class MySqlDrive(object):
         start_url = ''
         site_domain = ''
         black_domain_str = ''
-        sqlStr = "SELECT start_url, site_domain, black_domain_str, setting_json FROM current_domain_setting WHERE user_id='" + user_id + "'"
+
+        sql_str = "SELECT start_url, site_domain, black_domain_str, setting_json FROM current_domain_setting WHERE user_id=%s"
+        parameter = user_id
+
         try:
-            cnt = self.cur.execute(sqlStr)
+            cnt = self.cur.execute(sql_str, parameter)
             if cnt == 1:
                 (start_url, site_domain, black_domain_str, setting_json) = self.cur.fetchone()
                 self.conn.commit()
-                # print 'get_current_main_setting()', cnt, sqlStr
+                # print 'get_current_main_setting()', cnt, sql_str%parameter
         except Exception, e:
             print 'get_current_main_setting()', e
 
@@ -356,27 +360,34 @@ class MySqlDrive(object):
     def set_current_main_setting(self, user_id='', start_url='', site_domain='', black_domain_str='', setting_json=''):
         # print 'set_current_main_setting() start'
         # 提取主页、域名
-        sqlStr1 = "DELETE FROM current_domain_setting WHERE user_id='" + user_id + "'"
-        sqlStr2 = "INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain_str,setting_json) " \
-                  "VALUES ('" + user_id + "','" + start_url + "','" + site_domain + "','" + black_domain_str + "','" + setting_json + "')"
+        sql_str1 = "DELETE FROM current_domain_setting WHERE user_id=%s"
+        parameter1 = user_id
+
+        sql_str2 = "INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain_str,setting_json) " \
+                   "VALUES (%s,%s,%s,%s,%s)"
+        parameter2 = (user_id, start_url, site_domain, black_domain_str, setting_json)
+
         try:
-            print '[info]set_current_main_setting()', sqlStr1
-            self.cur.execute(sqlStr1)
-            print '[info]set_current_main_setting()', sqlStr2
-            cnt = self.cur.execute(sqlStr2)
+            print '[info]set_current_main_setting()', sql_str1 % parameter1
+            self.cur.execute(sql_str1, parameter1)
+
+            print '[info]set_current_main_setting()', sql_str2 % parameter2
+            cnt = self.cur.execute(sql_str2, parameter2)
+
             self.conn.commit()
         except Exception, e:
-            print '[error]set_current_main_setting()', e, sqlStr1
-            print '[error]set_current_main_setting()', e, sqlStr2
+            print '[error]set_current_main_setting()', e, sql_str1 % parameter1
+            print '[error]set_current_main_setting()', e, sql_str2 % parameter2
 
     def clean_current_main_setting(self, user_id):
         # 提取主页、域名
-        sqlStr = "DELETE FROM current_domain_setting WHERE user_id = '" + user_id + "'"
+        sql_str = "DELETE FROM current_domain_setting WHERE user_id =%s"
+        parameter = user_id
         try:
-            self.cur.execute(sqlStr)
+            self.cur.execute(sql_str, parameter)
             self.conn.commit()
         except Exception, e:
-            print '[error]clean_current_main_setting()', e
+            print '[error]clean_current_main_setting()', e, sql_str % parameter
 
     def get_regexs(self, type, user_id):
         # 0:detail,1:list
@@ -387,17 +398,19 @@ class MySqlDrive(object):
         regexs = []
         # 提取主页、域名
         start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
-        sqlStr = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule WHERE user_id='" + user_id + "' AND start_url='" + start_url + "' AND site_domain = '" + site_domain + "' AND detail_or_list='" + detail_or_list + "'"
+        sql_str = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain =%s AND detail_or_list=%s"
+        parameter = (user_id, start_url, site_domain, detail_or_list)
+
         try:
-            cnt = self.cur.execute(sqlStr)
+            cnt = self.cur.execute(sql_str, parameter)
             rs = self.cur.fetchall()
             for r in rs:
                 (scope, white_or_black, weight, regex, etc) = r
                 regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
-            # print 'get_regexs()', cnt, sqlStr
+            # print 'get_regexs()', cnt, sql_str % parameter
         except Exception, e:
-            print '[error]get_regexs()', e
+            print '[error]get_regexs()', e, sql_str % parameter
         return regexs
 
     def save_result_file(self, start_url, site_domain):
@@ -408,7 +421,7 @@ class MySqlDrive(object):
         # # f.write(EXPORT_FOLDER+"test.jpeg")
         # f.close()
 
-        f = open(EXPORT_FOLDER + 'result-list.log')
+        f = open(EXPORT_FOLDER + 'result-list.log','r')
         list_b = f.read()
         f.close()
 
@@ -419,15 +432,19 @@ class MySqlDrive(object):
         # os.remove(EXPORT_FOLDER + 'result-list.zip')
 
         # 将.zip写入表
-        sql_str1 = "DELETE FROM result_file_list WHERE user_id='%s' AND start_url='%s' AND site_domain='%s'" % \
-                   (user_id, start_url, site_domain)
-        sql_str2 = "INSERT INTO result_file_list(user_id,start_url,site_domain,list_result_file,detail_result_file) VALUES(%s,%s,%s,_binary%s,_binary%s)"
+        sql_str1 = "DELETE FROM result_file WHERE user_id=%s AND start_url=%s AND site_domain=%s"
+        parameter1 = (user_id, start_url, site_domain)
+
+        sql_str2 = "INSERT INTO result_file(user_id,start_url,site_domain,list_result_file,detail_result_file) VALUES(%s,%s,%s,_binary%s,_binary%s)"
+        parameter2 = (user_id, start_url, site_domain, list_b, detail_b,)
 
         try:
             print '[info]save_result_file()', sql_str1
-            self.cur.execute(sql_str1)
+            self.cur.execute(sql_str1, parameter1)
+
             print '[info]save_result_file()', sql_str2
-            cnt = self.cur.execute(sql_str2, (user_id, start_url, site_domain, list_b, detail_b,))
+            cnt = self.cur.execute(sql_str2, parameter2)
+
             self.conn.commit()
         except Exception, e:
             # traceback.format_exc()
@@ -448,19 +465,21 @@ class MySqlDrive(object):
 
         # user_id = session['user_id']
         user_id = 'admin'
-        # 从mysql表中读取log，还原下载文件。
-        sql_str = "SELECT site_domain, list_result_file, detail_result_file FROM result_file_list WHERE user_id='%s' AND start_url='%s'" % \
-                  (user_id, start_url)
-        try:
-            print '[info]get_result_file()', sql_str
-            cnt = self.cur.execute(sql_str)
-            (site_domain, list_txt, detail_txt) = self.cur.fetchone()
-            self.conn.commit()
+        cnt = 0
 
+        try:
+            # 从mysql表中读取log，还原下载文件。
+            sql_str = "SELECT site_domain, list_result_file, detail_result_file FROM result_file WHERE user_id=%s AND start_url=%s"
+            parameter = (user_id, start_url)
+
+            print '[info]get_result_file()', sql_str % parameter
+            cnt = self.cur.execute(sql_str, parameter)
             if cnt == 0:
                 print '[info]get_result_file() DB not found.', start_url
                 return None, None, 0
             else:
+                (site_domain, list_txt, detail_txt) = self.cur.fetchone()
+
                 list_copy_file = 'result-list_(' + site_domain + ').log'
                 f = open(EXPORT_FOLDER + list_copy_file, "wb")
                 f.write(list_txt)
@@ -476,95 +495,13 @@ class MySqlDrive(object):
 
         except Exception, e:
             traceback.format_exc()
-            print '[error]get_result_file()', start_url, e
+            print '[error]get_result_file()', e, start_url, cnt
             return None, None, 0
 
             # f = zipfile.ZipFile(EXPORT_FOLDER + "result-list_aaa.zip", 'w', zipfile.ZIP_DEFLATED)
             # zipfile.ZipFile('result-list_aaa.jpeg')
             # f.extractall()
             # f.close()
-
-
-##################################################################################################
-class FileDrive(object):
-    def __init__(self):
-        # self.fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r+')
-        pass
-
-    def __del__(self):
-        # self.fd.close()
-        pass
-
-    def save_all_setting(self, start_url, site_domain, black_domain_str, setting_json, detail_regex_save_list,
-                         list_regex_save_list):
-        ret_cnt = 0
-        try:
-            # detail_or_list = '0'  # 0:detail,1:list
-            # scope = '0'           # 0:netloc,1:path,2:query
-            # white_or_black = '0'  # 0:white,1:black
-            # weight = '0'          # 0:高，1：中，2：低
-
-            # 保存到json文件
-            fd = open(EXPORT_FOLDER + CONFIG_JSON, 'w')
-            export_obj = {'start_url': start_url,
-                          'site_domain': site_domain,
-                          'black_domain_str': black_domain_str,
-                          'detail_regex_save_list': detail_regex_save_list,
-                          'list_regex_save_list': list_regex_save_list
-                          }
-            json.dump(fp=fd, obj=export_obj, sort_keys=True)
-            fd.close()
-            ret_cnt = 1
-        except Exception, e:
-            ret_cnt = 0
-            print '[error]save_to_mysql()', e
-
-        return ret_cnt
-
-    def get_current_main_setting(self):
-        # 提取主页、域名
-        start_url = ''
-        site_domain = ''
-        black_domain_str = ''
-        setting_json = ''
-        try:
-            fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r')
-            j = json.load(fp=fd, encoding=MYSQLDB_CHARSET)
-            start_url = j['start_url']
-            site_domain = j['site_domain']
-            black_domain_str = j['black_domain_str']
-            fd.close()
-        except Exception, e:
-            print '[error]get_current_main_setting()', e
-
-        return start_url, site_domain, black_domain_str
-
-    def set_current_main_setting(self, start_url, site_domain, black_domain_str, setting_json):
-        return
-
-    def clean_current_main_setting(self):
-        # 提取主页、域名
-        try:
-            fd = open(EXPORT_FOLDER + CONFIG_JSON, 'w')
-            fd.write('')
-            fd.close()
-        except Exception, e:
-            print '[error]clean_current_main_setting()', e
-
-    def get_regexs(self, type):
-        regexs = []
-        fd = open(EXPORT_FOLDER + CONFIG_JSON, 'r')
-        json_str = json.load(fd)
-        fd.close()
-        if type == 'detail':  # 0:detail,1:list
-            details = json_str['detail_regex_save_list']
-            for item in details:
-                regexs.append(('0', '0', item['weight'], item['regex'], ''))
-        else:
-            lists = json_str['list_regex_save_list']
-            for item in lists:
-                regexs.append(('0', '0', item['weight'], item['regex'], ''))
-        return regexs
 
 
 ##################################################################################################
@@ -648,8 +585,7 @@ class RedisDrive(object):
             self.list_urls_zset_key, self.done_flg, self.done_flg)
         list_done_cnt = len(list_done_urls)
 
-        detail_done_urls = self.conn.zrangebyscore(
-            self.list_urls_zset_key, self.detail_flg, self.detail_flg)
+        detail_done_urls = self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg)
         detail_done_cnt = len(detail_done_urls)
 
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -660,7 +596,7 @@ class RedisDrive(object):
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info, sort_keys=True))
         # print cnt_info
         jsonStr = json.dumps(cnt_info)
-        fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'a')
+        fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + self.site_domain + ').json', 'a')
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
@@ -668,7 +604,8 @@ class RedisDrive(object):
 
 ##################################################################################################
 class CollageProcessInfo(object):
-    def __init__(self):
+    def __init__(self, site_domain):
+        self.site_domain = site_domain
         self.json_file = PROCESS_SHOW_JSON
 
     def convert_file_to_list(self):
@@ -680,7 +617,7 @@ class CollageProcessInfo(object):
         detail_done_cnt = []
         times = []
 
-        fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'r')
+        fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + self.site_domain + ').json', 'r')
         for line in fp.readlines():
             dic = eval(line)
             times.append(dic.get('times'))
@@ -756,16 +693,17 @@ def convert_regex_format(rule):
     return ret
 
 
-def modify_config(start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str):
+def modify_config(start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
     try:
         config = ConfigParser.ConfigParser()
-        config.read(RUN_ALLSITE_INI)
+        config.read(ALLSITE_INI)
         config.set('spider', 'start_urls', start_urls)
         config.set('spider', 'site_domain', site_domain)
         config.set('spider', 'black_domain_list', black_domain_str)
         config.set('spider', 'list_rule_list', list_rule_str)
         config.set('spider', 'detail_rule_list', detail_rule_str)
-        fp = open(RUN_ALLSITE_INI, "w")
+        config.set('spider', 'mode', mode)
+        fp = open(ALLSITE_INI, "w")
         config.write(fp)
         # write_ready = False
         # copy_list = []
@@ -941,7 +879,7 @@ def show_process():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     redis_db.covert_redis_cnt_to_json()
 
-    collage = CollageProcessInfo()
+    collage = CollageProcessInfo(site_domain)
     times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt = collage.convert_file_to_list()
     times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
 
@@ -1114,7 +1052,13 @@ def setting_list_save_and_run():
     # if request.method == 'POST' and inputForm.validate():
     start_url = inputForm.start_url.data
     site_domain = inputForm.site_domain.data
+    site_domain = site_domain.split('/')[0]
     black_domain_str = inputForm.black_domain_str.data
+    if inputForm.mode.data == False:
+        mode = 'all'  # 全部
+    else:
+        mode = 'exact'  # 精确匹配
+
     if start_url.strip() == '' or site_domain.strip() == '':
         flash(u'必须设置主页、域名信息！')
         return render_template('setting.html', inputForm=inputForm)
@@ -1212,7 +1156,7 @@ def setting_list_save_and_run():
         list_rule_str += item['regex'] + '@'
 
     ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
-                        list_rule_str=list_rule_str, detail_rule_str=detail_rule_str)
+                        list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
         print u'[error]setting_main_save_and_run() modify ' + INIT_CONFIG + u' failure.'
@@ -1268,7 +1212,7 @@ def content_save_and_run():
 
     cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                         title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
-                                        content_exp=inputForm.content_exp.data,ctime_exp=inputForm.ctime_exp.data)
+                                        content_exp=inputForm.content_exp.data, ctime_exp=inputForm.ctime_exp.data)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
         print u'[info]content_save_and_run() MySQL save success.'
@@ -1323,7 +1267,13 @@ def kill():
 
 @app.route('/resetZero', methods=['GET', 'POST'])
 def reset_zero():
-    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON, 'w')
+    # user_id = session['user_id']
+    user_id = 'admin'
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+
+    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '('+ site_domain + ').json', 'w')
     fp.write('')
     fp.close()
     return redirect(url_for('show_process'), 302)

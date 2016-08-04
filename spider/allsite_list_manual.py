@@ -15,9 +15,9 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-# INIT_CONFIG = '/work/spider/run_allsite.ini' #linux
-INIT_CONFIG = './run_allsite.ini'  # windows
-# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
+# INIT_CONFIG = '/work/spider/allsite.ini' #linux
+INIT_CONFIG = './allsite.ini'  # windows
+# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini' #mac
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -37,7 +37,7 @@ DEDUP_SETTING = config.get('redis', 'dedup_server')
 # DETAIL_RULE_LIST = None
 # LIST_RULE_LIST = None
 # spider-modify-end
-
+MODE = config.get('spider', 'mode')
 START_URLS = config.get('spider', 'start_urls')
 SITE_DOMAIN = config.get('spider', 'site_domain')
 BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
@@ -151,9 +151,7 @@ class MySpider(spider.Spider):
         return None  # 未知
 
     def path_is_list(self, url):
-        # print 'path_is_list() start'
-        ret = None  # 未知
-        # 最优先确定规则
+        # None：未知, True：列表页，False：详情页
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         new_url = urlparse.urlunparse(('', '', path, params, query, ''))
 
@@ -167,7 +165,13 @@ class MySpider(spider.Spider):
             return ret
 
         print '[unkownn]', new_url
-        # print 'path_is_list() end'
+
+        if MODE == 'all':
+            return True
+
+        if MODE == 'exact':
+            return None
+
         return True
 
     def get_todo_urls(self):
@@ -302,7 +306,7 @@ class MySpider(spider.Spider):
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
             for link in links:
-                if self.path_is_list(link):
+                if self.path_is_list(link) is True:
                     # print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
