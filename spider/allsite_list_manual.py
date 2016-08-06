@@ -83,7 +83,7 @@ class MySpider(spider.Spider):
             conn=redis.StrictRedis.from_url(REDIS_SERVER))
 
     def filter_links(self, urls):
-        # print '[INFO]filter_links() start', len(urls), urls
+        print '[INFO]filter_links() start', len(urls), urls
         try:
             # 下载页
             urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
@@ -238,7 +238,7 @@ class MySpider(spider.Spider):
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
-        # print '[INFO]get_page_valid_urls() start'
+        print '[INFO]get_page_valid_urls() start'
         all_links = []
         remove_links = []
         try:
@@ -272,9 +272,9 @@ class MySpider(spider.Spider):
         # print len(all_links), all_links
         # print len(remove_links), remove_links
         # print len(removed), removed
-        # print len(urls), urls
+        print len(urls), urls
         urls = self.filter_links(urls)
-        # print '[INFO]get_page_valid_urls() end'
+        print '[INFO]get_page_valid_urls() end'
         return urls
 
     def get_start_urls(self, data=None):
@@ -291,7 +291,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        # print '[INFO]parse_detail_page() start'
+        print '[INFO]parse_detail_page() start'
         result = []
         if response is None: return result
 

@@ -10,6 +10,9 @@ import dedup
 import MySQLdb
 import ConfigParser
 import subprocess
+from bs4 import BeautifulSoup, Comment
+import requests
+import allsite_clean_url
 import traceback
 from flask import Flask, render_template, request, session, url_for, flash, redirect
 from flask import send_from_directory
@@ -20,6 +23,7 @@ from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalFie
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
+from flask_restful import Resource, Api
 
 ####################################################################
 INIT_CONFIG = './web_run.dev.ini'
@@ -71,6 +75,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'success'
 app.config['EXPORT_FOLDER'] = EXPORT_FOLDER
 bootstrap = Bootstrap(app)
+api = Api(app)  # restful
 
 global process_id
 
@@ -106,8 +111,8 @@ class RegexForm(Form):  # setting
 
 
 class ListRegexInputForm(Form):  # setting
-    start_url = StringField(label=u'主页')  # cpt.xtu.edu.cn'  # 湘潭大学
-    site_domain = StringField(label=u'限定域名')  # 'http://cpt.xtu.edu.cn/'
+    start_url = StringField(label=u'主页')  # 'http://cpt.xtu.edu.cn/'
+    site_domain = StringField(label=u'限定域名')  # cpt.xtu.edu.cn'  # 湘潭大学
     white_list = StringField(label=u'白名单')
     black_domain_str = StringField(label=u'域名黑名单')
 
@@ -127,6 +132,7 @@ class ListRegexInputForm(Form):  # setting
 class ShowServerLogInputForm(Form):  # show_server_log
     unkown_sel = BooleanField(label=u'仅未匹配', default=False)
     refresh = SubmitField(label=u'刷新')
+
 
 class ContentItemForm(Form):  # 内容提取
     # 标题，内容，作者，创建时间，
@@ -325,7 +331,7 @@ class MySqlDrive(object):
 
     def check_password(self, user_id, password):
         sql_str = "SELECT password FROM user WHERE user_id=%s"
-        parameter = user_id
+        parameter = (user_id,)
         try:
             cnt = self.cur.execute(sql_str, parameter)
             if cnt == 1:
@@ -473,10 +479,10 @@ class MySqlDrive(object):
 
         try:
             # 从mysql表中读取log，还原下载文件。
-            sql_str = "SELECT site_domain, list_result_file, detail_result_file FROM result_file WHERE user_id=%s AND start_url=%s"
-            parameter = (user_id, start_url)
+            sql_str = "SELECT site_domain, list_result_file, detail_result_file FROM result_file WHERE user_id=%s AND start_url=TRIM(%s)"
+            parameter = (user_id, start_url,)
 
-            print '[info]get_result_file()', sql_str % parameter
+            print '[info]get_result_file()', sql_str, parameter
             cnt = self.cur.execute(sql_str, parameter)
             if cnt == 0:
                 print '[info]get_result_file() DB not found.', start_url
@@ -636,109 +642,228 @@ class CollageProcessInfo(object):
 
 
 ##################################################################################################
-def convert_path_to_rule(url):
-    scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-    # print path
-    pos = path.rfind('.')
-    if pos > 0:
-        suffix = path[pos:]
-        path = path[:pos]
-    else:
-        suffix = ''
-    # print suffix,path
-    split_path = path.split('/')
-    # print split_path
-    new_path_list = []
-    for p in split_path:
-        regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
-        regex = re.sub(r'\d', '\d', regex)
-        new_path_list.append(convert_regex_format(regex))
-    # print new_path
-    new_path = '/'.join(new_path_list) + suffix
-    return urlparse.urlunparse(('', '', new_path, '', '', ''))
+class Advise(object):
+    def __init__(self, start_url, site_domain, black_domain_list):
+        self.site_domain = site_domain
+        self.start_url = start_url
+        self.black_domain_list = black_domain_list
+        self.cleaner = allsite_clean_url.Cleaner(site_domain=self.site_domain, black_domain_list=self.black_domain_list)
+
+    def header_maker(self, text=''):
+        if not text:
+            text = {'Proxy-Connection': 'keep-alive',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Upgrade-Insecure-Requests': 1,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
+                    'Accept-Encoding': 'gzip, deflate, sdch',
+                    'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4'
+                    }
+        return text
+
+    def get_clean_soup(self, url):
+        headers = self.header_maker()
+        try:
+            data = requests.get(url, headers=headers, timeout=5)
+        except Exception, e:
+            print "[error]get_clean_soup()", e
+            return None
+        soup = BeautifulSoup(data.content, 'lxml')
+        # print 'before',soup.prettify()
+        comments = soup.findAll(text=lambda text: isinstance(text, Comment))
+        [comment.extract() for comment in comments]
+        [s.extract() for s in soup('script')]
+        [s.extract() for s in soup('style')]
+        [input.extract() for input in soup('input')]
+        [input.extract() for input in soup('form')]
+        [foot.extract() for foot in soup(attrs={'class': 'footer'})]
+        [foot.extract() for foot in soup(attrs={'class': 'bottom'})]
+        # print 'after',soup.prettify()
+        return soup
+
+    def get_page_valid_urls(self, soup, org_url):
+        # print '[info]get_page_valid_urls() start'
+        all_links = []
+        remove_links = []
+        try:
+            for tag in soup.find_all("a"):
+                if tag.has_attr('href'):
+                    all_links.append(tag['href'])
+
+            for tag in soup.find_all("a", href=re.compile(r"(javascript.*?|#.*?)", re.I)):
+                if tag.has_attr('href'):
+                    remove_links.append(tag['href'])
+
+        except Exception, e:
+            print '[error]get_page_valid_urls()', e
+
+        removed = list(set(all_links) - set(remove_links))
+
+        urls = self.urls_join(org_url, removed)
+        urls = self.filter_links(urls)
+        # print '[info]get_page_valid_urls() end'
+        return urls
+
+    def urls_join(self, org_url, links):
+        # print '[info]urls_join() start',org_url,links
+        urls = []
+        for link in links:
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(link.strip())
+            if scheme:
+                url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
+            else:
+                link = urlparse.urlunparse(('', '', path, params, query, ''))
+                # url = urlparse.urljoin(org_url, urllib.quote(link))
+                # print '[info]urljoin()', org_url, link
+                url = urlparse.urljoin(org_url, link)
+
+            urls.append(url)
+
+        # print '[info]urls_join() end', urls
+        return urls
+
+    def filter_links(self, urls):
+        # print '[INFO]filter_links() start', len(urls), urls
+        try:
+            # 下载页
+            urls = filter(lambda x: self.cleaner.is_suffixes_ok(x), urls)
+            # print 'filter_links() is_download', len(urls)
+            # 错误url识别
+            urls = filter(lambda x: not self.cleaner.is_error_url(x), urls)
+            # print 'filter_links() is_error_url', len(urls)
+            # 清洗无效参数#?
+            urls = self.cleaner.url_clean(urls)
+            # 跨域检查
+            urls = filter(lambda x: self.cleaner.check_cross_domain(x), urls)
+            # print 'filter_links() check_cross_domain', len(urls)
+            # 黑名单过滤
+            urls = filter(lambda x: not self.cleaner.in_black_list(x), urls)  # bbs. mail.
+            # print 'filter_links() in_black_list', len(urls)
+            # 链接时间过滤
+            # urls = filter(lambda x: not self.cleaner.is_old_url(x), urls)
+            # 非第一页链接过滤
+            urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
+            # print 'filter_links() is_next_page', len(urls)
+            # for url in urls:
+            #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
+            #         print 'remove:', url
+            #         urls.remove(url)
+            # 去重
+            urls = list(set(urls))
+            # print 'filter_links() set', len(urls)
+            # 404
+            # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
+            # print '[INFO]filter_links() end', len(urls), urls
+        except Exception, e:
+            print '[ERROR]filter_links()', e
+        return urls
 
 
-def convert_regex_format(rule):
-    '''
-    /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
-    /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
-    '''
-    ret = ''
-    digit = '\d'
-    word = '[a-zA-Z]'
-    cnt = 0
-    pos = 0
-    temp = ''
-    while pos <= len(rule):
-        if rule[pos:pos + len(digit)] == digit:
-            if temp.find(digit) < 0:
-                ret = ret + temp
-                temp = ''
-                cnt = 0
-            cnt = cnt + 1
-            temp = '%s{%d}' % (digit, cnt)
-            pos = pos + len(digit)
-        elif rule[pos:pos + len(word)] == word:
-            if temp.find(word) < 0:
-                ret = ret + temp
-                temp = ''
-                cnt = 0
-            cnt = cnt + 1
-            temp = '%s{%d}' % (word, cnt)
-            pos = pos + len(word)
-        elif pos == len(rule):
-            ret = ret + temp
-            break
+##################################################################################################
+class Util(object):
+    def __init__(self):
+        pass
+
+    def convert_path_to_rule(self, url):
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        # print path
+        pos = path.rfind('.')
+        if pos > 0:
+            suffix = path[pos:]
+            path = path[:pos]
         else:
-            ret = ret + temp + rule[pos]
-            temp = ''
-            cnt = 0
-            pos = pos + 1
-    return ret
+            suffix = ''
+        # print suffix,path
+        split_path = path.split('/')
+        # print split_path
+        new_path_list = []
+        for p in split_path:
+            regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
+            regex = re.sub(r'\d', '\d', regex)
+            new_path_list.append(self.convert_regex_format(regex))
+        # print new_path
+        new_path = '/'.join(new_path_list) + suffix
+        return urlparse.urlunparse(('', '', new_path, '', '', ''))
 
+    def convert_regex_format(self, rule):
+        '''
+        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
+        /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
+        '''
+        ret = ''
+        digit = '\d'
+        word = '[a-zA-Z]'
+        cnt = 0
+        pos = 0
+        temp = ''
+        while pos <= len(rule):
+            if rule[pos:pos + len(digit)] == digit:
+                if temp.find(digit) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d}' % (digit, cnt)
+                pos = pos + len(digit)
+            elif rule[pos:pos + len(word)] == word:
+                if temp.find(word) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d}' % (word, cnt)
+                pos = pos + len(word)
+            elif pos == len(rule):
+                ret = ret + temp
+                break
+            else:
+                ret = ret + temp + rule[pos]
+                temp = ''
+                cnt = 0
+                pos = pos + 1
+        return ret
 
-def modify_config(start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
-    try:
-        config = ConfigParser.ConfigParser()
-        config.read(ALLSITE_INI)
-        config.set('spider', 'start_urls', start_urls)
-        config.set('spider', 'site_domain', site_domain)
-        config.set('spider', 'black_domain_list', black_domain_str)
-        config.set('spider', 'list_rule_list', list_rule_str)
-        config.set('spider', 'detail_rule_list', detail_rule_str)
-        config.set('spider', 'mode', mode)
-        fp = open(ALLSITE_INI, "w")
-        config.write(fp)
-        # write_ready = False
-        # copy_list = []
-        # fp = open('../spider/config.py', "r")
-        # for row in fp.readlines():
-        #     if row.find('spider-modify-start')>=0: write_ready = True
-        #     if row.find('spider-modify-end')>=0: write_ready = False
-        #     if write_ready:
-        #         if row.find('START_URLS')>=0:
-        #             row = "START_URLS = '" + start_urls + "'\n"
-        #         if row.find('SITE_DOMAIN')>=0:
-        #             row = "SITE_DOMAIN = '"+ site_domain + "'\n"
-        #         if row.find('BLACK_DOMAIN_LIST')>=0:
-        #             row = "BLACK_DOMAIN_LIST = '"+ black_domain_str + "'\n"
-        #         if row.find('DETAIL_RULE_LIST')>=0:
-        #             row = "DETAIL_RULE_LIST = '"+ detail_rule_str + "'\n"
-        #         if row.find('LIST_RULE_LIST')>=0:
-        #             row = "LIST_RULE_LIST = '"+ list_rule_str + "'\n"
-        #     copy_list.append(row)
-        #
-        # fp.close()
-        #
-        # fp = open('../spider/config.py', "w")
-        # for row in copy_list: fp.write(row)
-        # fp.close()
+    def modify_config(self, start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
+        try:
+            config = ConfigParser.ConfigParser()
+            config.read(ALLSITE_INI)
+            config.set('spider', 'start_urls', start_urls)
+            config.set('spider', 'site_domain', site_domain)
+            config.set('spider', 'black_domain_list', black_domain_str)
+            config.set('spider', 'list_rule_list', list_rule_str)
+            config.set('spider', 'detail_rule_list', detail_rule_str)
+            config.set('spider', 'mode', mode)
+            fp = open(ALLSITE_INI, "w")
+            config.write(fp)
+            # write_ready = False
+            # copy_list = []
+            # fp = open('../spider/config.py', "r")
+            # for row in fp.readlines():
+            #     if row.find('spider-modify-start')>=0: write_ready = True
+            #     if row.find('spider-modify-end')>=0: write_ready = False
+            #     if write_ready:
+            #         if row.find('START_URLS')>=0:
+            #             row = "START_URLS = '" + start_urls + "'\n"
+            #         if row.find('SITE_DOMAIN')>=0:
+            #             row = "SITE_DOMAIN = '"+ site_domain + "'\n"
+            #         if row.find('BLACK_DOMAIN_LIST')>=0:
+            #             row = "BLACK_DOMAIN_LIST = '"+ black_domain_str + "'\n"
+            #         if row.find('DETAIL_RULE_LIST')>=0:
+            #             row = "DETAIL_RULE_LIST = '"+ detail_rule_str + "'\n"
+            #         if row.find('LIST_RULE_LIST')>=0:
+            #             row = "LIST_RULE_LIST = '"+ list_rule_str + "'\n"
+            #     copy_list.append(row)
+            #
+            # fp.close()
+            #
+            # fp = open('../spider/config.py', "w")
+            # for row in copy_list: fp.write(row)
+            # fp.close()
 
-        print '[info] modify_config() ok.'
-        return True
-    except Exception, e:
-        print "[error] modify_config(): %s" % e
-        return False
+            print '[info] modify_config() ok.'
+            return True
+        except Exception, e:
+            print "[error] modify_config(): %s" % e
+            return False
 
 
 ##################################################################################################
@@ -782,7 +907,8 @@ def internal_server_error(e):
 def convert_to_regex():
     ret = {}
     convert_url = request.args.get('convert_url')
-    ret['regex'] = convert_path_to_rule(convert_url)
+    util = Util()
+    ret['regex'] = util.convert_path_to_rule(convert_url)
     jsonStr = json.dumps(ret, sort_keys=True)
     print 'convert_to_regex()', convert_url, '->', jsonStr
     return jsonStr
@@ -951,7 +1077,7 @@ def show_server_log():
         import random
         f = open('web_server.log', 'r').readlines()
         l = []
-        for i in range(100):
+        for i in range(80):
             num = random.random()
             n = int(num * len(f))
             l.append(f[n])
@@ -1169,8 +1295,9 @@ def setting_list_save_and_run():
     for item in list_regex_save_list:
         list_rule_str += item['regex'] + '@'
 
-    ret = modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
-                        list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
+    util = Util()
+    ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
+                             list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
         print u'[error]setting_main_save_and_run() modify ' + INIT_CONFIG + u' failure.'
@@ -1304,6 +1431,27 @@ def export_import():
     flash(u"请选择导入/导出操作。")
     return redirect(url_for('export_upload'), 302)
 
+
+##########################################################################################
+#  restful api
+todos = {}
+
+
+class TodoSimple(Resource):
+    def get(self, todo_id):
+        return {todo_id: todos[todo_id]}
+
+    def put(self, todo_id):
+        print 'restful start'
+        print request
+        print request.form['data']
+        todos[todo_id] = request.form['data']
+        print 'restful test', {todo_id: todos[todo_id]}
+        return {todo_id: todos[todo_id]}
+
+
+api.add_resource(TodoSimple, '/<string:todo_id>')
+##########################################################################################
 
 if __name__ == '__main__':
     if INIT_CONFIG.find('deploy') > 0:

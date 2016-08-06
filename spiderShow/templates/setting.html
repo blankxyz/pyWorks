@@ -8,7 +8,7 @@
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(function () {
-            function submit_form2(e) {
+            function submit_convert(e) {
                 $.ajax({
                     url: $SCRIPT_ROOT + '/convert',
                     contentType: "application/json; charset=UTF-8",
@@ -25,7 +25,7 @@
                     }
                 });
             };
-            $('#convert').click(submit_form2);
+            $('#convert').click(submit_convert);
         });
 
         $(document).ready(function () {
@@ -78,6 +78,49 @@
                     'url'
                 ]).draw();
             });
+
+            function change_regex(e) {
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/convert',
+                    type: "PUT",
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: {
+                        regex: "regex test 1111",
+                        now: new Date().getTime()
+                    },
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.regex);
+                    }
+                });
+            };
+
+            $("tr").change(function () {
+                var id_str = $(this).attr("id");
+                if (id_str.search("list") > 0) {
+                    alert("list:" + id_str);
+                } else {
+                    alert("detail:" + id_str);
+                }
+
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/todo1',
+                    type: "PUT",
+                    data: {
+                        todo1: "regex test:"
+                    },
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.regex);
+                    }
+                });
+            });
+
         });
     </script>
 {% endblock %}
@@ -126,7 +169,7 @@
                 </thead>
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
-                    <tr id={{ loop.index }}>
+                    <tr id= {{ "list_" ~ loop.index }}>
                         <td>{{ row.regex(size=60) }}</td>
                         <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6) }}</td>
@@ -146,7 +189,7 @@
                 </thead>
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
-                    <tr id="{{ loop.index }}">
+                    <tr id= {{ "detail_" ~ loop.index }}>
                         <td>{{ row.regex(size=60) }}</td>
                         <td>{{ row.weight() }}</td>
                         <td readonly="readonly">{{ row.score(size=6) }}</td>
