@@ -1482,6 +1482,7 @@ class TodoList(Resource):
         todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
         todo_id = 'todo%i' % todo_id
         TODOS[todo_id] = {'task': args['task']}
+        print TODOS
         return TODOS[todo_id], 201
 
 ##

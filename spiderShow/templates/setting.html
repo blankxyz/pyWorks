@@ -32,7 +32,6 @@
             var detail_t = $('#detail-regex-tab-aaa').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
-                    "sZeroRecords": "没有检索到",
                     "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
                     "sInfoEmpty": "Redis没有数据",
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
@@ -53,7 +52,6 @@
             var list_t = $('#list-regex-tab-aaaa').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
-                    "sZeroRecords": "没有检索到",
                     "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
                     "sInfoEmpty": "Redis没有数据",
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
@@ -71,32 +69,6 @@
                 "aLengthMenu": [5, 10, 50, "All"],
                 "bStateSave": true
             });
-            $('#addRow').on('click', function () {
-                detail_t.row.add([
-                    'rule1',
-                    '<<',
-                    'url'
-                ]).draw();
-            });
-
-            function change_regex(e) {
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/convert',
-                    type: "PUT",
-                    contentType: "application/json; charset=UTF-8",
-                    dataType: 'json',
-                    data: {
-                        regex: "regex test 1111",
-                        now: new Date().getTime()
-                    },
-                    error: function (xhr, err) {
-                        alert(err);
-                    },
-                    success: function (data, textStatus) {
-                        alert(data.regex);
-                    }
-                });
-            };
 
             $("tr").change(function () {
                 var id_str = $(this).attr("id");
@@ -106,21 +78,35 @@
                     alert("detail:" + id_str);
                 }
 
+{#                $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",#}
+{#                        {#}
+{#                            tags: "mount rainier",#}
+{#                            tagmode: "any",#}
+{#                            format: "json"#}
+{#                        },#}
+{#                        function (data) {#}
+{#                            $.each(data.items, function (i, item) {#}
+{#                                $("<img/>").attr("src", item.media.m).appendTo("#images");#}
+{#                                if (i == 3) return false;#}
+{#                            });#}
+{#                        });#}
+
                 $.ajax({
-                    url: $SCRIPT_ROOT + '/todo1',
-                    type: "PUT",
-                    data: {
-                        todo1: "regex test:"
-                    },
+                    url: $SCRIPT_ROOT + '/todos',
+                    type: "POST",
+                    dataType: "json",
+                    {#contentType: "application/json; charset=utf-8", #}
+                    data: {"task": "something new"},
                     error: function (xhr, err) {
+                        alert("error");
                         alert(err);
                     },
                     success: function (data, textStatus) {
-                        alert(data.regex);
+                        alert(textStatus);
+                        alert(JSON.stringify(data)); //转换成字符串
                     }
                 });
             });
-
         });
     </script>
 {% endblock %}
