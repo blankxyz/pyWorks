@@ -14,11 +14,11 @@ from bs4 import BeautifulSoup, Comment
 import requests
 import allsite_clean_url
 
-####################################################################
+##############################################################################
 # INIT_CONFIG = '/work/spider/allsite.ini' #linux
 INIT_CONFIG = './allsite.ini'  # windows
 # INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini' #mac
-####################################################################
+##############################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
     print '[ERROR]cannot read the config file.', INIT_CONFIG
@@ -58,8 +58,8 @@ class Util(object):
         # print split_path
         new_path_list = []
         for p in split_path:
-            regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
-            regex = re.sub(r'\d', '\d', regex)
+            # regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
+            regex = re.sub(r'\d', '\d', p)
             new_path_list.append(self.convert_regex_format(regex))
         # print new_path
         new_path = '/'.join(new_path_list) + suffix
@@ -83,7 +83,7 @@ class Util(object):
                     temp = ''
                     cnt = 0
                 cnt = cnt + 1
-                temp = '%s{%d}' % (digit, cnt)
+                temp = '%s{%d,%d}' % (digit, cnt, cnt)
                 pos = pos + len(digit)
             elif rule[pos:pos + len(word)] == word:
                 if temp.find(word) < 0:
@@ -91,7 +91,7 @@ class Util(object):
                     temp = ''
                     cnt = 0
                 cnt = cnt + 1
-                temp = '%s{%d}' % (word, cnt)
+                temp = '%s{%d,%d}' % (word, cnt, cnt)
                 pos = pos + len(word)
             elif pos == len(rule):
                 ret = ret + temp
@@ -103,43 +103,51 @@ class Util(object):
                 pos = pos + 1
         return ret
 
-    def convert_regex_format_keyword(self, rule):
-        '''
-        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
-        /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
-        '''
-        ret = ''
-        digit = '\d'
-        word = 'unkown'
-        cnt = 0
-        pos = 0
-        temp = ''
-        while pos <= len(rule):
-            if rule[pos:pos + len(digit)] == digit:
-                if temp.find(digit) < 0:
-                    ret = ret + temp
-                    temp = ''
-                    cnt = 0
-                cnt = cnt + 1
-                temp = '%s{%d}' % (digit, cnt)
-                pos = pos + len(digit)
-            elif rule[pos:pos + len(word)] == word:
-                if temp.find(word) < 0:
-                    ret = ret + temp
-                    temp = ''
-                    cnt = 0
-                cnt = cnt + 1
-                temp = '%s{%d}' % (word, cnt)
-                pos = pos + len(word)
-            elif pos == len(rule):
-                ret = ret + temp
-                break
-            else:
-                ret = ret + temp + rule[pos]
-                temp = ''
-                cnt = 0
-                pos = pos + 1
+    def marge_digit(self, rules):
+        print '[INFO]marge_digit() start.', len(rules), rules
+        # rules.sort()
+        for i in range(len(rules)):
+            for j in range(len(rules) - i):
+                if self.is_same_rule(rules[i], rules[j]):
+                    rule_new = self.merge_digit_scope(rules[i], rules[j])
+                    # 原有全部替换为新规则
+                    for k in range(len(rules)):
+                        if rules[k] == rules[i]:
+                            rules[k] = rule_new
+
+                    for k in range(len(rules)):
+                        if rules[k] == rules[j]:
+                            rules[k] = rule_new
+
+        print '[INFO]marge_digit() end.', len(list(set(rules))), list(set(rules))
+        return list(set(rules))
+
+    def is_same_rule(self, rule1, rule2):
+        ret = False
+        if len(rule1) == len(rule2):
+            for i in range(len(rule1)):
+                if rule1[i] != rule2[i]:
+                    if rule1[i].isdigit() and rule2[i].isdigit():
+                        ret = True
+                    else:
+                        return False
         return ret
+
+    def merge_digit_scope(self, rule1, rule2):
+        ''' {1,2} + {2,3} -> {1,3}'''
+        rule_new = ''
+        for i in range(len(rule1)):
+            if cmp(rule1[i], rule2[i]) < 0:
+                if rule1[i - 1] == '{':
+                    new = rule1[i]
+                else:
+                    new = rule2[i]
+            else:
+                new = rule1[i]
+
+            rule_new += new
+
+        return rule_new
 
 
 class MySpider(spider.Spider):
@@ -197,8 +205,9 @@ class MySpider(spider.Spider):
             # print '[INFO]filter_links() end', len(urls), urls
         except Exception, e:
             print '[ERROR]filter_links()', e
-        return urls
 
+        print '[INFO]filter_links() end', len(urls), urls
+        return urls
 
     def get_clean_soup(self, response):
         soup = BeautifulSoup(response.content, 'lxml')
@@ -233,7 +242,7 @@ class MySpider(spider.Spider):
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
-        print '[INFO]get_page_valid_urls() start'
+        print '[INFO]get_page_valid_urls() start', org_url
         all_links = []
         remove_links = []
         try:
@@ -251,17 +260,17 @@ class MySpider(spider.Spider):
         removed = list(set(all_links) - set(remove_links))
 
         urls = self.urls_join(org_url, removed)
-        # print len(all_links), all_links
-        # print len(remove_links), remove_links
-        # print len(removed), removed
-        print len(urls), urls
         urls = self.filter_links(urls)
-        print '[INFO]get_page_valid_urls() end'
+        print '[INFO]get_page_valid_urls() end', len(urls), urls
         return urls
 
     def parse_detail_page(self, response=None, url=None):
+        print '[INFO]parse_detail_page() start.'
+        regexs = []
         advice_regexs = []
-        if response is None: return advice_regexs
+        util = Util()
+
+        if response is None: return []
 
         if url is None:
             org_url = response.request.url
@@ -272,13 +281,16 @@ class MySpider(spider.Spider):
             soup = self.get_clean_soup(response)
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
-            util = Util()
-            for link in links:
-                regex = util.convert_regex_format_keyword(link)
-                advice_regexs.append(regex)
+            for link in list(set(links)):
+                regex = util.convert_path_to_rule(link)
+                regexs.append(regex)
+
+            advice_regexs = util.marge_digit(list(set(regexs)))
 
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
+
+        print '[INFO]parse_detail_page() end.', advice_regexs
         return advice_regexs
 
 
@@ -293,3 +305,5 @@ if __name__ == '__main__':
 
     ret = mySpider.parse_detail_page(response, (mySpider.start_urls))
     print ret
+    # util = Util()
+    # print util.convert_path_to_rule('http://bbs.tianya.cn/list-838-1.shtml')
