@@ -72,25 +72,13 @@
 
             $("tr").change(function () {
                 var id_str = $(this).attr("id");
+{#                $(this).css("color","red");#}
+
                 if (id_str.search("list") > 0) {
                     alert("list:" + id_str);
                 } else {
                     alert("detail:" + id_str);
                 }
-
-{#                $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",#}
-{#                        {#}
-{#                            tags: "mount rainier",#}
-{#                            tagmode: "any",#}
-{#                            format: "json"#}
-{#                        },#}
-{#                        function (data) {#}
-{#                            $.each(data.items, function (i, item) {#}
-{#                                $("<img/>").attr("src", item.media.m).appendTo("#images");#}
-{#                                if (i == 3) return false;#}
-{#                            });#}
-{#                        });#}
-
                 $.ajax({
                     url: $SCRIPT_ROOT + '/todos',
                     type: "POST",
@@ -102,8 +90,9 @@
                         alert(err);
                     },
                     success: function (data, textStatus) {
-                        alert(textStatus);
-                        alert(JSON.stringify(data)); //转换成字符串
+{#                        alert(textStatus);#}
+                        alert(JSON.stringify(data, null, 4)); //转换成字符串
+                        alert(data.task);
                     }
                 });
             });

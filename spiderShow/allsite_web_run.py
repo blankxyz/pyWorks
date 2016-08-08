@@ -888,7 +888,9 @@ def login():
 
 @app.route('/', methods=['GET', 'POST'])
 def menu():
-    user_id = 'admin'
+    session['user_id'] = 'admin'  # login
+    user_id = session['user_id']
+
     mysql_db = MySqlDrive()
     mysql_db.clean_current_main_setting(user_id)
     return render_template('menu.html')
@@ -917,8 +919,8 @@ def convert_to_regex():
 
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
-    # user_id = session.get('user_id')
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     print '[info]user_search()', user_id
     mysql_db = MySqlDrive()
 
@@ -995,8 +997,8 @@ def user_search():
 
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
-    # user_id = session.get('user_id')
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     inputForm = ListRegexInputForm()
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -1049,8 +1051,8 @@ def show_process():
 
 @app.route('/save_finally_result', methods=['GET', 'POST'])
 def save_finally_result():
-    # user_id = session.get('user_id')
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
     # 将实时结果作为最终结果保存到DB
@@ -1062,8 +1064,8 @@ def save_finally_result():
 
 @app.route('/show_server_log', methods=['GET', 'POST'])
 def show_server_log():
-    # user_id = session.get('user_id')
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     inputForm = ShowServerLogInputForm(request.form)
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -1120,8 +1122,8 @@ def setting_list_init():
     从MySql初始化Web页面和Redis
     '''
     INIT_MAX = 10
-    # user_id = session.get('user_id')
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     inputForm = ListRegexInputForm()
 
     mysql_db = MySqlDrive()
@@ -1211,8 +1213,8 @@ def setting_list_init():
 
 @app.route('/list_save_and_run', methods=['POST'])
 def setting_list_save_and_run():
-    # user_id = session['user_id']
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     global process_id
     inputForm = ListRegexInputForm(request.form)
     # if inputForm.validate_on_submit():
@@ -1358,16 +1360,16 @@ def setting_list_save_and_run():
 
 @app.route('/setting_content_init', methods=['GET', 'POST'])
 def setting_content_init():
-    # user_id = session['user_id']
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     inputForm = ContentItemForm(request.form)
     return render_template('setting_content.html', inputForm=inputForm)
 
 
 @app.route('/content_save_and_run', methods=['GET', 'POST'])
 def content_save_and_run():
-    # user_id = session['user_id']
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     inputForm = ContentItemForm(request.form)
 
     # 提取主页、域名
@@ -1435,8 +1437,8 @@ def kill():
 
 @app.route('/resetZero', methods=['GET', 'POST'])
 def reset_zero():
-    # user_id = session['user_id']
-    user_id = 'admin'
+    user_id = session['user_id']
+    # user_id = 'admin'
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
@@ -1461,66 +1463,58 @@ def export_import():
 
 ##########################################################################################
 #  restful api
-api = Api(app)
-
-TODOS = {
-    'todo1': {'task': 'build an API'},
-    'todo2': {'task': '?????'},
-    'todo3': {'task': 'profit!'},
+LIST_SETTING = {
+    'start_url': '',
+    'site_domain': '',
+    'black_domain_str': '',
+    'mode':'0',            #True:all
+    'list_regex_list':[],  #list_1:'regex1', list_2:'regex2'
+    'detail_regex_list':[] #detail_1:'regex1', detail_2:'regex2'
 }
 
-
-def abort_if_todo_doesnt_exist(todo_id):
-    if todo_id not in TODOS:
-        abort(404, message="Todo {} doesn't exist".format(todo_id))
+def abort_if_todo_doesnt_exist(item):
+    if item not in LIST_SETTING:
+        abort(404, message="LIST_SETTING {} doesn't exist".format(item))
 
 
 parser = reqparse.RequestParser()
 parser.add_argument('task', type=str)
 
 
-# Todo
-#   show a single todo item and lets you delete them
-class Todo(Resource):
-    def get(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        return TODOS[todo_id]
+class RegexSession(Resource):
+    def get(self, item):  # get one
+        if item is None or item == '': # get all
+            return LIST_SETTING
+        else:
+            abort_if_todo_doesnt_exist(item)
+            return LIST_SETTING[item]
 
-    def delete(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        del TODOS[todo_id]
+    def delete(self, item):  # delete one
+        abort_if_todo_doesnt_exist(item)
+        del LIST_SETTING[item]
         return '', 204
 
-    def put(self, todo_id):
+    def put(self, item):  # update one
         args = parser.parse_args()
-        task = {'task': args['task']}
-        TODOS[todo_id] = task
-        return task, 201
+        regex = {'regex': args['regex']}
+        LIST_SETTING[item] = regex
+        return regex, 201
 
-
-# TodoList
-#   shows a list of all todos, and lets you POST to add new tasks
-class TodoList(Resource):
-    def get(self):
-        return TODOS
-
-    def post(self):
+    def post(self):  # add one
         args = parser.parse_args()
-        todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
-        todo_id = 'todo%i' % todo_id
-        TODOS[todo_id] = {'task': args['task']}
-        print TODOS
-        return TODOS[todo_id], 201
-
+        no = int(max(LIST_SETTING.keys()).lstrip('list_')) + 1
+        item = 'list_%i' % no
+        LIST_SETTING[item] = {'list_regex_list': args['task']}
+        print LIST_SETTING
+        return LIST_SETTING[item], 201
 
 ##
 ## Actually setup the Api resource routing here
 ##
-api.add_resource(TodoList, '/todos')
-api.add_resource(Todo, '/todos/<todo_id>')
+api.add_resource(RegexSession, '/rest_settings')
+api.add_resource(RegexSession, '/rest_setting/<item>')
 
 ##########################################################################################
-
 if __name__ == '__main__':
     if INIT_CONFIG.find('deploy') > 0:
         app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
