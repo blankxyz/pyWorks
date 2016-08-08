@@ -121,8 +121,8 @@ class ListRegexInputForm(Form):  # setting
     convert = SubmitField(label=u'<< 转换')
     url = StringField(label=u'URL例子')
 
-    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式', min_entries=10)
-    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式', min_entries=10)
+    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式')
+    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式')
 
     mode = BooleanField(label=u'精确匹配', default=True)
 
@@ -400,7 +400,7 @@ class MySqlDrive(object):
         except Exception, e:
             print '[error]clean_current_main_setting()', e, sql_str % parameter
 
-    def get_regexs(self, type, user_id):
+    def get_current_regexs(self, type, user_id):
         # 0:detail,1:list
         if type == 'detail':
             detail_or_list = '0'
@@ -419,9 +419,9 @@ class MySqlDrive(object):
                 (scope, white_or_black, weight, regex, etc) = r
                 regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
-            # print 'get_regexs()', cnt, sql_str % parameter
+            # print 'get_current_regexs()', cnt, sql_str % parameter
         except Exception, e:
-            print '[error]get_regexs()', e, sql_str % parameter
+            print '[error]get_current_regexs()', e, sql_str % parameter
         return regexs
 
     def save_result_file(self, start_url, site_domain):
@@ -1119,26 +1119,34 @@ def setting_list_init():
     '''
     从MySql初始化Web页面和Redis
     '''
+    INIT_MAX = 10
     # user_id = session.get('user_id')
     user_id = 'admin'
-    inputForm = ListRegexInputForm(request.form)
+    inputForm = ListRegexInputForm()
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
+        for j in range(INIT_MAX):
+            inputForm.detail_regex_list.append_entry()
+
+        for j in range(INIT_MAX):
+            inputForm.list_regex_list.append_entry()
+
         return render_template('setting.html', inputForm=inputForm)
     else:
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
 
-    #### 从MySql 设置/还原 redis 和 页面(详情页)
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
+    #### 从MySql 设置/还原 redis 和 页面(详情页)
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('detail', user_id):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id):
+        # 还原redis
         if regex.find('/^') < 0:  # 白名单
             if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
                 redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
@@ -1151,15 +1159,25 @@ def setting_list_init():
                 score = 0
             else:
                 score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
-        regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-        regexForm = RegexForm(regex_data)
-        # inputForm.regex_list.append_entry(regexForm)
-        inputForm.detail_regex_list.entries[i] = regexForm
+        # 还原页面
+        # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
+        # regexForm = RegexForm(regex_data)
+        # inputForm.detail_regex_list.entries[i] = regexForm
+
+        regexForm = RegexForm()
+        regexForm.regex = regex
+        regexForm.weight = weight
+        regexForm.score = int(score)
+        inputForm.detail_regex_list.append_entry(regexForm)
         i += 1
+
+    for j in range(INIT_MAX - i):
+        inputForm.detail_regex_list.append_entry()
 
     ####  从MySql 设置/还原 redis 和 页面(列表页)
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_regexs('list', user_id):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id):
+        # 还原redis
         if regex.find('/^') < 0:  # 白名单
             if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
                 redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
@@ -1172,12 +1190,20 @@ def setting_list_init():
                 score = 0
             else:
                 score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
+        # 还原页面
+        # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
+        # regexForm = RegexForm(regex_data)
+        # inputForm.list_regex_list.entries[i] = regexForm
 
-        regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-        regexForm = RegexForm(regex_data)
-        # inputForm.regex_list.append_entry(regexForm)
-        inputForm.list_regex_list.entries[i] = regexForm
+        regexForm = RegexForm()
+        regexForm.regex = regex
+        regexForm.weight = weight
+        regexForm.score = int(score)
+        inputForm.list_regex_list.append_entry(regexForm)
         i += 1
+
+    for j in range(INIT_MAX - i):
+        inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成')
     return render_template('setting.html', inputForm=inputForm)
@@ -1448,6 +1474,7 @@ def abort_if_todo_doesnt_exist(todo_id):
     if todo_id not in TODOS:
         abort(404, message="Todo {} doesn't exist".format(todo_id))
 
+
 parser = reqparse.RequestParser()
 parser.add_argument('task', type=str)
 
@@ -1484,6 +1511,7 @@ class TodoList(Resource):
         TODOS[todo_id] = {'task': args['task']}
         print TODOS
         return TODOS[todo_id], 201
+
 
 ##
 ## Actually setup the Api resource routing here
