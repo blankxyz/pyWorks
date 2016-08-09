@@ -27,13 +27,16 @@
             };
             $('#convert').click(submit_convert);
 
-            function submit_advice(e) {
+            function get_advice(e) {
+                var site_domain = $('input[id="site_domain"]').val()
+                alert(site_domain);
+
                 $.ajax({
                     url: $SCRIPT_ROOT + '/advice',
                     contentType: "application/json; charset=UTF-8",
                     dataType: 'json',
                     data: {
-                        start_url: $('input[id="start_url"]').val(),
+                        start_url: $('input[id="site_domain"]').val(),
                         now: new Date().getTime()
                     },
                     error: function (xhr, err) {
@@ -44,55 +47,13 @@
                     }
                 });
             };
-            $('#advice').click(submit_advice);
+            $('#advice_btn').click(get_advice);
         });
 
         $(document).ready(function () {
-            var detail_t = $('#detail-regex-tab-aaa').DataTable({
-                "oLanguage": {
-                    "sLengthMenu": "每页 _MENU_ 条",
-                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                    "sInfoEmpty": "Redis没有数据",
-                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                    "oPaginate": {
-                        "sFirst": "首页",
-                        "sPrevious": "前页",
-                        "sNext": "后页",
-                        "sLast": "尾页"
-                    },
-                    "sZeroRecords": "没有检索到数据",
-                    "sProcessing": "<img src='./loading.gif' />"
-                },
-                "bFilter": false,
-                "bLengthChange": false,
-                "aLengthMenu": [5, 10, 50, "All"],
-                "bStateSave": true
-            });
-            var list_t = $('#list-regex-tab-aaaa').DataTable({
-                "oLanguage": {
-                    "sLengthMenu": "每页 _MENU_ 条",
-                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                    "sInfoEmpty": "Redis没有数据",
-                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                    "oPaginate": {
-                        "sFirst": "首页",
-                        "sPrevious": "前页",
-                        "sNext": "后页",
-                        "sLast": "尾页"
-                    },
-                    "sZeroRecords": "没有检索到数据",
-                    "sProcessing": "<img src='./img/loading.gif' />"
-                },
-                "bFilter": false,
-                "bLengthChange": false,
-                "aLengthMenu": [5, 10, 50, "All"],
-                "bStateSave": true
-            });
-
             $("tr").change(function () {
                 var id_str = $(this).attr("id");
                 {#                $(this).css("color","red");#}
-
                 if (id_str.search("list") > 0) {
                     alert("list:" + id_str);
                 } else {
@@ -143,8 +104,8 @@
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label }}
-            <input type=text size=70 id="convert\_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
-            <label id="regex_result"> 请确认转换后的表达式， 编辑（拷贝） 到下面列表中。 </label>
+            <input type=text size=40 id="site_domain">&nbsp;<input type="button" id="advice_btn" value="推荐">&nbsp;
+            <label id="advice_result"></label>
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">

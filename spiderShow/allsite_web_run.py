@@ -802,11 +802,11 @@ def convert_to_regex():
 @app.route('/advice', methods=["GET", "POST"])
 def get_regex_advice():
     ret = {}
-    convert_url = request.args.get('start_url')
-    util = Util()
-    ret['regex'] = util.convert_path_to_rule(convert_url)
-    jsonStr = json.dumps(ret, sort_keys=True)
-    print 'convert_to_regex()', convert_url, '->', jsonStr
+    site_domain = request.args.get('site_domain')
+    fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
+    jsonStr = json.load(fp)
+    fp.close()
+
     return jsonStr
 
 @app.route('/user_search', methods=['GET', 'POST'])
