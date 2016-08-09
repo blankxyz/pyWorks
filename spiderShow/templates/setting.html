@@ -26,6 +26,25 @@
                 });
             };
             $('#convert').click(submit_convert);
+
+            function submit_advice(e) {
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/advice',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: {
+                        start_url: $('input[id="start_url"]').val(),
+                        now: new Date().getTime()
+                    },
+                    error: function (xhr, err) {
+                        $('#advice_result').text(err);
+                    },
+                    success: function (data, textStatus) {
+                        $('#advice_result').text(data.regex);
+                    }
+                });
+            };
+            $('#advice').click(submit_advice);
         });
 
         $(document).ready(function () {
@@ -72,7 +91,7 @@
 
             $("tr").change(function () {
                 var id_str = $(this).attr("id");
-{#                $(this).css("color","red");#}
+                {#                $(this).css("color","red");#}
 
                 if (id_str.search("list") > 0) {
                     alert("list:" + id_str);
@@ -90,7 +109,7 @@
                         alert(err);
                     },
                     success: function (data, textStatus) {
-{#                        alert(textStatus);#}
+                        {#                        alert(textStatus);#}
                         alert(JSON.stringify(data, null, 4)); //转换成字符串
                         alert(data.task);
                     }
@@ -124,6 +143,8 @@
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label }}
+            <input type=text size=70 id="convert\_url">&nbsp;<input type="button" id="convert" value="转换为正则">&nbsp;
+            <label id="regex_result"> 请确认转换后的表达式， 编辑（拷贝） 到下面列表中。 </label>
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">

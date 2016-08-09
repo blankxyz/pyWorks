@@ -39,7 +39,6 @@ LIST_RULE_LIST = config.get('spider', 'list_rule_list')
 
 
 #############################################################################
-
 class Util(object):
     def __init__(self):
         pass
@@ -68,7 +67,7 @@ class Util(object):
     def convert_regex_format(self, rule):
         '''
         /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
-        /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
+        /news/\d{6,6}/[a-zA-Z]\d{8,8}_\d{6,6}.htm
         '''
         ret = ''
         digit = '\d'
@@ -107,7 +106,7 @@ class Util(object):
         print '[INFO]marge_digit() start.', len(rules), rules
         # rules.sort()
         for i in range(len(rules)):
-            for j in range(len(rules) - i):
+            for j in range(i + 1, len(rules), 1):
                 if self.is_same_rule(rules[i], rules[j]):
                     rule_new = self.merge_digit_scope(rules[i], rules[j])
                     # 原有全部替换为新规则
@@ -119,8 +118,10 @@ class Util(object):
                         if rules[k] == rules[j]:
                             rules[k] = rule_new
 
-        print '[INFO]marge_digit() end.', len(list(set(rules))), list(set(rules))
-        return list(set(rules))
+        rules = list(set(rules))
+        rules.sort()
+        print '[INFO]marge_digit() end.', len(rules), rules
+        return rules
 
     def is_same_rule(self, rule1, rule2):
         ret = False
@@ -142,12 +143,82 @@ class Util(object):
                     new = rule1[i]
                 else:
                     new = rule2[i]
+            elif cmp(rule1[i], rule2[i]) > 0:
+                if rule1[i - 1] == '{':  # {M,N}
+                    new = rule2[i]
+                else:
+                    new = rule1[i]
             else:
                 new = rule1[i]
 
             rule_new += new
 
         return rule_new
+
+    def without_digit_regex(self, regex):
+        # '/post-culture-\\d{6,6}-\\d{1,1}.shtml' -> '/post-culture--.shtml'
+        return re.sub(r'\\d\{\d\,\d\}', "", regex)
+
+    def get_words(self, regex):
+        # '/post-culture--.shtml' -> ['post','culture','shtml']
+        words = []
+        word = ''
+        for i in range(len(regex)):
+            if regex[i].isalpha():
+                word += regex[i]
+            else:
+                if word != '':
+                    words.append(word)
+                word = ''
+
+        return words
+
+    def get_regexs_words_score(self, regexs, urls):
+        ''' regexs:
+            ['/post-\\d{2,2}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-\\d{2,2}-\\d{7,7}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{4,4}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{5,5}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{7,7}-\\d{1,1}.shtml',
+             '/post-\\d{4,4}-\\d{4,4}-\\d{1,1}.shtml',
+             '/post-\\d{4,4}-\\d{5,5}-\\d{1,1}.shtml',
+             '/post-\\d{4,4}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-no\\d{2,2}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-no\\d{2,2}-\\d{7,7}-\\d{1,1}.shtml',
+             '/list-\\d{1,1}d-\\d{1,1}.shtml',
+             '/list-\\d{2,4}-\\d{1,1}.shtml',
+             '/list-apply-\\d{1,1}.shtml']
+        '''
+        all_words = []
+        for regex in regexs:
+            without_digit = self.without_digit_regex(regex)
+            words = self.get_words(without_digit)
+            all_words.extend(words)
+
+        all_words = list(set(all_words))
+        # all_words.sort()
+        # print all_words
+
+        all_words_dic = {}
+        for w in all_words:
+            w_cnt = 0
+            for r in urls:
+                path = urlparse.urlparse(r).path
+                without_digit = self.without_digit_regex(path)
+                words = self.get_words(without_digit)
+                if w in words:
+                    w_cnt += 1  # 匹配次数
+
+            all_words_dic[w] = w_cnt
+
+        # return  {'apply': 1, 'post': 11, 'list': 3, 'd': 1, 'no': 2}
+        return all_words_dic
+
+    def get_hot_words(self, all_words_dic):
+        l = len(all_words_dic)
+        dict = sorted(all_words_dic.iteritems(), key=lambda d: d[1], reverse=True)
+        return dict[:l / 10]
 
 
 class MySpider(spider.Spider):
@@ -261,13 +332,14 @@ class MySpider(spider.Spider):
 
         urls = self.urls_join(org_url, removed)
         urls = self.filter_links(urls)
+        urls.sort()
         print '[INFO]get_page_valid_urls() end', len(urls), urls
         return urls
 
     def parse_detail_page(self, response=None, url=None):
         print '[INFO]parse_detail_page() start.'
-        regexs = []
-        advice_regexs = []
+
+        advice_regex_dic = {}
         util = Util()
 
         if response is None: return []
@@ -281,21 +353,35 @@ class MySpider(spider.Spider):
             soup = self.get_clean_soup(response)
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
-            for link in list(set(links)):
-                regex = util.convert_path_to_rule(link)
-                regexs.append(regex)
+            links = list(set(links))
+            regexs = []
+            for link in links:
+                if link[-1] != '/':
+                    regex = util.convert_path_to_rule(link)
+                    regexs.append(regex)
 
-            advice_regexs = util.marge_digit(list(set(regexs)))
+            # 转换规则后
+            regexs = list(set(regexs))
+            regexs.sort()
+
+            marge_digit_list = util.marge_digit(regexs)
+            marge_digit_list.sort()
+
+            dic = util.get_regexs_words_score(marge_digit_list, links)
+            print '[INFO]parse_detail_page() get_regexs_words_score()', len(dic), dic
+            advice_regex_dic = util.get_hot_words(dic)
+            print '[INFO]parse_detail_page() get_hot_words()', len(advice_regex_dic), advice_regex_dic
 
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
 
-        print '[INFO]parse_detail_page() end.', advice_regexs
-        return advice_regexs
+        print '[INFO]parse_detail_page() end.', len(advice_regex_dic), advice_regex_dic
+        return advice_regex_dic
 
 
 ########################################################################################
 if __name__ == '__main__':
+    util = Util()
     mySpider = MySpider()
     mySpider.proxy_enable = False
     mySpider.init_dedup()
@@ -305,5 +391,3 @@ if __name__ == '__main__':
 
     ret = mySpider.parse_detail_page(response, (mySpider.start_urls))
     print ret
-    # util = Util()
-    # print util.convert_path_to_rule('http://bbs.tianya.cn/list-838-1.shtml')

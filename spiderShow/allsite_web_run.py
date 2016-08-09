@@ -799,6 +799,15 @@ def convert_to_regex():
     print 'convert_to_regex()', convert_url, '->', jsonStr
     return jsonStr
 
+@app.route('/advice', methods=["GET", "POST"])
+def get_regex_advice():
+    ret = {}
+    convert_url = request.args.get('start_url')
+    util = Util()
+    ret['regex'] = util.convert_path_to_rule(convert_url)
+    jsonStr = json.dumps(ret, sort_keys=True)
+    print 'convert_to_regex()', convert_url, '->', jsonStr
+    return jsonStr
 
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
@@ -1395,7 +1404,7 @@ class RegexSession(Resource):
 ## Actually setup the Api resource routing here
 ##
 api.add_resource(RegexSession, '/rest_settings')
-api.add_resource(RegexSession, '/rest_setting/<item>')
+# api.add_resource(RegexSession, '/rest_setting/<item>')
 
 ##########################################################################################
 if __name__ == '__main__':
