@@ -1,0 +1,24 @@
+[
+  {
+    "/post/fangwu/chushou/\\d{7,7}x.html": 8,
+    "/post/ershou/\\d{7,7}x.html": 21,
+    "/post/zhaopin/\\d{7,7}x.html": 10,
+    "\\/$": 80,
+    "/post/cheliang/\\d{6,6}x.html": 20,
+    "/post/qiuzhi/\\d{6,7}x.html": 11,
+    "/post/zhaopins/list-\\d{5,6}-\\d{1,1}-\\d{1,1}-\\d{1,1}-\\d{1,1}-\\d{1,1}-\\d{1,1}.html": 21,
+    "/news/local/\\d{7,7}.html": 13
+  },
+  {
+    "fangwu": 29,
+    "zhaopins": 21,
+    "qiuzhi": 12,
+    "news": 28,
+    "x": 83,
+    "post": 164,
+    "local": 13,
+    "list": 24,
+    "ershou": 29,
+    "cheliang": 27
+  }
+]

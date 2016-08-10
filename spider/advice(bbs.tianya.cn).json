@@ -1,0 +1,18 @@
+[
+  {
+    "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
+    "/list-\\d{2,4}-\\d{1,1}.shtml": 251,
+    "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 24,
+    "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 42,
+    "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 16,
+    "/post-free-\\d{7,7}-\\d{1,1}.shtml": 21,
+    "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 84
+  },
+  {
+    "funinfo": 43,
+    "post": 247,
+    "list": 310,
+    "no": 37
+  },
+  []
+]

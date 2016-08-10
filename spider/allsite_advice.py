@@ -166,8 +166,8 @@ class Util(object):
                 pos = pos + 1
         return ret
 
-    def marge_digit(self, rules):
-        print '[INFO]marge_digit() start.', len(rules), rules
+    def merge_digit(self, rules):
+        print '[INFO]merge_digit() start.', len(rules), rules
         # rules.sort()
         for i in range(len(rules)):
             for j in range(i + 1, len(rules), 1):
@@ -184,7 +184,7 @@ class Util(object):
 
         rules = list(set(rules))
         rules.sort()
-        print '[INFO]marge_digit() end.', len(rules), rules
+        print '[INFO]merge_digit() end.', len(rules), rules
         return rules
 
     def is_same_rule(self, rule1, rule2):
@@ -237,7 +237,8 @@ class Util(object):
 
         return words
 
-    def get_regexs_words_score(self, regexs, urls):
+    def get_regexs_words_with_score(self, regexs, urls):
+        print '[INFO]get_regexs_words_score() start.'
         ''' regexs:
             ['/post-\\d{2,2}-\\d{6,6}-\\d{1,1}.shtml',
              '/post-\\d{2,2}-\\d{7,7}-\\d{1,1}.shtml',
@@ -253,6 +254,7 @@ class Util(object):
              '/list-\\d{1,1}d-\\d{1,1}.shtml',
              '/list-\\d{2,4}-\\d{1,1}.shtml',
              '/list-apply-\\d{1,1}.shtml']
+             return  {'apply': 1, 'post': 11, 'list': 3, 'd': 1, 'no': 2}
         '''
         all_words = []
         for regex in regexs:
@@ -276,16 +278,109 @@ class Util(object):
 
             all_words_dic[w] = w_cnt
 
-        # return  {'apply': 1, 'post': 11, 'list': 3, 'd': 1, 'no': 2}
+        sum = 0
+        for i in all_words_dic.iteritems():
+            (k, v) = i
+            sum += v
+
+        print '[INFO]get_regexs_words_score() end.', len(all_words_dic), 'sum=', sum, all_words_dic
         return all_words_dic
 
     def get_hot_words(self, all_words_dic):
-        l = len(all_words_dic)
-        dict = sorted(all_words_dic.iteritems(), key=lambda d: d[1], reverse=True)
+        print '[INFO]get_hot_words() start.', all_words_dic
         ret_dict = {}
-        for (k, v) in dict[:l / 10]:
-            ret_dict.update({k: v})
+
+        sum = 0
+        for (k, v) in all_words_dic.iteritems():
+            sum += v
+
+        dict = sorted(all_words_dic.iteritems(), key=lambda d: d[1], reverse=True)
+        s = 0
+        for i in dict:
+            (k, v) = i
+            if s >= sum * 0.8:
+                break
+            else:
+                ret_dict.update({k: v})
+                s += v
+
+        print '[INFO]get_hot_words() end.', s, '/', sum, ret_dict
         return ret_dict
+
+    def get_hot_regexs_with_score(self, merge_digit_list, urls):
+        print '[INFO]get_hot_regexs_with_score() start.', len(urls), urls
+        ret_dict = {}
+        for regex in merge_digit_list:
+            r_cnt = 0
+            for url in urls:
+                path = urlparse.urlparse(url).path
+                if re.search(regex, path):
+                    r_cnt += 1
+            # 计数完毕保存
+            ret_dict.update({regex: r_cnt})
+
+        for url in urls:
+            found = False
+            for r in merge_digit_list:
+                path = urlparse.urlparse(url).path
+                if re.search(r, path):
+                    found = True
+
+            if found == False:
+                print '[ERROR]get_hot_regexs_with_score() not match:', url
+
+        sum = 0
+        for i in ret_dict.iteritems():
+            (k, v) = i
+            sum += v
+
+        print '[INFO]get_hot_regexs_with_score() end.', len(ret_dict), 'sum=', sum, ret_dict
+        return ret_dict
+
+    def get_hot_regexs(self, regexs_dic):
+        print '[INFO]get_hot_regexs() start.', len(regexs_dic), regexs_dic
+        ret_dict = {}
+
+        sum = 0
+        for (k, v) in regexs_dic.iteritems():
+            sum += v
+
+        dict = sorted(regexs_dic.iteritems(), key=lambda d: d[1], reverse=True)
+        s = 0
+        for i in dict:
+            (k, v) = i
+            if s >= sum * 0.8:
+                break
+            else:
+                ret_dict.update({k: v})
+                s += v
+
+        print '[INFO]get_hot_regexs() end.', s, '/', sum, ret_dict
+        return ret_dict
+
+    def merge_word(self, advice_regex_dic, ignore_words):
+        print '[INFO]merge_word() start.', advice_regex_dic, ignore_words
+        ret_merged_list = []
+        merged_word = {}
+        for k, v in advice_regex_dic.items():
+            matched = False
+            # 和所有的忽略词匹配
+            for word in ignore_words:
+                if k.find(word) >= 0:
+                    matched = True
+                    replace = '[a-zA-Z]{%d,%d}' % (len(word), len(word))
+                    regex = re.sub(word, replace, k)
+                    merged_word.update({regex: v})
+
+            # 没有忽略词匹配
+            if matched is False:
+                merged_word.update({k: v})
+
+        l = [k for k, v in merged_word.items()]
+        ret_merged_list = self.merge_digit(l)
+
+        print '[INFO]merge_word() end.', ret_merged_list
+        return ret_merged_list
 
 
 #####################################################################################
@@ -370,6 +465,7 @@ class MySpider(spider.Spider):
             if scheme:
                 url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
             else:
+                if path == '': path = '/'
                 link = urlparse.urlunparse(('', '', path, params, query, ''))
                 # url = urlparse.urljoin(org_url, urllib.quote(link))
                 # print '[INFO]urljoin()', org_url, link
@@ -407,6 +503,7 @@ class MySpider(spider.Spider):
     def parse_detail_page(self, response=None, url=None):
         print '[INFO]parse_detail_page() start.'
         advice_regex_dic = {}
+        advice_merge_word_list = []
         util = Util()
 
         if response is None: return []
@@ -423,27 +520,34 @@ class MySpider(spider.Spider):
             links = list(set(links))
             regexs = []
             for link in links:
-                if link[-1] != '/':
+                if link != '' and link[-1] != '/':
                     regex = util.convert_path_to_rule(link)
-                    regexs.append(regex)
+                    if regex != '': regexs.append(regex)
 
             # 转换规则后
             regexs = list(set(regexs))
             regexs.sort()
 
-            marge_digit_list = util.marge_digit(regexs)
-            marge_digit_list.sort()
+            merge_digit_list = util.merge_digit(regexs)
+            merge_digit_list.append('\/$')
+            merge_digit_list.sort()
 
-            dic = util.get_regexs_words_score(marge_digit_list, links)
-            print '[INFO]parse_detail_page() get_regexs_words_score()', len(dic), dic
-            advice_regex_dic = util.get_hot_words(dic)
-            print '[INFO]parse_detail_page() get_hot_words()', len(advice_regex_dic), advice_regex_dic
+            regex_dic = util.get_hot_regexs_with_score(merge_digit_list, links)
+            advice_regex_dic = util.get_hot_regexs(regex_dic)
+
+            word_dic = util.get_regexs_words_with_score(merge_digit_list, links)
+            advice_words_dic = util.get_hot_words(word_dic)
+
+            # ignore_words = list(set([k for k, v in advice_words_dic.items()]) - set(['list', 'post', 'thread']))
+            # advice_merge_word_list = util.merge_word(advice_regex_dic, ignore_words)
 
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
 
         print '[INFO]parse_detail_page() end.', len(advice_regex_dic), advice_regex_dic
-        return advice_regex_dic
+        print '[INFO]parse_detail_page() end.', len(advice_words_dic), advice_words_dic
+
+        return advice_regex_dic, advice_words_dic, advice_merge_word_list
 
 
 ########################################################################################
@@ -453,10 +557,10 @@ if __name__ == '__main__':
     mySpider.proxy_enable = False
     mySpider.init_dedup()
     mySpider.init_downloader()
-
     response = mySpider.download(mySpider.start_urls)
 
     ret = mySpider.parse_detail_page(response, (mySpider.start_urls))
+
     f = open(EXPORT_FOLDER + 'advice(' + SITE_DOMAIN + ').json', "w")
     f.write(json.dumps(ret))
     f.close()
