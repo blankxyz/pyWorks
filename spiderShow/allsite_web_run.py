@@ -751,7 +751,7 @@ class Util(object):
 
 
 ##################################################################################################
-@app.route("/aaaaaaaaa", methods=['POST', 'GET'])
+@app.route("/login", methods=['POST', 'GET'])
 def login():
     error = None
     if request.method == 'POST':
@@ -799,15 +799,91 @@ def convert_to_regex():
     print 'convert_to_regex()', convert_url, '->', jsonStr
     return jsonStr
 
-@app.route('/advice', methods=["GET", "POST"])
-def get_regex_advice():
+
+@app.route('/setting_advice', methods=["GET", "POST"])
+def setting_advice():
     ret = {}
+    start_url = request.args.get('start_url')
     site_domain = request.args.get('site_domain')
-    fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
+    print site_domain
+    fp = open(EXPORT_FOLDER + '/advice(bbs.tianya.cn).json', "r")
     jsonStr = json.load(fp)
     fp.close()
+    print jsonStr
+    jsonStr = [
+        {
+            "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
+            "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
+            "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
+            "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
+            "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
+            "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
+            "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
+        },
+        {
+            "funinfo": 44,
+            "post": 248,
+            "list": 312,
+            "no": 33
+        },
+    ]
+    # return json.dumps(jsonStr, sort_keys=True)
 
-    return jsonStr
+    '''
+      从MySql初始化Web页面和Redis
+    '''
+    INIT_MAX = 10
+    user_id = session['user_id']
+    # user_id = 'admin'
+    inputForm = ListRegexInputForm()
+
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    if start_url is None or start_url.strip() == '' or \
+                    site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、域名信息。')
+        for j in range(INIT_MAX):
+            inputForm.detail_regex_list.append_entry()
+
+        for j in range(INIT_MAX):
+            inputForm.list_regex_list.append_entry()
+
+        return render_template('setting_advice.html', inputForm=inputForm)
+    else:
+        inputForm.start_url.data = start_url
+        inputForm.site_domain.data = site_domain
+        inputForm.black_domain_str.data = black_domain_str
+
+    i = 0
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id):
+        # 还原页面
+        regexForm = RegexForm()
+        regexForm.regex = regex
+        regexForm.weight = weight
+        regexForm.score = int(score)
+        inputForm.detail_regex_list.append_entry(regexForm)
+        i += 1
+
+    for j in range(INIT_MAX - i):
+        inputForm.detail_regex_list.append_entry()
+
+    ####  从MySql 设置/还原 redis 和 页面(列表页)
+    i = 0
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id):
+        # 还原页面
+        regexForm = RegexForm()
+        regexForm.regex = regex
+        regexForm.weight = weight
+        regexForm.score = int(score)
+        inputForm.list_regex_list.append_entry(regexForm)
+        i += 1
+
+    for j in range(INIT_MAX - i):
+        inputForm.list_regex_list.append_entry()
+
+    flash(u'初始化配置完成')
+    return render_template('setting_advice.html', inputForm=inputForm)
+
 
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
@@ -1359,10 +1435,11 @@ LIST_SETTING = {
     'start_url': '',
     'site_domain': '',
     'black_domain_str': '',
-    'mode':'0',            #True:all
-    'list_regex_list':[],  #list_1:'regex1', list_2:'regex2'
-    'detail_regex_list':[] #detail_1:'regex1', detail_2:'regex2'
+    'mode': '0',  # True:all
+    'list_regex_list': [],  # list_1:'regex1', list_2:'regex2'
+    'detail_regex_list': []  # detail_1:'regex1', detail_2:'regex2'
 }
+
 
 def abort_if_todo_doesnt_exist(item):
     if item not in LIST_SETTING:
@@ -1375,7 +1452,7 @@ parser.add_argument('task', type=str)
 
 class RegexSession(Resource):
     def get(self, item):  # get one
-        if item is None or item == '': # get all
+        if item is None or item == '':  # get all
             return LIST_SETTING
         else:
             abort_if_todo_doesnt_exist(item)
@@ -1399,6 +1476,7 @@ class RegexSession(Resource):
         LIST_SETTING[item] = {'list_regex_list': args['task']}
         print LIST_SETTING
         return LIST_SETTING[item], 201
+
 
 ##
 ## Actually setup the Api resource routing here

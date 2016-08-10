@@ -7,53 +7,31 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-        $(document).ready(function () {
-            <!-- 转换正则 -->
-            function submit_convert(e) {
+        $(function () {
+            <!-- 推荐 -->
+            function get_advice(e) {
+                var site_domain = $('input[id="site_domain"]').val()
+                alert(site_domain);
+
                 $.ajax({
-                    url: $SCRIPT_ROOT + '/convert',
+                    url: $SCRIPT_ROOT + '/advice',
                     contentType: "application/json; charset=UTF-8",
                     dataType: 'json',
                     data: {
-                        convert_url: $('input[id="convert_url"]').val(),
+                        site_domain: $('input[id="site_domain"]').val(),
                         now: new Date().getTime()
                     },
                     error: function (xhr, err) {
-                        $('#regex_result').text(err);
+                        $('#advice_result').text(err);
                     },
                     success: function (data, textStatus) {
-                        $('#regex_result').text(data.regex);
+                        alert(data);
+                        $('#advice_result').text(data);
+                        window.open("show_advice", "_blank", "top=400,left=400,width=400,height=400,menubar=yes,scrollbars=no,toolbar=yes,status=yes");
                     }
                 });
             };
-            $('#convert_btn').click(submit_convert);
-
-            <!-- restful -->
-            $("tr").change(function () {
-                var id_str = $(this).attr("id");
-                {#                $(this).css("color","red");#}
-                if (id_str.search("list") > 0) {
-                    alert("list:" + id_str);
-                } else {
-                    alert("detail:" + id_str);
-                }
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/todos',
-                    type: "POST",
-                    dataType: "json",
-                    {#contentType: "application/json; charset=utf-8", #}
-                    data: {"task": "something new"},
-                    error: function (xhr, err) {
-                        alert("error");
-                        alert(err);
-                    },
-                    success: function (data, textStatus) {
-                        {#                        alert(textStatus);#}
-                        alert(JSON.stringify(data, null, 4)); //转换成字符串
-                        alert(data.task);
-                    }
-                });
-            });
+            $('#advice_btn').click(get_advice);
         });
     </script>
 {% endblock %}
@@ -85,28 +63,21 @@
             <input type="button" id="advice_btn" value="推荐"><label id="advice_result">推荐正则</label>
         </div>
         <hr>
-        <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
-            <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
-                /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
-            <input type=text size=70 id="convert_url">&nbsp;<input type="button" id="convert_btn" value="转换为正则">&nbsp;
-            <label id="regex_result"> 请确认转换后的表达式， 编辑（拷贝） 到下面列表中。 </label>
-        </div>
-        <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
             <table id="list-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th>列表页-正则表达式</th>
-                    <th>权重</th>
                     <th>匹配次数</th>
+                    <th>选择</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
                         <td>{{ row.regex(size=60) }}</td>
-                        <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6) }}</td>
+                        <td>{{ row.weight() }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -117,24 +88,20 @@
                 <thead>
                 <tr>
                     <th>详情页-正则表达式</th>
-                    <th>权重</th>
                     <th>匹配数</th>
+                    <th>选择</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
                         <td>{{ row.regex(size=60) }}</td>
-                        <td>{{ row.weight() }}</td>
                         <td readonly="readonly">{{ row.score(size=6) }}</td>
+                        <td>{{ row.weight() }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-        </div>
-        <div id="title" class="form-group" style="float:left;width:100%; margin-left:10px">
-            <button type="button" class="btn">{{ inputForm.save_run_list() }}</button>
-            <button type="button" class="btn">{{ inputForm.save_run_detail() }}</button>
         </div>
     </form>
 
