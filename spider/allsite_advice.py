@@ -32,13 +32,6 @@ EXPORT_FOLDER = config.get('export', 'export_folder')
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
-# mysql
-MYSQLDB_HOST = config.get('mysql', 'mysql_host')
-MYSQLDB_USER = config.get('mysql', 'mysql_user')
-MYSQLDB_PORT = config.getint('mysql', 'mysql_port')
-MYSQLDB_PASSWORD = config.get('mysql', 'mysql_password')
-MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
-MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
 
 # spider-modify-start
 # START_URLS = None
@@ -53,54 +46,6 @@ SITE_DOMAIN = config.get('spider', 'site_domain')
 BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
 DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
 LIST_RULE_LIST = config.get('spider', 'list_rule_list')
-
-
-##################################################################################################
-class MySqlDrive(object):
-    def __init__(self):
-        import sys
-        reload(sys)
-        sys.setdefaultencoding(MYSQLDB_CHARSET)
-        self.host = MYSQLDB_HOST
-        self.user = MYSQLDB_USER
-        self.password = MYSQLDB_PASSWORD
-        self.port = 3306
-        self.conn = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, port=self.port,
-                                    charset=MYSQLDB_CHARSET)
-        self.conn.select_db(MYSQLDB_SELECT_DB)
-        self.cur = self.conn.cursor()
-
-    def __del__(self):
-        self.cur.close()
-        self.conn.close()
-
-    def save_advice(self, user_id, start_url, site_domain, advice):
-        # print 'save_advice() start...', start_url, site_domain
-        ret_cnt = 0
-        try:
-            sql_str1 = ("SELECT id FROM result_file WHERE user_id =%s AND start_url=%s AND site_domain=%s")
-            parameter1 = (user_id, start_url, site_domain)
-            print '[info]save_all_setting()', sql_str1 % parameter1
-            ret_cnt = self.cur.execute(sql_str1, parameter1)
-
-            if ret_cnt > 0:
-                sql_str2 = "UPDATE result_file SET advice=%s WHERE user_id=% AND start_url=%s AND site_domain=%s"
-                parameter2 = (advice, user_id, start_url, site_domain)
-            else:
-                sql_str2 = "INSERT INTO result_file(user_id,start_url,site_domain,advice) VALUES (%s,%s,%s,%s)"
-                parameter2 = (user_id, start_url, site_domain, advice)
-
-            print '[info]save_advice()', sql_str2 % parameter2
-            ret_cnt = self.cur.execute(sql_str2, parameter2)
-            self.conn.commit()
-
-        except Exception, e:
-            ret_cnt = 0
-            print '[error]save_advice()', e
-            self.conn.rollback()
-
-        return ret_cnt
-
 
 #############################################################################
 class Util(object):
@@ -254,6 +199,7 @@ class Util(object):
              '/list-\\d{1,1}d-\\d{1,1}.shtml',
              '/list-\\d{2,4}-\\d{1,1}.shtml',
              '/list-apply-\\d{1,1}.shtml']
+
              return  {'apply': 1, 'post': 11, 'list': 3, 'd': 1, 'no': 2}
         '''
         all_words = []
@@ -547,7 +493,7 @@ class MySpider(spider.Spider):
         print '[INFO]parse_detail_page() end.', len(advice_regex_dic), advice_regex_dic
         print '[INFO]parse_detail_page() end.', len(advice_words_dic), advice_words_dic
 
-        return advice_regex_dic, advice_words_dic, advice_merge_word_list
+        return advice_regex_dic, advice_words_dic, advice_merge_word_list, links
 
 
 ########################################################################################

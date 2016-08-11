@@ -59,7 +59,8 @@
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。
-            <input type="button" id="advice_btn" value="推荐">
+            {{ inputForm.advice(id="advice_btn") }}
+{#            <input type="button" id="advice_btn" value="推荐">#}
         </div>
         <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
@@ -75,7 +76,7 @@
                 {% for row in inputForm.regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
                         <td>{{ row.regex(size=60) }}</td>
-                        <td><a href="/user_search?regex=">{{ row.score(readonly="readonly",size=10) }}</a></td>
+                        <td><a href="/user_search">{{ row.score(readonly="readonly",size=5) }}</a></td>
                         <td>{{ row.select() }}</td>
                     </tr>
                 {% endfor %}
@@ -88,13 +89,15 @@
                 <tr>
                     <th>关键字</th>
                     <th>匹配次数</th>
+                    <th>采用</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for row in inputForm.keyword_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
                         <td>{{ row.keyword(size=60) }}</td>
-                        <td><a href="/user_search?regex=">{{ row.score(readonly="readonly",size=10) }}</a></td>
+                        <td><a href="/user_search">{{ row.score(readonly="readonly",size=5) }}</a></td>
+                        <td>{{ row.select() }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

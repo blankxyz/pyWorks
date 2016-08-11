@@ -57,11 +57,13 @@ CONFIG_JSON = config.get('export', 'config_json')
 # windows or linux or mac
 if os.name == 'nt':
     RUN_FILE = config.get('windows', 'run_file')
+    SHELL_ADVICE_CMD = config.get('windows', 'shell_advice_cmd')
     SHELL_LIST_CMD = config.get('windows', 'shell_list_cmd')
     SHELL_DETAIL_CMD = config.get('windows', 'shell_detail_cmd')
     SHELL_CONTENT_CMD = config.get('windows', 'shell_content_cmd')
     ALLSITE_INI = config.get('windows', 'allsite_ini')
 else:
+    SHELL_ADVICE_CMD = config.get('linux', 'shell_advice_cmd')
     RUN_FILE = config.get('linux', 'run_file')
     SHELL_LIST_CMD = config.get('linux', 'shell_list_cmd')
     SHELL_DETAIL_CMD = config.get('linux', 'shell_detail_cmd')
@@ -84,12 +86,13 @@ global process_id
 class AdviceRegexForm(Form):  # advice_setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}//[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     score = IntegerField(label=u'匹配数', default=0)
-    select = BooleanField(label=u'选择', default=True)
+    select = SelectField(label=u'采用', choices=[('0', u'-'), ('1', u'列表'), ('2', u'详情')])
 
 
 class AdviceKeyWordForm(Form):  # advice_setting
     keyword = StringField(label=u'关键字')
     score = IntegerField(label=u'匹配数', default=0)
+    select = SelectField(label=u'权重', choices=[('0', u'-'), ('1', u'列表'), ('2', u'详情')])
 
 
 class AdviceRegexListInputForm(Form):  # setting
@@ -101,7 +104,7 @@ class AdviceRegexListInputForm(Form):  # setting
     regex_list = FieldList(FormField(AdviceRegexForm), label=u'正则表达式')
     keyword_list = FieldList(FormField(AdviceKeyWordForm), label=u'关键字')
 
-    save_run_list = SubmitField(label=u'推荐')
+    advice = SubmitField(label=u'推荐')
 
 
 ######## setting.html ##########################################################################################
@@ -196,6 +199,33 @@ class MySqlDrive(object):
     def __del__(self):
         self.cur.close()
         self.conn.close()
+
+    def save_advice(self, user_id, start_url, site_domain, advice):
+        # print 'save_advice() start...', start_url, site_domain
+        ret_cnt = 0
+        try:
+            sql_str1 = ("SELECT id FROM result_file WHERE user_id =%s AND start_url=%s AND site_domain=%s")
+            parameter1 = (user_id, start_url, site_domain)
+            print '[info]save_all_setting()', sql_str1 % parameter1
+            ret_cnt = self.cur.execute(sql_str1, parameter1)
+
+            if ret_cnt > 0:
+                sql_str2 = "UPDATE result_file SET advice=%s WHERE user_id=% AND start_url=%s AND site_domain=%s"
+                parameter2 = (advice, user_id, start_url, site_domain)
+            else:
+                sql_str2 = "INSERT INTO result_file(user_id,start_url,site_domain,advice) VALUES (%s,%s,%s,%s)"
+                parameter2 = (user_id, start_url, site_domain, advice)
+
+            print '[info]save_advice()', sql_str2 % parameter2
+            ret_cnt = self.cur.execute(sql_str2, parameter2)
+            self.conn.commit()
+
+        except Exception, e:
+            ret_cnt = 0
+            print '[error]save_advice()', e
+            self.conn.rollback()
+
+        return ret_cnt
 
     def save_all_setting(self, user_id, start_url, site_domain, setting_json, black_domain_str, detail_regex_save_list,
                          list_regex_save_list):
@@ -831,11 +861,25 @@ def setting_advice():
     ret = {}
     start_url = request.args.get('start_url')
     site_domain = request.args.get('site_domain')
-    print site_domain
+    inputForm = AdviceRegexListInputForm(request.form)
+
+    # 执行抓取程序
+    if inputForm.advice.data:
+        if os.name == 'nt':
+            # DOS "start" command
+            print '[info] run windows', SHELL_ADVICE_CMD
+            os.startfile(SHELL_ADVICE_CMD)
+        else:
+            print '[info] run linux', SHELL_ADVICE_CMD
+            p = subprocess.Popen(SHELL_ADVICE_CMD, shell=True)
+            process_id = p.pid
+            print '[info] process_id:', process_id
+
     fp = open(EXPORT_FOLDER + '/advice(bbs.tianya.cn).json', "r")
     jsonStr = json.load(fp)
     fp.close()
     print jsonStr
+
     jsonStr = [
         {
             "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
@@ -856,6 +900,7 @@ def setting_advice():
     # return json.dumps(jsonStr, sort_keys=True)
     advice_regex_list = jsonStr[0]
     advice_keyword_list = jsonStr[1]
+
     print advice_regex_list
     print advice_keyword_list
 
@@ -876,7 +921,7 @@ def setting_advice():
             inputForm.regex_list.append_entry()
 
         for j in range(INIT_MAX):
-            inputForm.regex_list.append_entry()
+            inputForm.keyword_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm)
     else:
@@ -886,7 +931,6 @@ def setting_advice():
 
     ####  页面(regex)
     for (regex, score) in advice_regex_list.items():
-        print (regex, score)
         regexForm = AdviceRegexForm()
         regexForm.regex = regex
         regexForm.score = int(score)
@@ -898,7 +942,6 @@ def setting_advice():
 
     ####  页面(keyword)
     for (keyword, score) in advice_keyword_list.items():
-        print (keyword, score)
         regexForm = AdviceKeyWordForm()
         regexForm.keyword = keyword
         regexForm.score = int(score)
@@ -1159,6 +1202,7 @@ def setting_list_init():
                 score = 0
             else:
                 score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
+
         # 还原页面
         # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
         # regexForm = RegexForm(regex_data)
