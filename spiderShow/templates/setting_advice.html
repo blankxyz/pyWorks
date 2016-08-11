@@ -14,11 +14,11 @@
                 alert(site_domain);
 
                 $.ajax({
-                    url: $SCRIPT_ROOT + '/advice',
+                    url: $SCRIPT_ROOT + '/setting_advice',
                     contentType: "application/json; charset=UTF-8",
                     dataType: 'json',
                     data: {
-                        site_domain: $('input[id="site_domain"]').val(),
+                        site_domain: site_domain,
                         now: new Date().getTime()
                     },
                     error: function (xhr, err) {
@@ -36,8 +36,8 @@
     </script>
 {% endblock %}
 {% block content %}
-    <h3 align="center">设定抓取信息
-        <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
+    <h3 align="center">推荐
+        <small>基于主页 URL归类正则表达式/关键字</small>
     </h3>
     <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
@@ -59,25 +59,24 @@
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。
-            {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label }}
-            <input type="button" id="advice_btn" value="推荐"><label id="advice_result">推荐正则</label>
+            <input type="button" id="advice_btn" value="推荐">
         </div>
         <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
             <table id="list-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>列表页-正则表达式</th>
+                    <th>正则表达式</th>
                     <th>匹配次数</th>
-                    <th>选择</th>
+                    <th>采用</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for row in inputForm.list_regex_list %}
+                {% for row in inputForm.regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
                         <td>{{ row.regex(size=60) }}</td>
-                        <td>{{ row.score(size=6) }}</td>
-                        <td>{{ row.weight() }}</td>
+                        <td><a href="/user_search?regex=">{{ row.score(readonly="readonly",size=10) }}</a></td>
+                        <td>{{ row.select() }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -87,17 +86,15 @@
             <table id="detail-regex-tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>详情页-正则表达式</th>
-                    <th>匹配数</th>
-                    <th>选择</th>
+                    <th>关键字</th>
+                    <th>匹配次数</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for row in inputForm.detail_regex_list %}
+                {% for row in inputForm.keyword_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
-                        <td>{{ row.regex(size=60) }}</td>
-                        <td readonly="readonly">{{ row.score(size=6) }}</td>
-                        <td>{{ row.weight() }}</td>
+                        <td>{{ row.keyword(size=60) }}</td>
+                        <td><a href="/user_search?regex=">{{ row.score(readonly="readonly",size=10) }}</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

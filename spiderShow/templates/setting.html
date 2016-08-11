@@ -29,7 +29,7 @@
             $('#convert_btn').click(submit_convert);
 
             <!-- restful -->
-            $("tr").change(function () {
+            $("tr-aaa").change(function () {
                 var id_str = $(this).attr("id");
                 {#                $(this).css("color","red");#}
                 if (id_str.search("list") > 0) {
@@ -82,7 +82,6 @@
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label }}
-            <input type="button" id="advice_btn" value="推荐"><label id="advice_result">推荐正则</label>
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
@@ -97,16 +96,14 @@
                 <thead>
                 <tr>
                     <th>列表页-正则表达式</th>
-                    <th>权重</th>
                     <th>匹配次数</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
-                        <td>{{ row.regex(size=60) }}</td>
-                        <td>{{ row.weight() }}</td>
-                        <td>{{ row.score(size=6) }}</td>
+                        <td>{{ row.regex(size=70) }}</td>
+                        <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -117,16 +114,14 @@
                 <thead>
                 <tr>
                     <th>详情页-正则表达式</th>
-                    <th>权重</th>
                     <th>匹配数</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
-                        <td>{{ row.regex(size=60) }}</td>
-                        <td>{{ row.weight() }}</td>
-                        <td readonly="readonly">{{ row.score(size=6) }}</td>
+                        <td>{{ row.regex(size=70) }}</td>
+                        <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -12,7 +12,6 @@ import ConfigParser
 import subprocess
 from bs4 import BeautifulSoup, Comment
 import requests
-import allsite_clean_url
 import traceback
 from flask_restful import reqparse, abort, Api, Resource
 from flask import Flask, render_template, request, session, url_for, flash, redirect
@@ -81,31 +80,32 @@ api = Api(app)  # restful
 global process_id
 
 
-##################################################################################################
-class SearchCondForm(Form):  # user search
-    start_url = StringField(label=u'主页', default='')
-    start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
-    site_domain = StringField(label=u'限定域名', default='')
-    search = SubmitField(label=u'查询')
-    list_download = SubmitField(label=u'列表页结果')
-    detail_download = SubmitField(label=u'详情页结果')
-    recover = SubmitField(label=u'导入')
-
-
-class SearchResultForm(Form):  # user search
-    # select = BooleanField(label=u'选择', default=False)
-    start_url = StringField(label=u'主页', default='')
-    site_domain = StringField(label=u'限定域名', default='')
-    black_domain_str = StringField(label=u'域名黑名单', default='')
-    detail_or_list = BooleanField(label=u'列表/详情', default=False)
-    regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
+######## advice_setting.html ###################################################################################
+class AdviceRegexForm(Form):  # advice_setting
+    regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}//[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     score = IntegerField(label=u'匹配数', default=0)
-    search_result_list = []
+    select = BooleanField(label=u'选择', default=True)
 
 
+class AdviceKeyWordForm(Form):  # advice_setting
+    keyword = StringField(label=u'关键字')
+    score = IntegerField(label=u'匹配数', default=0)
+
+
+class AdviceRegexListInputForm(Form):  # setting
+    start_url = StringField(label=u'主页')
+    site_domain = StringField(label=u'限定域名')
+    white_list = StringField(label=u'白名单')
+    black_domain_str = StringField(label=u'域名黑名单')
+
+    regex_list = FieldList(FormField(AdviceRegexForm), label=u'正则表达式')
+    keyword_list = FieldList(FormField(AdviceKeyWordForm), label=u'关键字')
+
+    save_run_list = SubmitField(label=u'推荐')
+
+
+######## setting.html ##########################################################################################
 class RegexForm(Form):  # setting
-    # select = BooleanField(label=u'选择', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
@@ -130,11 +130,13 @@ class ListRegexInputForm(Form):  # setting
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
 
+######## show_server_log.html #############################################################################
 class ShowServerLogInputForm(Form):  # show_server_log
     unkown_sel = BooleanField(label=u'仅未匹配', default=False)
     refresh = SubmitField(label=u'刷新')
 
 
+######## setting_content.html #############################################################################
 class ContentItemForm(Form):  # 内容提取
     # 标题，内容，作者，创建时间，
     title_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
@@ -152,7 +154,31 @@ class ContentItemForm(Form):  # 内容提取
     save_run = SubmitField(label=u'保存并执行')
 
 
-##################################################################################################
+########## user.html  ####################################################################################
+class SearchCondForm(Form):  # user search
+    start_url = StringField(label=u'主页', default='')
+    start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
+    site_domain = StringField(label=u'限定域名', default='')
+    search = SubmitField(label=u'查询')
+    list_download = SubmitField(label=u'列表页结果')
+    detail_download = SubmitField(label=u'详情页结果')
+    recover = SubmitField(label=u'导入')
+
+
+class SearchResultForm(Form):  # user search
+    # select = BooleanField(label=u'选择', default=False)
+    start_url = StringField(label=u'主页', default='')
+    site_domain = StringField(label=u'限定域名', default='')
+    black_domain_str = StringField(label=u'域名黑名单', default='')
+    detail_or_list = BooleanField(label=u'列表/详情', default=False)
+    regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
+    weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
+    score = IntegerField(label=u'匹配数', default=0)
+
+    search_result_list = []
+
+
+########################################################################################################
 class MySqlDrive(object):
     def __init__(self):
         import sys
@@ -828,6 +854,10 @@ def setting_advice():
         },
     ]
     # return json.dumps(jsonStr, sort_keys=True)
+    advice_regex_list = jsonStr[0]
+    advice_keyword_list = jsonStr[1]
+    print advice_regex_list
+    print advice_keyword_list
 
     '''
       从MySql初始化Web页面和Redis
@@ -835,7 +865,7 @@ def setting_advice():
     INIT_MAX = 10
     user_id = session['user_id']
     # user_id = 'admin'
-    inputForm = ListRegexInputForm()
+    inputForm = AdviceRegexListInputForm()
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
@@ -843,10 +873,10 @@ def setting_advice():
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
         for j in range(INIT_MAX):
-            inputForm.detail_regex_list.append_entry()
+            inputForm.regex_list.append_entry()
 
         for j in range(INIT_MAX):
-            inputForm.list_regex_list.append_entry()
+            inputForm.regex_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm)
     else:
@@ -854,32 +884,28 @@ def setting_advice():
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
 
-    i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id):
-        # 还原页面
-        regexForm = RegexForm()
+    ####  页面(regex)
+    for (regex, score) in advice_regex_list.items():
+        print (regex, score)
+        regexForm = AdviceRegexForm()
         regexForm.regex = regex
-        regexForm.weight = weight
         regexForm.score = int(score)
-        inputForm.detail_regex_list.append_entry(regexForm)
-        i += 1
+        regexForm.select = True
+        inputForm.regex_list.append_entry(regexForm)
 
-    for j in range(INIT_MAX - i):
-        inputForm.detail_regex_list.append_entry()
+    for j in range(INIT_MAX - len(advice_regex_list)):
+        inputForm.regex_list.append_entry()
 
-    ####  从MySql 设置/还原 redis 和 页面(列表页)
-    i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id):
-        # 还原页面
-        regexForm = RegexForm()
-        regexForm.regex = regex
-        regexForm.weight = weight
+    ####  页面(keyword)
+    for (keyword, score) in advice_keyword_list.items():
+        print (keyword, score)
+        regexForm = AdviceKeyWordForm()
+        regexForm.keyword = keyword
         regexForm.score = int(score)
-        inputForm.list_regex_list.append_entry(regexForm)
-        i += 1
+        inputForm.keyword_list.append_entry(regexForm)
 
-    for j in range(INIT_MAX - i):
-        inputForm.list_regex_list.append_entry()
+    for j in range(INIT_MAX - len(advice_keyword_list)):
+        inputForm.keyword_list.append_entry()
 
     flash(u'初始化配置完成')
     return render_template('setting_advice.html', inputForm=inputForm)
@@ -1000,7 +1026,7 @@ def show_process():
     regexs_str = ("'" + "','".join(keywords) + "'")
     # from flask import Markup
     # 将json映射到html
-    flash(u'每隔10秒刷新 ' + start_url + u' 的实时采集信息。')
+    flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。')
     return render_template('show_process.html',
                            times=times,
                            rule1_cnt=rule1_cnt,
@@ -1047,11 +1073,15 @@ def show_server_log():
     if os.name == 'nt':
         import random
         f = open('web_server.log', 'r').readlines()
-        l = []
-        for i in range(80):
-            num = random.random()
-            n = int(num * len(f))
-            l.append(f[n])
+        # l = []
+        # for i in range(80):
+        #     num = random.random()
+        #     n = int(num * len(f))
+        #     l.append(f[n])
+        if len(f) >= 80:
+            l = f[-80:]
+        else:
+            l = f
         server_log_list = l
 
     else:
@@ -1414,6 +1444,27 @@ def reset_zero():
     fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
     fp.write('')
     fp.close()
+
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    redis_db.conn.zremrangebyscore(redis_db.list_urls_zset_key, min=-1, max=999999)
+    for i in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+        redis_db.conn.smove(redis_db.detail_urls_set_key, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.hgetall(redis_db.process_cnt_hset_key):
+        redis_db.conn.hdel(redis_db.process_cnt_hset_key, i)
+
     return redirect(url_for('show_process'), 302)
 
 
