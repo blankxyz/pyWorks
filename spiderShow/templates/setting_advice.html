@@ -11,8 +11,7 @@
             <!-- 推荐 -->
             function get_advice(e) {
                 var site_domain = $('input[id="site_domain"]').val()
-                alert(site_domain);
-
+                {#                alert(site_domain);#}
                 $.ajax({
                     url: $SCRIPT_ROOT + '/setting_advice',
                     contentType: "application/json; charset=UTF-8",
@@ -27,11 +26,31 @@
                     success: function (data, textStatus) {
                         alert(data);
                         $('#advice_result').text(data);
-                        window.open("show_advice", "_blank", "top=400,left=400,width=400,height=400,menubar=yes,scrollbars=no,toolbar=yes,status=yes");
                     }
                 });
             };
             $('#advice_btn').click(get_advice);
+
+            {#### 推荐链接 ###################################################}
+            $("a").click(function () {
+                var id_str = $(this).attr("id");
+                {#$(this).css("color","red");#}
+                if (id_str.search("regex") >= 0) {
+                    {#  regex_score_4 -> regex_list-3-regex  #}
+                    alert("id_str:" + id_str);
+                    regex_id = "#regex_list-" + (parseInt(id_str.substr("regex_score_".length))-1).toString() + "-regex";
+                    expr = $(regex_id).val();
+                    alert(regex_id + ":" + expr);
+                } else {
+                    alert("keyword:" + id_str);
+                    regex_id = "#regex_list-" + (parseInt(id_str.substr("keyword_score_".length))-1).toString() + "-regex";
+                    expr = $(regex_id).val();
+                    alert(regex_id + ":" + expr);
+                }
+                window.open("setting_advice_window?regex=" + expr, "_blank",
+                        "top=400,left=400,width=700,height=400,menubar=no,scrollbars=yes,toolbar=no,status=no");
+            });
+
         });
     </script>
 {% endblock %}
@@ -52,7 +71,7 @@
         {% endwith %}
     </div>
 
-    <form id="setting" method="POST" action="/list_save_and_run">
+    <form id="setting" method="POST" action="/setting_advice">
         <hr>
         <div id="config" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
@@ -60,11 +79,11 @@
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
             形式增加。
             {{ inputForm.advice(id="advice_btn") }}
-{#            <input type="button" id="advice_btn" value="推荐">#}
+            {#            <input type="button" id="advice_btn" value="推荐">#}
         </div>
         <hr>
-        <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
-            <table id="list-regex-tab" class="table table-striped table-hover">
+        <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:10px">
+            <table id="regex_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th>正则表达式</th>
@@ -74,17 +93,20 @@
                 </thead>
                 <tbody>
                 {% for row in inputForm.regex_list %}
-                    <tr id= {{ "list_" ~ loop.index }}>
-                        <td>{{ row.regex(size=60) }}</td>
-                        <td><a href="/user_search">{{ row.score(readonly="readonly",size=5) }}</a></td>
+                    <tr id= {{ "regex_" ~ loop.index }}>
+                        <td {{ "regex_expr_"~ loop.index }}>{{ row.regex(size=60) }}</td>
+                        <td>
+                            <a id={{ "regex_score_" ~ loop.index }} href="#">
+                                {{ row.score(readonly="readonly",size=5) }}</a>
+                        </td>
                         <td>{{ row.select() }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
-        <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-left:10px">
-            <table id="detail-regex-tab" class="table table-striped table-hover">
+        <div id="keyword_div" class="form-group" style="float:right;width:48%; margin-left:10px">
+            <table id="keyword_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th>关键字</th>
@@ -94,9 +116,12 @@
                 </thead>
                 <tbody>
                 {% for row in inputForm.keyword_list %}
-                    <tr id= {{ "detail_" ~ loop.index }}>
-                        <td>{{ row.keyword(size=60) }}</td>
-                        <td><a href="/user_search">{{ row.score(readonly="readonly",size=5) }}</a></td>
+                    <tr id= {{ "keyword_" ~ loop.index }}>
+                        <td id={{ "keyword_expr_"~ loop.index }}>{{ row.keyword(size=60) }}</td>
+                        <td>
+                            <a id={{ "keyword_score_"~ loop.index }} href="#">
+                                {{ row.score(readonly="readonly",size=5) }}</a>
+                        </td>
                         <td>{{ row.select() }}</td>
                     </tr>
                 {% endfor %}

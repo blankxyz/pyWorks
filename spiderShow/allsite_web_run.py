@@ -82,7 +82,7 @@ api = Api(app)  # restful
 global process_id
 
 
-######## advice_setting.html ###################################################################################
+######## advice_setting.html ##############################################################################
 class AdviceRegexForm(Form):  # advice_setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}//[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     score = IntegerField(label=u'匹配数', default=0)
@@ -107,7 +107,16 @@ class AdviceRegexListInputForm(Form):  # setting
     advice = SubmitField(label=u'推荐')
 
 
-######## setting.html ##########################################################################################
+######## advice_setting_window.html #######################################################################
+class AdviceUrlForm(Form):
+    url = StringField(label=u'url')
+
+
+class AdviceUrlListForm(Form):
+    url_list = FieldList(FormField(AdviceUrlForm), label=u'URL列表')
+
+
+######## setting.html #####################################################################################
 class RegexForm(Form):  # setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
@@ -858,10 +867,9 @@ def convert_to_regex():
 
 @app.route('/setting_advice', methods=["GET", "POST"])
 def setting_advice():
-    ret = {}
+    inputForm = AdviceRegexListInputForm(request.form)
     start_url = request.args.get('start_url')
     site_domain = request.args.get('site_domain')
-    inputForm = AdviceRegexListInputForm(request.form)
 
     # 执行抓取程序
     if inputForm.advice.data:
@@ -896,13 +904,28 @@ def setting_advice():
             "list": 312,
             "no": 33
         },
+        ["http://bbs.tianya.cn/list-play-1.shtml",
+         "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
+         "http://bbs.tianya.cn/list-153-1.shtml",
+         "http://bbs.tianya.cn/list-245-1.shtml",
+         "http://bbs.tianya.cn/list-49-1.shtml",
+         "http://bbs.tianya.cn/list-1172-1.shtml",
+         "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
+         "http://bbs.tianya.cn/list-96-1.shtml",
+         "http://bbs.tianya.cn/list-218-1.shtml",
+         "http://bbs.tianya.cn/post-934-107964-1.shtml",
+         "http://bbs.tianya.cn/list-5154-1.shtml",
+         "http://bbs.tianya.cn/list-341-1.shtml",
+         "http://bbs.tianya.cn/list-1156-1.shtml"]
     ]
     # return json.dumps(jsonStr, sort_keys=True)
     advice_regex_list = jsonStr[0]
     advice_keyword_list = jsonStr[1]
+    url_list = jsonStr[2]
 
     print advice_regex_list
     print advice_keyword_list
+    print url_list
 
     '''
       从MySql初始化Web页面和Redis
@@ -952,6 +975,76 @@ def setting_advice():
 
     flash(u'初始化配置完成')
     return render_template('setting_advice.html', inputForm=inputForm)
+
+
+@app.route('/setting_advice_window', methods=['GET', 'POST'])
+def setting_advice_window():
+
+    inputForm = AdviceRegexListInputForm(request.form)
+    regex = request.args.get('regex')
+    print 'setting_advice_window() start.',regex
+
+    fp = open(EXPORT_FOLDER + '/advice(bbs.tianya.cn).json', "r")
+    jsonStr = json.load(fp)
+    fp.close()
+    print jsonStr
+
+    jsonStr = [
+        {
+            "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
+            "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
+            "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
+            "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
+            "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
+            "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
+            "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
+        },
+        {
+            "funinfo": 44,
+            "post": 248,
+            "list": 312,
+            "no": 33
+        },
+        ["http://bbs.tianya.cn/list-play-1.shtml",
+         "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
+         "http://bbs.tianya.cn/list-153-1.shtml",
+         "http://bbs.tianya.cn/list-245-1.shtml",
+         "http://bbs.tianya.cn/list-49-1.shtml",
+         "http://bbs.tianya.cn/list-1172-1.shtml",
+         "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
+         "http://bbs.tianya.cn/list-96-1.shtml",
+         "http://bbs.tianya.cn/list-218-1.shtml",
+         "http://bbs.tianya.cn/post-934-107964-1.shtml",
+         "http://bbs.tianya.cn/list-5154-1.shtml",
+         "http://bbs.tianya.cn/list-341-1.shtml",
+         "http://bbs.tianya.cn/list-1156-1.shtml"]
+    ]
+    # return json.dumps(jsonStr, sort_keys=True)
+    url_list = jsonStr[2]
+    print url_list
+
+    matched_url_list = []
+    for url in url_list:
+        if re.search(regex,url):
+            matched_url_list.append(url)
+
+    print regex, '->', matched_url_list
+
+    INIT_MAX = 10
+    user_id = session['user_id']
+    inputForm = AdviceUrlListForm()
+
+    ####  页面(url)
+    for url in matched_url_list:
+        regexForm = AdviceUrlForm()
+        regexForm.url = url
+        inputForm.url_list.append_entry(regexForm)
+
+    for j in range(INIT_MAX - len(matched_url_list)):
+        inputForm.url_list.append_entry()
+
+    flash(u'初始化配置完成')
+    return render_template('setting_advice_window.html', inputForm=inputForm)
 
 
 @app.route('/user_search', methods=['GET', 'POST'])

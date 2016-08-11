@@ -47,6 +47,7 @@ BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
 DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
 LIST_RULE_LIST = config.get('spider', 'list_rule_list')
 
+
 #############################################################################
 class Util(object):
     def __init__(self):
@@ -61,15 +62,13 @@ class Util(object):
             path = path[:pos]
         else:
             suffix = ''
-        # print suffix,path
         split_path = path.split('/')
-        # print split_path
         new_path_list = []
         for p in split_path:
             # regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
             regex = re.sub(r'\d', '\d', p)
             new_path_list.append(self.convert_regex_format(regex))
-        # print new_path
+
         new_path = '/'.join(new_path_list) + suffix
         return urlparse.urlunparse(('', '', new_path, '', '', ''))
 
@@ -113,7 +112,6 @@ class Util(object):
 
     def merge_digit(self, rules):
         print '[INFO]merge_digit() start.', len(rules), rules
-        # rules.sort()
         for i in range(len(rules)):
             for j in range(i + 1, len(rules), 1):
                 if self.is_same_rule(rules[i], rules[j]):
@@ -414,7 +412,6 @@ class MySpider(spider.Spider):
                 if path == '': path = '/'
                 link = urlparse.urlunparse(('', '', path, params, query, ''))
                 # url = urlparse.urljoin(org_url, urllib.quote(link))
-                # print '[INFO]urljoin()', org_url, link
                 url = urlparse.urljoin(org_url, link)
 
             urls.append(url)
@@ -449,7 +446,8 @@ class MySpider(spider.Spider):
     def parse_detail_page(self, response=None, url=None):
         print '[INFO]parse_detail_page() start.'
         advice_regex_dic = {}
-        advice_merge_word_list = []
+        advice_words_dic = {}
+        links = []
         util = Util()
 
         if response is None: return []
@@ -493,7 +491,7 @@ class MySpider(spider.Spider):
         print '[INFO]parse_detail_page() end.', len(advice_regex_dic), advice_regex_dic
         print '[INFO]parse_detail_page() end.', len(advice_words_dic), advice_words_dic
 
-        return advice_regex_dic, advice_words_dic, advice_merge_word_list, links
+        return advice_regex_dic, advice_words_dic, links
 
 
 ########################################################################################

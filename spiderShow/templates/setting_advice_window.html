@@ -1,0 +1,29 @@
+{% extends "bootstrap/base.html" %}
+{% block scripts %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <!-- DataTables -->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript">
+
+    </script>
+{% endblock %}
+{% block content %}
+        <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:10px">
+            <table id="regex_tab" class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>URL</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in inputForm.url_list %}
+                    <tr id= {{ "url_no_" ~ loop.index }}>
+                        <td>{{ row.url(size=60) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+{% endblock %}
