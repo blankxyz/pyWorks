@@ -37,20 +37,20 @@
                 {#$(this).css("color","red");#}
                 if (id_str.search("regex") >= 0) {
                     {#  regex_score_4 -> regex_list-3-regex  #}
-                    alert("id_str:" + id_str);
+{#                    alert("id_str:" + id_str);#}
                     regex_id = "#regex_list-" + (parseInt(id_str.substr("regex_score_".length))-1).toString() + "-regex";
                     expr = $(regex_id).val();
-                    alert(regex_id + ":" + expr);
+{#                    alert(regex_id + ":" + expr);#}
                 } else {
-                    alert("keyword:" + id_str);
-                    regex_id = "#regex_list-" + (parseInt(id_str.substr("keyword_score_".length))-1).toString() + "-regex";
+                    {#  keyword_score_4 -> keyword_list-3-keyword  #}
+{#                    alert("keyword:" + id_str);#}
+                    regex_id = "#keyword_list-" + (parseInt(id_str.substr("keyword_score_".length))-1).toString() + "-keyword";
                     expr = $(regex_id).val();
-                    alert(regex_id + ":" + expr);
+{#                    alert(regex_id + ":" + expr);#}
                 }
                 window.open("setting_advice_window?regex=" + expr, "_blank",
-                        "top=400,left=400,width=700,height=400,menubar=no,scrollbars=yes,toolbar=no,status=no");
+                        "top=400,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no");
             });
-
         });
     </script>
 {% endblock %}
@@ -76,8 +76,7 @@
         <div id="config" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
-            {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20) }}&nbsp;请按照域名 + ‘;’
-            形式增加。
+            {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
             {{ inputForm.advice(id="advice_btn") }}
             {#            <input type="button" id="advice_btn" value="推荐">#}
         </div>

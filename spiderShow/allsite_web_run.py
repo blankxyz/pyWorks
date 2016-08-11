@@ -99,7 +99,7 @@ class AdviceRegexListInputForm(Form):  # setting
     start_url = StringField(label=u'主页')
     site_domain = StringField(label=u'限定域名')
     white_list = StringField(label=u'白名单')
-    black_domain_str = StringField(label=u'域名黑名单')
+    black_domain_str = StringField(label=u'域名黑名单', description='请按照 域名1;域名2;域名3; 形式增加。')
 
     regex_list = FieldList(FormField(AdviceRegexForm), label=u'正则表达式')
     keyword_list = FieldList(FormField(AdviceKeyWordForm), label=u'关键字')
@@ -867,57 +867,80 @@ def convert_to_regex():
 
 @app.route('/setting_advice', methods=["GET", "POST"])
 def setting_advice():
+    print '[info]setting_advice() start.'
+    INIT_MAX = 10
+    user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
-    start_url = request.args.get('start_url')
-    site_domain = request.args.get('site_domain')
+
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    print '[info]setting_advice()', user_id, start_url, site_domain, black_domain_str
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('setting_advice.html', inputForm=inputForm)
 
     # 执行抓取程序
     if inputForm.advice.data:
+        mysql_db = MySqlDrive()
+        mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
+                                          black_domain_str=black_domain_str, setting_json='')
+
+        #### 修改配置文件的执行入口信息
+        util = Util()
+        ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
+                                 black_domain_str=black_domain_str,
+                                 list_rule_str='', detail_rule_str='', mode='all')
+        if ret == False:
+            flash(u"修改" + INIT_CONFIG + u"文件失败.")
+            print u'[error]setting_advice() modify ' + INIT_CONFIG + u' failure.'
+            return render_template('setting_advice.html', inputForm=inputForm)
+
         if os.name == 'nt':
             # DOS "start" command
-            print '[info] run windows', SHELL_ADVICE_CMD
+            print '[info] Run on windows.', SHELL_ADVICE_CMD
             os.startfile(SHELL_ADVICE_CMD)
         else:
-            print '[info] run linux', SHELL_ADVICE_CMD
+            print '[info] Run on linux.', SHELL_ADVICE_CMD
             p = subprocess.Popen(SHELL_ADVICE_CMD, shell=True)
             process_id = p.pid
             print '[info] process_id:', process_id
 
-    fp = open(EXPORT_FOLDER + '/advice(bbs.tianya.cn).json', "r")
+    fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
     jsonStr = json.load(fp)
     fp.close()
     print jsonStr
 
-    jsonStr = [
-        {
-            "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
-            "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
-            "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
-            "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
-            "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
-            "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
-            "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
-        },
-        {
-            "funinfo": 44,
-            "post": 248,
-            "list": 312,
-            "no": 33
-        },
-        ["http://bbs.tianya.cn/list-play-1.shtml",
-         "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
-         "http://bbs.tianya.cn/list-153-1.shtml",
-         "http://bbs.tianya.cn/list-245-1.shtml",
-         "http://bbs.tianya.cn/list-49-1.shtml",
-         "http://bbs.tianya.cn/list-1172-1.shtml",
-         "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
-         "http://bbs.tianya.cn/list-96-1.shtml",
-         "http://bbs.tianya.cn/list-218-1.shtml",
-         "http://bbs.tianya.cn/post-934-107964-1.shtml",
-         "http://bbs.tianya.cn/list-5154-1.shtml",
-         "http://bbs.tianya.cn/list-341-1.shtml",
-         "http://bbs.tianya.cn/list-1156-1.shtml"]
-    ]
+    # jsonStr = [
+    #     {
+    #         "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
+    #         "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
+    #         "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
+    #         "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
+    #         "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
+    #         "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
+    #         "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
+    #     },
+    #     {
+    #         "funinfo": 44,
+    #         "post": 248,
+    #         "list": 312,
+    #         "no": 33
+    #     },
+    #     ["http://bbs.tianya.cn/list-play-1.shtml",
+    #      "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
+    #      "http://bbs.tianya.cn/list-153-1.shtml",
+    #      "http://bbs.tianya.cn/list-245-1.shtml",
+    #      "http://bbs.tianya.cn/list-49-1.shtml",
+    #      "http://bbs.tianya.cn/list-1172-1.shtml",
+    #      "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
+    #      "http://bbs.tianya.cn/list-96-1.shtml",
+    #      "http://bbs.tianya.cn/list-218-1.shtml",
+    #      "http://bbs.tianya.cn/post-934-107964-1.shtml",
+    #      "http://bbs.tianya.cn/list-5154-1.shtml",
+    #      "http://bbs.tianya.cn/list-341-1.shtml",
+    #      "http://bbs.tianya.cn/list-1156-1.shtml"]
+    # ]
     # return json.dumps(jsonStr, sort_keys=True)
     advice_regex_list = jsonStr[0]
     advice_keyword_list = jsonStr[1]
@@ -930,9 +953,6 @@ def setting_advice():
     '''
       从MySql初始化Web页面和Redis
     '''
-    INIT_MAX = 10
-    user_id = session['user_id']
-    # user_id = 'admin'
     inputForm = AdviceRegexListInputForm()
 
     mysql_db = MySqlDrive()
@@ -979,61 +999,55 @@ def setting_advice():
 
 @app.route('/setting_advice_window', methods=['GET', 'POST'])
 def setting_advice_window():
-
-    inputForm = AdviceRegexListInputForm(request.form)
+    user_id = session['user_id']
+    INIT_MAX = 10
     regex = request.args.get('regex')
-    print 'setting_advice_window() start.',regex
+    print '[info]setting_advice_window() start.', regex
 
     fp = open(EXPORT_FOLDER + '/advice(bbs.tianya.cn).json', "r")
     jsonStr = json.load(fp)
     fp.close()
-    print jsonStr
-
-    jsonStr = [
-        {
-            "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
-            "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
-            "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
-            "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
-            "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
-            "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
-            "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
-        },
-        {
-            "funinfo": 44,
-            "post": 248,
-            "list": 312,
-            "no": 33
-        },
-        ["http://bbs.tianya.cn/list-play-1.shtml",
-         "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
-         "http://bbs.tianya.cn/list-153-1.shtml",
-         "http://bbs.tianya.cn/list-245-1.shtml",
-         "http://bbs.tianya.cn/list-49-1.shtml",
-         "http://bbs.tianya.cn/list-1172-1.shtml",
-         "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
-         "http://bbs.tianya.cn/list-96-1.shtml",
-         "http://bbs.tianya.cn/list-218-1.shtml",
-         "http://bbs.tianya.cn/post-934-107964-1.shtml",
-         "http://bbs.tianya.cn/list-5154-1.shtml",
-         "http://bbs.tianya.cn/list-341-1.shtml",
-         "http://bbs.tianya.cn/list-1156-1.shtml"]
-    ]
+    print '[info]advice.json ', jsonStr
+    # jsonStr = [
+    #     {
+    #         "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
+    #         "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
+    #         "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
+    #         "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
+    #         "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
+    #         "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
+    #         "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
+    #     },
+    #     {
+    #         "funinfo": 44,
+    #         "post": 248,
+    #         "list": 312,
+    #         "no": 33
+    #     },
+    #     ["http://bbs.tianya.cn/list-play-1.shtml",
+    #      "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
+    #      "http://bbs.tianya.cn/list-153-1.shtml",
+    #      "http://bbs.tianya.cn/list-245-1.shtml",
+    #      "http://bbs.tianya.cn/list-49-1.shtml",
+    #      "http://bbs.tianya.cn/list-1172-1.shtml",
+    #      "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
+    #      "http://bbs.tianya.cn/list-96-1.shtml",
+    #      "http://bbs.tianya.cn/list-218-1.shtml",
+    #      "http://bbs.tianya.cn/post-934-107964-1.shtml",
+    #      "http://bbs.tianya.cn/list-5154-1.shtml",
+    #      "http://bbs.tianya.cn/list-341-1.shtml",
+    #      "http://bbs.tianya.cn/list-1156-1.shtml"]
+    # ]
     # return json.dumps(jsonStr, sort_keys=True)
     url_list = jsonStr[2]
-    print url_list
-
     matched_url_list = []
     for url in url_list:
-        if re.search(regex,url):
+        if re.search(regex, url):
             matched_url_list.append(url)
 
-    print regex, '->', matched_url_list
+    # print regex, '->', matched_url_list
 
-    INIT_MAX = 10
-    user_id = session['user_id']
     inputForm = AdviceUrlListForm()
-
     ####  页面(url)
     for url in matched_url_list:
         regexForm = AdviceUrlForm()
