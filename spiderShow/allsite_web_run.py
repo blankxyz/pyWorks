@@ -819,7 +819,9 @@ class Util(object):
             print "[error] modify_config(): %s" % e
             return False
 
-    #####  推荐算法  start  ################################################################
+
+        #####  推荐算法  start  ################################################################
+
     def convert_path_to_rule_advice(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         # print path
@@ -1118,7 +1120,9 @@ class Util(object):
         # print '[info]advice_regex_keyword() end.', len(advice_regex_dic), advice_regex_dic
         # print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
         return advice_regex_dic, advice_words_dic
-        #####  推荐算法  end  ################################################################
+
+
+#####  推荐算法  end  ################################################################
 
 
 ######### router and action  ###############################################################################
@@ -1171,7 +1175,7 @@ def convert_to_regex():
     return jsonStr
 
 
-######### 推荐  #############################################################################
+######### advice ###########################################################################
 @app.route('/setting_advice', methods=["GET", "POST"])
 def setting_advice():
     print '[info]setting_advice() start.'
@@ -1305,8 +1309,12 @@ def setting_advice_save():
         else:
             continue
 
+    if len(detail_regex_save_list) == 0 and len(list_regex_save_list) == 0:
+        flash(u'请选择采用规则或关键字的类别。')
+        return render_template('setting_advice.html', inputForm=inputForm)
+
     cnt = mysql_db.save_all_setting(user_id, start_url, site_domain, '', black_domain_str,
-                              detail_regex_save_list, list_regex_save_list)
+                                    detail_regex_save_list, list_regex_save_list)
     if cnt == 1:
         flash(u"采用项目保存完成.")
         print u'[info]setting_list_save_and_run() MySQL save success.'
