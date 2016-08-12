@@ -92,7 +92,7 @@ class AdviceRegexForm(Form):  # advice_setting
 class AdviceKeyWordForm(Form):  # advice_setting
     keyword = StringField(label=u'关键字')
     score = IntegerField(label=u'匹配数', default=0)
-    select = SelectField(label=u'权重', choices=[('0', u'-'), ('1', u'列表'), ('2', u'详情')])
+    select = SelectField(label=u'采用', choices=[('0', u'-'), ('1', u'列表'), ('2', u'详情')])
 
 
 class AdviceRegexListInputForm(Form):  # setting
@@ -878,7 +878,7 @@ class Util(object):
         return ret
 
     def merge_digit(self, rules):
-        print '[INFO]merge_digit() start.', len(rules), rules
+        # print '[INFO]merge_digit() start.', len(rules), rules
         for i in range(len(rules)):
             for j in range(i + 1, len(rules), 1):
                 if self.is_same_rule(rules[i], rules[j]):
@@ -894,7 +894,7 @@ class Util(object):
 
         rules = list(set(rules))
         rules.sort()
-        print '[INFO]merge_digit() end.', len(rules), rules
+        # print '[INFO]merge_digit() end.', len(rules), rules
         return rules
 
     def is_same_rule(self, rule1, rule2):
@@ -948,7 +948,7 @@ class Util(object):
         return words
 
     def get_regexs_words_with_score(self, regexs, urls):
-        print '[INFO]get_regexs_words_score() start.'
+        # print '[INFO]get_regexs_words_score() start.'
         ''' regexs:
             ['/post-\\d{2,2}-\\d{6,6}-\\d{1,1}.shtml',
              '/post-\\d{2,2}-\\d{7,7}-\\d{1,1}.shtml',
@@ -994,11 +994,11 @@ class Util(object):
             (k, v) = i
             sum += v
 
-        print '[INFO]get_regexs_words_score() end.', len(all_words_dic), 'sum=', sum, all_words_dic
+        # print '[INFO]get_regexs_words_score() end.', len(all_words_dic), 'sum=', sum, all_words_dic
         return all_words_dic
 
     def get_hot_words(self, all_words_dic):
-        print '[INFO]get_hot_words() start.', all_words_dic
+        # print '[INFO]get_hot_words() start.', all_words_dic
         ret_dict = {}
 
         sum = 0
@@ -1015,11 +1015,11 @@ class Util(object):
                 ret_dict.update({k: v})
                 s += v
 
-        print '[INFO]get_hot_words() end.', s, '/', sum, ret_dict
+        # print '[INFO]get_hot_words() end.', s, '/', sum, ret_dict
         return ret_dict
 
     def get_hot_regexs_with_score(self, merge_digit_list, urls):
-        print '[INFO]get_hot_regexs_with_score() start.', len(urls), urls
+        # print '[INFO]get_hot_regexs_with_score() start.', len(urls), urls
         ret_dict = {}
         for regex in merge_digit_list:
             r_cnt = 0
@@ -1045,11 +1045,11 @@ class Util(object):
             (k, v) = i
             sum += v
 
-        print '[INFO]get_hot_regexs_with_score() end.', len(ret_dict), 'sum=', sum, ret_dict
+        # print '[INFO]get_hot_regexs_with_score() end.', len(ret_dict), 'sum=', sum, ret_dict
         return ret_dict
 
     def get_hot_regexs(self, regexs_dic):
-        print '[INFO]get_hot_regexs() start.', len(regexs_dic), regexs_dic
+        # print '[INFO]get_hot_regexs() start.', len(regexs_dic), regexs_dic
         ret_dict = {}
 
         sum = 0
@@ -1066,11 +1066,11 @@ class Util(object):
                 ret_dict.update({k: v})
                 s += v
 
-        print '[INFO]get_hot_regexs() end.', s, '/', sum, ret_dict
+        # print '[INFO]get_hot_regexs() end.', s, '/', sum, ret_dict
         return ret_dict
 
     def merge_word(self, advice_regex_dic, ignore_words):
-        print '[INFO]merge_word() start.', advice_regex_dic, ignore_words
+        # print '[INFO]merge_word() start.', advice_regex_dic, ignore_words
         ret_merged_list = []
         merged_word = {}
         for k, v in advice_regex_dic.items():
@@ -1090,11 +1090,11 @@ class Util(object):
         l = [k for k, v in merged_word.items()]
         ret_merged_list = self.merge_digit(l)
 
-        print '[INFO]merge_word() end.', ret_merged_list
+        # print '[INFO]merge_word() end.', ret_merged_list
         return ret_merged_list
 
     def advice_regex_keyword(self, links):
-        print '[info]advice_regex_keyword() start.'
+        # print '[info]advice_regex_keyword() start.'
         regexs = []
         for link in links:
             if link != '' and link[-1] != '/':
@@ -1115,8 +1115,8 @@ class Util(object):
         word_dic = self.get_regexs_words_with_score(merge_digit_list, links)
         advice_words_dic = self.get_hot_words(word_dic)
 
-        print '[info]advice_regex_keyword() end.', len(advice_regex_dic), advice_regex_dic
-        print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
+        # print '[info]advice_regex_keyword() end.', len(advice_regex_dic), advice_regex_dic
+        # print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
         return advice_regex_dic, advice_words_dic
         #####  推荐算法  end  ################################################################
 
@@ -1183,10 +1183,20 @@ def setting_advice():
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    # print '[info]setting_advice()', user_id, start_url, site_domain, black_domain_str
-    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
+    if start_url is None or start_url.strip() == '' or \
+                    site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、域名信息。')
+        for j in range(INIT_MAX):
+            inputForm.regex_list.append_entry()
+
+        for j in range(INIT_MAX):
+            inputForm.keyword_list.append_entry()
+
         return render_template('setting_advice.html', inputForm=inputForm)
+    else:
+        inputForm.start_url.data = start_url
+        inputForm.site_domain.data = site_domain
+        inputForm.black_domain_str.data = black_domain_str
 
     # 执行抓取程序
     if inputForm.advice.data:
@@ -1203,16 +1213,19 @@ def setting_advice():
             print u'[error]setting_advice() modify ' + INIT_CONFIG + u' failure.'
             return render_template('setting_advice.html', inputForm=inputForm)
 
+        # windows
         if os.name == 'nt':
             # DOS "start" command
             print '[info] Run on windows.', SHELL_ADVICE_CMD
             os.startfile(SHELL_ADVICE_CMD)
+        # linux
         else:
             print '[info] Run on linux.', SHELL_ADVICE_CMD
             p = subprocess.Popen(SHELL_ADVICE_CMD, shell=True)
             process_id = p.pid
             print '[info] process_id:', process_id
 
+    #############################################################################
     fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
     jsonStr = json.load(fp)
     fp.close()
@@ -1221,11 +1234,41 @@ def setting_advice():
     url_list = jsonStr
     advice_regex_list, advice_keyword_list = util.advice_regex_keyword(url_list)
 
-    '''
-      从MySql初始化Web页面和Redis
-    '''
-    inputForm = AdviceRegexListInputForm()
+    ####  页面(regex)
+    for (regex, score) in advice_regex_list.items():
+        regexForm = AdviceRegexForm()
+        regexForm.regex = regex
+        regexForm.score = int(score)
+        regexForm.select = '0'
+        inputForm.regex_list.append_entry(regexForm)
 
+    for j in range(INIT_MAX - len(advice_regex_list)):
+        inputForm.regex_list.append_entry()
+
+    ####  页面(keyword)
+    for (keyword, score) in advice_keyword_list.items():
+        regexForm = AdviceKeyWordForm()
+        regexForm.keyword = keyword
+        regexForm.score = int(score)
+        regexForm.select = '0'
+        inputForm.keyword_list.append_entry(regexForm)
+
+    for j in range(INIT_MAX - len(advice_keyword_list)):
+        inputForm.keyword_list.append_entry()
+
+    flash(u'初始化配置完成')
+    print '[info]setting_advice() end.'
+    return render_template('setting_advice.html', inputForm=inputForm)
+
+
+@app.route('/setting_advice_save', methods=["GET", "POST"])
+def setting_advice_save():
+    print '[info]setting_advice_save() start.'
+    INIT_MAX = 10
+    user_id = session['user_id']
+    inputForm = AdviceRegexListInputForm(request.form)
+
+    # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or \
@@ -1243,28 +1286,34 @@ def setting_advice():
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
 
-    ####  页面(regex)
-    for (regex, score) in advice_regex_list.items():
-        regexForm = AdviceRegexForm()
-        regexForm.regex = regex
-        regexForm.score = int(score)
-        regexForm.select = True
-        inputForm.regex_list.append_entry(regexForm)
+    detail_regex_save_list = []
+    list_regex_save_list = []
 
-    for j in range(INIT_MAX - len(advice_regex_list)):
-        inputForm.regex_list.append_entry()
+    for item in inputForm.regex_list.data:
+        if item['select'] == '1':  # 列表
+            list_regex_save_list.append({'regex': item['regex'], 'weight': '0'})
+        elif item['select'] == '2':  # 详情
+            detail_regex_save_list.append({'regex': item['regex'], 'weight': '0'})
+        else:
+            continue
 
-    ####  页面(keyword)
-    for (keyword, score) in advice_keyword_list.items():
-        regexForm = AdviceKeyWordForm()
-        regexForm.keyword = keyword
-        regexForm.score = int(score)
-        inputForm.keyword_list.append_entry(regexForm)
+    for item in inputForm.keyword_list.data:
+        if item['select'] == '1':  # 列表
+            list_regex_save_list.append({'regex': item['keyword'], 'weight': '0'})
+        elif item['select'] == '2':  # 详情
+            detail_regex_save_list.append({'regex': item['keyword'], 'weight': '0'})
+        else:
+            continue
 
-    for j in range(INIT_MAX - len(advice_keyword_list)):
-        inputForm.keyword_list.append_entry()
+    cnt = mysql_db.save_all_setting(user_id, start_url, site_domain, '', black_domain_str,
+                              detail_regex_save_list, list_regex_save_list)
+    if cnt == 1:
+        flash(u"采用项目保存完成.")
+        print u'[info]setting_list_save_and_run() MySQL save success.'
+    else:
+        flash(u"采用项目保存失败.")
+        print u'[error]setting_list_save_and_run() MySQL save failure.'
 
-    flash(u'初始化配置完成')
     return render_template('setting_advice.html', inputForm=inputForm)
 
 
@@ -1289,8 +1338,7 @@ def setting_advice_window():
         if re.search(regex, url):
             matched_url_list.append(url)
 
-    # print regex, '->', matched_url_list
-
+    # print '[info]setting_advice_window()',regex, '->', matched_url_list
     inputForm = AdviceUrlListForm()
     ####  页面(url)
     for url in matched_url_list:
@@ -1301,7 +1349,6 @@ def setting_advice_window():
     for j in range(INIT_MAX - len(matched_url_list)):
         inputForm.url_list.append_entry()
 
-    flash(u'初始化配置完成')
     return render_template('setting_advice_window.html', inputForm=inputForm)
 
 
@@ -1507,26 +1554,20 @@ def show_server_log():
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    print 'show_server_log()', start_url, site_domain, black_domain_str
+    print '[info]show_server_log()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
 
     # windows
     if os.name == 'nt':
-        import random
         f = open('web_server.log', 'r').readlines()
-        # l = []
-        # for i in range(80):
-        #     num = random.random()
-        #     n = int(num * len(f))
-        #     l.append(f[n])
         if len(f) >= 80:
             l = f[-80:]
         else:
             l = f
         server_log_list = l
-
+    # linux
     else:
         if inputForm.unkown_sel.data:
             cmd = 'tail -10000 ./web_server.log | grep unkown |tail -80'

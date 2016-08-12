@@ -78,9 +78,11 @@
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
             {{ inputForm.advice(id="advice_btn") }}
-            {#            <input type="button" id="advice_btn" value="推荐">#}
+            {# <input type="button" id="advice_btn" value="推荐">#}
         </div>
-        <hr>
+    </form>
+    <hr>
+    <form id="setting" method="POST" action="/setting_advice_save">
         <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:10px">
             <table id="regex_tab" class="table table-striped table-hover">
                 <thead>
