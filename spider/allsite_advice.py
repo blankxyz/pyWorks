@@ -445,10 +445,10 @@ class MySpider(spider.Spider):
 
     def parse_detail_page(self, response=None, url=None):
         print '[INFO]parse_detail_page() start.'
-        advice_regex_dic = {}
-        advice_words_dic = {}
+        # advice_regex_dic = {}
+        # advice_words_dic = {}
         links = []
-        util = Util()
+        # util = Util()
 
         if response is None: return []
 
@@ -462,25 +462,25 @@ class MySpider(spider.Spider):
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
             links = list(set(links))
-            regexs = []
-            for link in links:
-                if link != '' and link[-1] != '/':
-                    regex = util.convert_path_to_rule_advice(link)
-                    if regex != '': regexs.append(regex)
-
-            # 转换规则后
-            regexs = list(set(regexs))
-            regexs.sort()
-
-            merge_digit_list = util.merge_digit(regexs)
-            merge_digit_list.append('\/$')
-            merge_digit_list.sort()
-
-            regex_dic = util.get_hot_regexs_with_score(merge_digit_list, links)
-            advice_regex_dic = util.get_hot_regexs(regex_dic)
-
-            word_dic = util.get_regexs_words_with_score(merge_digit_list, links)
-            advice_words_dic = util.get_hot_words(word_dic)
+            # regexs = []
+            # for link in links:
+            #     if link != '' and link[-1] != '/':
+            #         regex = util.convert_path_to_rule_advice(link)
+            #         if regex != '': regexs.append(regex)
+            #
+            # # 转换规则后
+            # regexs = list(set(regexs))
+            # regexs.sort()
+            #
+            # merge_digit_list = util.merge_digit(regexs)
+            # merge_digit_list.append('\/$')
+            # merge_digit_list.sort()
+            #
+            # regex_dic = util.get_hot_regexs_with_score(merge_digit_list, links)
+            # advice_regex_dic = util.get_hot_regexs(regex_dic)
+            #
+            # word_dic = util.get_regexs_words_with_score(merge_digit_list, links)
+            # advice_words_dic = util.get_hot_words(word_dic)
 
             # ignore_words = list(set([k for k, v in advice_words_dic.items()]) - set(['list', 'post', 'thread']))
             # advice_merge_word_list = util.merge_word(advice_regex_dic, ignore_words)
@@ -488,10 +488,11 @@ class MySpider(spider.Spider):
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
 
-        print '[INFO]parse_detail_page() end.', len(advice_regex_dic), advice_regex_dic
-        print '[INFO]parse_detail_page() end.', len(advice_words_dic), advice_words_dic
+        # print '[INFO]parse_detail_page() end.', len(advice_regex_dic), advice_regex_dic
+        # print '[INFO]parse_detail_page() end.', len(advice_words_dic), advice_words_dic
 
-        return advice_regex_dic, advice_words_dic, links
+        # return advice_regex_dic, advice_words_dic, links
+        return links
 
 
 ########################################################################################

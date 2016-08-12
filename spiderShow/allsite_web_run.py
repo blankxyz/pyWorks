@@ -714,6 +714,7 @@ class Util(object):
     def __init__(self):
         pass
 
+    #####  setting convert start  #############################################
     def convert_path_to_rule(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         # print path
@@ -773,6 +774,8 @@ class Util(object):
                 pos = pos + 1
         return ret
 
+    #####  setting convert end  ##########################################################
+
     def modify_config(self, start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
         try:
             config = ConfigParser.ConfigParser()
@@ -815,6 +818,307 @@ class Util(object):
         except Exception, e:
             print "[error] modify_config(): %s" % e
             return False
+
+    #####  推荐算法  start  ################################################################
+    def convert_path_to_rule_advice(self, url):
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        # print path
+        pos = path.rfind('.')
+        if pos > 0:
+            suffix = path[pos:]
+            path = path[:pos]
+        else:
+            suffix = ''
+        split_path = path.split('/')
+        new_path_list = []
+        for p in split_path:
+            # regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
+            regex = re.sub(r'\d', '\d', p)
+            new_path_list.append(self.convert_regex_format_advice(regex))
+
+        new_path = '/'.join(new_path_list) + suffix
+        return urlparse.urlunparse(('', '', new_path, '', '', ''))
+
+    def convert_regex_format_advice(self, rule):
+        '''
+        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
+        /news/\d{6,6}/[a-zA-Z]\d{8,8}_\d{6,6}.htm
+        '''
+        ret = ''
+        digit = '\d'
+        word = '[a-zA-Z]'
+        cnt = 0
+        pos = 0
+        temp = ''
+        while pos <= len(rule):
+            if rule[pos:pos + len(digit)] == digit:
+                if temp.find(digit) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d,%d}' % (digit, cnt, cnt)
+                pos = pos + len(digit)
+            elif rule[pos:pos + len(word)] == word:
+                if temp.find(word) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d,%d}' % (word, cnt, cnt)
+                pos = pos + len(word)
+            elif pos == len(rule):
+                ret = ret + temp
+                break
+            else:
+                ret = ret + temp + rule[pos]
+                temp = ''
+                cnt = 0
+                pos = pos + 1
+        return ret
+
+    def merge_digit(self, rules):
+        print '[INFO]merge_digit() start.', len(rules), rules
+        for i in range(len(rules)):
+            for j in range(i + 1, len(rules), 1):
+                if self.is_same_rule(rules[i], rules[j]):
+                    rule_new = self.merge_digit_scope(rules[i], rules[j])
+                    # 原有全部替换为新规则
+                    for k in range(len(rules)):
+                        if rules[k] == rules[i]:
+                            rules[k] = rule_new
+
+                    for k in range(len(rules)):
+                        if rules[k] == rules[j]:
+                            rules[k] = rule_new
+
+        rules = list(set(rules))
+        rules.sort()
+        print '[INFO]merge_digit() end.', len(rules), rules
+        return rules
+
+    def is_same_rule(self, rule1, rule2):
+        ret = False
+        if len(rule1) == len(rule2):
+            for i in range(len(rule1)):
+                if rule1[i] != rule2[i]:
+                    if rule1[i].isdigit() and rule2[i].isdigit():
+                        ret = True
+                    else:
+                        return False
+        return ret
+
+    def merge_digit_scope(self, rule1, rule2):
+        ''' {1,2} + {2,3} -> {1,3}'''
+        rule_new = ''
+        for i in range(len(rule1)):
+            if cmp(rule1[i], rule2[i]) < 0:
+                if rule1[i - 1] == '{':
+                    new = rule1[i]
+                else:
+                    new = rule2[i]
+            elif cmp(rule1[i], rule2[i]) > 0:
+                if rule1[i - 1] == '{':  # {M,N}
+                    new = rule2[i]
+                else:
+                    new = rule1[i]
+            else:
+                new = rule1[i]
+
+            rule_new += new
+
+        return rule_new
+
+    def without_digit_regex(self, regex):
+        # '/post-culture-\\d{6,6}-\\d{1,1}.shtml' -> '/post-culture--.shtml'
+        return re.sub(r'\\d\{\d\,\d\}', "", regex)
+
+    def get_words(self, regex):
+        # '/post-culture--.shtml' -> ['post','culture','shtml']
+        words = []
+        word = ''
+        for i in range(len(regex)):
+            if regex[i].isalpha():
+                word += regex[i]
+            else:
+                if word != '':
+                    words.append(word)
+                word = ''
+
+        return words
+
+    def get_regexs_words_with_score(self, regexs, urls):
+        print '[INFO]get_regexs_words_score() start.'
+        ''' regexs:
+            ['/post-\\d{2,2}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-\\d{2,2}-\\d{7,7}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{4,4}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{5,5}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-\\d{3,3}-\\d{7,7}-\\d{1,1}.shtml',
+             '/post-\\d{4,4}-\\d{4,4}-\\d{1,1}.shtml',
+             '/post-\\d{4,4}-\\d{5,5}-\\d{1,1}.shtml',
+             '/post-\\d{4,4}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-no\\d{2,2}-\\d{6,6}-\\d{1,1}.shtml',
+             '/post-no\\d{2,2}-\\d{7,7}-\\d{1,1}.shtml',
+             '/list-\\d{1,1}d-\\d{1,1}.shtml',
+             '/list-\\d{2,4}-\\d{1,1}.shtml',
+             '/list-apply-\\d{1,1}.shtml']
+
+             return  {'apply': 1, 'post': 11, 'list': 3, 'd': 1, 'no': 2}
+        '''
+        all_words = []
+        for regex in regexs:
+            without_digit = self.without_digit_regex(regex)
+            words = self.get_words(without_digit)
+            all_words.extend(words)
+
+        all_words = list(set(all_words))
+        # all_words.sort()
+        # print all_words
+
+        all_words_dic = {}
+        for w in all_words:
+            w_cnt = 0
+            for r in urls:
+                path = urlparse.urlparse(r).path
+                without_digit = self.without_digit_regex(path)
+                words = self.get_words(without_digit)
+                if w in words:
+                    w_cnt += 1  # 匹配次数
+
+            all_words_dic[w] = w_cnt
+
+        sum = 0
+        for i in all_words_dic.iteritems():
+            (k, v) = i
+            sum += v
+
+        print '[INFO]get_regexs_words_score() end.', len(all_words_dic), 'sum=', sum, all_words_dic
+        return all_words_dic
+
+    def get_hot_words(self, all_words_dic):
+        print '[INFO]get_hot_words() start.', all_words_dic
+        ret_dict = {}
+
+        sum = 0
+        for (k, v) in all_words_dic.iteritems():
+            sum += v
+
+        dict = sorted(all_words_dic.iteritems(), key=lambda d: d[1], reverse=True)
+        s = 0
+        for i in dict:
+            (k, v) = i
+            if s >= sum * 0.8:
+                break
+            else:
+                ret_dict.update({k: v})
+                s += v
+
+        print '[INFO]get_hot_words() end.', s, '/', sum, ret_dict
+        return ret_dict
+
+    def get_hot_regexs_with_score(self, merge_digit_list, urls):
+        print '[INFO]get_hot_regexs_with_score() start.', len(urls), urls
+        ret_dict = {}
+        for regex in merge_digit_list:
+            r_cnt = 0
+            for url in urls:
+                path = urlparse.urlparse(url).path
+                if re.search(regex, path):
+                    r_cnt += 1
+            # 计数完毕保存
+            ret_dict.update({regex: r_cnt})
+
+        for url in urls:
+            found = False
+            for r in merge_digit_list:
+                path = urlparse.urlparse(url).path
+                if re.search(r, path):
+                    found = True
+
+            if found == False:
+                print '[ERROR]get_hot_regexs_with_score() not match:', url
+
+        sum = 0
+        for i in ret_dict.iteritems():
+            (k, v) = i
+            sum += v
+
+        print '[INFO]get_hot_regexs_with_score() end.', len(ret_dict), 'sum=', sum, ret_dict
+        return ret_dict
+
+    def get_hot_regexs(self, regexs_dic):
+        print '[INFO]get_hot_regexs() start.', len(regexs_dic), regexs_dic
+        ret_dict = {}
+
+        sum = 0
+        for (k, v) in regexs_dic.iteritems():
+            sum += v
+
+        dict = sorted(regexs_dic.iteritems(), key=lambda d: d[1], reverse=True)
+        s = 0
+        for i in dict:
+            (k, v) = i
+            if s >= sum * 0.8:
+                break
+            else:
+                ret_dict.update({k: v})
+                s += v
+
+        print '[INFO]get_hot_regexs() end.', s, '/', sum, ret_dict
+        return ret_dict
+
+    def merge_word(self, advice_regex_dic, ignore_words):
+        print '[INFO]merge_word() start.', advice_regex_dic, ignore_words
+        ret_merged_list = []
+        merged_word = {}
+        for k, v in advice_regex_dic.items():
+            matched = False
+            # 和所有的忽略词匹配
+            for word in ignore_words:
+                if k.find(word) >= 0:
+                    matched = True
+                    replace = '[a-zA-Z]{%d,%d}' % (len(word), len(word))
+                    regex = re.sub(word, replace, k)
+                    merged_word.update({regex: v})
+
+            # 没有忽略词匹配
+            if matched is False:
+                merged_word.update({k: v})
+
+        l = [k for k, v in merged_word.items()]
+        ret_merged_list = self.merge_digit(l)
+
+        print '[INFO]merge_word() end.', ret_merged_list
+        return ret_merged_list
+
+    def advice_regex_keyword(self, links):
+        print '[info]advice_regex_keyword() start.'
+        regexs = []
+        for link in links:
+            if link != '' and link[-1] != '/':
+                regex = self.convert_path_to_rule_advice(link)
+                if regex != '': regexs.append(regex)
+
+        # 转换规则后
+        regexs = list(set(regexs))
+        regexs.sort()
+
+        merge_digit_list = self.merge_digit(regexs)
+        merge_digit_list.append('\/$')
+        merge_digit_list.sort()
+
+        regex_dic = self.get_hot_regexs_with_score(merge_digit_list, links)
+        advice_regex_dic = self.get_hot_regexs(regex_dic)
+
+        word_dic = self.get_regexs_words_with_score(merge_digit_list, links)
+        advice_words_dic = self.get_hot_words(word_dic)
+
+        print '[info]advice_regex_keyword() end.', len(advice_regex_dic), advice_regex_dic
+        print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
+        return advice_regex_dic, advice_words_dic
+        #####  推荐算法  end  ################################################################
 
 
 ######### router and action  ###############################################################################
@@ -873,12 +1177,13 @@ def setting_advice():
     print '[info]setting_advice() start.'
     INIT_MAX = 10
     user_id = session['user_id']
+    util = Util()
     inputForm = AdviceRegexListInputForm(request.form)
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    print '[info]setting_advice()', user_id, start_url, site_domain, black_domain_str
+    # print '[info]setting_advice()', user_id, start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('setting_advice.html', inputForm=inputForm)
@@ -890,7 +1195,6 @@ def setting_advice():
                                           black_domain_str=black_domain_str, setting_json='')
 
         #### 修改配置文件的执行入口信息
-        util = Util()
         ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
                                  black_domain_str=black_domain_str,
                                  list_rule_str='', detail_rule_str='', mode='all')
@@ -912,46 +1216,10 @@ def setting_advice():
     fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
     jsonStr = json.load(fp)
     fp.close()
-    print jsonStr
+    # print '[info]setting_advice() jsonStr',jsonStr
 
-    # jsonStr = [
-    #     {
-    #         "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
-    #         "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
-    #         "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
-    #         "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
-    #         "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
-    #         "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
-    #         "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
-    #     },
-    #     {
-    #         "funinfo": 44,
-    #         "post": 248,
-    #         "list": 312,
-    #         "no": 33
-    #     },
-    #     ["http://bbs.tianya.cn/list-play-1.shtml",
-    #      "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
-    #      "http://bbs.tianya.cn/list-153-1.shtml",
-    #      "http://bbs.tianya.cn/list-245-1.shtml",
-    #      "http://bbs.tianya.cn/list-49-1.shtml",
-    #      "http://bbs.tianya.cn/list-1172-1.shtml",
-    #      "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
-    #      "http://bbs.tianya.cn/list-96-1.shtml",
-    #      "http://bbs.tianya.cn/list-218-1.shtml",
-    #      "http://bbs.tianya.cn/post-934-107964-1.shtml",
-    #      "http://bbs.tianya.cn/list-5154-1.shtml",
-    #      "http://bbs.tianya.cn/list-341-1.shtml",
-    #      "http://bbs.tianya.cn/list-1156-1.shtml"]
-    # ]
-    # return json.dumps(jsonStr, sort_keys=True)
-    advice_regex_list = jsonStr[0]
-    advice_keyword_list = jsonStr[1]
-    url_list = jsonStr[2]
-
-    # print advice_regex_list
-    # print advice_keyword_list
-    # print url_list
+    url_list = jsonStr
+    advice_regex_list, advice_keyword_list = util.advice_regex_keyword(url_list)
 
     '''
       从MySql初始化Web页面和Redis
@@ -1003,46 +1271,19 @@ def setting_advice():
 @app.route('/setting_advice_window', methods=['GET', 'POST'])
 def setting_advice_window():
     user_id = session['user_id']
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+
     INIT_MAX = 10
     regex = request.args.get('regex')
-    print '[info]setting_advice_window() start.', regex
+    print '[info]setting_advice_window() regex or keyword is: ', regex
 
-    fp = open(EXPORT_FOLDER + '/advice(bbs.tianya.cn).json', "r")
+    fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
     jsonStr = json.load(fp)
     fp.close()
-    print '[info]advice.json ', jsonStr
-    # jsonStr = [
-    #     {
-    #         "/post-worldlook-\\d{7,7}-\\d{1,1}.shtml": 13,
-    #         "/post-stocks-\\d{6,7}-\\d{1,1}.shtml": 17,
-    #         "/post-no\\d{2,2}-\\d{6,7}-\\d{1,1}.shtml": 20,
-    #         "/post-funinfo-\\d{7,7}-\\d{1,1}.shtml": 43,
-    #         "/list-\\d{2,4}-\\d{1,1}.shtml": 253,
-    #         "/post-free-\\d{7,7}-\\d{1,1}.shtml": 16,
-    #         "/post-\\d{2,4}-\\d{3,7}-\\d{1,1}.shtml": 92
-    #     },
-    #     {
-    #         "funinfo": 44,
-    #         "post": 248,
-    #         "list": 312,
-    #         "no": 33
-    #     },
-    #     ["http://bbs.tianya.cn/list-play-1.shtml",
-    #      "http://bbs.tianya.cn/post-stocks-1746533-1.shtml",
-    #      "http://bbs.tianya.cn/list-153-1.shtml",
-    #      "http://bbs.tianya.cn/list-245-1.shtml",
-    #      "http://bbs.tianya.cn/list-49-1.shtml",
-    #      "http://bbs.tianya.cn/list-1172-1.shtml",
-    #      "http://bbs.tianya.cn/post-spirit-216130-1.shtml",
-    #      "http://bbs.tianya.cn/list-96-1.shtml",
-    #      "http://bbs.tianya.cn/list-218-1.shtml",
-    #      "http://bbs.tianya.cn/post-934-107964-1.shtml",
-    #      "http://bbs.tianya.cn/list-5154-1.shtml",
-    #      "http://bbs.tianya.cn/list-341-1.shtml",
-    #      "http://bbs.tianya.cn/list-1156-1.shtml"]
-    # ]
-    # return json.dumps(jsonStr, sort_keys=True)
-    url_list = jsonStr[2]
+
+    url_list = jsonStr
     matched_url_list = []
     for url in url_list:
         if re.search(regex, url):
