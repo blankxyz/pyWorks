@@ -104,7 +104,8 @@ class AdviceRegexListInputForm(Form):  # setting
     regex_list = FieldList(FormField(AdviceRegexForm), label=u'正则表达式')
     keyword_list = FieldList(FormField(AdviceKeyWordForm), label=u'关键字')
 
-    advice = SubmitField(label=u'推荐')
+    advice = SubmitField(label=u'提取')
+    use = SubmitField(label=u'采用')
 
 
 ######## advice_setting_window.html #######################################################################
@@ -209,7 +210,8 @@ class MySqlDrive(object):
         self.cur.close()
         self.conn.close()
 
-    def save_advice(self, user_id, start_url, site_domain, advice):
+    def save_advice(self, user_id, start_url, site_domain, advice_start_url_list, advice_regex_list,
+                    advice_keyword_list):
         # print 'save_advice() start...', start_url, site_domain
         ret_cnt = 0
         try:
@@ -219,11 +221,11 @@ class MySqlDrive(object):
             ret_cnt = self.cur.execute(sql_str1, parameter1)
 
             if ret_cnt > 0:
-                sql_str2 = "UPDATE result_file SET advice=%s WHERE user_id=% AND start_url=%s AND site_domain=%s"
-                parameter2 = (advice, user_id, start_url, site_domain)
+                sql_str2 = "UPDATE result_file SET advice_start_url_list=%s WHERE user_id=% AND start_url=%s AND site_domain=%s"
+                parameter2 = (advice_start_url_list, user_id, start_url, site_domain)
             else:
-                sql_str2 = "INSERT INTO result_file(user_id,start_url,site_domain,advice) VALUES (%s,%s,%s,%s)"
-                parameter2 = (user_id, start_url, site_domain, advice)
+                sql_str2 = "INSERT INTO result_file(user_id,start_url,site_domain,advice_start_url_list) VALUES (%s,%s,%s,%s)"
+                parameter2 = (user_id, start_url, site_domain, advice_start_url_list)
 
             print '[info]save_advice()', sql_str2 % parameter2
             ret_cnt = self.cur.execute(sql_str2, parameter2)
@@ -815,7 +817,7 @@ class Util(object):
             return False
 
 
-##################################################################################################
+######### router and action  ###############################################################################
 @app.route("/login", methods=['POST', 'GET'])
 def login():
     error = None
@@ -865,6 +867,7 @@ def convert_to_regex():
     return jsonStr
 
 
+######### 推荐  #############################################################################
 @app.route('/setting_advice', methods=["GET", "POST"])
 def setting_advice():
     print '[info]setting_advice() start.'
@@ -946,9 +949,9 @@ def setting_advice():
     advice_keyword_list = jsonStr[1]
     url_list = jsonStr[2]
 
-    print advice_regex_list
-    print advice_keyword_list
-    print url_list
+    # print advice_regex_list
+    # print advice_keyword_list
+    # print url_list
 
     '''
       从MySql初始化Web页面和Redis
@@ -1061,6 +1064,7 @@ def setting_advice_window():
     return render_template('setting_advice_window.html', inputForm=inputForm)
 
 
+######### 历史记录  #############################################################################
 @app.route('/user_search', methods=['GET', 'POST'])
 def user_search():
     user_id = session['user_id']
@@ -1139,6 +1143,7 @@ def user_search():
     return render_template('user.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
 
+######### 过程统计  #############################################################################
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
     user_id = session['user_id']
@@ -1206,6 +1211,53 @@ def save_finally_result():
     return redirect(url_for('show_process'), 302)
 
 
+@app.route('/kill', methods=['GET', 'POST'])
+def kill():
+    if os.name == 'nt':
+        flash(u"请手工关闭windows控制台.")
+        # os.system("taskkill /PID %s /F" % process_id)
+    else:
+        flash(u"已经结束进程.")
+        subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
+    return redirect(url_for('show_process'), 302)
+
+
+@app.route('/resetZero', methods=['GET', 'POST'])
+def reset_zero():
+    user_id = session['user_id']
+    # user_id = 'admin'
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+
+    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
+    fp.write('')
+    fp.close()
+
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    redis_db.conn.zremrangebyscore(redis_db.list_urls_zset_key, min=-1, max=999999)
+    for i in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+        redis_db.conn.smove(redis_db.detail_urls_set_key, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, 0, -1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, i)
+
+    for i in redis_db.conn.hgetall(redis_db.process_cnt_hset_key):
+        redis_db.conn.hdel(redis_db.process_cnt_hset_key, i)
+
+    return redirect(url_for('show_process'), 302)
+
+
+######### Server log #############################################################################
 @app.route('/show_server_log', methods=['GET', 'POST'])
 def show_server_log():
     user_id = session['user_id']
@@ -1264,6 +1316,7 @@ def show_server_log():
                            server_log_list=[x.encode('utf8') for x in server_log_list])
 
 
+######### 配置详情页/列表页  #############################################################################
 @app.route('/setting_list_init', methods=['GET', 'POST'])
 def setting_list_init():
     '''
@@ -1507,6 +1560,7 @@ def setting_list_save_and_run():
     return render_template('setting.html', inputForm=inputForm)
 
 
+######### 配置内容XPATH  #############################################################################
 @app.route('/setting_content_init', methods=['GET', 'POST'])
 def setting_content_init():
     user_id = session['user_id']
@@ -1553,6 +1607,13 @@ def content_save_and_run():
     return render_template('setting_content.html', inputForm=inputForm)
 
 
+######### 上传下载  #############################################################################
+@app.route('/export_init')
+def export_import():
+    flash(u"请选择导入/导出操作。")
+    return redirect(url_for('export_upload'), 302)
+
+
 @app.route('/export/<path:filename>')
 def download_file(filename):
     print 'download_file()', filename
@@ -1571,64 +1632,6 @@ def export_upload():
         f.save(os.path.join(EXPORT_FOLDER, f_name))
         flash(u"上传成功.")
         return render_template('export.html')
-
-
-@app.route('/kill', methods=['GET', 'POST'])
-def kill():
-    if os.name == 'nt':
-        flash(u"请手工关闭windows控制台.")
-        # os.system("taskkill /PID %s /F" % process_id)
-    else:
-        flash(u"已经结束进程.")
-        subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
-    return redirect(url_for('show_process'), 302)
-
-
-@app.route('/resetZero', methods=['GET', 'POST'])
-def reset_zero():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-
-    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
-    fp.write('')
-    fp.close()
-
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    redis_db.conn.zremrangebyscore(redis_db.list_urls_zset_key, min=-1, max=999999)
-    for i in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-        redis_db.conn.smove(redis_db.detail_urls_set_key, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.hgetall(redis_db.process_cnt_hset_key):
-        redis_db.conn.hdel(redis_db.process_cnt_hset_key, i)
-
-    return redirect(url_for('show_process'), 302)
-
-
-@app.route('/setting_detail_init', methods=['GET', 'POST'])
-def setting_detail_init():
-    inputForm = None
-    return render_template('setting_content.html', inputForm=inputForm)
-
-
-@app.route('/export_init')
-def export_import():
-    flash(u"请选择导入/导出操作。")
-    return redirect(url_for('export_upload'), 302)
 
 
 ##########################################################################################

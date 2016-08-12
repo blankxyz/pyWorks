@@ -53,7 +53,7 @@ class Util(object):
     def __init__(self):
         pass
 
-    def convert_path_to_rule(self, url):
+    def convert_path_to_rule_advice(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         # print path
         pos = path.rfind('.')
@@ -67,12 +67,12 @@ class Util(object):
         for p in split_path:
             # regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
             regex = re.sub(r'\d', '\d', p)
-            new_path_list.append(self.convert_regex_format(regex))
+            new_path_list.append(self.convert_regex_format_advice(regex))
 
         new_path = '/'.join(new_path_list) + suffix
         return urlparse.urlunparse(('', '', new_path, '', '', ''))
 
-    def convert_regex_format(self, rule):
+    def convert_regex_format_advice(self, rule):
         '''
         /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
         /news/\d{6,6}/[a-zA-Z]\d{8,8}_\d{6,6}.htm
@@ -465,7 +465,7 @@ class MySpider(spider.Spider):
             regexs = []
             for link in links:
                 if link != '' and link[-1] != '/':
-                    regex = util.convert_path_to_rule(link)
+                    regex = util.convert_path_to_rule_advice(link)
                     if regex != '': regexs.append(regex)
 
             # 转换规则后
