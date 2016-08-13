@@ -1,9 +1,0 @@
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('user', 'http://test.com', 'test.com', '1', '1', '0', '0', 'test', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '0', '1', '0', '0', 'post-', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '0', '1', '0', '0', 'pic-', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '0', '1', '0', '0', 'compose.jsp', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '0', '1', '0', '0', 'nextid', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '1', '1', '0', '0', '/$', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '1', '1', '0', '0', 'list', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '1', '1', '0', '0', 'index', null);
-INSERT INTO spider.url_rule (user_id, start_url, site_domain, detail_or_list, scope, white_or_black, weight, regex, etc) VALUES ('admin', 'http://bbs.tianya.cn', 'bbs.tianya.cn', '1', '1', '0', '0', 'hotArticle', null);

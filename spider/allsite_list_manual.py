@@ -45,8 +45,7 @@ DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
 LIST_RULE_LIST = config.get('spider', 'list_rule_list')
 
 
-#############################################################################
-
+############################################################################
 class MySpider(spider.Spider):
     def __init__(self,
                  proxy_enable=setting.PROXY_ENABLE,
@@ -64,7 +63,8 @@ class MySpider(spider.Spider):
         self.black_domain_list = BLACK_DOMAIN_LIST
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
+        self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
+        self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果(详情)
         self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
@@ -310,10 +310,10 @@ class MySpider(spider.Spider):
                     # print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
-                        # else:
-                        #     # print 'detail:', link
-                        #     if self.conn.zrank(self.detail_urls_zset_key, link) is None:
-                        #         self.conn.zadd(self.detail_urls_zset_key, self.done_flg, urllib.unquote(link))
+                else:
+                    # print 'detail:', link
+                    if self.conn.zrank(self.detail_urls_zset_key, link) is None:
+                        self.conn.zadd(self.detail_urls_zset_key, self.done_flg, urllib.unquote(link))
 
                         # print 'parse_detail_page() end'
         except Exception, e:

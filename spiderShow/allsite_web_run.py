@@ -2,6 +2,7 @@
 # coding=utf-8
 import re
 import os
+import time
 import urlparse
 import redis
 import json
@@ -813,14 +814,14 @@ class Util(object):
             # for row in copy_list: fp.write(row)
             # fp.close()
 
-            print '[info] modify_config() ok.'
+            print '[info]modify_config() success.'
             return True
         except Exception, e:
-            print "[error] modify_config(): %s" % e
+            print "[error]modify_config(): %s" % e
             return False
 
 
-        #####  推荐算法  start  ################################################################
+            #####  推荐算法  start  ################################################################
 
     def convert_path_to_rule_advice(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
@@ -1124,6 +1125,38 @@ class Util(object):
 
 #####  推荐算法  end  ################################################################
 
+def get_domain_init(inputForm=None):
+    start_url = ''
+    site_domain = ''
+    black_domain_str = ''
+
+    # 页面输入优先
+    if inputForm != None:
+        start_url = inputForm.start_url.data
+        site_domain = inputForm.site_domain.data
+        black_domain_str = inputForm.black_domain_str.data
+
+    # 没有的话,使用session
+    if start_url == '':
+        start_url = session['start_url']
+    if site_domain == '':
+        site_domain = session['site_domain']
+    if black_domain_str == '':
+        black_domain_str = session['black_domain_str']
+    return start_url, site_domain, black_domain_str
+
+
+def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
+    if start_url != '':
+        session['start_url'] = start_url
+        inputForm.start_url.data = start_url
+    if site_domain != '':
+        session['site_domain'] = site_domain
+        inputForm.site_domain.data = site_domain
+    if black_domain_str != '':
+        session['black_domain_str'] = black_domain_str
+        inputForm.black_domain_str.data = black_domain_str
+
 
 ######### router and action  ###############################################################################
 @app.route("/login", methods=['POST', 'GET'])
@@ -1146,7 +1179,14 @@ def login():
 
 @app.route('/', methods=['GET', 'POST'])
 def menu():
-    session['user_id'] = 'admin'  # login
+    # 初始化session
+    session['user_id'] = 'admin'  # login页面设置
+    session['start_url'] = ''
+    session['site_domain'] = ''
+    session['black_domain_str'] = ''
+    session['advice_regex_list'] = json.dumps('')
+    session['advice_keyword_list'] = json.dumps('')
+
     user_id = session['user_id']
 
     mysql_db = MySqlDrive()
@@ -1176,119 +1216,170 @@ def convert_to_regex():
 
 
 ######### advice ###########################################################################
-@app.route('/setting_advice', methods=["GET", "POST"])
-def setting_advice():
-    print '[info]setting_advice() start.'
-    INIT_MAX = 10
+@app.route('/setting_advice_init', methods=["GET", "POST"])
+def setting_advice_init():
+    print '[info]setting_advice_init() start.'
     user_id = session['user_id']
-    util = Util()
     inputForm = AdviceRegexListInputForm(request.form)
 
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    start_url, site_domain, black_domain_str = get_domain_init(inputForm)
+    advice_regex_list = json.loads(session['advice_regex_list'])
+    advice_keyword_list = json.loads(session['advice_keyword_list'])
+
+    # 恢复 主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
-        for j in range(INIT_MAX):
+        for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
-        for j in range(INIT_MAX):
+        for j in range(SHOW_MAX):
+            inputForm.keyword_list.append_entry()
+
+        return render_template('setting_advice.html', inputForm=inputForm)
+
+    ####  页面(regex)
+    for (regex, score, select) in advice_regex_list:
+        regexForm = AdviceRegexForm()
+        regexForm.regex = regex
+        regexForm.score = score
+        regexForm.select = select
+        inputForm.regex_list.append_entry(regexForm)
+
+    for j in range(SHOW_MAX - len(advice_regex_list)):
+        inputForm.regex_list.append_entry()
+
+    ####  页面(keyword)
+    for (keyword, score, select) in advice_keyword_list:
+        regexForm = AdviceKeyWordForm()
+        regexForm.keyword = keyword
+        regexForm.score = score
+        regexForm.select = select
+        inputForm.keyword_list.append_entry(regexForm)
+
+    for j in range(SHOW_MAX - len(advice_keyword_list)):
+        inputForm.keyword_list.append_entry()
+
+    flash(u'初始化配置完成')
+    print '[info]setting_advice_init() end.'
+    return render_template('setting_advice.html', inputForm=inputForm)
+
+
+@app.route('/setting_advice_try', methods=["GET", "POST"])
+def setting_advice_try():
+    print '[info]setting_advice_try() start.'
+    user_id = session['user_id']
+    inputForm = AdviceRegexListInputForm(request.form)
+    start_url, site_domain, black_domain_str = get_domain_init(inputForm)
+
+    # 提取主页、域名
+    if start_url is None or start_url.strip() == '' or \
+                    site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、域名信息。')
+        for j in range(SHOW_MAX):
+            inputForm.regex_list.append_entry()
+
+        for j in range(SHOW_MAX):
             inputForm.keyword_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm)
     else:
-        inputForm.start_url.data = start_url
-        inputForm.site_domain.data = site_domain
-        inputForm.black_domain_str.data = black_domain_str
+        set_domain_init(inputForm, start_url, site_domain, black_domain_str)
 
-    # 执行抓取程序
-    if inputForm.advice.data:
-        mysql_db = MySqlDrive()
-        mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
-                                          black_domain_str=black_domain_str, setting_json='')
+    # 保存初始化信息
+    mysql_db = MySqlDrive()
+    mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
+                                      black_domain_str=black_domain_str, setting_json='')
 
-        #### 修改配置文件的执行入口信息
-        ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
-                                 black_domain_str=black_domain_str,
-                                 list_rule_str='', detail_rule_str='', mode='all')
-        if ret == False:
-            flash(u"修改" + INIT_CONFIG + u"文件失败.")
-            print u'[error]setting_advice() modify ' + INIT_CONFIG + u' failure.'
-            return render_template('setting_advice.html', inputForm=inputForm)
+    # 修改配置文件的执行入口信息
+    util = Util()
+    ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
+                             black_domain_str=black_domain_str,
+                             list_rule_str='', detail_rule_str='', mode='all')
+    if ret == False:
+        flash(u"修改" + INIT_CONFIG + u"文件失败.")
+        print '[error]setting_advice_try() modify ' + INIT_CONFIG + u' failure.'
+        return render_template('setting_advice.html', inputForm=inputForm)
+    else:
+        print '[info]setting_advice_try() modify ' + INIT_CONFIG + u' success.'
 
-        # windows
-        if os.name == 'nt':
-            # DOS "start" command
-            print '[info] Run on windows.', SHELL_ADVICE_CMD
-            os.startfile(SHELL_ADVICE_CMD)
-        # linux
-        else:
-            print '[info] Run on linux.', SHELL_ADVICE_CMD
-            p = subprocess.Popen(SHELL_ADVICE_CMD, shell=True)
-            process_id = p.pid
-            print '[info] process_id:', process_id
+    # windows
+    if os.name == 'nt':
+        # DOS "start" command
+        print '[info] %s run on windows.' % SHELL_ADVICE_CMD
+        os.startfile(SHELL_ADVICE_CMD)
+    # linux
+    else:
+        print '[info] %s run on linux.' % SHELL_ADVICE_CMD
+        p = subprocess.Popen(SHELL_ADVICE_CMD, shell=True)
+        process_id = p.pid
+        print '[info] process_id:', process_id
 
-    #############################################################################
+    # 读取首页链接列表文件
+    time.sleep(5.0)  # 等待 链接下载/写入文件 完成
     fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
     jsonStr = json.load(fp)
     fp.close()
-    # print '[info]setting_advice() jsonStr',jsonStr
 
     url_list = jsonStr
-    advice_regex_list, advice_keyword_list = util.advice_regex_keyword(url_list)
+    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(url_list)
 
     ####  页面(regex)
-    for (regex, score) in advice_regex_list.items():
+    advice_regex_list = []
+    for (regex, score) in advice_regex_dic.items():
         regexForm = AdviceRegexForm()
         regexForm.regex = regex
         regexForm.score = int(score)
         regexForm.select = '0'
         inputForm.regex_list.append_entry(regexForm)
+        advice_regex_list.append({'regex': regex, 'score': score, 'select': '0'})
 
-    for j in range(INIT_MAX - len(advice_regex_list)):
+    for j in range(SHOW_MAX - len(advice_regex_dic)):
         inputForm.regex_list.append_entry()
+        advice_regex_list.append({'regex': '', 'score': '0', 'select': '0'})
 
     ####  页面(keyword)
-    for (keyword, score) in advice_keyword_list.items():
+    advice_keyword_list = []
+    for (keyword, score) in advice_keyword_dic.items():
         regexForm = AdviceKeyWordForm()
         regexForm.keyword = keyword
         regexForm.score = int(score)
         regexForm.select = '0'
         inputForm.keyword_list.append_entry(regexForm)
+        advice_keyword_list.append({'keyword': keyword, 'score': score, 'select': '0'})
 
-    for j in range(INIT_MAX - len(advice_keyword_list)):
+    for j in range(SHOW_MAX - len(advice_keyword_dic)):
         inputForm.keyword_list.append_entry()
+        advice_keyword_list.append({'keyword': '', 'score': '0', 'select': '0'})
+
+    session['advice_regex_list'] = json.dumps(advice_regex_list)
+    session['advice_keyword_list'] = json.dumps(advice_keyword_list)
 
     flash(u'初始化配置完成')
-    print '[info]setting_advice() end.'
+    print '[info]setting_advice_try() end.'
     return render_template('setting_advice.html', inputForm=inputForm)
 
 
-@app.route('/setting_advice_save', methods=["GET", "POST"])
-def setting_advice_save():
+@app.route('/setting_advice_use', methods=["GET", "POST"])
+def setting_advice_use():
     print '[info]setting_advice_save() start.'
-    INIT_MAX = 10
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
+    start_url, site_domain, black_domain_str = get_domain_init(inputForm)
 
     # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
-        for j in range(INIT_MAX):
+        for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
-        for j in range(INIT_MAX):
+        for j in range(SHOW_MAX):
             inputForm.keyword_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm)
     else:
-        inputForm.start_url.data = start_url
-        inputForm.site_domain.data = site_domain
-        inputForm.black_domain_str.data = black_domain_str
+        set_domain_init(inputForm, start_url, site_domain, black_domain_str)
 
     detail_regex_save_list = []
     list_regex_save_list = []
@@ -1313,6 +1404,7 @@ def setting_advice_save():
         flash(u'请选择采用规则或关键字的类别。')
         return render_template('setting_advice.html', inputForm=inputForm)
 
+    mysql_db = MySqlDrive()
     cnt = mysql_db.save_all_setting(user_id, start_url, site_domain, '', black_domain_str,
                                     detail_regex_save_list, list_regex_save_list)
     if cnt == 1:
@@ -1329,8 +1421,7 @@ def setting_advice_save():
 def setting_advice_window():
     user_id = session['user_id']
     # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    start_url, site_domain, black_domain_str = get_domain_init()
 
     INIT_MAX = 10
     regex = request.args.get('regex')

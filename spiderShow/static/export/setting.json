@@ -1,1 +1,0 @@
-{"black_domain_list": "", "detail_regex_save_list": [{"regex": "post-", "weight": "0"}, {"regex": "pic-", "weight": "0"}], "list_regex_save_list": [{"regex": "\\/$", "weight": "0"}, {"regex": "list", "weight": "0"}, {"regex": "index", "weight": "0"}], "site_domain": "bbs.tianya.cn", "start_url": "http://bbs.tianya.cn"}
