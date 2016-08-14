@@ -256,7 +256,7 @@ class MySqlDrive(object):
 
             for item in detail_regex_save_list:
                 regex = item['regex']
-                weight = item['weight']
+                weight = '0'
                 detail_or_list = '0'
                 scope = '1'
                 if regex.find('/^') >= 0:
@@ -275,7 +275,7 @@ class MySqlDrive(object):
 
             for item in list_regex_save_list:
                 regex = item['regex']
-                weight = item['weight']
+                weight = '0'
                 detail_or_list = '1'
                 scope = '1'
                 if regex.find('/^') >= 0:
@@ -1318,10 +1318,9 @@ def setting_advice_try():
     # 读取首页链接列表文件
     time.sleep(5.0)  # 等待 链接下载/写入文件 完成
     fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
-    jsonStr = json.load(fp)
+    url_list = fp.readlines()
     fp.close()
 
-    url_list = jsonStr
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(url_list)
 
     ####  页面(regex)
@@ -1423,15 +1422,13 @@ def setting_advice_window():
     # 提取主页、域名
     start_url, site_domain, black_domain_str = get_domain_init()
 
-    INIT_MAX = 10
     regex = request.args.get('regex')
     print '[info]setting_advice_window() regex or keyword is: ', regex
 
     fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
-    jsonStr = json.load(fp)
+    url_list = fp.readlines()
     fp.close()
 
-    url_list = jsonStr
     matched_url_list = []
     for url in url_list:
         if re.search(regex, url):
@@ -1445,7 +1442,7 @@ def setting_advice_window():
         regexForm.url = url
         inputForm.url_list.append_entry(regexForm)
 
-    for j in range(INIT_MAX - len(matched_url_list)):
+    for j in range(SHOW_MAX - len(matched_url_list)):
         inputForm.url_list.append_entry()
 
     return render_template('setting_advice_window.html', inputForm=inputForm)
@@ -2021,7 +2018,7 @@ LIST_SETTING = {
     'start_url': '',
     'site_domain': '',
     'black_domain_str': '',
-    'mode': '0',  # True:all
+    'mode': '0',  # '0':all
     'list_regex_list': [],  # list_1:'regex1', list_2:'regex2'
     'detail_regex_list': []  # detail_1:'regex1', detail_2:'regex2'
 }

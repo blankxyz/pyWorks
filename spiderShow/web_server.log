@@ -1,21 +1,60 @@
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 250-924-037
+127.0.0.1 - - [14/Aug/2016 21:03:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:03:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [14/Aug/2016 21:03:23] "GET /setting_advice_init HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:03:28] "GET /static/css/jquery.dataTables.min.css HTTP/1.1" 304 -
+127.0.0.1 - - [14/Aug/2016 21:03:28] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 304 -
+127.0.0.1 - - [14/Aug/2016 21:03:46] "GET /setting_advice?site_domain=www.ynsf.ccoo.cn&now=1471179826611 HTTP/1.1" 404 -
+[INFO] read the config file. ./allsite.ini
+[INFO]write to  ../spiderShow/static/export/advice(www.ynsf.ccoo.cn).json
+127.0.0.1 - - [14/Aug/2016 21:03:52] "POST /setting_advice_try HTTP/1.1" 200 -
+ * Detected change in '/Users/song/workspace/pyWorks/spiderShow/allsite_web_run.py', reloading
 [info] read the config file. ./web_run.dev.ini
-[info]show_process() admin http://bbs.tianya.cn/ bbs.tianya.cn None
-[info]show_process() admin http://bbs.tianya.cn/ bbs.tianya.cn None
-show_server_log() http://bbs.tianya.cn/ bbs.tianya.cn None
+[info]setting_advice_init() start.
+[info]setting_advice_try() start.
 [info]set_current_main_setting() DELETE FROM current_domain_setting WHERE user_id=admin
-[info]set_current_main_setting() INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain_str,setting_json) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,)
-[info]save_all_setting() DELETE FROM url_rule WHERE user_id =admin AND start_url=http://bbs.tianya.cn/ AND site_domain=bbs.tianya.cn
-[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,0,1,0,None,thread)
-[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,0,1,0,None,post)
-[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,1,1,0,None,\/$)
-[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,1,1,0,None,list)
-[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,1,1,0,None,index)
-[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://bbs.tianya.cn/,bbs.tianya.cn,,1,1,0,None,hotArticle)
-[info]setting_list_save_and_run() MySQL save success.
-[info] modify_config() ok.
-[info] run windows run_spider_list.bat
-show_server_log() http://bbs.tianya.cn/ bbs.tianya.cn 
-show_server_log() http://bbs.tianya.cn/ bbs.tianya.cn 
-show_server_log() http://bbs.tianya.cn/ bbs.tianya.cn 
-show_server_log() http://bbs.tianya.cn/ bbs.tianya.cn 
+[info]set_current_main_setting() INSERT INTO current_domain_setting(user_id,start_url,site_domain,black_domain_str,setting_json) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,)
+[info]modify_config() success.
+[info]setting_advice_try() modify ./web_run.dev.ini success.
+[info] ./run_spider_advice.sh run on linux.
+[info] process_id: 722
+[ERROR]get_hot_regexs_with_score() not match: http://www.ynsf.ccoo.cn
+[info]setting_advice_try() end.
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 250-924-037
+127.0.0.1 - - [14/Aug/2016 21:05:48] "POST /setting_advice_use HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:06:00] "GET /show_server_log HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:06:00] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+127.0.0.1 - - [14/Aug/2016 21:06:00] "GET /static/js/exporting.js HTTP/1.1" 304 -
+ * Detected change in '/Users/song/workspace/pyWorks/spiderShow/allsite_web_run.py', reloading
 [info] read the config file. ./web_run.dev.ini
+[info]setting_advice_save() start.
+[info]save_all_setting() DELETE FROM url_rule WHERE user_id =admin AND start_url=http://www.ynsf.ccoo.cn/ AND site_domain=www.ynsf.ccoo.cn
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,/post/fangwu/chushou/\d{7,7}x.html)
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,/post/ershou/\d{7,7}x.html)
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,/post/zhaopin/\d{7,7}x.html)
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,/post/cheliang/\d{6,6}x.html)
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,/post/qiuzhi/\d{6,7}x.html)
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,/post/zhaopins/list-\d{5,6}-\d{1,1}-\d{1,1}-\d{1,1}-\d{1,1}-\d{1,1}-\d{1,1}.html)
+[info]save_all_setting()-detail INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,0,1,0,0,post)
+[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,1,1,0,0,\/$)
+[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,1,1,0,0,/news/local/\d{7,7}.html)
+[info]save_all_setting()-list INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, scope,white_or_black,weight,regex) VALUES (admin,http://www.ynsf.ccoo.cn/,www.ynsf.ccoo.cn,,1,1,0,0,list)
+[info]setting_list_save_and_run() MySQL save success.
+[info]show_server_log() http://www.ynsf.ccoo.cn/ www.ynsf.ccoo.cn 
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 250-924-037
+127.0.0.1 - - [14/Aug/2016 21:07:33] "POST /show_server_log HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:07:36] "POST /show_server_log HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:08:11] "GET /setting_list_init HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:08:22] "POST /list_save_and_run HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:09:07] "POST /list_save_and_run HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:09:14] "GET /show_server_log HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:09:21] "GET /show_server_log HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:09:31] "GET /setting_list_init HTTP/1.1" 200 -
+127.0.0.1 - - [14/Aug/2016 21:09:35] "POST /list_save_and_run HTTP/1.1" 200 -

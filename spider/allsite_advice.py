@@ -200,8 +200,7 @@ if __name__ == '__main__':
     response = mySpider.download(mySpider.start_urls)
 
     ret = mySpider.parse_detail_page(response, (mySpider.start_urls))
-
     print '[INFO]write to ', EXPORT_FOLDER + 'advice(' + SITE_DOMAIN + ').json'
-    f = open(EXPORT_FOLDER + 'advice(' + SITE_DOMAIN + ').json', "w")
-    f.write(json.dumps(ret))
+    f = open(EXPORT_FOLDER + 'advice(' + SITE_DOMAIN + ').json', "wb")
+    f.writelines(["%s\n" % i  for i in ret])
     f.close()
