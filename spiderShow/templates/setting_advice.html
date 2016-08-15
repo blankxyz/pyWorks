@@ -115,7 +115,7 @@
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
-            {{ inputForm.advice(id="advice_btn") }}
+            {{ inputForm.advice(id="advice_btn",class="btn btn-default") }}
             {# <input type="button" id="advice_btn" value="推荐">#}
         </div>
     </form>
@@ -168,7 +168,7 @@
             </table>
         </div>
         <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.use(id="use_btn") }}
+            {{ inputForm.use(id="use_btn",class="btn btn-default") }}
         </div>
     </form>
 

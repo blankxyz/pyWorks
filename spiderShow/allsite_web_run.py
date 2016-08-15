@@ -31,13 +31,11 @@ INIT_CONFIG = './web_run.dev.ini'
 # INIT_CONFIG = './web_run.deploy.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
-# _cur_path = os.path.dirname(__file__)
-# print _cur_path
 if len(config.read(INIT_CONFIG)) == 0:
     print '[error]cannot read the config file.', INIT_CONFIG
     exit(-1)
 else:
-    print '[info] read the config file.', INIT_CONFIG
+    print '[info]read the config file.', INIT_CONFIG
 
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
@@ -56,20 +54,17 @@ SHOW_MAX = config.getint('show', 'show_max')
 EXPORT_FOLDER = config.get('export', 'export_folder')
 CONFIG_JSON = config.get('export', 'config_json')
 # windows or linux or mac
-if os.name == 'nt':
-    RUN_FILE = config.get('windows', 'run_file')
-    SHELL_ADVICE_CMD = config.get('windows', 'shell_advice_cmd')
-    SHELL_LIST_CMD = config.get('windows', 'shell_list_cmd')
-    SHELL_DETAIL_CMD = config.get('windows', 'shell_detail_cmd')
-    SHELL_CONTENT_CMD = config.get('windows', 'shell_content_cmd')
-    ALLSITE_INI = config.get('windows', 'allsite_ini')
+MY_OS = os.getenv('SPIDER_OS')
+if MY_OS is None:
+    print '[error]please set a SPIDER_OS.'
+    exit(-1)
 else:
-    SHELL_ADVICE_CMD = config.get('linux', 'shell_advice_cmd')
-    RUN_FILE = config.get('linux', 'run_file')
-    SHELL_LIST_CMD = config.get('linux', 'shell_list_cmd')
-    SHELL_DETAIL_CMD = config.get('linux', 'shell_detail_cmd')
-    SHELL_CONTENT_CMD = config.get('linux', 'shell_content_cmd')
-    ALLSITE_INI = config.get('linux', 'allsite_ini')
+    print '[info]--- The OS is: %s ----' % MY_OS
+SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
+SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
+SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
+SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
+ALLSITE_INI = config.get(MY_OS, 'allsite_ini')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
@@ -139,6 +134,7 @@ class ListRegexInputForm(Form):  # setting
     detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式')
 
     mode = BooleanField(label=u'精确匹配', default=True)
+    hold = BooleanField(label=u'保留上次结果', default=True)
 
     save_run_list = SubmitField(label=u'保存-执行(列表页)')
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
@@ -690,11 +686,13 @@ class RedisDrive(object):
         all_urls = []
         for url in self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg, withscores=False):
             all_urls.append(url)
-            self.conn.zrem(self.list_urls_zset_key, url)
+
+        self.conn.delete(self.list_urls_zset_key)
 
         for url in self.conn.smembers(self.detail_urls_set_key):
             all_urls.append(url)
-            self.conn.srem(self.detail_urls_set_key, url)
+
+        self.conn.delete(self.detail_urls_set_key)
 
         for url in all_urls:
             if self.path_is_list(mode, url):
@@ -1201,7 +1199,7 @@ def get_domain_init(inputForm=None):
     black_domain_str = ''
 
     # 页面输入优先
-    if inputForm != None:
+    if inputForm is not None:
         start_url = inputForm.start_url.data
         site_domain = inputForm.site_domain.data
         black_domain_str = inputForm.black_domain_str.data
@@ -1623,10 +1621,9 @@ def setting_list_save_and_run():
     inputForm = ListRegexInputForm(request.form)
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
-    start_url = inputForm.start_url.data
-    site_domain = inputForm.site_domain.data
+    start_url, site_domain, black_domain_str = get_domain_init(inputForm)
     site_domain = site_domain.split('/')[0]
-    black_domain_str = inputForm.black_domain_str.data
+    set_domain_init(inputForm, start_url, site_domain, black_domain_str)  # 同步回sesstion
     if inputForm.mode.data == False:
         mode = 'all'  # 全部
     else:
@@ -1677,29 +1674,31 @@ def setting_list_save_and_run():
     #### 清空所有Redis,保存手工配置,用于匹配次数积分。
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
-    for regex in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_w_list_rule_zset_key, regex)
+    redis_db.conn.delete(redis_db.manual_w_list_rule_zset_key)
     for item in list_regex_save_list:
         if item['regex'].find('/^') < 0:
             redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, item['regex'])
 
-    for regex in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_b_list_rule_zset_key, regex)
+    redis_db.conn.delete(redis_db.manual_b_list_rule_zset_key)
     for item in list_regex_save_list:
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, item['regex'])
 
-    for regex in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex)
+    redis_db.conn.delete(redis_db.manual_w_detail_rule_zset_key)
     for item in detail_regex_save_list:
         if item['regex'].find('/^') < 0:
             redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, item['regex'])
 
-    for regex in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, start=0, end=-1):
-        redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex)
+    redis_db.conn.delete(redis_db.manual_b_detail_rule_zset_key)
     for item in detail_regex_save_list:
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, item['regex'])
+
+    if inputForm.hold.data == False:  # 清除上次结果
+        redis_db.conn.delete(redis_db.list_urls_zset_key)
+        redis_db.conn.delete(redis_db.detail_urls_set_key)
+    else:  # 保留上次结果
+        redis_db.reset_rule(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
 
     #### 保存所有手工配置信息到MySql
     setting_json = ''
@@ -1740,24 +1739,24 @@ def setting_list_save_and_run():
     if inputForm.save_run_list.data:
         if os.name == 'nt':
             # DOS "start" command
-            print '[info] run windows', SHELL_LIST_CMD
+            print '[info]--- %s run on windows' % SHELL_LIST_CMD
             os.startfile(SHELL_LIST_CMD)
         else:
-            print '[info] run linux', SHELL_LIST_CMD
+            print '[info]--- %s run on %s' % (SHELL_LIST_CMD, MY_OS)
             p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
             process_id = p.pid
-            print '[info] process_id:', process_id
+            print '[info]--- process_id:', process_id
 
     if inputForm.save_run_detail.data:
         if os.name == 'nt':
             # DOS "start" command
-            print '[info] run windows', SHELL_DETAIL_CMD
+            print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
             os.startfile(SHELL_DETAIL_CMD)
         else:
-            print '[info] run linux', SHELL_DETAIL_CMD
+            print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
             p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True)
             process_id = p.pid
-            print '[info] process_id:', process_id
+            print '[info]--- process_id:', process_id
 
     return render_template('setting.html', inputForm=inputForm)
 
@@ -1787,7 +1786,7 @@ def show_server_log():
     # linux
     else:
         if inputForm.unkown_sel.data:
-            cmd = 'tail -10000 ./web_server.log | grep unkown |tail -80'
+            cmd = "tail -10000 ./web_server.log | grep -E 'unkown|[list|[detail' |tail -80"
         else:
             cmd = 'tail -80 ./web_server.log'
 
@@ -1883,23 +1882,24 @@ def save_finally_result():
     return redirect(url_for('show_process'), 302)
 
 
-@app.route('/kill', methods=['GET', 'POST'])
-def kill():
+@app.route('/kill_spider', methods=['GET', 'POST'])
+def kill_spider():
     if os.name == 'nt':
         flash(u"请手工关闭windows控制台.")
         # os.system("taskkill /PID %s /F" % process_id)
     else:
+        subprocess.Popen(['/bin/sh', '-c', './kill_spider_list.sh'])
         flash(u"已经结束进程.")
-        subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
     return redirect(url_for('show_process'), 302)
 
 
-@app.route('/resetAll', methods=['GET', 'POST'])
+@app.route('/reset_all', methods=['GET', 'POST'])
 def reset_all():
     user_id = session['user_id']
-    start_url = session['start_url']
-    site_domain = session['site_domain']
-    black_domain = session['black_domain']
+    start_url, site_domain, black_domain_str = get_domain_init()
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return redirect(url_for('show_process'), 302)
 
     # 绘图文件清零
     fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
@@ -1918,27 +1918,13 @@ def reset_all():
 
     # 清除redis 计算过程中的数据
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    # # redis 删除列表、详情结果
-    # redis_db.conn.zremrangebyscore(redis_db.list_urls_zset_key, min=redis_db.todo_flg, max=redis_db.content_flg)
-    # for url in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-    #     redis_db.conn.smove(redis_db.detail_urls_set_key, url)
-
-    # redis 匹配次数清零
-    for url in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, start=0, end=-1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, url)
-
-    for url in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, start=0, end=-1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, url)
-
-    for url in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, start=0, end=-1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, url)
-
-    for url in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, start=0, end=-1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, url)
-
-    # redis 删除过程记录
-    for url in redis_db.conn.hgetall(redis_db.process_cnt_hset_key):
-        redis_db.conn.hdel(redis_db.process_cnt_hset_key, url)
+    redis_db.conn.delete(redis_db.process_cnt_hset_key)
+    redis_db.conn.delete(redis_db.list_urls_zset_key)
+    redis_db.conn.delete(redis_db.detail_urls_set_key)
+    redis_db.conn.delete(redis_db.manual_w_list_rule_zset_key)
+    redis_db.conn.delete(redis_db.manual_b_list_rule_zset_key)
+    redis_db.conn.delete(redis_db.manual_w_detail_rule_zset_key)
+    redis_db.conn.delete(redis_db.manual_b_detail_rule_zset_key)
 
     return redirect(url_for('show_process'), 302)
 

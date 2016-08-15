@@ -81,13 +81,14 @@
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label }}
+            {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label }}
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
             <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
                 /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
             <input type=text size=100 id="convert_url" placeholder="请确认转换后的表达式， 编辑（拷贝） 到下面列表中。">&nbsp;
-            <input type="button" id="convert_btn" value="转换为正则">&nbsp;
+            <input type="button" id="convert_btn" class="btn btn-default" value="转换为正则">&nbsp;
             <label id="regex_result"></label>
         </div>
         <hr>
@@ -108,6 +109,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {{ inputForm.save_run_list(class="btn btn-default") }}
         </div>
         <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-left:10px">
             <table id="detail-regex-tab" class="table table-striped table-hover">
@@ -126,10 +128,7 @@
                 {% endfor %}
                 </tbody>
             </table>
-        </div>
-        <div id="title" class="form-group" style="float:left;width:100%; margin-left:10px">
-            <button type="button" class="btn">{{ inputForm.save_run_list() }}</button>
-            <button type="button" class="btn">{{ inputForm.save_run_detail() }}</button>
+            {{ inputForm.save_run_detail(class="btn btn-default") }}
         </div>
     </form>
 

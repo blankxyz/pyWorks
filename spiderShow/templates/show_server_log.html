@@ -55,7 +55,7 @@
             <label style="color: orange">未知</label><span id="unkown_span" class="badge pull-top">0</span>&nbsp;&nbsp;
             <label style="color: gray">系统信息</label><span id="system_span" class="badge pull-top">0</span>&nbsp;&nbsp;
             <label style="color: red">错误信息</label><span id="error_span" class="badge pull-top">0</span>&nbsp;&nbsp;
-            {{ inputForm.unkown_sel() }}&nbsp;{{ inputForm.unkown_sel.label }}&nbsp;{{ inputForm.refresh() }}
+            {{ inputForm.unkown_sel() }}&nbsp;{{ inputForm.unkown_sel.label }}&nbsp;{{ inputForm.refresh(class="btn btn-default") }}
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <a class="top-left" href="{{ url_for('static', filename='export/result-list.log') }}">实时结果(列表页)</a>
             <a class="top-left" href="{{ url_for('static', filename='export/result-detail.log') }}">实时结果(详情页)</a>

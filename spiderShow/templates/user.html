@@ -52,10 +52,10 @@
             <label>用户ID&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
             {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
             {{ inputForm.start_url_sel.label }}&nbsp; {{ inputForm.start_url_sel() }}
-            {{ inputForm.list_download() }}
-            {{ inputForm.detail_download() }}
+            {{ inputForm.list_download(class="btn btn-default") }}
+            {{ inputForm.detail_download(class="btn btn-default") }}
             {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
-            {{ inputForm.search() }}
+            {{ inputForm.search(class="btn btn-default") }}
 {#            {{ inputForm.recover() }}#}
         </form>
     </div>

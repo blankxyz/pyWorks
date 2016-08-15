@@ -15,9 +15,18 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-# INIT_CONFIG = '/work/spider/allsite.ini' #linux
-INIT_CONFIG = './allsite.ini'  # windows
-# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini' #mac
+MY_OS = os.getenv('SPIDER_OS')
+if MY_OS is None:
+    print '[ERROR] must be set a MY_OS.'
+    exit(-1)
+else:
+    print '[info]--- The OS is: %s ----' % MY_OS
+    if MY_OS =='liux':
+        INIT_CONFIG = '/work/spider/allsite.ini'
+    elif MY_OS == 'mac':
+        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'
+    else: # windows
+        INIT_CONFIG = './allsite.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -64,7 +73,7 @@ class MySpider(spider.Spider):
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
-        self.detail_urls_zset_key = 'detail_urls_zset_%s' % self.site_domain  # 计算结果(详情)
+        self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
         self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
@@ -104,10 +113,6 @@ class MySpider(spider.Spider):
             # 非第一页链接过滤
             urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
             # print 'filter_links() is_next_page', len(urls)
-            # for url in urls:
-            #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
-            #         print 'remove:', url
-            #         urls.remove(url)
             # 去重
             urls = list(set(urls))
             # print 'filter_links() set', len(urls)
@@ -279,9 +284,9 @@ class MySpider(spider.Spider):
 
     def get_start_urls(self, data=None):
         self.detail_rules = [x.strip() for x in DETAIL_RULE_LIST.split('@') if x != '']
-        print 'get_start_urls() detail ini:', DETAIL_RULE_LIST, '->', self.detail_rules
+        # print '[INFO]get_start_urls() detail ini:', DETAIL_RULE_LIST, '->', self.detail_rules
         self.list_rules = [x.strip() for x in LIST_RULE_LIST.split('@') if x != '']
-        print 'get_start_urls() list ini:', LIST_RULE_LIST, '->', self.list_rules
+        # print '[INFO]get_start_urls() list ini:', LIST_RULE_LIST, '->', self.list_rules
         if self.conn.zrank(self.list_urls_zset_key, self.start_urls) is None:
             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, self.start_urls)
         return [self.start_urls]
@@ -291,7 +296,7 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        print '[INFO]parse_detail_page() start'
+        # print '[INFO]parse_detail_page() start'
         result = []
         if response is None: return result
 
@@ -301,21 +306,15 @@ class MySpider(spider.Spider):
             org_url = response.url
 
         try:
-            # soup = self.get_clean_soup(org_url)
             soup = self.get_clean_soup(response)
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
             for link in links:
                 if self.path_is_list(link) is True:
-                    # print 'list  :', link
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
                 else:
-                    # print 'detail:', link
-                    if self.conn.zrank(self.detail_urls_zset_key, link) is None:
-                        self.conn.zadd(self.detail_urls_zset_key, self.done_flg, urllib.unquote(link))
-
-                        # print 'parse_detail_page() end'
+                    self.conn.sadd(self.detail_urls_set_key, urllib.unquote(link))
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result

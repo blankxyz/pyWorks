@@ -15,9 +15,18 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-# INIT_CONFIG = '/work/spider/run_allsite.ini' #linux
-INIT_CONFIG = './allsite.ini' #windows
-# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/run_allsite.ini' #mac
+MY_OS = os.getenv('SPIDER_OS')
+if MY_OS is None:
+    print '[ERROR] must be set a MY_OS.'
+    exit(-1)
+else:
+    print '[info]--- The OS is: %s ----' % MY_OS
+    if MY_OS =='liux':
+        INIT_CONFIG = '/work/spider/allsite.ini'
+    elif MY_OS == 'mac':
+        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'
+    else: # windows
+        INIT_CONFIG = './allsite.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -106,10 +115,6 @@ class MySpider(spider.Spider):
             # 非第一页链接过滤
             urls = filter(lambda x: not self.cleaner.is_next_page(x), urls)
             # print 'filter_links() is_next_page', len(urls)
-            # for url in urls:
-            #     if  self.conn.zrank(self.detail_urls_zset_key, url) is not None:
-            #         print 'remove:', url
-            #         urls.remove(url)
             # 去重
             urls = list(set(urls))
             # print 'filter_links() set', len(urls)

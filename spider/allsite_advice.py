@@ -16,9 +16,18 @@ import json
 import allsite_clean_url
 
 ##############################################################################
-# INIT_CONFIG = '/work/spider/allsite.ini' #linux
-INIT_CONFIG = './allsite.ini'  # windows
-# INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini' #mac
+MY_OS = os.getenv('SPIDER_OS')
+if MY_OS is None:
+    print '[ERROR] must be set a MY_OS.'
+    exit(-1)
+else:
+    print '[info]--- The OS is: %s ----' % MY_OS
+    if MY_OS == 'liux':
+        INIT_CONFIG = '/work/spider/allsite.ini'
+    elif MY_OS == 'mac':
+        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'
+    else:  # windows
+        INIT_CONFIG = './allsite.ini'
 ##############################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -26,13 +35,8 @@ if len(config.read(INIT_CONFIG)) == 0:
     exit(-1)
 else:
     print '[INFO] read the config file.', INIT_CONFIG
-
 # export path
-# windows or linux or mac
-if os.name == 'nt':
-    EXPORT_FOLDER = config.get('windows', 'export_folder')
-else:
-    EXPORT_FOLDER = config.get('linux', 'export_folder')
+EXPORT_FOLDER = config.get(MY_OS, 'export_folder')
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
