@@ -596,9 +596,12 @@ class RedisDrive(object):
         self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_detail_rule_zset_key = 'manual_b_detail_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
+        self.list_rules = []  # 手工配置规则-内存形式
+        self.detail_rules = []  # 手工配置规则-内存形式
         self.todo_flg = -1
         self.done_flg = 0
         self.detail_flg = 9
+        self.content_flg = 99
 
     def get_detail_urls(self):
         return self.conn.smembers(self.detail_urls_set_key)
@@ -679,6 +682,73 @@ class RedisDrive(object):
         fp.write(jsonStr)
         fp.write('\n')
         fp.close()
+
+    def reset_rule(self, mode, list_rules, detail_rules):
+        self.list_rules = list_rules
+        self.detail_rules = detail_rules
+
+        all_urls = []
+        for url in self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg, withscores=False):
+            all_urls.append(url)
+            self.conn.zrem(self.list_urls_zset_key, url)
+
+        for url in self.conn.smembers(self.detail_urls_set_key):
+            all_urls.append(url)
+            self.conn.srem(self.detail_urls_set_key, url)
+
+        for url in all_urls:
+            if self.path_is_list(mode, url):
+                self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
+            else:
+                self.conn.sadd(self.detail_urls_set_key, url)
+
+    def path_is_list(self, mode, url):
+        # None：未知, True：列表页，False：详情页
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        new_url = urlparse.urlunparse(('', '', path, params, query, ''))
+
+        # 页面手工配置规则
+        ret = self.is_manual_detail_rule(new_url)
+        if ret is not None:  # 未知
+            return not ret
+
+        ret = self.is_manual_list_rule(new_url)
+        if ret is not None:  # 未知
+            return ret
+
+        print '[unkown]', new_url
+
+        if mode == 'all':
+            return True
+
+        if mode == 'exact':
+            return None
+
+        return True
+
+    def is_manual_detail_rule(self, url):
+        for rule in self.detail_rules:
+            if rule.find('/^') < 0:  # 白
+                if re.search(rule, url):
+                    print '[detail-white]', rule, '<-', url
+                    return True  # 符合详情页规则（白）
+
+            else:  # 黑
+                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
+                    print '[detail-black]', rule, '<-', url
+                    return False  # 符合详情页规则（黑）
+
+    def is_manual_list_rule(self, url):
+        for rule in self.list_rules:
+            if rule.find('/^') < 0:  # 白
+                if re.search(rule, url):
+                    print '[list-white]', rule, '<-', url
+                    return True  # 符合详情页规则（白）
+
+            else:  # 黑
+                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
+                    print '[list-black]', rule, '<-', url
+                    return False  # 符合详情页规则（黑）
 
 
 ##################################################################################################
@@ -1448,252 +1518,6 @@ def setting_advice_window():
     return render_template('setting_advice_window.html', inputForm=inputForm)
 
 
-######### 历史记录  #############################################################################
-@app.route('/user_search', methods=['GET', 'POST'])
-def user_search():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    print '[info]user_search()', user_id
-    mysql_db = MySqlDrive()
-
-    inputForm = SearchCondForm(request.form)
-    start_url = inputForm.start_url.data
-    site_domain = inputForm.site_domain.data
-    # 设定域名选项
-    select_items = [(i, i) for i in mysql_db.search_start_url_by_user(user_id)]
-    select_items.append(('', ''))
-    select_items.sort()
-    inputForm.start_url_sel.choices = select_items
-    start_url_sel = inputForm.start_url_sel.data
-
-    outputForm = SearchResultForm()
-    outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
-
-    # 点击 查询 按钮
-    if inputForm.search.data:
-        if len(outputForm.search_result_list) == 0:
-            flash(u'请输入合适的查询条件（ 主页，限定域名   支持like查询 ）。')
-        else:
-            flash(u'请确认的查询结果。')
-
-        if start_url_sel != '':
-            start_url = start_url_sel
-        outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
-
-    # 点击 导出列表页历史结果 按钮
-    if inputForm.list_download.data:
-        if start_url_sel == '':
-            flash(u'请从历史记录中选择主页。')
-        else:
-            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
-            if list_copy_file is not None and cnt != 0:
-                flash(u'列表页历史记录下载成功。')
-                return send_from_directory(app.config['EXPORT_FOLDER'], list_copy_file, as_attachment=True)
-
-            if cnt == 0:
-                flash(u'没有列表页历史记录。')
-                print '[error]user_search() get_result_file() not found.', start_url_sel
-
-    # 点击 导出详情页历史结果 按钮
-    if inputForm.detail_download.data:
-        if start_url_sel == '':
-            flash(u'请从历史记录中选择主页。')
-        else:
-            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
-            if detail_copy_file is not None and cnt != 0:
-                flash(u'详情页历史记录下载成功。')
-                return send_from_directory(app.config['EXPORT_FOLDER'], detail_copy_file, as_attachment=True)
-
-            if cnt == 0:
-                flash(u'没有详情页历史记录。')
-                print '[error]user_search() get_result_file() not found.', start_url_sel
-
-    # 点击 导入 按钮
-    if inputForm.recover.data:
-        if len(outputForm.search_result_list) > 0:
-            d = set()
-            for i in outputForm.search_result_list:
-                start_url = i['start_url']
-                site_domain = i['site_domain']
-                d.add(start_url + site_domain)
-
-            if len(d) == 1:
-                mysql_db.set_current_main_setting(user_id, start_url, site_domain, '', '')
-            else:
-                flash(u'请选择唯一的首页和域名进行导入。')
-        else:
-            flash(u'请检索取得结果后再导入。')
-
-    return render_template('user.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
-
-
-######### 过程统计  #############################################################################
-@app.route('/show_process', methods=['GET', 'POST'])
-def show_process():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    inputForm = ListRegexInputForm()
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print '[info]show_process()', user_id, start_url, site_domain, black_domain
-    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_process.html', inputForm=inputForm)
-
-    # 从redis提取实时信息，转换成json文件
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    redis_db.covert_redis_cnt_to_json()
-
-    collage = CollageProcessInfo(site_domain)
-    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt = collage.convert_file_to_list()
-    times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
-
-    # print list_done_cnt[-1],list_cnt[-1]
-    if len(list_cnt) == 0 or list_cnt[-1] == 0:
-        list_done_rate = 0
-    else:
-        list_done_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
-
-    if len(list_cnt) == 0 or list_cnt[-1] == 0:
-        detail_done_rate = 0
-    else:
-        detail_done_rate = float(detail_done_cnt[-1]) / list_cnt[-1] * 100.0
-
-    keywords, matched_cnt = redis_db.get_keywords_match()
-
-    regexs_str = ("'" + "','".join(keywords) + "'")
-    # from flask import Markup
-    # 将json映射到html
-    flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。')
-    return render_template('show_process.html',
-                           times=times,
-                           rule1_cnt=rule1_cnt,
-                           detail_cnt=detail_cnt,
-                           list_cnt=list_cnt,
-                           list_done_cnt=list_done_cnt,
-                           detail_done_cnt=detail_done_cnt,
-                           list_done_rate=list_done_rate,
-                           list_todo_rate=(100.0 - list_done_rate),
-                           detail_done_rate=detail_done_rate,
-                           detail_todo_rate=(100.0 - detail_done_rate),
-                           keywords=keywords,
-                           regexs_str=regexs_str,
-                           matched_cnt=matched_cnt)
-
-
-@app.route('/save_finally_result', methods=['GET', 'POST'])
-def save_finally_result():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    # 将实时结果作为最终结果保存到DB
-    mysql_db.save_result_file(start_url, site_domain)
-    flash(u'列表页结果保存DB成功。')
-    print '[info]save finally result to DB OK.'
-    return redirect(url_for('show_process'), 302)
-
-
-@app.route('/kill', methods=['GET', 'POST'])
-def kill():
-    if os.name == 'nt':
-        flash(u"请手工关闭windows控制台.")
-        # os.system("taskkill /PID %s /F" % process_id)
-    else:
-        flash(u"已经结束进程.")
-        subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
-    return redirect(url_for('show_process'), 302)
-
-
-@app.route('/resetZero', methods=['GET', 'POST'])
-def reset_zero():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-
-    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
-    fp.write('')
-    fp.close()
-
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    redis_db.conn.zremrangebyscore(redis_db.list_urls_zset_key, min=-1, max=999999)
-    for i in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-        redis_db.conn.smove(redis_db.detail_urls_set_key, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, 0, -1, withscores=False):
-        redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, i)
-
-    for i in redis_db.conn.hgetall(redis_db.process_cnt_hset_key):
-        redis_db.conn.hdel(redis_db.process_cnt_hset_key, i)
-
-    return redirect(url_for('show_process'), 302)
-
-
-######### Server log #############################################################################
-@app.route('/show_server_log', methods=['GET', 'POST'])
-def show_server_log():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    inputForm = ShowServerLogInputForm(request.form)
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    print '[info]show_server_log()', start_url, site_domain, black_domain_str
-    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
-
-    # windows
-    if os.name == 'nt':
-        f = open('web_server.log', 'r').readlines()
-        if len(f) >= 80:
-            l = f[-80:]
-        else:
-            l = f
-        server_log_list = l
-    # linux
-    else:
-        if inputForm.unkown_sel.data:
-            cmd = 'tail -10000 ./web_server.log | grep unkown |tail -80'
-        else:
-            cmd = 'tail -80 ./web_server.log'
-
-        p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
-        server_log_list = p.stdout.readlines()
-
-    if len(server_log_list) == 0:
-        flash(u'请使用 ./web_start.sh 生成 web_server.log 。')
-        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
-
-    # 保存 实时 列表页结果
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
-    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
-        fp.write(line + '\n')
-    fp.close()
-
-    # 保存 实时 详情页结果
-    fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
-    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-        fp.write(line + '\n')
-    fp.close()
-
-    return render_template('show_server_log.html', inputForm=inputForm,
-                           server_log_list=[x.encode('utf8') for x in server_log_list])
-
-
 ######### 配置详情页/列表页  #############################################################################
 @app.route('/setting_list_init', methods=['GET', 'POST'])
 def setting_list_init():
@@ -1938,6 +1762,187 @@ def setting_list_save_and_run():
     return render_template('setting.html', inputForm=inputForm)
 
 
+######### Server log #############################################################################
+@app.route('/show_server_log', methods=['GET', 'POST'])
+def show_server_log():
+    user_id = session['user_id']
+    # user_id = 'admin'
+    inputForm = ShowServerLogInputForm(request.form)
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    print '[info]show_server_log()', start_url, site_domain, black_domain_str
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
+
+    # windows
+    if os.name == 'nt':
+        f = open('web_server.log', 'r').readlines()
+        if len(f) >= 80:
+            l = f[-80:]
+        else:
+            l = f
+        server_log_list = l
+    # linux
+    else:
+        if inputForm.unkown_sel.data:
+            cmd = 'tail -10000 ./web_server.log | grep unkown |tail -80'
+        else:
+            cmd = 'tail -80 ./web_server.log'
+
+        p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
+        server_log_list = p.stdout.readlines()
+
+    if len(server_log_list) == 0:
+        flash(u'请使用 ./web_start.sh 生成 web_server.log 。')
+        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
+
+    # 保存 实时 列表页结果
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
+    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
+        fp.write(line + '\n')
+    fp.close()
+
+    # 保存 实时 详情页结果
+    fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
+    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+        fp.write(line + '\n')
+    fp.close()
+
+    return render_template('show_server_log.html', inputForm=inputForm,
+                           server_log_list=[x.encode('utf8') for x in server_log_list])
+
+
+######### 过程统计  #############################################################################
+@app.route('/show_process', methods=['GET', 'POST'])
+def show_process():
+    user_id = session['user_id']
+    # user_id = 'admin'
+    inputForm = ListRegexInputForm()
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    print '[info]show_process()', user_id, start_url, site_domain, black_domain
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('show_process.html', inputForm=inputForm)
+
+    # 从redis提取实时信息，转换成json文件
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    redis_db.covert_redis_cnt_to_json()
+
+    collage = CollageProcessInfo(site_domain)
+    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt = collage.convert_file_to_list()
+    times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
+
+    # print list_done_cnt[-1],list_cnt[-1]
+    if len(list_cnt) == 0 or list_cnt[-1] == 0:
+        list_done_rate = 0
+    else:
+        list_done_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
+
+    if len(list_cnt) == 0 or list_cnt[-1] == 0:
+        detail_done_rate = 0
+    else:
+        detail_done_rate = float(detail_done_cnt[-1]) / list_cnt[-1] * 100.0
+
+    keywords, matched_cnt = redis_db.get_keywords_match()
+
+    regexs_str = ("'" + "','".join(keywords) + "'")
+    # from flask import Markup
+    # 将json映射到html
+    flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。')
+    return render_template('show_process.html',
+                           times=times,
+                           rule1_cnt=rule1_cnt,
+                           detail_cnt=detail_cnt,
+                           list_cnt=list_cnt,
+                           list_done_cnt=list_done_cnt,
+                           detail_done_cnt=detail_done_cnt,
+                           list_done_rate=list_done_rate,
+                           list_todo_rate=(100.0 - list_done_rate),
+                           detail_done_rate=detail_done_rate,
+                           detail_todo_rate=(100.0 - detail_done_rate),
+                           keywords=keywords,
+                           regexs_str=regexs_str,
+                           matched_cnt=matched_cnt)
+
+
+@app.route('/save_finally_result', methods=['GET', 'POST'])
+def save_finally_result():
+    user_id = session['user_id']
+    # user_id = 'admin'
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    # 将实时结果作为最终结果保存到DB
+    mysql_db.save_result_file(start_url, site_domain)
+    flash(u'列表页结果保存DB成功。')
+    print '[info]save finally result to DB OK.'
+    return redirect(url_for('show_process'), 302)
+
+
+@app.route('/kill', methods=['GET', 'POST'])
+def kill():
+    if os.name == 'nt':
+        flash(u"请手工关闭windows控制台.")
+        # os.system("taskkill /PID %s /F" % process_id)
+    else:
+        flash(u"已经结束进程.")
+        subprocess.Popen(['/bin/sh', '-c', './kill.sh'])
+    return redirect(url_for('show_process'), 302)
+
+
+@app.route('/resetAll', methods=['GET', 'POST'])
+def reset_all():
+    user_id = session['user_id']
+    start_url = session['start_url']
+    site_domain = session['site_domain']
+    black_domain = session['black_domain']
+
+    # 绘图文件清零
+    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
+    fp.write('')
+    fp.close()
+
+    # web_server.log清零
+    if os.name == 'nt':  # windows
+        fp = open('web_server.log', 'w')
+        fp.write('')
+        fp.close()
+    else:  # linux
+        fp = open('./web_server.log', 'w')
+        fp.write('')
+        fp.close()
+
+    # 清除redis 计算过程中的数据
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    # # redis 删除列表、详情结果
+    # redis_db.conn.zremrangebyscore(redis_db.list_urls_zset_key, min=redis_db.todo_flg, max=redis_db.content_flg)
+    # for url in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+    #     redis_db.conn.smove(redis_db.detail_urls_set_key, url)
+
+    # redis 匹配次数清零
+    for url in redis_db.conn.zrange(redis_db.manual_w_list_rule_zset_key, start=0, end=-1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, url)
+
+    for url in redis_db.conn.zrange(redis_db.manual_b_list_rule_zset_key, start=0, end=-1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, url)
+
+    for url in redis_db.conn.zrange(redis_db.manual_w_detail_rule_zset_key, start=0, end=-1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, url)
+
+    for url in redis_db.conn.zrange(redis_db.manual_b_detail_rule_zset_key, start=0, end=-1, withscores=False):
+        redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, url)
+
+    # redis 删除过程记录
+    for url in redis_db.conn.hgetall(redis_db.process_cnt_hset_key):
+        redis_db.conn.hdel(redis_db.process_cnt_hset_key, url)
+
+    return redirect(url_for('show_process'), 302)
+
+
 ######### 配置内容XPATH  #############################################################################
 @app.route('/setting_content_init', methods=['GET', 'POST'])
 def setting_content_init():
@@ -1983,6 +1988,85 @@ def content_save_and_run():
         print '[info] process_id:', process_id
 
     return render_template('setting_content.html', inputForm=inputForm)
+
+
+######### 历史记录  #############################################################################
+@app.route('/user_search', methods=['GET', 'POST'])
+def user_search():
+    user_id = session['user_id']
+    # user_id = 'admin'
+    print '[info]user_search()', user_id
+    mysql_db = MySqlDrive()
+
+    inputForm = SearchCondForm(request.form)
+    start_url = inputForm.start_url.data
+    site_domain = inputForm.site_domain.data
+    # 设定域名选项
+    select_items = [(i, i) for i in mysql_db.search_start_url_by_user(user_id)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.start_url_sel.choices = select_items
+    start_url_sel = inputForm.start_url_sel.data
+
+    outputForm = SearchResultForm()
+    outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
+
+    # 点击 查询 按钮
+    if inputForm.search.data:
+        if len(outputForm.search_result_list) == 0:
+            flash(u'请输入合适的查询条件（ 主页，限定域名   支持like查询 ）。')
+        else:
+            flash(u'请确认的查询结果。')
+
+        if start_url_sel != '':
+            start_url = start_url_sel
+        outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
+
+    # 点击 导出列表页历史结果 按钮
+    if inputForm.list_download.data:
+        if start_url_sel == '':
+            flash(u'请从历史记录中选择主页。')
+        else:
+            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            if list_copy_file is not None and cnt != 0:
+                flash(u'列表页历史记录下载成功。')
+                return send_from_directory(app.config['EXPORT_FOLDER'], list_copy_file, as_attachment=True)
+
+            if cnt == 0:
+                flash(u'没有列表页历史记录。')
+                print '[error]user_search() get_result_file() not found.', start_url_sel
+
+    # 点击 导出详情页历史结果 按钮
+    if inputForm.detail_download.data:
+        if start_url_sel == '':
+            flash(u'请从历史记录中选择主页。')
+        else:
+            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            if detail_copy_file is not None and cnt != 0:
+                flash(u'详情页历史记录下载成功。')
+                return send_from_directory(app.config['EXPORT_FOLDER'], detail_copy_file, as_attachment=True)
+
+            if cnt == 0:
+                flash(u'没有详情页历史记录。')
+                print '[error]user_search() get_result_file() not found.', start_url_sel
+
+    # 点击 导入 按钮
+    if inputForm.recover.data:
+        if len(outputForm.search_result_list) > 0:
+            d = set()
+            for i in outputForm.search_result_list:
+                start_url = i['start_url']
+                site_domain = i['site_domain']
+                d.add(start_url + site_domain)
+
+            if len(d) == 1:
+                mysql_db.set_current_main_setting(user_id, start_url, site_domain, '', '')
+            else:
+                flash(u'请选择唯一的首页和域名进行导入。')
+        else:
+            flash(u'请检索取得结果后再导入。')
+
+    return render_template('user.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
 
 ######### 上传下载  #############################################################################
