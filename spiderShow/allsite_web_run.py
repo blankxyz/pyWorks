@@ -584,7 +584,7 @@ class MySqlDrive(object):
 
 ##################################################################################################
 class RedisDrive(object):
-    def __init__(self, start_url, site_domain):
+    def __init__(self, start_url='', site_domain=''):
         self.site_domain = site_domain
         self.start_url = start_url
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
@@ -2079,22 +2079,22 @@ def user_search():
 
 
 ######### 上传下载  #############################################################################
-@app.route('/export_init')
-def export_import():
-    flash(u"请选择导入/导出操作。")
-    return redirect(url_for('export_upload'), 302)
+@app.route('/help_init')
+def help_init():
+    flash(u"请选择操作。")
+    return redirect(url_for('help_upload'), 302)
 
 
 @app.route('/export/<path:filename>')
 def download_file(filename):
-    print 'download_file()', filename
+    print '[info]download_file()', filename
     return send_from_directory(app.config['EXPORT_FOLDER'], filename, as_attachment=True)
 
 
-@app.route('/export_upload', methods=['GET', 'POST'])
-def export_upload():
+@app.route('/help_upload', methods=['GET', 'POST'])
+def help_upload():
     if request.method == 'GET':
-        return render_template('export.html')
+        return render_template('help.html')
 
     elif request.method == 'POST':
         f = request.files['file']
@@ -2102,7 +2102,50 @@ def export_upload():
         f_name = secure_filename(f.filename)
         f.save(os.path.join(EXPORT_FOLDER, f_name))
         flash(u"上传成功.")
-        return render_template('export.html')
+        print '[info]help_upload() ok.', f_name
+        return render_template('help.html')
+
+
+@app.route('/help_reset_redis', methods=['GET', 'POST'])
+def help_reset_redis():
+    redis_db = RedisDrive()
+    keys = redis_db.conn.keys()
+    for key in keys:
+        redis_db.conn.delete(key)
+
+    return redirect(url_for('help_upload'), 302)
+
+
+@app.route('/help_getenv', methods=['GET', 'POST'])
+def help_getenv():
+    json_str = {'INIT_CONFIG': INIT_CONFIG,
+
+                'REDIS_SERVER': REDIS_SERVER,
+                'DEDUP_SETTING': DEDUP_SETTING,
+
+                'MYSQLDB_HOST': MYSQLDB_HOST,
+                'MYSQLDB_USER': MYSQLDB_USER,
+                'MYSQLDB_PORT': MYSQLDB_PORT,
+                'MYSQLDB_PASSWORD': MYSQLDB_PASSWORD,
+                'MYSQLDB_SELECT_DB': MYSQLDB_SELECT_DB,
+                'MYSQLDB_CHARSET': MYSQLDB_CHARSET,
+
+                'PROCESS_SHOW_JSON': PROCESS_SHOW_JSON,
+                'SHOW_MAX': SHOW_MAX,
+                'EXPORT_FOLDER': EXPORT_FOLDER,
+                'CONFIG_JSON': CONFIG_JSON,
+
+                'MY_OS': MY_OS,
+                'SHELL_ADVICE_CMD': SHELL_ADVICE_CMD,
+                'SHELL_LIST_CMD': SHELL_LIST_CMD,
+                'SHELL_DETAIL_CMD': SHELL_DETAIL_CMD,
+                'SHELL_CONTENT_CMD': SHELL_CONTENT_CMD,
+                'ALLSITE_INI': ALLSITE_INI,
+
+                'DEPLOY_HOST': DEPLOY_HOST,
+                'DEPLOY_PORT': DEPLOY_PORT
+                }
+    return render_template('help.html', json_str = json.dumps(json_str))
 
 
 ##########################################################################################
