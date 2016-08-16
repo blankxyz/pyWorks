@@ -21,7 +21,7 @@ if MY_OS is None:
     exit(-1)
 else:
     print '[info]--- The OS is: %s ----' % MY_OS
-    if MY_OS =='liux':
+    if MY_OS =='linux':
         INIT_CONFIG = '/work/spider/allsite.ini'
     elif MY_OS == 'mac':
         INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'
