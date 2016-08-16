@@ -41,6 +41,17 @@
             }
 
         });
+        function rtrim() {
+            var patrn = /\/$/;
+            var obj = $("#start_url");
+            var url = $(obj).val();
+{#            alert(url);#}
+{#            document.getElementsByName("site_domain").value = "ccccccccc";#}
+            if (patrn.exec($(obj).val())) {
+                var s = url.substr(url.length - 1);
+                $(obj).value = s;
+            }
+        }
 
         $(function () {
             <!-- 推荐 -->
@@ -112,8 +123,8 @@
     <form id="setting" method="POST" action="/setting_advice_try">
         <hr>
         <div id="config_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
-            {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
+            {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(id='start_url',size=30,onblur="rtrim(this);") }}&nbsp;
+            {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(id='site_domain',size=20,onblur="rtrim(this);") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
             {{ inputForm.advice(id="advice_btn",class="btn btn-default") }}
             {# <input type="button" id="advice_btn" value="推荐">#}

@@ -1,1 +1,23 @@
-[{"a": "A", "c": 3.0, "b": [2, 4]}]
+{
+  "SHELL_CONTENT_CMD": "run_spider_content.bat",
+  "MYSQLDB_PORT": 3306,
+  "SHELL_DETAIL_CMD": "run_spider_detail.bat",
+  "DEDUP_SETTING": "redis://127.0.0.1/0",
+  "SHELL_LIST_CMD": "run_spider_list.bat",
+  "EXPORT_FOLDER": "static/export/",
+  "SHELL_ADVICE_CMD": "run_spider_advice.bat",
+  "PROCESS_SHOW_JSON": "process_show_temp_",
+  "INIT_CONFIG": "./web_run.dev.ini",
+  "MYSQLDB_USER": "root",
+  "CONFIG_JSON": "setting.json",
+  "MYSQLDB_CHARSET": "utf8",
+  "SHOW_MAX": 10,
+  "DEPLOY_PORT": "5000",
+  "MY_OS": "windows",
+  "MYSQLDB_SELECT_DB": "spider",
+  "REDIS_SERVER": "redis://127.0.0.1/14",
+  "ALLSITE_INI": "D:\\workspace\\pyWorks\\spider\\allsite.ini",
+  "MYSQLDB_PASSWORD": "root",
+  "MYSQLDB_HOST": "127.0.0.1",
+  "DEPLOY_HOST": "172.16.5.152"
+}

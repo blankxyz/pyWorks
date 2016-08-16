@@ -77,8 +77,8 @@
     <form id="setting" method="POST" action="/list_save_and_run">
         <hr>
         <div id="config" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(size=30) }}&nbsp;
-            {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(size=20) }}&nbsp;
+            {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(id='start_url',size=30) }}&nbsp;
+            {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(id='site_domain',size=20) }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label }}
             {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label }}

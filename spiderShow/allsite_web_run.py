@@ -27,8 +27,18 @@ from werkzeug.utils import secure_filename
 from flask_restful import Resource, Api
 
 ####################################################################
-INIT_CONFIG = './web_run.dev.ini'
-# INIT_CONFIG = './web_run.deploy.ini'
+# windows or linux or mac
+MY_OS = os.getenv('SPIDER_OS')
+if MY_OS is None:
+    print '[error]please set a SPIDER_OS.'
+    exit(-1)
+else:
+    print '[info]--- The OS is: %s ----' % MY_OS
+####################################################################
+if MY_OS == 'linux':
+    INIT_CONFIG = './web_run.deploy.ini'
+else:  # mac or windows
+    INIT_CONFIG = './web_run.dev.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -36,7 +46,6 @@ if len(config.read(INIT_CONFIG)) == 0:
     exit(-1)
 else:
     print '[info]read the config file.', INIT_CONFIG
-
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
@@ -53,13 +62,7 @@ SHOW_MAX = config.getint('show', 'show_max')
 # export path
 EXPORT_FOLDER = config.get('export', 'export_folder')
 CONFIG_JSON = config.get('export', 'config_json')
-# windows or linux or mac
-MY_OS = os.getenv('SPIDER_OS')
-if MY_OS is None:
-    print '[error]please set a SPIDER_OS.'
-    exit(-1)
-else:
-    print '[info]--- The OS is: %s ----' % MY_OS
+# shell
 SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
@@ -683,8 +686,8 @@ class RedisDrive(object):
         fp.close()
 
     def reset_rule(self, mode, list_rules, detail_rules):
-        self.list_rules = list_rules
-        self.detail_rules = detail_rules
+        self.list_rules = [item['regex'] for item in list_rules]
+        self.detail_rules = [item['regex'] for item in detail_rules]
 
         all_urls = []
         for url in self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg, withscores=False):
@@ -1219,9 +1222,11 @@ def get_domain_init(inputForm=None):
 
 def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
     if start_url != '':
+        start_url = start_url.split('/')[0]
         session['start_url'] = start_url
         inputForm.start_url.data = start_url
     if site_domain != '':
+        site_domain = site_domain.split('/')[0]
         session['site_domain'] = site_domain
         inputForm.site_domain.data = site_domain
     if black_domain_str != '':
@@ -1497,8 +1502,15 @@ def setting_advice_use():
 @app.route('/setting_advice_window', methods=['GET', 'POST'])
 def setting_advice_window():
     user_id = session['user_id']
+    inputForm = AdviceUrlListForm()
+
     # 提取主页、域名
     start_url, site_domain, black_domain_str = get_domain_init()
+    # 提取主页、域名
+    if start_url is None or start_url.strip() == '' or \
+                    site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、域名信息。')
+        return render_template('setting_advice_window.html', inputForm=inputForm)
 
     regex = request.args.get('regex')
     print '[info]setting_advice_window() regex or keyword is: ', regex
@@ -1513,7 +1525,6 @@ def setting_advice_window():
             matched_url_list.append(url)
 
     # print '[info]setting_advice_window()',regex, '->', matched_url_list
-    inputForm = AdviceUrlListForm()
     ####  页面(url)
     for url in matched_url_list:
         regexForm = AdviceUrlForm()
@@ -1538,7 +1549,7 @@ def setting_list_init():
     inputForm = ListRegexInputForm()
 
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -1632,7 +1643,6 @@ def setting_list_save_and_run():
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
-    site_domain = site_domain.split('/')[0]
     set_domain_init(inputForm, start_url, site_domain, black_domain_str)  # 同步回sesstion
     if inputForm.mode.data == False:
         mode = 'all'  # 全部
@@ -1785,18 +1795,17 @@ def show_server_log():
         flash(u'请设置主页、限定的域名信息。')
         return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
 
-    # windows
-    if os.name == 'nt':
+    if MY_OS == 'windows':  # windows
         f = open('web_server.log', 'r').readlines()
         if len(f) >= 80:
             l = f[-80:]
         else:
             l = f
         server_log_list = l
-    # linux
-    else:
+    else:  # linux mac
         if inputForm.unkown_sel.data:
-            cmd = "tail -10000 ./web_server.log | grep -E 'unkown|[list|[detail' |tail -80"
+            cmd = 'tail -80 ./web_server.log'
+            # cmd = "tail -10000 web_server.log | grep -E 'unkown|list|detail' |tail -80"
         else:
             cmd = 'tail -80 ./web_server.log'
 
@@ -2138,14 +2147,13 @@ def help_getenv():
                 'MY_OS': MY_OS,
                 'SHELL_ADVICE_CMD': SHELL_ADVICE_CMD,
                 'SHELL_LIST_CMD': SHELL_LIST_CMD,
-                'SHELL_DETAIL_CMD': SHELL_DETAIL_CMD,
                 'SHELL_CONTENT_CMD': SHELL_CONTENT_CMD,
                 'ALLSITE_INI': ALLSITE_INI,
 
                 'DEPLOY_HOST': DEPLOY_HOST,
                 'DEPLOY_PORT': DEPLOY_PORT
                 }
-    return render_template('help.html', json_str = json.dumps(json_str))
+    return render_template('help.html', json_str=json.dumps(json_str, indent=2))
 
 
 ##########################################################################################
