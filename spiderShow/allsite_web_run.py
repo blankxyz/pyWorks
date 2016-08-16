@@ -142,7 +142,7 @@ class ListRegexInputForm(Form):  # setting
 
 ######## show_server_log.html #############################################################################
 class ShowServerLogInputForm(Form):  # show_server_log
-    unkown_sel = BooleanField(label=u'仅未匹配', default=False)
+    unkown_sel = BooleanField(label=u'仅显示筛选信息', default=True)
     refresh = SubmitField(label=u'刷新')
 
 
@@ -488,25 +488,31 @@ class MySqlDrive(object):
             print '[error]get_current_regexs()', e, sql_str % parameter
         return regexs
 
-    def save_result_file(self, start_url, site_domain):
-        # user_id = session['user_id']
-        user_id = 'admin'
-        # f = zipfile.ZipFile(EXPORT_FOLDER + 'result-list.zip', 'w', zipfile.ZIP_DEFLATED)
-        # f.write(EXPORT_FOLDER + "result-list.log")
-        # # f.write(EXPORT_FOLDER+"test.jpeg")
-        # f.close()
+    def save_result_file_to_mysql(self, start_url, site_domain):
+        msg = ''
+        user_id = session['user_id']
 
-        f = open(EXPORT_FOLDER + 'result-list.log', 'r')
-        list_b = f.read()
-        f.close()
+        f = EXPORT_FOLDER + 'result-list(' + site_domain + ').log'
+        if os.path.isfile(f):
+            fp = open(f, 'r')
+            list_b = fp.read()
+            fp.close()
+        else:
+            msg = u'文件没找到：' + f
+            print '[error]save_result_file_to_mysql() file not found.', f
+            return False, msg
 
-        f = open(EXPORT_FOLDER + 'result-detail.log')
-        detail_b = f.read()
-        f.close()
+        f = EXPORT_FOLDER + 'result-detail(' + site_domain + ').log'
+        if os.path.isfile(f):
+            fp = open(f, 'r')
+            detail_b = fp.read()
+            fp.close()
+        else:
+            msg = u'文件没找到：' + f
+            print '[error]save_result_file_to_mysql() file not found.', f
+            return False, msg
 
-        # os.remove(EXPORT_FOLDER + 'result-list.zip')
-
-        # 将.zip写入表
+        # 写入MySql
         sql_str1 = "DELETE FROM result_file WHERE user_id=%s AND start_url=%s AND site_domain=%s"
         parameter1 = (user_id, start_url, site_domain)
 
@@ -514,16 +520,18 @@ class MySqlDrive(object):
         parameter2 = (user_id, start_url, site_domain, list_b, detail_b,)
 
         try:
-            print '[info]save_result_file()', sql_str1
+            print '[info]save_result_file_to_mysql()', sql_str1
             self.cur.execute(sql_str1, parameter1)
 
-            print '[info]save_result_file()', sql_str2
+            print '[info]save_result_file_to_mysql()', sql_str2
             cnt = self.cur.execute(sql_str2, parameter2)
 
             self.conn.commit()
         except Exception, e:
             # traceback.format_exc()
-            print '[error]save_result_file()', e
+            print '[error]save_result_file_to_mysql()', e
+
+        return True, msg
 
     def get_result_file(self, start_url):
         '''
@@ -572,11 +580,6 @@ class MySqlDrive(object):
             traceback.format_exc()
             print '[error]get_result_file()', e, start_url, cnt
             return None, None, 0
-
-            # f = zipfile.ZipFile(EXPORT_FOLDER + "result-list_aaa.zip", 'w', zipfile.ZIP_DEFLATED)
-            # zipfile.ZipFile('result-list_aaa.jpeg')
-            # f.extractall()
-            # f.close()
 
 
 ##################################################################################################
@@ -1385,9 +1388,16 @@ def setting_advice_try():
 
     # 读取首页链接列表文件
     time.sleep(5.0)  # 等待 链接下载/写入文件 完成
-    fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
-    url_list = fp.readlines()
-    fp.close()
+    f = EXPORT_FOLDER + '/advice(' + site_domain + ').json'
+    if os.path.isfile(f):
+        fp = open(f, "r")
+        url_list = fp.readlines()
+        fp.close()
+    else:
+        flash(u"文件不存在：" + f)
+        print '[error]setting_advice_try() json file not found.', f
+        url_list = []
+        return render_template('setting_advice.html', inputForm=inputForm)
 
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(url_list)
 
@@ -1794,18 +1804,18 @@ def show_server_log():
         server_log_list = p.stdout.readlines()
 
     if len(server_log_list) == 0:
-        flash(u'请使用 ./web_start.sh 生成 web_server.log 。')
+        flash(u'请使用 ./web_start.sh 生成 web_server.log 。否则无法显示后台log。')
         return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
 
     # 保存 实时 列表页结果
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    fp = open(EXPORT_FOLDER + '/result-list.log', 'w')
+    fp = open(EXPORT_FOLDER + '/result-list(' + site_domain + ').log', 'w')
     for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
         fp.write(line + '\n')
     fp.close()
 
     # 保存 实时 详情页结果
-    fp = open(EXPORT_FOLDER + '/result-detail.log', 'w')
+    fp = open(EXPORT_FOLDER + '/result-detail(' + site_domain + ').log', 'w')
     for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
         fp.write(line + '\n')
     fp.close()
@@ -1873,10 +1883,23 @@ def show_process():
 def save_finally_result():
     user_id = session['user_id']
     # user_id = 'admin'
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+    start_url, site_domain, black_domain = get_domain_init()
+
+    # 保存 实时 列表页结果
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    fp = open(EXPORT_FOLDER + '/result-list(' + site_domain + ').log', 'w')
+    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
+        fp.write(line + '\n')
+    fp.close()
+    # 保存 实时 详情页结果
+    fp = open(EXPORT_FOLDER + '/result-detail(' + site_domain + ').log', 'w')
+    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+        fp.write(line + '\n')
+    fp.close()
+
     # 将实时结果作为最终结果保存到DB
-    mysql_db.save_result_file(start_url, site_domain)
+    mysql_db = MySqlDrive()
+    mysql_db.save_result_file_to_mysql(start_url, site_domain)
     flash(u'列表页结果保存DB成功。')
     print '[info]save finally result to DB OK.'
     return redirect(url_for('show_process'), 302)
