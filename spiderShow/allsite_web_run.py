@@ -150,6 +150,20 @@ class ShowServerLogInputForm(Form):  # show_server_log
 
 
 ######## setting_content.html #############################################################################
+class ContentAdvice(Form):
+    detail_regex_sel = SelectField(label=u'详情页规则', choices=[('url1', 'url1'), ('url2', 'url2')], default='0')
+    detail_regex_list = []
+    match = SubmitField(label=u'详情页正则匹配')
+    content_advice = SubmitField(label=u'自动提取')
+
+    detail_url_list = []
+
+    title = TextAreaField(label=u'标题')
+    content = TextAreaField(label=u'内容')
+    author = StringField(label=u'作者')
+    ctime = StringField(label=u'做成时间')
+
+
 class ContentItemForm(Form):  # 内容提取
     # 标题，内容，作者，创建时间，
     title_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
@@ -167,7 +181,7 @@ class ContentItemForm(Form):  # 内容提取
     save_run = SubmitField(label=u'保存并执行')
 
 
-########## user.html  ####################################################################################
+########## history.html  ####################################################################################
 class SearchCondForm(Form):  # user search
     start_url = StringField(label=u'主页', default='')
     start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
@@ -380,6 +394,24 @@ class MySqlDrive(object):
             print '[error]search_regex_by_user()', e, sql_str
 
         return search_result_list
+
+    def get_detail_regex(self, user_id, start_url, site_domain):
+        regex_list = []
+        sql_str = "SELECT regex FROM url_rule  WHERE user_id=%s AND start_url=%s AND site_domain=%s " \
+                  "AND detail_or_list='0' AND white_or_black='0'"
+        parameter = (user_id, start_url, site_domain)
+
+        try:
+            cnt = self.cur.execute(sql_str, parameter)
+            rs = self.cur.fetchall()
+            for r in rs:
+                regex_list.append(r[0])
+            self.conn.commit()
+            print '[info]get_detail_regex()', cnt, sql_str % parameter
+        except Exception, e:
+            print '[error]get_detail_regex()', e, sql_str % parameter
+
+        return regex_list
 
     def search_start_url_by_user(self, user_id):
         search_result_list = []
@@ -607,6 +639,23 @@ class RedisDrive(object):
 
     def get_detail_urls(self):
         return self.conn.smembers(self.detail_urls_set_key)
+
+    def get_detail_urls_by_regex(self, regex):
+        urls = []
+        cnt = 0
+        if regex == '':
+            for url in self.conn.smembers(self.detail_urls_set_key):
+                urls.append(url)
+                cnt += 1
+                if cnt > 100: break
+        else:
+            for url in self.conn.smembers(self.detail_urls_set_key):
+                if re.search(regex, url):
+                    urls.append(url)
+                    cnt += 1
+                if cnt > 100: break
+
+        return urls
 
     def get_list_urls(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
@@ -1222,11 +1271,11 @@ def get_domain_init(inputForm=None):
 
 def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
     if start_url != '':
-        start_url = start_url.split('/')[0]
+        if start_url[-1] == '/': start_url = start_url[:-1]
         session['start_url'] = start_url
         inputForm.start_url.data = start_url
     if site_domain != '':
-        site_domain = site_domain.split('/')[0]
+        if site_domain[-1] == '/': site_domain = site_domain[:-1]
         session['site_domain'] = site_domain
         inputForm.site_domain.data = site_domain
     if black_domain_str != '':
@@ -1962,6 +2011,34 @@ def reset_all():
 
 
 ######### 配置内容XPATH  #############################################################################
+@app.route('/content_advice', methods=['GET', 'POST'])
+def content_advice():
+    inputForm = ContentAdvice(request.form)
+    user_id = session['user_id']
+    start_url, site_domain, black_domain_str = get_domain_init()
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('content_advice.html', inputForm=inputForm)
+
+    # inputForm.detail_regex_list = ['\/$',
+    #                                'regex1',
+    #                                'regex2',
+    #                                'regex3']
+    mysql_db = MySqlDrive()
+    select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.detail_regex_sel.choices = select_items
+    regex_sel = inputForm.detail_regex_sel.data
+    # inputForm.detail_regex_list = inputForm.detail_regex_sel.data
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    print regex_sel
+    inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
+    print '[info]content_advice()',inputForm.detail_url_list
+
+    return render_template('content_advice.html', inputForm=inputForm)
+
+
 @app.route('/setting_content_init', methods=['GET', 'POST'])
 def setting_content_init():
     user_id = session['user_id']
@@ -1978,8 +2055,8 @@ def content_save_and_run():
 
     # 提取主页、域名
     mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print '[info]content_save_and_run()', user_id, start_url, site_domain, black_domain
+    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
+    print '[info]content_save_and_run()', user_id, start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
         return render_template('setting_content.html', inputForm=inputForm)
@@ -2084,7 +2161,7 @@ def user_search():
         else:
             flash(u'请检索取得结果后再导入。')
 
-    return render_template('user.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
+    return render_template('history.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
 
 ######### 上传下载  #############################################################################
