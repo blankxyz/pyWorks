@@ -3,9 +3,10 @@
     {{ super() }}
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
-    <!-- DataTables -->
+    <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(document).ready(function () {
             $('#detail_url_tab').DataTable({
                 "oLanguage": {
@@ -27,13 +28,37 @@
                 "bLengthChange": true,
                 "aLengthMenu": [10, 20]
             });
+            <!-- 转换正则 -->
+            $('a').click(function () {
+                var id_str = $(this).attr("id");
+
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/get_content_advice',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: {
+                        url: $('input[id="url"]').val(),
+                        now: new Date().getTime()
+                    },
+                    error: function (xhr, err) {
+                        $('#title').text(err);
+                    },
+                    success: function (data, textStatus) {
+                        $('#title').text(data.title);
+                        $('#ctime').text(data.ctime);
+                        $('#content').text(data.content);
+                        $('#author').text(data.author);
+                    }
+                });
+
+            });
         });
     </script>
 {% endblock %}
 
 {% block content %}
     <h3 align="center">自动提取
-        <small>标题、内容、作者、创建时间</small>
+        <small>标题、创建时间、内容、作者</small>
     </h3>
     <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
@@ -52,7 +77,7 @@
         <form id="cond" method="POST" action="/content_advice">
             {{ inputForm.detail_regex_sel(style="width:400px;") }}
             {{ inputForm.match(class="btn btn-default") }}
-            {{ inputForm.content_advice(class="btn btn-default") }}
+            {{ inputForm.content_advice(id="content_advice_btn",class="btn btn-default") }}
         </form>
     </div>
     <hr>
@@ -65,8 +90,8 @@
             </thead>
             <tbody>
             {% for row in inputForm.detail_url_list %}
-                <tr id= {{ "url_" ~ loop.index }}>
-                    <td>{{ row }}</td>
+                <tr>
+                    <td><a id={{ "url_" ~ loop.index }} href="#">{{ row }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -83,19 +108,19 @@
             <tbody>
             <tr>
                 <td>标题</td>
-                <td>{{ inputForm.title(rows="3",cols="80") }}</td>
-            </tr>
-            <tr>
-                <td>内容</td>
-                <td>{{ inputForm.content(rows="10",cols="80") }}</td>
-            </tr>
-            <tr>
-                <td>作者</td>
-                <td>{{ inputForm.author(size=80) }}</td>
+                <td>{{ inputForm.title(id="title",rows="3",cols="80") }}</td>
             </tr>
             <tr>
                 <td>创建时间</td>
                 <td>{{ inputForm.ctime(size=80) }}</td>
+            </tr>
+            <tr>
+                <td>内容</td>
+                <td>{{ inputForm.content(id="content",rows="10",cols="80") }}</td>
+            </tr>
+            <tr>
+                <td>作者</td>
+                <td>{{ inputForm.author(size=80) }}</td>
             </tr>
             </tbody>
         </table>

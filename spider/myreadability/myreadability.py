@@ -298,13 +298,7 @@ class Document(object):
                     else:
                         article = self._root.find('body')
                         if article is None:
-                            print '222'
                             article = self._root
-
-                # print 'article', type(article)
-                for el in  self.tags(article,'div'):
-                    link_density = self.get_link_density(el)
-                    # print 'link_density()', link_density #i.text_content()
 
                 cleaned_article = self.sanitize(article, candidates)
                 article_length = len(cleaned_article or '')
@@ -716,28 +710,18 @@ def text_length(elem):
 
 if __name__ == "__main__":
     import requests
-    # url = 'http://tv.cctv.com/2016/06/26/VIDElVKFM1LN5T8bDkG7jrl5160626.shtml'
-    url = 'http://www.xinjiangyaou.com/' # summry bug
-    # url = 'http://www.thepaper.cn/point_question.jsp?commentid=5798849&contid=10004233' # summry bug
-
+    url='http://bbs.tianya.cn/post-105-531400-1.shtml'
     resp = requests.get(url)
     html = resp.content
-    
-#     f = open('d:\\temp\\extractor\\1.html', 'rb')
-#     html = f.read()
-#     #f.write(html)
-#     f.close()
-#    print "--html: ", html
     
     negative = ['bodytitle', 'pub_date', 'banquan']
 #      
     doc = Document(html, url=url)
      
     title =  doc.title
-    print 'url:',url
-    print "--title: ", title
+    print '--url:      ',url
+    print "--title:    ", title
     print "--encoding: ", doc.encoding
-    print 'get_time():', doc.get_ctime()
+    print '--ctime:    ', doc.get_ctime()
     summry = doc.summary(False)
-    print 'summary():', len(summry), summry
-    print 'is_list():', doc.is_list()
+    print '--summary:  ', len(summry), summry

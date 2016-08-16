@@ -8,42 +8,45 @@ import datetime
 from lxml.etree import tostring, tounicode
 from lxml.html import fragment_fromstring, document_fromstring
 
-
 from htmlparser import build_doc, to_string
 from cleaners import html_cleaner, clean_attributes
 
-import find_date
-
-#2015-02-11 18:07:00 | 2015-02-11 18:07
-#2015年02月12日 06:48:00 | 2015年02月12日 06:48
+# 2015-02-11 18:07:00 | 2015-02-11 18:07
+# 2015年02月12日 06:48:00 | 2015年02月12日 06:48
 REGEX_DATETIME = {
-    'a': re.compile(u"(\d{1,4}\W\d{1,2}\W\d{1,2}\W?[  ]+?\d{1,2}:\d{1,2})", re.I|re.M|re.S),
-    'b': re.compile(u"(\d{1,4}.\d{1,2}.\d{1,2}.\s*\d{1,2}:\d{1,2}(:\d{1,2}){0,1})", re.I|re.M|re.S),
-    'c': re.compile(u"(\d{1,4}年\d{1,2}月\d{1,2})", re.I|re.M|re.S),
+    'a': re.compile(u"(\d{1,4}\W\d{1,2}\W\d{1,2}\W?[  ]+?\d{1,2}:\d{1,2})", re.I | re.M | re.S),
+    'b': re.compile(u"(\d{1,4}.\d{1,2}.\d{1,2}.\s*\d{1,2}:\d{1,2}(:\d{1,2}){0,1})", re.I | re.M | re.S),
+    'c': re.compile(u"(\d{1,4}年\d{1,2}月\d{1,2})", re.I | re.M | re.S),
+
 }
 
-
-#pangwei add bdshare|bshare|copyright to 'negativeRe'
+# pangwei add bdshare|bshare|copyright to 'negativeRe'
 REGEXES = {
-    'unlikelyCandidatesRe': re.compile('combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter|copyright', re.I),
+    'unlikelyCandidatesRe': re.compile(
+        'combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter|copyright',
+        re.I),
     'okMaybeItsACandidateRe': re.compile('and|article|body|column|main|shadow', re.I),
     'positiveRe': re.compile('article|body|content|entry|hentry|main|page|pagination|post|text|blog|story', re.I),
-    'negativeRe': re.compile('combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget|bdshare|bshare|jiathis|copyright|author|banquan|mzsm', re.I),
+    'negativeRe': re.compile(
+        'combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget|bdshare|bshare|jiathis|copyright|author|banquan|mzsm',
+        re.I),
     'divToPElementsRe': re.compile('<(a|blockquote|dl|div|img|ol|p|pre|table|ul)', re.I),
-    #'replaceBrsRe': re.compile('(<br[^>]*>[ \n\r\t]*){2,}',re.I),
-    #'replaceFontsRe': re.compile('<(\/?)font[^>]*>',re.I),
-    #'trimRe': re.compile('^\s+|\s+$/'),
-    #'normalizeRe': re.compile('\s{2,}/'),
-    #'killBreaksRe': re.compile('(<br\s*\/?>(\s|&nbsp;?)*){1,}/'),
-    #'videoRe': re.compile('http:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
-    #skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
+    # 'replaceBrsRe': re.compile('(<br[^>]*>[ \n\r\t]*){2,}',re.I),
+    # 'replaceFontsRe': re.compile('<(\/?)font[^>]*>',re.I),
+    # 'trimRe': re.compile('^\s+|\s+$/'),
+    # 'normalizeRe': re.compile('\s{2,}/'),
+    # 'killBreaksRe': re.compile('(<br\s*\/?>(\s|&nbsp;?)*){1,}/'),
+    # 'videoRe': re.compile('http:\/\/(www\.)?(youtube|vimeo)\.com', re.I),
+    # skipFootnoteLink:      /^\s*(\[?[a-z0-9]{1,2}\]?|^|edit|citation needed)\s*$/i,
 }
 
 
 class Unparseable(ValueError):
     pass
 
+
 regexp_type = type(re.compile('hello, world'))
+
 
 def compile_pattern(elements):
     if not elements:
@@ -62,9 +65,9 @@ def get_distance(str1='', str2=''):
     for i in xrange(min_len):
         if str1[i] == str2[i]:
             common_num += 1.0
-    return common_num  / max_len
-    
-    
+    return common_num / max_len
+
+
 class Document(object):
     """Class to build a etree document out of html"""
     TEXT_LENGTH_THRESHOLD = 25
@@ -93,7 +96,6 @@ class Document(object):
         self.positive_keywords = compile_pattern(positive_keywords)
         self.negative_keywords = compile_pattern(negative_keywords)
         self._root = None
-        self.url = kwargs.get('url', '')
 
     def _build_doc(self, force=False):
         if force or self._root is None:
@@ -109,27 +111,91 @@ class Document(object):
         else:
             etree.resolve_base_href()
         return etree
-    
+
     def is_list(self, *args, **kwargs):
+        # print 'is_list() start ...'
         '''
         判读当前页是否为列表页
         '''
         try:
             etree = self._build_doc(True)
+            print etree
             body = etree.find(".//body")
+            # print body.findall('.//style')
+            # for style in body.findall('.//style'):
+            #     print style
+
             text = to_string(body)
             all_links = etree.findall(".//a")
             links_text = []
             for item in all_links:
                 links_text.append(to_string(item))
-                #print to_string(item)
-            text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
+                # print to_string(item)
+            text_without_blank = re.compile(r"\s+", re.I | re.M | re.S).sub('', text)
+            # print 'text_without_blank space',len(text_without_blank), text_without_blank
+            text_without_blank = re.compile(r"\d{4}\/\d{2}\/\d{4}\:\d{2}", re.I | re.M | re.S).sub('',
+                                                                                                   text_without_blank)
+            # print 'text_without_blank time', len(text_without_blank), text_without_blank
             rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
-            #print rate
+            # print 'join(links_text)',len(''.join(links_text)),''.join(links_text)
+            print 'rate', rate
+
+            # max_div_len = 0
+            # divs = etree.findall(".//body/div")
+            # for div in divs:
+            #     div_text = to_string(div)
+            #     if len(div_text) > max_div_len:
+            #         max_div_len = len(div_text)
+            #         max_div = div
+            #
+            # print 'max_div',to_string(max_div)
+            # max_div_links = max_div.findall(".//a")
+            # print 'max_div_links',len(max_div_links), max_div_links
+            # max_div_links_text = []
+            # for item in max_div_links:
+            #     max_div_links_text.append(to_string(item))
+            #
+            # print 'max_div_links_text',max_div_links_text
+            # div_text = to_string(max_div)
+            # div_text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', div_text)
+            # # print 'text_without_blank space',len(text_without_blank), text_without_blank
+            # div_text_without_blank = re.compile(r"\d{4}\/\d{2}\/\d{4}\:\d{2}", re.I | re.M | re.S).sub('', div_text_without_blank)
+            # print 'div_text_without_blank time', len(div_text_without_blank), div_text_without_blank
+            # max_div_rate = len(''.join(max_div_links_text)) * 1.0 / len(div_text_without_blank)
+            # print 'max_div_rate', max_div_rate
+
             return rate > 0.6
-        except:
+        except Exception, e:
+            print e
             return False
-    
+
+    # def is_list_main_div(self, *args, **kwargs):
+    #     '''
+    #     判读当前页是否为列表页
+    #     '''
+    #     try:
+    #         etree = self._build_doc(True)
+    #         body = etree.find(".//body")
+    #         divs = body.findall('div')
+    #         for div in divs:
+    #             if div.get('class') == 'container' 'main':
+    #                 save
+    #             if div.get('^nav,footer,^foot,^bottom','^top','channel'):
+    #                 remove
+    #
+    #         text = to_string(body)
+    #         all_links = etree.findall(".//a")
+    #         links_text = []
+    #         for item in all_links:
+    #             links_text.append(to_string(item))
+    #             #print to_string(item)
+    #         text_without_blank = re.compile(r"\s+", re.I|re.M|re.S).sub('', text)
+    #         rate = len(''.join(links_text)) * 1.0 / len(text_without_blank)
+    #         # print rate
+    #         return rate > 0.6
+    #     except:
+    #         return False
+
     def urls(self):
         '''
         '''
@@ -141,17 +207,13 @@ class Document(object):
             if url.find('http') > -1:
                 urls.append(url)
         return set(urls)
-    
+
     def get_ctime(self):
         '''
         获取发布时间, 获取失败返回当前时间
         '''
         content = to_string(self._root.findall("body")[0]).decode('utf8')
-        print content
-        utc_time = find_date.utc_datetime(content, self.url)
-        if utc_time:
-            return utc_time - datetime.timedelta(hours=8)
-        
+        #        m = re.compile(u"(\d+\W\d+\W\d+\W?[  ]\d+:\d+)",re.I|re.M|re.S).search(content.decode('utf8'))
         for prority, reg in REGEX_DATETIME.iteritems():
             m = reg.search(content)
             if m:
@@ -165,50 +227,49 @@ class Document(object):
                     except:
                         utc_time = datetime.datetime.utcnow()
                 return utc_time
-        #print "----search ctime failed ---"
+        print "----search ctime failed ---"
         return datetime.datetime.utcnow()
-    
+
     @property
     def title(self):
         return self.get_title()
-    
+
     def get_title(self):
         title = ''
         etree = self._build_doc(True)
         if etree is not None:
             node_title = etree.find(".//title")
             if node_title is not None:
-                title =  to_string(node_title)
+                title = to_string(node_title)
                 title_array = re.split("—|_|-|-\||\|", title)
                 title = title_array[0]
                 if re.search("网$|日报$", title) is not None and len(title) < len(title_array[1]):
                     title = title_array[1]
-            
+
             node_title = etree.find(".//h1")
             if node_title is not None:
                 head_title = to_string(node_title)
                 distance = get_distance(title, head_title)
                 if distance > 0.6:
                     title = head_title
-            
+
         return title
-    
+
     def get_clean_html(self):
         return clean_attributes(to_string(self._root))
         return clean_attributes(tostring(self._root, encoding='utf-8'))
         return clean_attributes(tounicode(self._root))
-    
+
     def tags(self, node, *tag_names):
         for tag in tag_names:
-            for elem in node.findall(".//%s"%tag):
+            for elem in node.findall(".//%s" % tag):
                 yield elem
-    
+
     def reverse_tags(self, node, *tag_names):
         for tag_name in tag_names:
             for e in reversed(node.findall('.//%s' % tag_name)):
                 yield e
-    
-    
+
     def summary(self, html_partial=False):
         """Generate the summary of the html docuemnt
         :param html_partial: return only the div of the document, don't wrap
@@ -218,10 +279,10 @@ class Document(object):
             ruthless = True
             while 1:
                 self._build_doc(True)
-                #pangwei add on 2014/12/08 begin
+                # pangwei add on 2014/12/08 begin
                 for elem in self.tags(self._root, 'footer', 'select'):
                     elem.drop_tree()
-                #pangwei add on 2014/12/08 end
+                # pangwei add on 2014/12/08 end
                 for elem in self.tags(self._root, 'script', 'style'):
                     elem.drop_tree()
                 for elem in self.tags(self._root, 'body'):
@@ -229,11 +290,11 @@ class Document(object):
                 if ruthless:
                     self.remove_unlikely_candidates()
                 self.transform_misused_divs_into_paragraphs()
-                
+
                 candidates = self.score_paragraphs()
                 best_candidate = self.select_best_candidate(candidates)
                 if best_candidate:
-                    article = self.get_article(candidates, best_candidate,html_partial=html_partial)
+                    article = self.get_article(candidates, best_candidate, html_partial=html_partial)
                 else:
                     if ruthless:
                         ruthless = False
@@ -242,26 +303,26 @@ class Document(object):
                         article = self._root.find('body')
                         if article is None:
                             article = self._root
-                
+
                 cleaned_article = self.sanitize(article, candidates)
                 article_length = len(cleaned_article or '')
-                retry_length = self.kwargs.get('retry_length',self.RETRY_LENGTH)
+                retry_length = self.kwargs.get('retry_length', self.RETRY_LENGTH)
                 of_acceptable_length = article_length >= retry_length
                 if ruthless and not of_acceptable_length:
                     ruthless = False
                     continue
                 else:
                     return cleaned_article
-            
+
         except StandardError, e:
             raise Unparseable(str(e)), None, sys.exc_info()[2]
-    
+
     def get_article(self, candidates, best_candidate, html_partial=False):
         # Now that we have the top candidate, look through its siblings for
         # content that might also be related.
         # Things like preambles, content split by ads that we removed, etc.
         sibling_score_threshold = max([10, best_candidate['content_score'] * 0.2])
-        
+
         if html_partial:
             output = fragment_fromstring('<div/>')
         else:
@@ -273,21 +334,21 @@ class Document(object):
                 append = True
             sibling_key = sibling
             if sibling_key in candidates and \
-                candidates[sibling_key]['content_score'] >= sibling_score_threshold:
+                            candidates[sibling_key]['content_score'] >= sibling_score_threshold:
                 append = True
-            
+
             if sibling.tag == "p":
                 link_density = self.get_link_density(sibling)
                 node_content = sibling.text or ""
                 node_length = len(node_content)
-                
+
                 if node_length > 80 and link_density < 0.25:
                     append = True
                 elif node_length <= 80 \
-                    and link_density == 0 \
-                    and re.search('\.( |$)', node_content):
+                        and link_density == 0 \
+                        and re.search('\.( |$)', node_content):
                     append = True
-            
+
             if append:
                 # We don't want to append directly to output, but the div
                 # in html->body->div
@@ -295,31 +356,30 @@ class Document(object):
                     output.append(sibling)
                 else:
                     output.getchildren()[0].getchildren()[0].append(sibling)
-        #if output is not None:
+        # if output is not None:
         #    output.append(best_elem)
         return output
-    
-    
+
     def remove_unlikely_candidates(self):
         for elem in self._root.iter():
-            #pangwei add on 2014/12/15 start
-            style = "%s"%elem.get('style', '').lower()
+            # pangwei add on 2014/12/15 start
+            style = "%s" % elem.get('style', '').lower()
             if re.search("display:none", style):
-                #print  "--Drop display:none tree: tag:%s; id:%s; class:%s"%(elem.tag, elem.get('id'), elem.get('class'))
+                # print  "--Drop display:none tree: tag:%s; id:%s; class:%s"%(elem.tag, elem.get('id'), elem.get('class'))
                 elem.drop_tree()
                 continue
-            #pangwei add on 2014/12/15 stop
-            
+            # pangwei add on 2014/12/15 stop
+
             s = "%s %s" % (elem.get('class', ''), elem.get('id', ''))
             if len(s) < 2:
                 continue
-            
+
             if REGEXES['unlikelyCandidatesRe'].search(s) and \
-                (not REGEXES['okMaybeItsACandidateRe'].search(s)) and \
-                elem.tag not in ['html', 'body']:
+                    (not REGEXES['okMaybeItsACandidateRe'].search(s)) and \
+                            elem.tag not in ['html', 'body']:
                 elem.drop_tree()
-                #print "--drop: ", elem.tag, '---:----',  describe(elem), elem.text_content()
-    
+                # print "--drop: ", elem.tag, '---:----',  describe(elem), elem.text_content()
+
     def transform_misused_divs_into_paragraphs(self):
         '''
     # transform <div>s that do not contain other block elements into <p>s
@@ -329,45 +389,44 @@ class Document(object):
     # buried within an <a> for example
     '''
         for elem in self.tags(self._root, 'div'):
-            style = "%s"%elem.get('style', '').lower()
+            style = "%s" % elem.get('style', '').lower()
             if re.search("display:none", style):
-                #print  "--Drop display:none tree--: tag:%s; id:%s; class:%s"%(elem.tag, elem.get('id'), elem.get('class'))
+                # print  "--Drop display:none tree--: tag:%s; id:%s; class:%s"%(elem.tag, elem.get('id'), elem.get('class'))
                 elem.drop_tree()
                 continue
             if not REGEXES['divToPElementsRe'].search(unicode(''.join(map(tostring, list(elem))))):
-                #pangwei modify on 2014/12/17 begin
-                #elem.tag = "p"
-                #pangwei modify end
-                #pangwei add on 2014/12/17 begin
+                # pangwei modify on 2014/12/17 begin
+                # elem.tag = "p"
+                # pangwei modify end
+                # pangwei add on 2014/12/17 begin
                 p = fragment_fromstring('<p/>')
                 p.text = elem.text
                 elem.text = None
                 elem.text = None
                 elem.insert(0, p)
-                #pangwei add end
-        
+                # pangwei add end
+
         for elem in self.tags(self._root, 'div'):
             if elem.text and elem.text.strip():
                 p = fragment_fromstring('<p/>')
                 p.text = elem.text
                 elem.text = None
                 elem.insert(0, p)
-                #print "Inserted "+ tounicode(p)+" to " + describe(elem)
-            
+                # print "Inserted "+ tounicode(p)+" to " + describe(elem)
+
             for pos, child in reversed(list(enumerate(elem))):
                 if child.tail and child.tail.strip():
                     p = fragment_fromstring('<p/>')
                     p.text = child.tail
                     child.tail = None
                     elem.insert(pos + 1, p)
-                    #print "Inserted "+ tounicode(p)+" to " + describe(elem)
+                    # print "Inserted "+ tounicode(p)+" to " + describe(elem)
                 if child.tag == 'br':
-                    #print 'Dropped <br> at '+ describe(elem)
+                    # print 'Dropped <br> at '+ describe(elem)
                     child.drop_tree()
                 if child.tag == 'strong':
                     child.tag = 'p'
-    
-    
+
     def score_paragraphs(self):
         '''
         计算节点分值
@@ -375,55 +434,54 @@ class Document(object):
         ordered = []
         candidates = {}
         MIN_LEN = self.kwargs.get('min_text_length', self.TEXT_LENGTH_THRESHOLD)
-        
+
         for elem in self.tags(self._build_doc(), "p", "pre", "td"):
             parent_node = elem.getparent()
             if parent_node is None:
                 continue
             grand_parent_node = parent_node.getparent()
-            
+
             inner_text = clean(elem.text_content() or "")
             inner_text_len = len(inner_text)
-            
+
             if inner_text_len < MIN_LEN:
                 continue
-            
+
             if parent_node not in candidates:
                 candidates[parent_node] = self.score_node(parent_node)
                 ordered.append(parent_node)
-                
+
             if grand_parent_node is not None and grand_parent_node not in candidates:
                 candidates[grand_parent_node] = self.score_node(grand_parent_node)
                 ordered.append(grand_parent_node)
-            
+
             content_score = 1
-            #pangwei comments on 2014/12/15 begins
-            #content_score += len(inner_text.split(','))
-            #content_score += min((inner_text_len / 100), 3)
-            #pangwei comments on 2014/12/15 end
+            # pangwei comments on 2014/12/15 begins
+            # content_score += len(inner_text.split(','))
+            # content_score += min((inner_text_len / 100), 3)
+            # pangwei comments on 2014/12/15 end
             ##pangwei add on 2014/12/15 begins
             content_score += len(re.split(",|，", inner_text))
             content_score += max((inner_text_len / 25), 0)
             ##pangwei add on 2014/12/15 end
-            #if elem not in candidates:
+            # if elem not in candidates:
             #    candidates[elem] = self.score_node(elem)
-            #WTF? candidates[elem]['content_score'] += content_score
+            # WTF? candidates[elem]['content_score'] += content_score
             candidates[parent_node]['content_score'] += content_score
             if grand_parent_node is not None:
-                candidates[grand_parent_node]['content_score'] += content_score/2.0
-            
+                candidates[grand_parent_node]['content_score'] += content_score / 2.0
+
         # Scale the final candidates score based on link density. 
         # Good content should have a relatively small link density (5% or less)
         #  and be mostly unaffected by this operation.
         for elem in ordered:
             candidate = candidates[elem]
             ld = self.get_link_density(elem)
-            #score = candidate['content_score']
+            # score = candidate['content_score']
             candidate['content_score'] *= (1 - ld)
-        
+
         return candidates
-    
-    
+
     def score_node(self, elem):
         content_score = self.class_weight(elem)
         name = elem.tag.lower()
@@ -435,16 +493,15 @@ class Document(object):
             content_score -= 3
         elif name in ["h1", "h2", "h3", "h4", "h5", "h6", "th"]:
             content_score -= 5
-        #pangwei add 2014/12/10 begin:
+        # pangwei add 2014/12/10 begin:
         elif name in ["select"]:
             content_score -= 5
-        #pangwei add 2014/12/10 end
+        # pangwei add 2014/12/10 end
         return {
             'content_score': content_score,
             'elem': elem
         }
-    
-    
+
     def class_weight(self, e):
         weight = 0
         for feature in [e.get('class', None), e.get('id', None)]:
@@ -457,53 +514,53 @@ class Document(object):
                     weight += 25
                 if self.negative_keywords and self.negative_keywords.search(feature):
                     weight -= 25
-        if self.positive_keywords and self.positive_keywords.match('tag-'+e.tag):
+        if self.positive_keywords and self.positive_keywords.match('tag-' + e.tag):
             weight += 25
-        if self.negative_keywords and self.negative_keywords.match('tag-'+e.tag):
+        if self.negative_keywords and self.negative_keywords.match('tag-' + e.tag):
             weight -= 25
-        
+
         return weight
-    
+
     def select_best_candidate(self, candidates):
         sorted_candidates = sorted(candidates.values(), key=lambda x: x['content_score'], reverse=True)
         for candidate in sorted_candidates[:5]:
             elem = candidate['elem']
-            #print describe(elem)
-        
+            # print describe(elem)
+
         if len(sorted_candidates) == 0:
             return None
-        
+
         best_candidate = sorted_candidates[0]
-        
+
         return best_candidate
-        
+
     def get_link_density(self, elem):
         link_length = 0
         for i in elem.findall(".//a"):
             link_length += text_length(i)
         total_length = text_length(elem)
         return float(link_length) / max(total_length, 1)
-    
+
     def sanitize(self, node, candidates):
         '''对输出结果做最后的清洗
         '''
-        MIN_LEN = self.kwargs.get('min_text_length',self.TEXT_LENGTH_THRESHOLD)
-        
-        #清除不满足条件的"h1", "h2", "h3", "h4", "h5", "h6", 根据class,id和link density
+        MIN_LEN = self.kwargs.get('min_text_length', self.TEXT_LENGTH_THRESHOLD)
+
+        # 清除不满足条件的"h1", "h2", "h3", "h4", "h5", "h6", 根据class,id和link density
         for header in self.tags(node, "h1", "h2", "h3", "h4", "h5", "h6"):
-#            if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
+            #            if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
             if self.class_weight(header) <= 0 or self.get_link_density(header) > 0.33:
                 header.drop_tree()
-        
+
         for elem in self.tags(node, "form", "iframe", "textarea"):
             elem.drop_tree()
-        
+
         allowed = {}
         # Conditionally clean <table>s, <ul>s, and <div>s
         for el in self.reverse_tags(node, "table", "ul", "div"):
             if el in allowed:
                 continue
-            
+
             weight = self.class_weight(el)
             if el in candidates:
                 content_score = candidates[el]['content_score']
@@ -518,7 +575,7 @@ class Document(object):
                     counts[kind] = len(el.findall('.//%s' % kind))
                 counts["li"] -= 100
                 counts["input"] -= len(el.findall('.//input[@type="hidden"]'))
-                
+
                 # Count the text length excluding any surrounding whitespace
                 content_length = text_length(el)
                 link_density = self.get_link_density(el)
@@ -528,12 +585,12 @@ class Document(object):
                         content_score = candidates[parent_node]['content_score']
                     else:
                         content_score = 0
-#                 if parent_node is not None:
-#                     pweight = self.class_weight(parent_node) + content_score
-#                     pname = describe(parent_node)
-#                 else:
-#                     pweight = 0
-#                     pname = "no parent"
+                        #                 if parent_node is not None:
+                        #                     pweight = self.class_weight(parent_node) + content_score
+                        #                     pname = describe(parent_node)
+                        #                 else:
+                        #                     pweight = 0
+                        #                     pname = "no parent"
                 to_remove = False
                 reason = ""
                 if counts["p"] and counts["img"] > counts["p"]:
@@ -557,21 +614,21 @@ class Document(object):
                 elif (counts["embed"] == 1 and content_length < 75) or counts["embed"] > 1:
                     reason = "<embed>s with too short content length, or too many <embed>s"
                     to_remove = True
-                    #find x non empty preceding and succeeding siblings
+                    # find x non empty preceding and succeeding siblings
                     i, j = 0, 0
                     x = 1
                     siblings = []
                     for sib in el.itersiblings():
                         sib_content_length = text_length(sib)
                         if sib_content_length:
-                            i =+ 1
+                            i = + 1
                             siblings.append(sib_content_length)
                             if i == x:
                                 break
                     for sib in el.itersiblings(preceding=True):
                         sib_content_length = text_length(sib)
                         if sib_content_length:
-                            j =+ 1
+                            j = + 1
                             siblings.append(sib_content_length)
                             if j == x:
                                 break
@@ -579,55 +636,54 @@ class Document(object):
                         to_remove = False
                         for desnode in self.tags(el, "table", "ul", "div"):
                             allowed[desnode] = True
-                    
+
                 if to_remove:
-                    #print "--Cleaned %6.3f %s with weight %s cause it has %s : %s"%(content_score, describe(el), weight, reason, el.text_content())
+                    # print "--Cleaned %6.3f %s with weight %s cause it has %s : %s"%(content_score, describe(el), weight, reason, el.text_content())
                     el.drop_tree()
-                
+
         for el in ([node] + [n for n in node.iter()]):
             if not self.kwargs.get('attributes', None):
                 pass
-        
-        #pangwei add begin on 2014/12/15
-        #版权申明开始标志
+
+        # pangwei add begin on 2014/12/15
+        # 版权申明开始标志
         flag = False
         for elem in self.tags(node, 'p'):
             if flag:
                 if elem.getparent() is not None:
                     elem.drop_tree()
                     continue
-                    #print "-*--*--*- Dropped: content: %s ; type:%s"%(content, type(content))
+                    # print "-*--*--*- Dropped: content: %s ; type:%s"%(content, type(content))
             content = elem.text_content().strip()
             if re.search(u"版权说明|版权声明|免责声明", content[:12]):
                 if elem.getparent() is not None:
                     elem.drop_tree()
-                    #print "-*- content: %s ; type:%s"%(content, type(content))
+                    # print "-*- content: %s ; type:%s"%(content, type(content))
                 flag = True
                 continue
             if re.search(u"说明|声明|注明", content[:12]):
                 if re.search(u"转载|版权", content) and re.search(u"传播|授权|不代表", content):
                     if elem.getparent() is not None:
                         elem.drop_tree()
-                        #print "-*--*- content: %s ; type:%s"%(content, type(content))
+                        # print "-*--*- content: %s ; type:%s"%(content, type(content))
                     flag = True
                     continue
-        #pangwei add end on 2014/12/15 
-        
+        # pangwei add end on 2014/12/15
+
         self._root = node
-        
+
         return self.get_clean_html()
 
-    
     def open_in_browser(self):
         import lxml.html
         return lxml.html.tostring(self._root)
-    
-    #pangwei add on 2014/12/22 begin
+
+    # pangwei add on 2014/12/22 begin
     def get_detail_list_content(self):
         pass
-    #pangwei add on 2014/12/22 end
-    
-    
+        # pangwei add on 2014/12/22 end
+
+
 def describe(node, depth=1):
     if not hasattr(node, 'tag'):
         return "[%s]" % type(node)
@@ -641,38 +697,36 @@ def describe(node, depth=1):
     if depth and node.getparent() is not None:
         return name + ' - ' + describe(node.getparent(), depth - 1)
     return name
-    
+
+
 def clean(text):
     text = re.sub('\s*\n\s*', '\n', text)
     text = re.sub('[ \t]{2,}', ' ', text)
     return text.strip()
 
+
 def text_length(elem):
     return len(clean(elem.text_content() or ""))
 
 
-if __name__ == "__main__":
+def get_content_advice(url):
     import requests
-    
-    url='http://bbs.tianya.cn/post-105-531400-1.shtml'
-    
     resp = requests.get(url)
     html = resp.content
-    
-#     f = open('d:\\temp\\extractor\\1.html', 'rb')
-#     html = f.read()
-#     #f.write(html)
-#     f.close()
-#    print "--html: ", html
-    
-    negative = ['bodytitle', 'pub_date', 'banquan']
-#      
     doc = Document(html, url=url)
-     
-    title =  doc.title
-    print "--title: ", title
+    title = doc.title
+    ctime = doc.get_ctime()
+    summry = doc.summary(False)
+    author = 'author'
+
+    print '--url:      ', url
+    print "--title:    ", title
     print "--encoding: ", doc.encoding
-    print "--get_ctime: ",doc.get_ctime()
-    print "--summary: ",doc.summary(False)
-    
-#    print doc.is_list()
+    print '--ctime:    ', ctime
+    print '--summary:  ', len(summry), summry
+    return title, ctime, summry, author
+
+
+if __name__ == "__main__":
+    url = 'http://bbs.tianya.cn/post-105-531400-1.shtml'
+    get_content_advice(url)

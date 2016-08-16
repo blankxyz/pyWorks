@@ -25,6 +25,7 @@ from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalFie
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 from flask_restful import Resource, Api
+import myreadability
 
 ####################################################################
 # windows or linux or mac
@@ -2034,9 +2035,18 @@ def content_advice():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     print regex_sel
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
-    print '[info]content_advice()',inputForm.detail_url_list
+    print '[info]content_advice()', inputForm.detail_url_list
 
     return render_template('content_advice.html', inputForm=inputForm)
+
+
+@app.route('/get_content_advice', methods=["GET", "POST"])
+def get_content_advice():
+    url = request.args.get('url')
+    title, ctime, content,auther = myreadability.get_content_advice(url)
+    ret = {'title': title, 'ctime': ctime, 'content': content}
+    jsonStr = json.dumps(ret, sort_keys=True)
+    return jsonStr
 
 
 @app.route('/setting_content_init', methods=['GET', 'POST'])
