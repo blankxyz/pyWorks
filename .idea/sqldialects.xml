@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/spiderShow" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/spiderShow/allsite_web_run.py" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/spiderShow/static/export/spider.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/spiderShow/static/export/spider_content_rule.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/spiderShow/static/export/spider_current_domain_setting.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/spiderShow/static/export/spider_url_rule.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/spiderShow/static/export/spider_user.sql" dialect="MySQL" />
   </component>
 </project>
