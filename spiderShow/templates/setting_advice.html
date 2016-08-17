@@ -105,7 +105,7 @@
 {% endblock %}
 {% block content %}
     <h3 align="center">主页URL归类
-        <small>正则表达式/关键字 (黄色：垃圾，绿色：列表，蓝色：详情)</small>
+        <small>正则表达式/关键字 (黄框：垃圾，绿框：列表，蓝框：详情)</small>
     </h3>
     <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
@@ -125,8 +125,8 @@
         <div id="config_div" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(id='start_url',size=30,onblur="rtrim(this);") }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(id='site_domain',size=20,onblur="rtrim(this);") }}&nbsp;
-            {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3;") }}&nbsp;
-            {{ inputForm.advice(id="advice_btn",class="btn btn-default") }}
+            {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}
             {# <input type="button" id="advice_btn" value="推荐">#}
         </div>
     </form>
@@ -179,7 +179,7 @@
             </table>
         </div>
         <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.use(id="use_btn",class="btn btn-default") }}
+            {{ inputForm.use(id="use_btn",class="btn btn-info") }}
         </div>
     </form>
 

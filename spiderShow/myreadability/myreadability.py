@@ -724,6 +724,7 @@ def get_content_advice(url):
     print "--encoding: ", doc.encoding
     print '--ctime:    ', ctime
     print '--summary:  ', len(summry), summry
+
     return title, ctime, summry, author
 
 

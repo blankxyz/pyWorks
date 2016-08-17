@@ -3,6 +3,7 @@
     {{ super() }}
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
     <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
@@ -26,30 +27,34 @@
                 "sSearch": "模糊查询：",
                 "bFilter": true,
                 "bLengthChange": true,
+                "bPaginate": true,
                 "aLengthMenu": [10, 20]
             });
             <!-- 转换正则 -->
             $('a').click(function () {
                 var id_str = $(this).attr("id");
-
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/get_content_advice',
-                    contentType: "application/json; charset=UTF-8",
-                    dataType: 'json',
-                    data: {
-                        url: $('input[id="url"]').val(),
-                        now: new Date().getTime()
-                    },
-                    error: function (xhr, err) {
-                        $('#title').text(err);
-                    },
-                    success: function (data, textStatus) {
-                        $('#title').text(data.title);
-                        $('#ctime').text(data.ctime);
-                        $('#content').text(data.content);
-                        $('#author').text(data.author);
-                    }
-                });
+                if (id_str.search("url_") >= 0) {
+                    {#alert($(this).text());#}
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/get_content_advice',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: {
+                            url: $(this).text(),
+                            now: new Date().getTime()
+                        },
+                        error: function (xhr, err) {
+                            $('#title').text('内容自动获取失败。');
+                            $('#content').text(err);
+                        },
+                        success: function (data, textStatus) {
+                            $('#title').text(data.title);
+                            $('#ctime').text(data.ctime);
+                            $('#content').text(data.content);
+                            $('#author').text(data.author);
+                        }
+                    });
+                }
 
             });
         });
@@ -73,15 +78,27 @@
         {% endwith %}
     </div>
     <hr>
-    <div id="regex_div" class="form-group" style="float:left;width:90%; margin-left:10px">
+    <div id="detail_url_list_div" class="panel-group" style="float:left;width:48%; margin-left:10px">
         <form id="cond" method="POST" action="/content_advice">
-            {{ inputForm.detail_regex_sel(style="width:400px;") }}
-            {{ inputForm.match(class="btn btn-default") }}
-            {{ inputForm.content_advice(id="content_advice_btn",class="btn btn-default") }}
+            {{ inputForm.detail_regex_sel(style="width:480px;") }}
+            &nbsp;
+            <a id="plus" href="#plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
+                <span class="glyphicon glyphicon-plus"></span>
+            </a>
+            &nbsp;
+            <a id="minus" href="#">
+                <span class="glyphicon glyphicon-minus"></span>
+            </a>
+            &nbsp;
+            {{ inputForm.match(id="match_btn",class="btn btn-info btn-xs") }}
         </form>
-    </div>
-    <hr>
-    <div id="detail_url_div" class="form-group" style="float:left;width:48%; margin-left:10px">
+        <div id="plus_regex_div" class="panel-collapse collapse in">
+            <div class="panel-body">
+                <input id="plus_regex" type=text size=65 placeholder="编辑完成后请点击 √ 完成添加。">
+                <a id="plus_ok" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+            </div>
+        </div>
+        <br>
         <table id="detail_url_tab" class="table table-striped table-hover">
             <thead>
             <tr>
@@ -98,29 +115,62 @@
         </table>
     </div>
     <div id="item_div" class="form-group" style="float:right;width:48%; margin-left:10px">
+        {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}
         <table id="item_tab" class="table table-striped table-hover">
             <thead>
             <tr>
                 <th>项目</th>
-                <th>自动提取结果</th>
+                <th>提取结果</th>
             </tr>
             </thead>
             <tbody>
+            <!-- 标题 -->
             <tr>
                 <td>标题</td>
-                <td>{{ inputForm.title(id="title",rows="3",cols="80") }}</td>
+                <td>{{ inputForm.title(id="title",rows="1",cols="76") }}</td>
             </tr>
+            <tr>
+                <td><span class="glyphicon glyphicon-pencil"></td>
+                <td>
+                    {{ inputForm.title_sel(id="title_sel") }}&nbsp;&nbsp;&nbsp;
+                    {{ inputForm.title_exp(id="title_exp",size="63") }}
+                </td>
+            </tr>
+            <!-- 创建时间 -->
             <tr>
                 <td>创建时间</td>
-                <td>{{ inputForm.ctime(size=80) }}</td>
+                <td>{{ inputForm.ctime(size=74) }}</td>
             </tr>
+            <tr>
+                <td><span class="glyphicon glyphicon-pencil"></td>
+                <td>
+                    {{ inputForm.ctime_sel(id="ctime_sel") }} &nbsp;&nbsp;&nbsp;
+                    {{ inputForm.ctime_exp(id="ctime_exp",size="63") }}
+                </td>
+            </tr>
+            <!-- 内容 -->
             <tr>
                 <td>内容</td>
-                <td>{{ inputForm.content(id="content",rows="10",cols="80") }}</td>
+                <td>{{ inputForm.content(id="content",rows="10",cols="76") }}</td>
             </tr>
             <tr>
+                <td><span class="glyphicon glyphicon-pencil"></td>
+                <td>
+                    {{ inputForm.content_sel(id="content_sel") }}&nbsp;&nbsp;&nbsp;
+                    {{ inputForm.content_exp(id="content_exp",size="63") }}
+                </td>
+            </tr>
+            <!-- 作者 -->
+            <tr>
                 <td>作者</td>
-                <td>{{ inputForm.author(size=80) }}</td>
+                <td>{{ inputForm.author(size=74) }}</td>
+            </tr>
+            <tr>
+                <td><span class="glyphicon glyphicon-pencil"></span></td>
+                <td>
+                    {{ inputForm.author_sel(id="author_sel") }}&nbsp;&nbsp;&nbsp;
+                    {{ inputForm.author_exp(id="author_exp",size="63") }}
+                </td>
             </tr>
             </tbody>
         </table>

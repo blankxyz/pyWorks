@@ -25,7 +25,7 @@ from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalFie
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 from flask_restful import Resource, Api
-import myreadability
+from myreadability import myreadability
 
 ####################################################################
 # windows or linux or mac
@@ -150,22 +150,41 @@ class ShowServerLogInputForm(Form):  # show_server_log
     refresh = SubmitField(label=u'刷新')
 
 
-######## setting_content.html #############################################################################
+######## content_advice.html #############################################################################
 class ContentAdvice(Form):
-    detail_regex_sel = SelectField(label=u'详情页规则', choices=[('url1', 'url1'), ('url2', 'url2')], default='0')
+    mode = BooleanField(label=u'自动提取', default=True)
+
+    detail_regex_sel = SelectField(label=u'详情页规则', choices=[('regex1', 'regex1'), ('regex2', 'regex2')], default='0')
     detail_regex_list = []
     match = SubmitField(label=u'详情页正则匹配')
     content_advice = SubmitField(label=u'自动提取')
 
     detail_url_list = []
 
+    # 标题，内容，作者，创建时间，
     title = TextAreaField(label=u'标题')
     content = TextAreaField(label=u'内容')
     author = StringField(label=u'作者')
     ctime = StringField(label=u'做成时间')
 
+    title_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    title_exp = StringField(label=u'表达式')
 
+    content_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    content_exp = StringField(label=u'表达式')
+
+    author_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    author_exp = StringField(label=u'表达式')
+
+    ctime_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
+    ctime_exp = StringField(label=u'表达式')
+
+    save_run = SubmitField(label=u'保存并执行')
+
+
+######## content_setting.html #############################################################################
 class ContentItemForm(Form):  # 内容提取
+    mode = BooleanField(label=u'自动提取', default=True)
     # 标题，内容，作者，创建时间，
     title_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
     title_exp = StringField(label=u'表达式')
@@ -523,6 +542,48 @@ class MySqlDrive(object):
         except Exception, e:
             print '[error]get_current_regexs()', e, sql_str % parameter
         return regexs
+
+    def add_detail_regex(self, type, user_id, start_url, site_domain, regex):
+        # 0:detail,1:list
+        regexs = []
+        # 提取主页、域名
+        start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
+        sql_str = "SELECT id FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain =%s AND detail_or_list='0'"
+        parameter = (user_id, start_url, site_domain)
+
+        try:
+            cnt = self.cur.execute(sql_str, parameter)
+            rs = self.cur.fetchall()
+            for r in rs:
+                (scope, white_or_black, weight, regex, etc) = r
+                regexs.append((scope, white_or_black, weight, regex, etc))
+            self.conn.commit()
+            # print 'add_detail_regex()', cnt, sql_str % parameter
+            return True
+        except Exception, e:
+            print '[error]add_detail_regex()', e, sql_str % parameter
+            return False
+
+    def delete_detail_regex(self, type, user_id, start_url, site_domain, regex):
+        # 0:detail,1:list
+        regexs = []
+        # 提取主页、域名
+        start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
+        sql_str = "DELETE FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain =%s AND detail_or_list='0' AND regex=%s"
+        parameter = (user_id, start_url, site_domain, regex)
+
+        try:
+            cnt = self.cur.execute(sql_str, parameter)
+            rs = self.cur.fetchall()
+            for r in rs:
+                (scope, white_or_black, weight, regex, etc) = r
+                regexs.append((scope, white_or_black, weight, regex, etc))
+            self.conn.commit()
+            # print 'delete_detail_regex()', cnt, sql_str % parameter
+            return True
+        except Exception, e:
+            print '[error]delete_detail_regex()', e, sql_str % parameter
+            return False
 
     def save_result_file_to_mysql(self, start_url, site_domain):
         msg = ''
@@ -2021,10 +2082,6 @@ def content_advice():
         flash(u'请设置主页、限定的域名信息。')
         return render_template('content_advice.html', inputForm=inputForm)
 
-    # inputForm.detail_regex_list = ['\/$',
-    #                                'regex1',
-    #                                'regex2',
-    #                                'regex3']
     mysql_db = MySqlDrive()
     select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
     select_items.append(('', ''))
@@ -2037,14 +2094,15 @@ def content_advice():
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
     print '[info]content_advice()', inputForm.detail_url_list
 
+    flash(u'获取链接内容需要一点时间，请稍等。。。')
     return render_template('content_advice.html', inputForm=inputForm)
 
 
 @app.route('/get_content_advice', methods=["GET", "POST"])
 def get_content_advice():
     url = request.args.get('url')
-    title, ctime, content,auther = myreadability.get_content_advice(url)
-    ret = {'title': title, 'ctime': ctime, 'content': content}
+    title, ctime, content, auther = myreadability.get_content_advice(url)
+    ret = {'title': title, 'content': content}
     jsonStr = json.dumps(ret, sort_keys=True)
     return jsonStr
 
@@ -2054,6 +2112,7 @@ def setting_content_init():
     user_id = session['user_id']
     # user_id = 'admin'
     inputForm = ContentItemForm(request.form)
+    flash(u'获取链接内容需要一点时间，请稍等。。。')
     return render_template('setting_content.html', inputForm=inputForm)
 
 
