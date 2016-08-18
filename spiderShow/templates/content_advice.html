@@ -33,8 +33,8 @@
             <!-- 转换正则 -->
             $('a').click(function () {
                 var id_str = $(this).attr("id");
+{#                alert($(this));#}
                 if (id_str.search("url_") >= 0) {
-                    {#alert($(this).text());#}
                     $.ajax({
                         url: $SCRIPT_ROOT + '/get_content_advice',
                         contentType: "application/json; charset=UTF-8",
@@ -92,7 +92,7 @@
             &nbsp;
             {{ inputForm.match(id="match_btn",class="btn btn-info btn-xs") }}
         </form>
-        <div id="plus_regex_div" class="panel-collapse collapse in">
+        <div id="plus_regex_div" class="panel-collapse collapse">
             <div class="panel-body">
                 <input id="plus_regex" type=text size=65 placeholder="编辑完成后请点击 √ 完成添加。">
                 <a id="plus_ok" href="#"><span class="glyphicon glyphicon-ok"></span></a>

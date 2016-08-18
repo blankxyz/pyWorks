@@ -1453,7 +1453,7 @@ def setting_advice_init():
     # 恢复 主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。')
+        flash(u'请设置主页、域名信息。',category='warning')
         for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
@@ -1942,7 +1942,7 @@ def show_unkown_urls():
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
+        flash(u'请设置主页、限定的域名信息。',category='warning')
         return render_template('show_unkown_urls.html',
                                unkown_url_list=unkown_url_list, keywords=keywords,
                                regexs_str=regexs_str, matched_cnt=matched_cnt)
