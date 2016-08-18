@@ -1405,8 +1405,6 @@ def login():
 def menu():
     # 初始化session
     session['user_id'] = 'admin'  # login页面设置
-    # session['start_url'] = 'http://www.cxljl.cn'
-    # session['site_domain'] = 'www.cxljl.cn'
     session['start_url'] = ''
     session['site_domain'] = ''
     session['black_domain_str'] = ''
@@ -2385,6 +2383,11 @@ def help_getenv():
                 }
     return render_template('help.html', json_str=json.dumps(json_str, indent=2))
 
+@app.route('/session_setting', methods=['POST'])
+def session_setting():
+    session['start_url'] = request.form['start_url']
+    session['site_domain'] = request.form['site_domain']
+    return redirect(url_for('help_upload'), 302)
 
 ##########################################################################################
 #  restful api

@@ -34,5 +34,11 @@
     <a href="help_getenv">环境信息</a>
     <p>{{ json_str }}</p>
     <hr>
+    <form action="session_setting" method="post">
+        <label>Debug</label>&nbsp;&nbsp;&nbsp;
+        <label>主页</label><input type="text" name="start_url"/>&nbsp;&nbsp;&nbsp;
+        <label>限定域名</label><input type="text" name="site_domain"/>&nbsp;&nbsp;&nbsp;
+        <input type="submit" value="导入到session"/>
+    </form>
 </div>
 {% endblock %}
