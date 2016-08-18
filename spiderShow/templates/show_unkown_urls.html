@@ -1,0 +1,142 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
+    <h3 align="center">未知URL中的主要关键词
+        <small>基于url的path部分</small>
+    </h3>
+    <hr>
+    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <label>{{ message }}</label>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div id="refresh_div" style="margin-left:50px">
+        <a id="refresh" href="show_unkown_urls" class="btn btn-success btn-sm"
+           data-toggle="tooltip" title="刷新当前页面">刷新</a>
+        <a id="kill" href="kill_spider" class="btn btn-success btn-sm"
+           data-toggle="tooltip" title="结束后台爬虫程序,重新配置规则。">强制终止</a>
+    </div>
+    <hr>
+    <div id="left_div" style="float:left;width:49%; margin-left:10px">
+        <table id="unkown_urls_tab_left" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>URL</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for url in unkown_url_list %}
+                <tr style="max-height: 20px;">
+                    <td nowrap="nowrap">{{ url }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="right_div" style="float:right;width:49%; margin-left:10px"></div>
+    {#    <div id="keywords_div" style="float:right;width:49%; margin-left:10px">#}
+    {#        {% for regex in keywords %}#}
+    {#            <label>No.{{ loop.index }}&nbsp;&nbsp;&nbsp;</label>{{ regex }}<br>#}
+    {#        {% endfor %}#}
+    {#    </div>#}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+    <!-- DataTables Javascript-->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#unkown_urls_tab_left').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='./img/loading.gif' />"
+                },
+                "sSearch": "模糊查询：",
+                "bFilter": true,
+                "bLengthChange": true,
+                "aLengthMenu": [10, 20, 50]
+            });
+        });
+        $(function () {
+            $('#right_div').highcharts({
+                chart: {
+                    type: 'bar'
+                },
+                title: {
+                    text: '未知URL中的主要关键词'
+                },
+                subtitle: {
+                    text: '覆盖超过80%'
+                },
+                xAxis: {
+                    categories: [{{ regexs_str|safe }}],
+                    title: {
+                        text: null
+                    }
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: '页',
+                        align: 'high'
+                    },
+                    labels: {
+                        overflow: 'justify'
+                    }
+                },
+                tooltip: {
+                    valueSuffix: ' 页'
+                },
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: -40,
+                    y: 100,
+                    floating: true,
+                    borderWidth: 1,
+                    backgroundColor: '#FFFFFF',
+                    shadow: true
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    name: '页数',
+                    data: [{{ matched_cnt }}]
+                }]
+            });
+        });
+        $(function () {
+            $("[data-toggle='tooltip']").tooltip();
+        });
+    </script>
+{% endblock %}

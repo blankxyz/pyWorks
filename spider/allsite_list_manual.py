@@ -21,11 +21,11 @@ if MY_OS is None:
     exit(-1)
 else:
     print '[info]--- The OS is: %s ----' % MY_OS
-    if MY_OS =='linux':
+    if MY_OS == 'linux':
         INIT_CONFIG = '/work/spider/allsite.ini'
     elif MY_OS == 'mac':
         INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'
-    else: # windows
+    else:  # windows
         INIT_CONFIG = './allsite.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
@@ -74,6 +74,7 @@ class MySpider(spider.Spider):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
+        self.unkown_urls_set_key = 'unkown_urls_set_%s' % self.site_domain  # 计算结果(未知)
         self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
@@ -132,7 +133,7 @@ class MySpider(spider.Spider):
                     return True  # 符合详情页规则（白）
 
             else:  # 黑
-                if re.search(rule[2:-1], url): # 去掉 /^xxxxxx/ 中的 '/^','/'
+                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
                     self.conn.zincrby(self.manual_b_detail_rule_zset_key, value=rule, amount=1)
                     print '[detail-black]', rule, '<-', url
                     return False  # 符合详情页规则（黑）
@@ -147,8 +148,8 @@ class MySpider(spider.Spider):
                     print '[list-white]', rule, '<-', url
                     return True  # 符合详情页规则（白）
 
-            else: # 黑
-                if re.search(rule[2:-1], url): # 去掉 /^xxxxxx/ 中的 '/^','/'
+            else:  # 黑
+                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
                     self.conn.zincrby(self.manual_b_list_rule_zset_key, value=rule, amount=1)
                     print '[list-black]', rule, '<-', url
                     return False  # 符合详情页规则（黑）
@@ -170,14 +171,7 @@ class MySpider(spider.Spider):
             return ret
 
         print '[unkown]', new_url
-
-        if MODE == 'all':
-            return True
-
-        if MODE == 'exact':
-            return None
-
-        return True
+        return None
 
     def get_todo_urls(self):
         urls = []
@@ -310,11 +304,18 @@ class MySpider(spider.Spider):
             if soup is None: return []
             links = self.get_page_valid_urls(soup, org_url)
             for link in links:
-                if self.path_is_list(link) is True:
+                ret = self.path_is_list(link)
+                if ret is True:
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
                         self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
-                else:
+                elif ret is False:
                     self.conn.sadd(self.detail_urls_set_key, urllib.unquote(link))
+                else:
+                    if MODE == 'all':
+                        if self.conn.zrank(self.list_urls_zset_key, link) is None:
+                            self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
+                    if MODE == 'exact':
+                        self.conn.sadd(self.unkown_urls_set_key, urllib.unquote(link))
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result

@@ -678,6 +678,31 @@ class MySqlDrive(object):
             print '[error]get_result_file()', e, start_url, cnt
             return None, None, 0
 
+    def get_preset_partn(self, partn_type=''):
+        partn_list = []
+        sql_str = "SELECT partn_type, partn FROM preset_patrn  WHERE partn_type LIKE '%" + partn_type + "%'"
+
+        try:
+            cnt = self.cur.execute(sql_str)
+            rs = self.cur.fetchall()
+            for r in rs:
+                if r[0] == 'list':
+                    t = u'列表'
+                elif r[0] == 'detail':
+                    t = u'详情'
+                else:
+                    t = u'无效'
+
+                partn_list.append((t,r[1]))
+
+            self.conn.commit()
+            print partn_list
+            print '[info]get_detail_regex()', cnt, sql_str
+        except Exception, e:
+            print '[error]get_detail_regex()', e, sql_str
+
+        return partn_list
+
 
 ##################################################################################################
 class RedisDrive(object):
@@ -685,8 +710,9 @@ class RedisDrive(object):
         self.site_domain = site_domain
         self.start_url = start_url
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果
-        self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输出详情页URL
+        self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
+        self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
+        self.unkown_urls_set_key = 'unkown_urls_set_%s' % self.site_domain  # 计算结果(未知)
         self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
@@ -701,6 +727,9 @@ class RedisDrive(object):
 
     def get_detail_urls(self):
         return self.conn.smembers(self.detail_urls_set_key)
+
+    def get_unkown_urls(self):
+        return self.conn.smembers(self.unkown_urls_set_key)
 
     def get_detail_urls_by_regex(self, regex):
         urls = []
@@ -1226,7 +1255,7 @@ class Util(object):
                     found = True
 
             if found == False:
-                print '[ERROR]get_hot_regexs_with_score() not match:', url
+                print '[error]get_hot_regexs_with_score() not match:', url
 
         sum = 0
         for i in ret_dict.iteritems():
@@ -1368,8 +1397,8 @@ def login():
 def menu():
     # 初始化session
     session['user_id'] = 'admin'  # login页面设置
-    session['start_url'] = ''
-    session['site_domain'] = ''
+    session['start_url'] = 'http://www.cxljl.cn'
+    session['site_domain'] = 'www.cxljl.cn'
     session['black_domain_str'] = ''
     session['advice_regex_list'] = json.dumps('')
     session['advice_keyword_list'] = json.dumps('')
@@ -1503,6 +1532,7 @@ def setting_advice_try():
         print '[info] process_id:', process_id
 
     # 读取首页链接列表文件
+    flash(u"正在下载并解析，请稍等。。。")
     time.sleep(5.0)  # 等待 链接下载/写入文件 完成
     f = EXPORT_FOLDER + '/advice(' + site_domain + ').json'
     if os.path.isfile(f):
@@ -1892,6 +1922,48 @@ def setting_list_save_and_run():
     return render_template('setting.html', inputForm=inputForm)
 
 
+######### show unkown url  #############################################################################
+@app.route('/show_unkown_urls', methods=['GET', 'POST'])
+def show_unkown_urls():
+    user_id = session['user_id']
+    unkown_url_list = []
+    keywords = []
+    regexs_str = ''
+    matched_cnt = ''
+    # 提取主页、域名
+    start_url, site_domain, black_domain_str = get_domain_init()
+    print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。')
+        return render_template('show_unkown_urls.html',
+                               unkown_url_list=unkown_url_list, keywords=keywords,
+                               regexs_str=regexs_str, matched_cnt=matched_cnt)
+
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    unkown_url_list = redis_db.get_unkown_urls()
+    if len(unkown_url_list) == 0:
+        flash(u'目前URL已全部匹配。')
+        return render_template('show_unkown_urls.html',
+                               unkown_url_list=unkown_url_list, keywords=keywords,
+                               regexs_str=regexs_str, matched_cnt=matched_cnt)
+
+    util = Util()
+    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(unkown_url_list)
+    # print advice_keyword_dic
+
+    keywords = []
+    score_list = []
+    for (k, v) in advice_keyword_dic.items():
+        keywords.append(k)
+        score_list.append(str(v))
+
+    matched_cnt = ','.join(score_list)
+    regexs_str = ("'" + "','".join(keywords) + "'")
+    return render_template('show_unkown_urls.html',
+                           unkown_url_list=unkown_url_list, keywords=keywords,
+                           regexs_str=regexs_str, matched_cnt=matched_cnt)
+
+
 ######### Server log #############################################################################
 @app.route('/show_server_log', methods=['GET', 'POST'])
 def show_server_log():
@@ -2107,19 +2179,21 @@ def get_content_advice():
     return jsonStr
 
 
-@app.route('/setting_content_init', methods=['GET', 'POST'])
-def setting_content_init():
+@app.route('/preset', methods=['GET', 'POST'])
+def preset():
     user_id = session['user_id']
     # user_id = 'admin'
     inputForm = ContentItemForm(request.form)
+
+    mysql_db = MySqlDrive()
+    partn_list = mysql_db.get_preset_partn()
     flash(u'获取链接内容需要一点时间，请稍等。。。')
-    return render_template('setting_content.html', inputForm=inputForm)
+    return render_template('preset.html', partn_list=partn_list)
 
 
 @app.route('/content_save_and_run', methods=['GET', 'POST'])
 def content_save_and_run():
     user_id = session['user_id']
-    # user_id = 'admin'
     inputForm = ContentItemForm(request.form)
 
     # 提取主页、域名
@@ -2128,7 +2202,7 @@ def content_save_and_run():
     print '[info]content_save_and_run()', user_id, start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('setting_content.html', inputForm=inputForm)
+        return render_template('preset.html', inputForm=inputForm)
 
     cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                         title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
@@ -2139,7 +2213,7 @@ def content_save_and_run():
     else:
         flash(u"MySQL保存失败.")
         print u'[error]content_save_and_run() MySQL save failure.'
-        return render_template('setting_content.html', inputForm=inputForm)
+        return render_template('preset.html', inputForm=inputForm)
 
     if os.name == 'nt':
         # DOS "start" command
@@ -2151,12 +2225,12 @@ def content_save_and_run():
         process_id = p.pid
         print '[info] process_id:', process_id
 
-    return render_template('setting_content.html', inputForm=inputForm)
+    return render_template('preset.html', inputForm=inputForm)
 
 
 ######### 历史记录  #############################################################################
-@app.route('/user_search', methods=['GET', 'POST'])
-def user_search():
+@app.route('/history_search', methods=['GET', 'POST'])
+def history_search():
     user_id = session['user_id']
     # user_id = 'admin'
     print '[info]user_search()', user_id
