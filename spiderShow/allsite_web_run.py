@@ -538,7 +538,7 @@ class MySqlDrive(object):
                 (scope, white_or_black, weight, regex, etc) = r
                 regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
-            # print 'get_current_regexs()', cnt, sql_str % parameter
+            print 'get_current_regexs()', cnt, sql_str % parameter
         except Exception, e:
             print '[error]get_current_regexs()', e, sql_str % parameter
         return regexs
@@ -558,7 +558,7 @@ class MySqlDrive(object):
                 (scope, white_or_black, weight, regex, etc) = r
                 regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
-            # print 'add_detail_regex()', cnt, sql_str % parameter
+            print 'add_detail_regex()', cnt, sql_str % parameter
             return True
         except Exception, e:
             print '[error]add_detail_regex()', e, sql_str % parameter
@@ -696,7 +696,6 @@ class MySqlDrive(object):
                 partn_list.append((t,r[1]))
 
             self.conn.commit()
-            print partn_list
             print '[info]get_detail_regex()', cnt, sql_str
         except Exception, e:
             print '[error]get_detail_regex()', e, sql_str
@@ -826,6 +825,7 @@ class RedisDrive(object):
         fp.close()
 
     def reset_rule(self, mode, list_rules, detail_rules):
+        # 按照新规则，重置上次计算结果（unkown,list,detail）
         self.list_rules = [item['regex'] for item in list_rules]
         self.detail_rules = [item['regex'] for item in detail_rules]
 
@@ -840,11 +840,19 @@ class RedisDrive(object):
 
         self.conn.delete(self.detail_urls_set_key)
 
+        for url in self.conn.smembers(self.unkown_urls_set_key):
+            all_urls.append(url)
+
+        self.conn.delete(self.unkown_urls_set_key)
+
         for url in all_urls:
-            if self.path_is_list(mode, url):
+            ret = self.path_is_list(mode, url)
+            if ret == True:
                 self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
-            else:
+            elif ret == False:
                 self.conn.sadd(self.detail_urls_set_key, url)
+            else:
+                self.conn.sadd(self.unkown_urls_set_key, url)
 
     def path_is_list(self, mode, url):
         # None：未知, True：列表页，False：详情页
@@ -1397,8 +1405,10 @@ def login():
 def menu():
     # 初始化session
     session['user_id'] = 'admin'  # login页面设置
-    session['start_url'] = 'http://www.cxljl.cn'
-    session['site_domain'] = 'www.cxljl.cn'
+    # session['start_url'] = 'http://www.cxljl.cn'
+    # session['site_domain'] = 'www.cxljl.cn'
+    session['start_url'] = ''
+    session['site_domain'] = ''
     session['black_domain_str'] = ''
     session['advice_regex_list'] = json.dumps('')
     session['advice_keyword_list'] = json.dumps('')
@@ -1434,7 +1444,7 @@ def convert_to_regex():
 ######### advice ###########################################################################
 @app.route('/setting_advice_init', methods=["GET", "POST"])
 def setting_advice_init():
-    print '[info]setting_advice_init() start.'
+    # print '[info]setting_advice_init() start.'
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
 
@@ -1477,7 +1487,7 @@ def setting_advice_init():
         inputForm.keyword_list.append_entry()
 
     flash(u'初始化配置完成')
-    print '[info]setting_advice_init() end.'
+    # print '[info]setting_advice_init() end.'
     return render_template('setting_advice.html', inputForm=inputForm)
 
 
@@ -2140,6 +2150,7 @@ def reset_all():
     redis_db.conn.delete(redis_db.manual_b_list_rule_zset_key)
     redis_db.conn.delete(redis_db.manual_w_detail_rule_zset_key)
     redis_db.conn.delete(redis_db.manual_b_detail_rule_zset_key)
+    redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     return redirect(url_for('show_process'), 302)
 
@@ -2187,7 +2198,6 @@ def preset():
 
     mysql_db = MySqlDrive()
     partn_list = mysql_db.get_preset_partn()
-    flash(u'获取链接内容需要一点时间，请稍等。。。')
     return render_template('preset.html', partn_list=partn_list)
 
 

@@ -77,9 +77,12 @@
     <form id="setting" method="POST" action="/list_save_and_run">
         <hr>
         <div id="config" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.start_url.label }}&nbsp;{{ inputForm.start_url(id='start_url',size=30) }}&nbsp;
-            {{ inputForm.site_domain.label }}&nbsp;{{ inputForm.site_domain(id='site_domain',size=20) }}&nbsp;
-            {{ inputForm.black_domain_str.label }}&nbsp;{{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.start_url.label }}&nbsp;
+            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
+            {{ inputForm.site_domain.label }}&nbsp;
+            {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com") }}&nbsp;
+            {{ inputForm.black_domain_str.label }}&nbsp;
+            {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}
         </div>
@@ -103,7 +106,7 @@
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
-                        <td>{{ row.regex(size=70) }}</td>
+                        <td>{{ row.regex(size=70,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
                         <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
                 {% endfor %}
@@ -122,7 +125,7 @@
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
-                        <td>{{ row.regex(size=70) }}</td>
+                        <td>{{ row.regex(size=70,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
                         <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
                 {% endfor %}
