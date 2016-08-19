@@ -28,12 +28,12 @@
                 "bFilter": true,
                 "bLengthChange": false,
                 "bPaginate": true,
-{#                "aLengthMenu": [10, 20]#}
+                {#                "aLengthMenu": [10, 20]#}
             });
             <!-- 转换正则 -->
             $('a').click(function () {
                 var id_str = $(this).attr("id");
-{#                alert($(this));#}
+                {#                alert($(this));#}
                 if (id_str.search("url_") >= 0) {
                     $.ajax({
                         url: $SCRIPT_ROOT + '/get_content_advice',
@@ -55,7 +55,23 @@
                         }
                     });
                 }
-
+                if (id_str == "plus_ok") {
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/add_detail_regex',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: {
+                            regex: $('#plus_regex').text(),
+                            now: new Date().getTime()
+                        },
+                        error: function (xhr, err) {
+                            alert(err);
+                        },
+                        success: function (data, textStatus) {
+                            alert(data);
+                        }
+                    });
+                }
             });
         });
     </script>
@@ -94,7 +110,7 @@
         </form>
         <div id="plus_regex_div" class="panel-collapse collapse">
             <div class="panel-body">
-                <input id="plus_regex" type=text size=65 placeholder="编辑完成后请点击 √ 完成添加。">
+                <input id="plus_regex" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
                 <a id="plus_ok" href="#"><span class="glyphicon glyphicon-ok"></span></a>
             </div>
         </div>
@@ -102,7 +118,7 @@
         <table id="detail_url_tab" class="table table-striped table-hover">
             <thead>
             <tr>
-                <th>详情页URL</th>
+                <th>详情页URL >>>>> 配置完右侧的规则后，点击下面链接，获取相应内容 >>>>>></th>
             </tr>
             </thead>
             <tbody>
