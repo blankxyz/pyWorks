@@ -7,12 +7,12 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-        {#        var patrn_rubbish = /uid|username|space|search|blog|group/;#}
-        {#        var patrn_detail = /post|thread|detail/;#}
-        {#        var patrn_list = /list|index|forum|fid/;#}
-        var patrn_rubbish;
-        var patrn_detail;
-        var patrn_list;
+        var patrn_rubbish = /uid|username|space|search|blog|group/;
+        var patrn_detail = /post|thread|detail/;
+        var patrn_list = /list|index|forum|fid/;
+{#        var patrn_rubbish;#}
+{#        var patrn_detail;#}
+{#        var patrn_list;#}
         $(document).ready(function () {
             $.ajax({
                 url: $SCRIPT_ROOT + '/get_preset',
