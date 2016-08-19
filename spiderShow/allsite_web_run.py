@@ -143,11 +143,14 @@ class ListRegexInputForm(Form):  # setting
     save_run_list = SubmitField(label=u'保存-执行(列表页)')
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
-
-######## show_server_log.html #############################################################################
-class ShowServerLogInputForm(Form):  # show_server_log
-    unkown_sel = BooleanField(label=u'仅显示筛选信息', default=True)
-    refresh = SubmitField(label=u'刷新')
+######## setting_result.html #############################################################################
+class ResultForm(Form):  # 内容提取
+    list_regex_sel = SelectField(label=u'列表页规则', choices=[('regex1', 'regex1'), ('regex2', 'regex2')], default='0')
+    detail_regex_sel = SelectField(label=u'详情页规则', choices=[('regex1', 'regex1'), ('regex2', 'regex2')], default='0')
+    list_result = []
+    detail_result = []
+    list_match = SubmitField(label=u'列表页正则匹配')
+    detail_match = SubmitField(label=u'详情页正则匹配')
 
 
 ######## content_advice.html #############################################################################
@@ -224,6 +227,11 @@ class SearchResultForm(Form):  # user search
 
     search_result_list = []
 
+
+######## admin_server_log.html #############################################################################
+class ShowServerLogInputForm(Form):  # show_server_log
+    unkown_sel = BooleanField(label=u'仅显示筛选信息', default=True)
+    refresh = SubmitField(label=u'刷新')
 
 ########################################################################################################
 class MySqlDrive(object):
@@ -430,6 +438,24 @@ class MySqlDrive(object):
             print '[info]get_detail_regex()', cnt, sql_str % parameter
         except Exception, e:
             print '[error]get_detail_regex()', e, sql_str % parameter
+
+        return regex_list
+
+    def get_list_regex(self, user_id, start_url, site_domain):
+        regex_list = []
+        sql_str = "SELECT regex FROM url_rule  WHERE user_id=%s AND start_url=%s AND site_domain=%s " \
+                  "AND detail_or_list='1' AND white_or_black='0'"
+        parameter = (user_id, start_url, site_domain)
+
+        try:
+            cnt = self.cur.execute(sql_str, parameter)
+            rs = self.cur.fetchall()
+            for r in rs:
+                regex_list.append(r[0])
+            self.conn.commit()
+            print '[info]get_list_regex()', cnt, sql_str % parameter
+        except Exception, e:
+            print '[error]get_list_regex()', e, sql_str % parameter
 
         return regex_list
 
@@ -721,8 +747,9 @@ class RedisDrive(object):
         self.detail_rules = []  # 手工配置规则-内存形式
         self.todo_flg = -1
         self.done_flg = 0
-        self.detail_flg = 9
-        self.content_flg = 99
+        self.detail_flg = 1
+        self.content_flg = 9
+        self.end_flg = 99 #状态管理flg最大值
 
     def get_detail_urls(self):
         return self.conn.smembers(self.detail_urls_set_key)
@@ -747,7 +774,27 @@ class RedisDrive(object):
 
         return urls
 
+    def get_list_urls_by_regex(self, regex):
+        urls = []
+        cnt = 0
+        if regex == '':
+            for url in self.conn.zrangebyscore(self.list_urls_zset_key,min=self.todo_flg,max=self.end_flg,withscores=False):
+                urls.append(url)
+                cnt += 1
+                if cnt > 100: break
+        else:
+            for url in self.conn.zrangebyscore(self.list_urls_zset_key,min=self.todo_flg,max=self.end_flg,withscores=False):
+                if re.search(regex, url):
+                    urls.append(url)
+                    cnt += 1
+                if cnt > 100: break
+
+        return urls
+
     def get_list_urls(self):
+        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False )
+
+    def get_list_urls_limit(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
                                        num=SHOW_MAX)
 
@@ -772,7 +819,7 @@ class RedisDrive(object):
 
     def get_done_list_rate(self):
         cnt = 0
-        urls = self.get_list_urls()
+        urls = self.get_list_urls_limit()
         if len(urls) == 0:
             return 0.0
 
@@ -783,13 +830,13 @@ class RedisDrive(object):
         score_list = []
         keywords = []
         list_rules = self.conn.zrevrangebyscore(self.manual_w_list_rule_zset_key,
-                                                max=999999, min=0, start=0, num=5, withscores=True)
+                                                max=99999999, min=0, start=0, num=5, withscores=True)
         for rule, score in dict(list_rules).iteritems():
             score_list.append(str(score))
             keywords.append(rule)
 
         detail_rules = self.conn.zrevrangebyscore(self.manual_w_detail_rule_zset_key,
-                                                  max=999999, min=0, start=0, num=5, withscores=True)
+                                                  max=99999999, min=0, start=0, num=5, withscores=True)
         for rule, score in dict(detail_rules).iteritems():
             score_list.append(str(score))
             keywords.append(rule)
@@ -1930,7 +1977,7 @@ def setting_list_save_and_run():
     return render_template('setting.html', inputForm=inputForm)
 
 
-######### show unkown url  #############################################################################
+######### show_unkown.html  #############################################################################
 @app.route('/show_unkown_urls', methods=['GET', 'POST'])
 def show_unkown_urls():
     user_id = session['user_id']
@@ -1971,64 +2018,44 @@ def show_unkown_urls():
                            unkown_url_list=unkown_url_list, keywords=keywords,
                            regexs_str=regexs_str, matched_cnt=matched_cnt)
 
-
-######### Server log #############################################################################
-@app.route('/show_server_log', methods=['GET', 'POST'])
-def show_server_log():
+######### show_result.html   #############################################################################
+@app.route('/show_result', methods=['GET', 'POST'])
+def show_result():
     user_id = session['user_id']
-    # user_id = 'admin'
-    inputForm = ShowServerLogInputForm(request.form)
+    inputForm = ResultForm()
     # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    print '[info]show_server_log()', start_url, site_domain, black_domain_str
+    start_url, site_domain, black_domain_str = get_domain_init()
+    print '[info]show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
+        flash(u'请设置主页、限定的域名信息。',category='warning')
+        return render_template('show_result.html',inputForm=inputForm)
 
-    if MY_OS == 'windows':  # windows
-        f = open('web_server.log', 'r').readlines()
-        if len(f) >= 80:
-            l = f[-80:]
-        else:
-            l = f
-        server_log_list = l
-    else:  # linux mac
-        if inputForm.unkown_sel.data:
-            cmd = 'tail -80 ./web_server.log'
-            # cmd = "tail -10000 web_server.log | grep -E 'unkown|list|detail' |tail -80"
-        else:
-            cmd = 'tail -80 ./web_server.log'
-
-        p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
-        server_log_list = p.stdout.readlines()
-
-    if len(server_log_list) == 0:
-        flash(u'请使用 ./web_start.sh 生成 web_server.log 。否则无法显示后台log。')
-        return render_template('show_server_log.html', inputForm=inputForm, server_log_list=[])
-
-    # 保存 实时 列表页结果
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    fp = open(EXPORT_FOLDER + '/result-list(' + site_domain + ').log', 'w')
-    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
-        fp.write(line + '\n')
-    fp.close()
+    inputForm.list_result = redis_db.get_list_urls()
+    inputForm.detail_result = redis_db.get_detail_urls()
 
-    # 保存 实时 详情页结果
-    fp = open(EXPORT_FOLDER + '/result-detail(' + site_domain + ').log', 'w')
-    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-        fp.write(line + '\n')
-    fp.close()
+    mysql_db = MySqlDrive()
+    #详情页正则
+    select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.detail_regex_sel.choices = select_items
+    regex_sel = inputForm.detail_regex_sel.data
+    inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
+    # 列表页正则
+    select_items = [(i, i) for i in mysql_db.get_list_regex(user_id, start_url, site_domain)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.list_regex_sel.choices = select_items
+    regex_sel = inputForm.list_regex_sel.data
+    inputForm.list_url_list = redis_db.get_list_urls_by_regex(regex_sel)
 
-    return render_template('show_server_log.html', inputForm=inputForm,
-                           server_log_list=[x.encode('utf8') for x in server_log_list])
+    return render_template('show_result.html', inputForm=inputForm)
 
-
-######### 过程统计  #############################################################################
+######### show_process.html  #############################################################################
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
     user_id = session['user_id']
-    # user_id = 'admin'
     inputForm = ListRegexInputForm()
     # 提取主页、域名
     mysql_db = MySqlDrive()
@@ -2153,7 +2180,7 @@ def reset_all():
     return redirect(url_for('show_process'), 302)
 
 
-######### 配置内容XPATH  #############################################################################
+######### content_advice.html  #############################################################################
 @app.route('/content_advice', methods=['GET', 'POST'])
 def content_advice():
     inputForm = ContentAdvice(request.form)
@@ -2236,7 +2263,7 @@ def content_save_and_run():
     return render_template('preset.html', inputForm=inputForm)
 
 
-######### 历史记录  #############################################################################
+######### history.html  #############################################################################
 @app.route('/history_search', methods=['GET', 'POST'])
 def history_search():
     user_id = session['user_id']
@@ -2314,12 +2341,58 @@ def history_search():
 
     return render_template('history.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
+######### admin_server_log.html #############################################################################
+@app.route('/admin_server_log', methods=['GET', 'POST'])
+def admin_server_log():
+    user_id = session['user_id']
+    # user_id = 'admin'
+    inputForm = ShowServerLogInputForm(request.form)
+    # 提取主页、域名
+    mysql_db = MySqlDrive()
+    start_url, site_domain, black_domain_str = get_domain_init()
 
-######### 上传下载  #############################################################################
-@app.route('/help_init')
-def help_init():
+    if MY_OS == 'windows':  # windows
+        f = open('web_server.log', 'r').readlines()
+        if len(f) >= 80:
+            l = f[-80:]
+        else:
+            l = f
+        server_log_list = l
+    else:  # linux mac
+        if inputForm.unkown_sel.data:
+            cmd = 'tail -80 ./web_server.log'
+            # cmd = "tail -10000 web_server.log | grep -E 'unkown|list|detail' |tail -80"
+        else:
+            cmd = 'tail -80 ./web_server.log'
+
+        p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
+        server_log_list = p.stdout.readlines()
+
+    if len(server_log_list) == 0:
+        flash(u'web_server.log未生成。')
+        return render_template('admin_server_log.html', inputForm=inputForm, server_log_list=[])
+
+    # 保存 实时 列表页结果
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    fp = open(EXPORT_FOLDER + '/result-list(' + site_domain + ').log', 'w')
+    for line in redis_db.conn.zrange(redis_db.list_urls_zset_key, 0, -1, withscores=False):
+        fp.write(line + '\n')
+    fp.close()
+
+    # 保存 实时 详情页结果
+    fp = open(EXPORT_FOLDER + '/result-detail(' + site_domain + ').log', 'w')
+    for line in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+        fp.write(line + '\n')
+    fp.close()
+
+    return render_template('admin_server_log.html', inputForm=inputForm,
+                           server_log_list=[x.encode('utf8') for x in server_log_list])
+
+######### admin_tools.html  #############################################################################
+@app.route('/admin_tools')
+def admin_tools():
     flash(u"请选择操作。")
-    return redirect(url_for('help_upload'), 302)
+    return redirect(url_for('tool_upload'), 302)
 
 
 @app.route('/export/<path:filename>')
@@ -2328,10 +2401,10 @@ def download_file(filename):
     return send_from_directory(app.config['EXPORT_FOLDER'], filename, as_attachment=True)
 
 
-@app.route('/help_upload', methods=['GET', 'POST'])
-def help_upload():
+@app.route('/tool_upload', methods=['GET', 'POST'])
+def tool_upload():
     if request.method == 'GET':
-        return render_template('help.html')
+        return render_template('admin_tools.html')
 
     elif request.method == 'POST':
         f = request.files['file']
@@ -2340,21 +2413,21 @@ def help_upload():
         f.save(os.path.join(EXPORT_FOLDER, f_name))
         flash(u"上传成功.")
         print '[info]help_upload() ok.', f_name
-        return render_template('help.html')
+        return render_template('admin_tools.html')
 
 
-@app.route('/help_reset_redis', methods=['GET', 'POST'])
-def help_reset_redis():
+@app.route('/tool_reset_redis', methods=['GET', 'POST'])
+def tool_reset_redis():
     redis_db = RedisDrive()
     keys = redis_db.conn.keys()
     for key in keys:
         redis_db.conn.delete(key)
 
-    return redirect(url_for('help_upload'), 302)
+    return redirect(url_for('tool_upload'), 302)
 
 
-@app.route('/help_getenv', methods=['GET', 'POST'])
-def help_getenv():
+@app.route('/tool_getenv', methods=['GET', 'POST'])
+def tool_getenv():
     json_str = {'INIT_CONFIG': INIT_CONFIG,
 
                 'REDIS_SERVER': REDIS_SERVER,
@@ -2381,13 +2454,13 @@ def help_getenv():
                 'DEPLOY_HOST': DEPLOY_HOST,
                 'DEPLOY_PORT': DEPLOY_PORT
                 }
-    return render_template('help.html', json_str=json.dumps(json_str, indent=2))
+    return render_template('admin_tools.html', json_str=json.dumps(json_str, indent=2))
 
-@app.route('/session_setting', methods=['POST'])
-def session_setting():
+@app.route('/tool_session_setting', methods=['POST'])
+def tool_session_setting():
     session['start_url'] = request.form['start_url']
     session['site_domain'] = request.form['site_domain']
-    return redirect(url_for('help_upload'), 302)
+    return redirect(url_for('tool_upload'), 302)
 
 ##########################################################################################
 #  restful api

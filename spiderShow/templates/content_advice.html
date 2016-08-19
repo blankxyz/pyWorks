@@ -26,9 +26,9 @@
                 },
                 "sSearch": "模糊查询：",
                 "bFilter": true,
-                "bLengthChange": true,
+                "bLengthChange": false,
                 "bPaginate": true,
-                "aLengthMenu": [10, 20]
+{#                "aLengthMenu": [10, 20]#}
             });
             <!-- 转换正则 -->
             $('a').click(function () {
@@ -62,7 +62,7 @@
 {% endblock %}
 
 {% block content %}
-    <h3 align="center">自动提取
+    <h3 align="center">内容提取
         <small>标题、创建时间、内容、作者</small>
     </h3>
     <hr>

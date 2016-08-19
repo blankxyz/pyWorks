@@ -4,8 +4,8 @@
 {% endblock %}
 
 {% block content %}
-<h3 align="center">导入/导出
-    <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
+<h3 align="center">管理员
+    <small>工具集</small>
 </h3>
 <hr/>
 <div id="message" class="alert alert-warning form-group center" style="width:80%; margin-left:10px">
@@ -23,18 +23,18 @@
     <hr>
     <a class="bottom" href="{{ url_for('static', filename='export/help.xlsx') }}">下载帮助文档</a>
     <hr>
-    <form action="export_upload" method="post" enctype="multipart/form-data">
+    <form action="tool_export_upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" value="选择导入文件"/>
         <br>
         <input type="submit" value="导入文件(请使用英文名称)"/>
     </form>
     <hr>
-    <a href="help_reset_redis">清除所有Redis结果</a>
+    <a href="tool_reset_redis">清除所有Redis结果</a>
     <hr>
-    <a href="help_getenv">环境信息</a>
+    <a href="tool_getenv">环境信息</a>
     <p>{{ json_str }}</p>
     <hr>
-    <form action="session_setting" method="post">
+    <form action="tool_session_setting" method="post">
         <label>Debug</label>&nbsp;&nbsp;&nbsp;
         <label>主页</label><input type="text" name="start_url"/>&nbsp;&nbsp;&nbsp;
         <label>限定域名</label><input type="text" name="site_domain"/>&nbsp;&nbsp;&nbsp;
