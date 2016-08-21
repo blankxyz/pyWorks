@@ -119,7 +119,7 @@ class MySpider(spider.Spider):
             # print 'filter_links() set', len(urls)
             # 404
             # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
-            # print '[INFO]filter_links() end', len(urls), urls
+            print '[INFO]filter_links() end', len(urls), urls
         except Exception, e:
             print '[ERROR]filter_links()', e
         return urls
@@ -236,6 +236,19 @@ class MySpider(spider.Spider):
         # print '[INFO]urls_join() end', urls
         return urls
 
+    def urls_join_plus(self, org_url, links):
+        print '[INFO]urls_join_plus() start',org_url,links
+        urls = []
+        o_scheme, o_netloc, o_path, o_params, o_query, o_fragment = urlparse.urlparse(org_url.strip())
+        for link in links:
+            if link.find('http') >=0:
+                urls.append(link)
+            else:
+                l = o_scheme +'://'+o_netloc +'/'+link
+                urls.append(l)
+        print '[INFO]urls_join_plus() end', urls
+        return urls
+
     def get_page_valid_urls(self, soup, org_url):
         print '[INFO]get_page_valid_urls() start'
         all_links = []
@@ -268,7 +281,7 @@ class MySpider(spider.Spider):
         removed = list(set(all_links) - set(remove_links))
 
         urls = self.urls_join(org_url, removed)
-        # print len(all_links), all_links
+        print len(all_links), all_links
         # print len(remove_links), remove_links
         # print len(removed), removed
         # print len(urls), urls
@@ -307,15 +320,19 @@ class MySpider(spider.Spider):
                 ret = self.path_is_list(link)
                 if ret is True:
                     if self.conn.zrank(self.list_urls_zset_key, link) is None:
-                        self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
+                        # self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
+                        self.conn.zadd(self.list_urls_zset_key, self.todo_flg, link)
                 elif ret is False:
-                    self.conn.sadd(self.detail_urls_set_key, urllib.unquote(link))
+                    # self.conn.sadd(self.detail_urls_set_key, urllib.unquote(link))
+                    self.conn.sadd(self.detail_urls_set_key, link)
                 else:
                     if MODE == 'all':
                         if self.conn.zrank(self.list_urls_zset_key, link) is None:
-                            self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
+                            # self.conn.zadd(self.list_urls_zset_key, self.todo_flg, urllib.unquote(link))
+                            self.conn.zadd(self.list_urls_zset_key, self.todo_flg, link)
                     if MODE == 'exact':
-                        self.conn.sadd(self.unkown_urls_set_key, urllib.unquote(link))
+                        # self.conn.sadd(self.unkown_urls_set_key, urllib.unquote(link))
+                        self.conn.sadd(self.unkown_urls_set_key, link)
         except Exception, e:
             print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result

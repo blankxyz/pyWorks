@@ -35,7 +35,7 @@
                 <tbody>
                 {% for url in unkown_url_list %}
                     <tr style="max-height: 20px;">
-                        <td nowrap="nowrap">{{ url }}</td>
+                        <td nowrap="nowrap">{{ url|safe }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -74,12 +74,11 @@
                         "sLast": "尾页"
                     },
                     "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />"
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "关键字匹配："
                 },
-                "sSearch": "模糊查询：",
                 "bFilter": true,
-                "bLengthChange": true,
-                "aLengthMenu": [10, 20, 50]
+                "bLengthChange": false
             });
         });
         $(function () {

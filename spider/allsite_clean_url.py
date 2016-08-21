@@ -135,7 +135,7 @@ class Cleaner(object):
                 # 清理锚 # 之后的
                 url = url.split('#')[0]
                 # 汉字参数转义
-                url = urllib.unquote(url)
+                # url = urllib.unquote(url)
                 # 参数排序
                 url = self.url_sort(url)
                 # 去'/'

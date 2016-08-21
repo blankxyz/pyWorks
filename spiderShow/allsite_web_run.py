@@ -3,7 +3,7 @@
 import re
 import os
 import time
-import urlparse
+import urlparse,urllib
 import redis
 import json
 import datetime
@@ -143,10 +143,11 @@ class ListRegexInputForm(Form):  # setting
     save_run_list = SubmitField(label=u'保存-执行(列表页)')
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
+
 ######## setting_result.html #############################################################################
 class ResultForm(Form):  # 内容提取
-    list_regex_sel = SelectField(label=u'列表页规则', choices=[('regex1', 'regex1'), ('regex2', 'regex2')], default='0')
-    detail_regex_sel = SelectField(label=u'详情页规则', choices=[('regex1', 'regex1'), ('regex2', 'regex2')], default='0')
+    list_regex_sel = SelectField(label=u'列表页规则',  choices=[],default='0')
+    detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
     list_result = []
     detail_result = []
     list_match = SubmitField(label=u'列表页正则匹配')
@@ -233,6 +234,7 @@ class ShowServerLogInputForm(Form):  # show_server_log
     unkown_sel = BooleanField(label=u'仅显示筛选信息', default=True)
     refresh = SubmitField(label=u'刷新')
 
+
 ########################################################################################################
 class MySqlDrive(object):
     def __init__(self):
@@ -269,7 +271,7 @@ class MySqlDrive(object):
                 sql_str2 = "INSERT INTO result_file(user_id,start_url,site_domain,advice_start_url_list) VALUES (%s,%s,%s,%s)"
                 parameter2 = (user_id, start_url, site_domain, advice_start_url_list)
 
-            print '[info]save_advice()', sql_str2 % parameter2
+            print '[info]save_advice() sql:', sql_str2 % parameter2
             ret_cnt = self.cur.execute(sql_str2, parameter2)
             self.conn.commit()
 
@@ -545,15 +547,13 @@ class MySqlDrive(object):
         except Exception, e:
             print '[error]clean_current_main_setting()', e, sql_str % parameter
 
-    def get_current_regexs(self, type, user_id):
+    def get_current_regexs(self, type, user_id, start_url, site_domain, black_domain):
         # 0:detail,1:list
         if type == 'detail':
             detail_or_list = '0'
         else:
             detail_or_list = '1'
         regexs = []
-        # 提取主页、域名
-        start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
         sql_str = "SELECT scope,white_or_black,weight,regex,etc FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain =%s AND detail_or_list=%s"
         parameter = (user_id, start_url, site_domain, detail_or_list)
 
@@ -564,7 +564,7 @@ class MySqlDrive(object):
                 (scope, white_or_black, weight, regex, etc) = r
                 regexs.append((scope, white_or_black, weight, regex, etc))
             self.conn.commit()
-            print 'get_current_regexs()', cnt, sql_str % parameter
+            print '[info]get_current_regexs()', cnt, sql_str % parameter
         except Exception, e:
             print '[error]get_current_regexs()', e, sql_str % parameter
         return regexs
@@ -719,7 +719,7 @@ class MySqlDrive(object):
                 else:
                     t = u'无效'
 
-                partn_list.append((t,r[1]))
+                partn_list.append((t, r[1]))
 
             self.conn.commit()
             print '[info]get_detail_regex()', cnt, sql_str
@@ -749,7 +749,7 @@ class RedisDrive(object):
         self.done_flg = 0
         self.detail_flg = 1
         self.content_flg = 9
-        self.end_flg = 99 #状态管理flg最大值
+        self.end_flg = 99  # 状态管理flg最大值
 
     def get_detail_urls(self):
         return self.conn.smembers(self.detail_urls_set_key)
@@ -777,13 +777,17 @@ class RedisDrive(object):
     def get_list_urls_by_regex(self, regex):
         urls = []
         cnt = 0
-        if regex == '':
-            for url in self.conn.zrangebyscore(self.list_urls_zset_key,min=self.todo_flg,max=self.end_flg,withscores=False):
+        if regex == '': # all
+            print '[info]get_list_urls_by_regex() all'
+            for url in self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg,
+                                               withscores=False):
                 urls.append(url)
                 cnt += 1
                 if cnt > 100: break
-        else:
-            for url in self.conn.zrangebyscore(self.list_urls_zset_key,min=self.todo_flg,max=self.end_flg,withscores=False):
+        else: # match
+            print '[info]get_list_urls_by_regex() regex'
+            for url in self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg,
+                                               withscores=False):
                 if re.search(regex, url):
                     urls.append(url)
                     cnt += 1
@@ -792,7 +796,7 @@ class RedisDrive(object):
         return urls
 
     def get_list_urls(self):
-        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False )
+        return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False)
 
     def get_list_urls_limit(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
@@ -1500,7 +1504,7 @@ def setting_advice_init():
     # 恢复 主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。',category='warning')
+        flash(u'请设置主页、域名信息。', category='warning')
         for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
@@ -1746,6 +1750,7 @@ def setting_list_init():
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = get_domain_init()
+    print start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -1765,7 +1770,8 @@ def setting_list_init():
 
     #### 从MySql 设置/还原 redis 和 页面(详情页)
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id, start_url,
+                                                                                   site_domain, black_domain_str):
         # 还原redis
         if regex.find('/^') < 0:  # 白名单
             if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
@@ -1797,7 +1803,8 @@ def setting_list_init():
 
     ####  从MySql 设置/还原 redis 和 页面(列表页)
     i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id):
+    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id, start_url,
+                                                                                   site_domain, black_domain_str):
         # 还原redis
         if regex.find('/^') < 0:  # 白名单
             if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
@@ -1989,12 +1996,15 @@ def show_unkown_urls():
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。',category='warning')
+        flash(u'请设置主页、限定的域名信息。', category='warning')
         return render_template('show_unkown_urls.html',
                                unkown_url_list=unkown_url_list, keywords=keywords,
                                regexs_str=regexs_str, matched_cnt=matched_cnt)
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    # for url in redis_db.get_unkown_urls():
+    #     print url
+    #     unkown_url_list.append(urllib.quote(url))
     unkown_url_list = redis_db.get_unkown_urls()
     if len(unkown_url_list) == 0:
         flash(u'目前URL已全部匹配。')
@@ -2014,41 +2024,82 @@ def show_unkown_urls():
 
     matched_cnt = ','.join(score_list)
     regexs_str = ("'" + "','".join(keywords) + "'")
+    print '[info]show_unkown_urls()',unkown_url_list
     return render_template('show_unkown_urls.html',
                            unkown_url_list=unkown_url_list, keywords=keywords,
                            regexs_str=regexs_str, matched_cnt=matched_cnt)
 
+
 ######### show_result.html   #############################################################################
-@app.route('/show_result', methods=['GET', 'POST'])
-def show_result():
+@app.route('/show_result_init', methods=['GET', 'POST'])
+def show_result_init():
     user_id = session['user_id']
     inputForm = ResultForm()
     # 提取主页、域名
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。',category='warning')
-        return render_template('show_result.html',inputForm=inputForm)
-
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    inputForm.list_result = redis_db.get_list_urls()
-    inputForm.detail_result = redis_db.get_detail_urls()
+        flash(u'请设置主页、限定的域名信息。', category='warning')
+        return render_template('show_result.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
-    #详情页正则
-    select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
-    select_items.append(('', ''))
-    select_items.sort()
-    inputForm.detail_regex_sel.choices = select_items
-    regex_sel = inputForm.detail_regex_sel.data
-    inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+
     # 列表页正则
     select_items = [(i, i) for i in mysql_db.get_list_regex(user_id, start_url, site_domain)]
     select_items.append(('', ''))
     select_items.sort()
     inputForm.list_regex_sel.choices = select_items
     regex_sel = inputForm.list_regex_sel.data
-    inputForm.list_url_list = redis_db.get_list_urls_by_regex(regex_sel)
+    inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)
+
+    # 详情页正则
+    select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.detail_regex_sel.choices = select_items
+    regex_sel = inputForm.detail_regex_sel.data
+    inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
+
+    return render_template('show_result.html', inputForm=inputForm)
+
+@app.route('/show_result', methods=['GET', 'POST'])
+def show_result():
+    user_id = session['user_id']
+    inputForm = ResultForm(request.form)
+    # 提取主页、域名
+    start_url, site_domain, black_domain_str = get_domain_init()
+    print '[info]show_result()', start_url, site_domain, black_domain_str
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。', category='warning')
+        return render_template('show_result.html', inputForm=inputForm)
+
+    mysql_db = MySqlDrive()
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+
+    # 列表页正则
+    if inputForm.list_match.data:
+        regex_sel = inputForm.list_regex_sel.data
+        inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)
+
+        select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
+        select_items.append(('', ''))
+        select_items.sort()
+        inputForm.detail_regex_sel.choices = select_items
+        regex_sel = inputForm.detail_regex_sel.data
+        inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
+
+    # 详情页正则
+    if inputForm.detail_match.data:
+        regex_sel = inputForm.detail_regex_sel.data
+        inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
+
+        select_items = [(i, i) for i in mysql_db.get_list_regex(user_id, start_url, site_domain)]
+        select_items.append(('', ''))
+        select_items.sort()
+        inputForm.list_regex_sel.choices = select_items
+        regex_sel = inputForm.list_regex_sel.data
+        inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)
 
     return render_template('show_result.html', inputForm=inputForm)
 
@@ -2198,7 +2249,6 @@ def content_advice():
     regex_sel = inputForm.detail_regex_sel.data
     # inputForm.detail_regex_list = inputForm.detail_regex_sel.data
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    print regex_sel
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
     print '[info]content_advice()', inputForm.detail_url_list
 
@@ -2341,6 +2391,7 @@ def history_search():
 
     return render_template('history.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
+
 ######### admin_server_log.html #############################################################################
 @app.route('/admin_server_log', methods=['GET', 'POST'])
 def admin_server_log():
@@ -2387,6 +2438,7 @@ def admin_server_log():
 
     return render_template('admin_server_log.html', inputForm=inputForm,
                            server_log_list=[x.encode('utf8') for x in server_log_list])
+
 
 ######### admin_tools.html  #############################################################################
 @app.route('/admin_tools')
@@ -2456,66 +2508,72 @@ def tool_getenv():
                 }
     return render_template('admin_tools.html', json_str=json.dumps(json_str, indent=2))
 
+
 @app.route('/tool_session_setting', methods=['POST'])
 def tool_session_setting():
     session['start_url'] = request.form['start_url']
     session['site_domain'] = request.form['site_domain']
     return redirect(url_for('tool_upload'), 302)
 
+
 ##########################################################################################
 #  restful api
-LIST_SETTING = {
-    'start_url': '',
-    'site_domain': '',
-    'black_domain_str': '',
-    'mode': '0',  # '0':all
-    'list_regex_list': [],  # list_1:'regex1', list_2:'regex2'
-    'detail_regex_list': []  # detail_1:'regex1', detail_2:'regex2'
+TODOS = {
+    'todo1': {'task': 'build an API'},
+    'todo2': {'task': '?????'},
+    'todo3': {'task': 'profit!'},
 }
 
 
-def abort_if_todo_doesnt_exist(item):
-    if item not in LIST_SETTING:
-        abort(404, message="LIST_SETTING {} doesn't exist".format(item))
-
+def abort_if_todo_doesnt_exist(todo_id):
+    if todo_id not in TODOS:
+        abort(404, message="Todo {} doesn't exist".format(todo_id))
 
 parser = reqparse.RequestParser()
-parser.add_argument('task', type=str)
+parser.add_argument('task')
 
 
-class RegexSession(Resource):
-    def get(self, item):  # get one
-        if item is None or item == '':  # get all
-            return LIST_SETTING
-        else:
-            abort_if_todo_doesnt_exist(item)
-            return LIST_SETTING[item]
+# Todo
+# shows a single todo item and lets you delete a todo item
+class Todo(Resource):
+    def get(self, todo_id):
+        abort_if_todo_doesnt_exist(todo_id)
+        return TODOS[todo_id]
 
-    def delete(self, item):  # delete one
-        abort_if_todo_doesnt_exist(item)
-        del LIST_SETTING[item]
+    def delete(self, todo_id):
+        abort_if_todo_doesnt_exist(todo_id)
+        del TODOS[todo_id]
         return '', 204
 
-    def put(self, item):  # update one
+    def put(self, todo_id):
+        print 'put start',todo_id
         args = parser.parse_args()
-        regex = {'regex': args['regex']}
-        LIST_SETTING[item] = regex
-        return regex, 201
+        print args
+        task = {'task': args['task']}
+        TODOS[todo_id] = task
+        print 'put end', TODOS[todo_id]
+        return task, 201
 
-    def post(self):  # add one
+
+# TodoList
+# shows a list of all todos, and lets you POST to add new tasks
+class TodoList(Resource):
+    def get(self):
+        return TODOS
+
+    def post(self):
         args = parser.parse_args()
-        no = int(max(LIST_SETTING.keys()).lstrip('list_')) + 1
-        item = 'list_%i' % no
-        LIST_SETTING[item] = {'list_regex_list': args['task']}
-        print LIST_SETTING
-        return LIST_SETTING[item], 201
+        todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
+        todo_id = 'todo%i' % todo_id
+        TODOS[todo_id] = {'task': args['task']}
+        return TODOS[todo_id], 201
 
 
 ##
 ## Actually setup the Api resource routing here
 ##
-api.add_resource(RegexSession, '/rest_settings')
-# api.add_resource(RegexSession, '/rest_setting/<item>')
+api.add_resource(TodoList, '/todos')
+api.add_resource(Todo, '/todos/<todo_id>')
 
 ##########################################################################################
 if __name__ == '__main__':

@@ -22,13 +22,13 @@
                         "sLast": "尾页"
                     },
                     "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />"
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "关键字匹配："
                 },
-                "sSearch": "模糊查询：",
                 "bFilter": true,
                 "bLengthChange": false,
                 "bPaginate": true,
-                {#                "aLengthMenu": [10, 20]#}
+                {#"aLengthMenu": [10, 20]#}
             });
             <!-- 转换正则 -->
             $('a').click(function () {
@@ -57,13 +57,11 @@
                 }
                 if (id_str == "plus_ok") {
                     $.ajax({
-                        url: $SCRIPT_ROOT + '/add_detail_regex',
+                        url: $SCRIPT_ROOT + '/todos/todo3',
+                        type: 'PUT',
                         contentType: "application/json; charset=UTF-8",
                         dataType: 'json',
-                        data: {
-                            regex: $('#plus_regex').text(),
-                            now: new Date().getTime()
-                        },
+                        data: JSON.stringify({task: 'Remember the milk'}),
                         error: function (xhr, err) {
                             alert(err);
                         },
@@ -71,6 +69,33 @@
                             alert(data);
                         }
                     });
+{#                    jQuery.each(["put", "delete"], function (i, method) {#}
+{#                        jQuery[method] = function (url, data, callback, type) {#}
+{#                            if (jQuery.isFunction(data)) {#}
+{#                                type = type || callback;#}
+{#                                callback = data;#}
+{#                                data = undefined;#}
+{#                            }#}
+{##}
+{#                            return jQuery.ajax({#}
+{#                                url: url,#}
+{#                                type: method,#}
+{#                                dataType: type,#}
+{#                                data: data,#}
+{#                                success: callback#}
+{#                            });#}
+{#                        };#}
+{#                    });#}
+{#                    $.put('/todo/todo3', {task: 'new text'}, function (result) {#}
+{#                        console.log(result);#}
+{#                    });#}
+{#                    alert('call put');#}
+{#                    data = {task: 'new jobs', _method: 'put'};#}
+{#                    url = '/products';#}
+{#                    request = $.post(url, data);#}
+{#                    request.done(function (res) {#}
+{#                        alert('Yupi Yei. Your product has been deleted')#}
+{#                    });#}
                 }
             });
         });
