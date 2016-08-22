@@ -1424,6 +1424,39 @@ class Util(object):
         # print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
         return advice_regex_dic, advice_words_dic
 
+    # 未匹配URL归类算法
+    def compress_url(self, url):
+        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
+        # if url.find('%') >= 0:
+        url_new = urlparse.urlunparse(('', '', self.compress_path(path), params,
+                                       self.compress_qurey(query), fragment))
+        return url_new
+
+    def compress_path(self, path):
+        # /forum.php
+        # print path
+        path_without_digit = re.sub(r'\d', '', path)
+        return path_without_digit
+
+    def compress_qurey(self, query):
+        # dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost
+        # print query
+        q = re.sub(r'=.*?&', '=&', query)
+        qurey_without_digit = q[:q.rfind('=') + 1]
+        return qurey_without_digit
+
+    def convert_urls_to_category(self, urls):
+        category_dict = {}
+        for url in urls:
+            category = self.compress_url(url)
+            if category_dict.has_key(category):
+                url_list = category_dict.pop(category)
+                url_list.append(url)
+                category_dict.update({category: url_list})
+            else:
+                url_list = [url]
+                category_dict.update({category: url_list})
+        return category_dict
 
 #####  推荐算法  end  ################################################################
 
@@ -2016,18 +2049,21 @@ def setting_list_save_and_run():
 ######### show_unkown.html  #############################################################################
 @app.route('/show_unkown_urls', methods=['GET', 'POST'])
 def show_unkown_urls():
-    user_id = session['user_id']
     unkown_url_list = []
+    category_dict = {}
+    category_list=[]
     keywords = []
     regexs_str = ''
     matched_cnt = ''
+
     # 提取主页、域名
+    user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。', category='warning')
         return render_template('show_unkown_urls.html',
-                               unkown_url_list=unkown_url_list, keywords=keywords,
+                               unkown_url_list=unkown_url_list, keywords=keywords,category_list=category_list,
                                regexs_str=regexs_str, matched_cnt=matched_cnt)
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
@@ -2038,11 +2074,13 @@ def show_unkown_urls():
     if len(unkown_url_list) == 0:
         flash(u'目前URL已全部匹配。')
         return render_template('show_unkown_urls.html',
-                               unkown_url_list=unkown_url_list, keywords=keywords,
+                               unkown_url_list=unkown_url_list, keywords=keywords,category_list=category_list,
                                regexs_str=regexs_str, matched_cnt=matched_cnt)
 
     util = Util()
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(unkown_url_list)
+    category_dict = util.convert_urls_to_category(unkown_url_list)
+    category_list = category_dict.keys()
     # print advice_keyword_dic
 
     keywords = []
@@ -2055,7 +2093,7 @@ def show_unkown_urls():
     regexs_str = ("'" + "','".join(keywords) + "'")
     print '[info]show_unkown_urls()', unkown_url_list
     return render_template('show_unkown_urls.html',
-                           unkown_url_list=unkown_url_list, keywords=keywords,
+                           unkown_url_list=unkown_url_list, keywords=keywords,category_list=category_list,
                            regexs_str=regexs_str, matched_cnt=matched_cnt)
 
 

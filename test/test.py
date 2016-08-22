@@ -3,8 +3,10 @@
 import re
 import urlparse
 import redis
+import urllib
 
 REDIS_SERVER = 'redis://127.0.0.1/14'
+
 
 class RedisDrive(object):
     def __init__(self, start_url='', site_domain=''):
@@ -31,47 +33,73 @@ class RedisDrive(object):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False)
 
 
-def convert_hold_word(url):
+def compress_url(url):
     (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
-    # print 'scheme:', scheme
-    # print 'netloc:', netloc
-    # print 'path:', path
-    # print 'params:', params
-    # print 'query:', query
-    # print 'fragment:', fragment
     # if url.find('%') >= 0:
-
-    url_new = urlparse.urlunparse(('', '', conjvert_path(path), params, conjvert_qurey(query), fragment))
+    url_new = urlparse.urlunparse(('', '', compress_path(path), params, compress_qurey(query), fragment))
     return url_new
 
 
-def conjvert_path(path):
+def compress_path(path):
     # /forum.php
     # print path
     path_without_digit = re.sub(r'\d', '', path)
     return path_without_digit
 
 
-def conjvert_qurey(query):
+def compress_qurey(query):
     # dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost
     # print query
     q = re.sub(r'=.*?&', '=&', query)
-    qurey_without_digit = q[:q.rfind('=')+1]
+    qurey_without_digit = q[:q.rfind('=') + 1]
     return qurey_without_digit
 
-def convert_urls_to_rule(urls):
-    ret = []
+
+def convert_urls_to_category(urls):
+    category_dict = {}
     for url in urls:
-        rule = convert_hold_word(url)
-        ret.append((rule,url))
-    return ret
+        category = compress_url(url)
+        if category_dict.has_key(category):
+            url_list = category_dict.pop(category)
+            url_list.append(url)
+            category_dict.update({category: url_list})
+        else:
+            url_list = [url]
+            category_dict.update({category: url_list})
+    return category_dict
+
+def union_query(category_dict):
+    ret = {}
+    #{'/shop/index.php?act=&area_id=&brand=&key=&op=&order=':
+    #['http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=0&op=list&order=0',
+    # 'http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=1&op=list&order=2',
+    # 'http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=2&op=list&order=2'],
+    #
+    #'/shop/index.php?act=&brand=&key=&op=&order=':
+    #['http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=0&op=list&order=0',
+    # 'http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=1&op=list&order=2',
+    # 'http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=2&op=list&order=2'] }
+    category_list = category_dict.keys()
+    for category in category_list:
+        url_list = category_dict.pop(category)
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(category)
+        # print scheme, netloc, path, params, query, fragment
+        # /shop/index.php  key=&act=&area_id=&brand=&op=&order=
+        # -> [('key', ''), ('act', ''), ('area_id', ''), ('brand', ''), ('op', ''), ('order', '')]
+        keyvals = urlparse.parse_qsl(query, keep_blank_values=1)
+        # print keyvals
+        keyvals.sort()
+        query = urllib.urlencode(keyvals)
+    return query
 
 if __name__ == '__main__':
-    url = 'http://www.cxljl.cn/forum/aaa/thread-111-11.html?dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost'
+    # url = 'http://www.cxljl.cn/forum/aaa/thread-111-11.html?dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost'
     # url= 'http://www.cxljl.cn/space-username-%CE%DE%D1%D4%B5%C4%B8%E7.html'
-    start_url = 'http://www.cxljl.cn'
-    site_domain = 'cxljl.cn'
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    urls = redis_db.get_list_urls()
-    print urls
-    print convert_urls_to_rule(urls)
+    url = '/shop/index.php?key=&act=&area_id=&brand=&op=&order='
+    # start_url = 'http://www.cxljl.cn'
+    # site_domain = 'cxljl.cn'
+    # redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    # urls = redis_db.get_list_urls()
+    # print urls
+    # print convert_urls_to_category(urls)
+    print sort_query(url)
