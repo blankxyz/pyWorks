@@ -55,20 +55,44 @@
                         }
                     });
                 }
-                if (id_str == "plus_ok") {
+                if (id_str == "minus_a") {
+                    var del_regex = $('#detail_regex_sel').val();
+                    alert(del_regex);
                     $.ajax({
-                        url: $SCRIPT_ROOT + '/todos/todo3',
-                        type: 'PUT',
+                        url: $SCRIPT_ROOT + '/regexs/'+ del_regex,
+                        type: 'delete',
                         contentType: "application/json; charset=UTF-8",
                         dataType: 'json',
-                        data: JSON.stringify({task: 'Remember the milk'}),
+                        data: JSON.stringify({regex: del_regex}),
                         error: function (xhr, err) {
                             alert(err);
                         },
                         success: function (data, textStatus) {
-                            alert(data.task);
+                            alert(textStatus);
+                            alert(data.regex);
                         }
                     });
+                }
+                if (id_str == "plus_regex_a") {
+                    var add_regex = $('#plus_regex_input').val();
+                    if (add_regex.length == 0) {
+                        alert('请输入正则表达式。');
+                    } else {
+                        $.ajax({
+                            url: $SCRIPT_ROOT + '/regexs/' + add_regex,
+                            type: 'put',
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: 'json',
+                            data: JSON.stringify({regex: add_regex}),
+                            error: function (xhr, err) {
+                                alert(err);
+                            },
+                            success: function (data, textStatus) {
+                                {#alert(textStatus);#}
+                                alert(data.regex);
+                            }
+                        });
+                    }
                 }
             });
         });
@@ -94,13 +118,13 @@
     <hr>
     <div id="detail_url_list_div" class="panel-group" style="float:left;width:48%; margin-left:10px">
         <form id="cond" method="POST" action="/content_advice">
-            {{ inputForm.detail_regex_sel(style="width:480px;") }}
+            {{ inputForm.detail_regex_sel(id="detail_regex_sel",style="width:480px;") }}
             &nbsp;
-            <a id="plus" href="#plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
+            <a id="plus_a" href="#plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
                 <span class="glyphicon glyphicon-plus"></span>
             </a>
             &nbsp;
-            <a id="minus" href="#">
+            <a id="minus_a" href="#">
                 <span class="glyphicon glyphicon-minus"></span>
             </a>
             &nbsp;
@@ -108,8 +132,8 @@
         </form>
         <div id="plus_regex_div" class="panel-collapse collapse">
             <div class="panel-body">
-                <input id="plus_regex" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
-                <a id="plus_ok" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+                <input id="plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
+                <a id="plus_regex_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
             </div>
         </div>
         <br>

@@ -3,7 +3,7 @@
 import re
 import os
 import time
-import urlparse,urllib
+import urlparse, urllib
 import redis
 import json
 import datetime
@@ -146,7 +146,7 @@ class ListRegexInputForm(Form):  # setting
 
 ######## setting_result.html #############################################################################
 class ResultForm(Form):  # 内容提取
-    list_regex_sel = SelectField(label=u'列表页规则',  choices=[],default='0')
+    list_regex_sel = SelectField(label=u'列表页规则', choices=[], default='0')
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
     list_result = []
     detail_result = []
@@ -158,7 +158,7 @@ class ResultForm(Form):  # 内容提取
 class ContentAdvice(Form):
     mode = BooleanField(label=u'自动提取', default=True)
 
-    detail_regex_sel = SelectField(label=u'详情页规则', choices=[('regex1', 'regex1'), ('regex2', 'regex2')], default='0')
+    detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
     detail_regex_list = []
     match = SubmitField(label=u'详情页正则匹配')
     content_advice = SubmitField(label=u'自动提取')
@@ -547,9 +547,9 @@ class MySqlDrive(object):
         except Exception, e:
             print '[error]clean_current_main_setting()', e, sql_str % parameter
 
-    def get_current_regexs(self, type, user_id, start_url, site_domain, black_domain):
+    def get_current_regexs(self, regex_type, user_id, start_url, site_domain, black_domain):
         # 0:detail,1:list
-        if type == 'detail':
+        if regex_type == 'detail':
             detail_or_list = '0'
         else:
             detail_or_list = '1'
@@ -569,47 +569,77 @@ class MySqlDrive(object):
             print '[error]get_current_regexs()', e, sql_str % parameter
         return regexs
 
-    def add_detail_regex(self, type, user_id, start_url, site_domain, regex):
-        # 0:detail,1:list
-        regexs = []
-        # 提取主页、域名
-        start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
-        sql_str = "SELECT id FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain =%s AND detail_or_list='0'"
-        parameter = (user_id, start_url, site_domain)
+    def add_regex(self, user_id, start_url, site_domain, black_domain_str, is_detail_regex, regex):
+        print '[info]add_regex() start.', user_id, start_url, site_domain, black_domain_str, is_detail_regex, regex
+        weight = '0'
+        if is_detail_regex:
+            detail_or_list = '0'  # 详情
+        else:
+            detail_or_list = '1'
+        scope = '1'
+        if regex.find('/^') >= 0:
+            white_or_black = '1'  # 黑名单
+        else:
+            white_or_black = '0'  # 白名单
 
         try:
-            cnt = self.cur.execute(sql_str, parameter)
-            rs = self.cur.fetchall()
-            for r in rs:
-                (scope, white_or_black, weight, regex, etc) = r
-                regexs.append((scope, white_or_black, weight, regex, etc))
-            self.conn.commit()
-            print 'add_detail_regex()', cnt, sql_str % parameter
-            return True
+            sql_str1 = ("SELECT id FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain=%s AND "
+                        "detail_or_list=%s AND white_or_black=%s AND regex=%s")
+            parameter1 = (user_id, start_url, site_domain, detail_or_list, white_or_black, regex)
+            print '[info]add_regex()', sql_str1 % parameter1
+            ret_cnt = self.cur.execute(sql_str1, parameter1)
+            if ret_cnt == 0:
+                sql_str2 = "INSERT INTO url_rule(user_id,start_url,site_domain,black_domain_str,detail_or_list, " \
+                           "scope,white_or_black,weight,regex) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                parameter2 = (user_id, start_url, site_domain, black_domain_str,
+                              detail_or_list, scope, white_or_black, weight, regex)
+                print '[info]add_regex()', sql_str2 % parameter2
+                ret_cnt = self.cur.execute(sql_str2, parameter2)
+                self.conn.commit()
+                '[info]add_regex() end.'
+                return True
+            else:
+                print '[info]add_regex() regex exist.'
+                return False
         except Exception, e:
-            print '[error]add_detail_regex()', e, sql_str % parameter
-            return False
+            print '[error]add_regex()', e
+            self.conn.rollback()
+            return None
 
-    def delete_detail_regex(self, type, user_id, start_url, site_domain, regex):
-        # 0:detail,1:list
-        regexs = []
-        # 提取主页、域名
-        start_url, site_domain, black_domain = self.get_current_main_setting(user_id)
-        sql_str = "DELETE FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain =%s AND detail_or_list='0' AND regex=%s"
-        parameter = (user_id, start_url, site_domain, regex)
-
+    def delete_regex(self, user_id, start_url, site_domain, regex_type, regex):
+        weight = '0'
+        if regex_type == 'detail':
+            detail_or_list = '0'  # 详情
+        else:
+            detail_or_list = '1'
+        scope = '1'
+        if regex.find('/^') >= 0:
+            white_or_black = '1'  # 黑名单
+        else:
+            white_or_black = '0'  # 白名单
         try:
-            cnt = self.cur.execute(sql_str, parameter)
-            rs = self.cur.fetchall()
-            for r in rs:
-                (scope, white_or_black, weight, regex, etc) = r
-                regexs.append((scope, white_or_black, weight, regex, etc))
-            self.conn.commit()
-            # print 'delete_detail_regex()', cnt, sql_str % parameter
-            return True
+            sql_str1 = ("SELECT id FROM url_rule WHERE user_id=%s AND start_url=%s AND site_domain=%s AND "
+                        "detail_or_list=%s AND white_or_black=%s AND regex=%s")
+            parameter1 = (user_id, start_url, site_domain, detail_or_list, white_or_black, regex)
+            print '[info]delete_regex()', sql_str1 % parameter1
+            ret_cnt = self.cur.execute(sql_str1, parameter1)
+            if ret_cnt != 0:
+                r = self.cur.fetchone()
+                regex_id = r[0]
+                sql_str2 = "DELETE FROM url_rule WHERE id=%s"
+                parameter2 = (regex_id,)
+                print '[info]delete_regex()', sql_str2 % parameter2
+                ret_cnt = self.cur.execute(sql_str2, parameter2)
+                self.conn.commit()
+                print '[info]delete_regex() delete', ret_cnt, regex
+                return True
+            else:
+                print '[error]delete_regex() regex not exist.'
+                return False
         except Exception, e:
-            print '[error]delete_detail_regex()', e, sql_str % parameter
-            return False
+            print '[error]delete_regex()', e
+            self.conn.rollback()
+            return None
 
     def save_result_file_to_mysql(self, start_url, site_domain):
         msg = ''
@@ -777,14 +807,14 @@ class RedisDrive(object):
     def get_list_urls_by_regex(self, regex):
         urls = []
         cnt = 0
-        if regex == '': # all
+        if regex == '':  # all
             print '[info]get_list_urls_by_regex() all'
             for url in self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg,
                                                withscores=False):
                 urls.append(url)
                 cnt += 1
                 if cnt > 100: break
-        else: # match
+        else:  # match
             print '[info]get_list_urls_by_regex() regex'
             for url in self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg,
                                                withscores=False):
@@ -1490,7 +1520,7 @@ def convert_to_regex():
     return jsonStr
 
 
-######### advice ###########################################################################
+######### setting_advice.html ###########################################################################
 @app.route('/setting_advice_init', methods=["GET", "POST"])
 def setting_advice_init():
     # print '[info]setting_advice_init() start.'
@@ -2024,7 +2054,7 @@ def show_unkown_urls():
 
     matched_cnt = ','.join(score_list)
     regexs_str = ("'" + "','".join(keywords) + "'")
-    print '[info]show_unkown_urls()',unkown_url_list
+    print '[info]show_unkown_urls()', unkown_url_list
     return render_template('show_unkown_urls.html',
                            unkown_url_list=unkown_url_list, keywords=keywords,
                            regexs_str=regexs_str, matched_cnt=matched_cnt)
@@ -2062,6 +2092,7 @@ def show_result_init():
     inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
 
     return render_template('show_result.html', inputForm=inputForm)
+
 
 @app.route('/show_result', methods=['GET', 'POST'])
 def show_result():
@@ -2102,6 +2133,7 @@ def show_result():
         inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)
 
     return render_template('show_result.html', inputForm=inputForm)
+
 
 ######### show_process.html  #############################################################################
 @app.route('/show_process', methods=['GET', 'POST'])
@@ -2518,62 +2550,113 @@ def tool_session_setting():
 
 ##########################################################################################
 #  restful api
-TODOS = {
-    'todo1': {'task': 'build an API'},
-    'todo2': {'task': '?????'},
-    'todo3': {'task': 'profit!'},
+REGEXS = {
+    'regex1': {'regex': '\/$'},
+    'regex2': {'regex': '/list-'},
+    'regex3': {'regex': '/index'},
+    'regex4': {'regex': 'unkown'},
 }
 
 
-def abort_if_todo_doesnt_exist(todo_id):
-    if todo_id not in TODOS:
-        abort(404, message="Todo {} doesn't exist".format(todo_id))
+def abort_if_regex_doesnt_exist(regex):
+    user_id = session['user_id']
+    start_url, site_domain, black_domain_str = get_domain_init()
+    mysql_db = MySqlDrive()
+    current_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
+    regexs = []
+    for (scope, white_or_black, weight, regex, etc)  in current_regexs:
+        regexs.append(regex)
+    print regex,regexs
+    if regex not in regexs:
+        msg = "REGEXS {} doesn't exist".format(regex)
+        print msg
+        abort(404, message=msg)
+
 
 parser = reqparse.RequestParser()
-parser.add_argument('task')
+parser.add_argument('regex')
 
 
-# Todo
-# shows a single todo item and lets you delete a todo item
-class Todo(Resource):
-    def get(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        return TODOS[todo_id]
+# DetailRegexMaintenance
+class DetailRegexMaintenance(Resource):
+    def get(self, regex_id):
+        abort_if_regex_doesnt_exist(regex_id)
+        return {'regex': regex_id}
 
-    def delete(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        del TODOS[todo_id]
-        return '', 204
+    def delete(self, regex_id):
+        print '[info]DetailRegexMaintenance() delete start', regex_id
+        user_id = session['user_id']
+        start_url, site_domain, black_domain_str = get_domain_init()
+        if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+            regex_dic = {'regex': u'请设定主页，域名信息。'}
+            return regex_dic, 201
 
-    def put(self, todo_id):
-        print 'put start',todo_id
+        abort_if_regex_doesnt_exist(regex_id)
+        mysql_db = MySqlDrive()
+        ret = mysql_db.delete_regex(user_id, start_url, site_domain, 'detail', regex_id)
+
+        redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+        if regex_id.find('/^') < 0:  # 白名单
+            redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex_id)
+        else:  # 黑名单
+            redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex_id)
+
+        print '[info]DetailRegexMaintenance() delete end'
+        return {'regex': 'delete ok'}, 204
+
+    def put(self, regex_id):
+        # print '[info]DetailRegexMaintenance() put start', regex_id
+        user_id = session['user_id']
+        start_url, site_domain, black_domain_str = get_domain_init()
+        if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+            regex_dic = {'regex': u'请设定主页，域名信息。'}
+            return regex_dic, 201
+
         args = parser.parse_args()
-        print args
-        task = {'task': args['task']}
-        TODOS[todo_id] = task
-        print 'put end', TODOS[todo_id]
-        return task, 201
+        # print args
+        regex = args['regex']
+        regex_dic = {'regex': regex}
+        # REGEXS[regex_id] = regex_dic
+        # print 'put end', REGEXS
+
+        mysql_db = MySqlDrive()
+        ret = mysql_db.add_regex(user_id, start_url, site_domain, black_domain_str, is_detail_regex=True, regex=regex)
+
+        redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+        if regex.find('/^') < 0:  # 白名单
+            if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
+        else:  # 黑名单
+            if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
+        # print '[info]DetailRegexMaintenance() put end'
+        return regex_dic, 201
+
+
+##
+## Actually setup the Api resource routing here
+##
+api.add_resource(DetailRegexMaintenance, '/regexs/<regex_id>')
 
 
 # TodoList
 # shows a list of all todos, and lets you POST to add new tasks
 class TodoList(Resource):
     def get(self):
-        return TODOS
+        return REGEXS
 
     def post(self):
         args = parser.parse_args()
-        todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
-        todo_id = 'todo%i' % todo_id
-        TODOS[todo_id] = {'task': args['task']}
-        return TODOS[todo_id], 201
+        todo_id = int(max(REGEXS.keys()).lstrip('regex')) + 1
+        todo_id = 'regex%i' % todo_id
+        REGEXS[todo_id] = {'regex': args['regex']}
+        return REGEXS[todo_id], 201
 
 
 ##
 ## Actually setup the Api resource routing here
 ##
 api.add_resource(TodoList, '/todos')
-api.add_resource(Todo, '/todos/<todo_id>')
 
 ##########################################################################################
 if __name__ == '__main__':
