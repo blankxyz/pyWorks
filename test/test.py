@@ -55,7 +55,8 @@ def conjvert_path(path):
 def conjvert_qurey(query):
     # dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost
     # print query
-    qurey_without_digit = re.sub(r'=.*?&', '=&', query)
+    q = re.sub(r'=.*?&', '=&', query)
+    qurey_without_digit = q[:q.rfind('=')+1]
     return qurey_without_digit
 
 def convert_urls_to_rule(urls):
