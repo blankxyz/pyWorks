@@ -1,62 +1,4 @@
 {% extends "bootstrap/base.html" %}
-{% block scripts %}
-    {{ super() }}
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
-    <!-- DataTables Javascript-->
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script type="text/javascript">
-        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-        $(document).ready(function () {
-            <!-- 转换正则 -->
-            function submit_convert(e) {
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/convert',
-                    contentType: "application/json; charset=UTF-8",
-                    dataType: 'json',
-                    data: {
-                        convert_url: $('input[id="convert_url"]').val(),
-                        now: new Date().getTime()
-                    },
-                    error: function (xhr, err) {
-                        $('#regex_result').text(err);
-                    },
-                    success: function (data, textStatus) {
-                        $('#regex_result').text(data.regex);
-                    }
-                });
-            };
-            $('#convert_btn').click(submit_convert);
-
-            <!-- restful -->
-            $("tr-aaa").change(function () {
-                var id_str = $(this).attr("id");
-                {#                $(this).css("color","red");#}
-                if (id_str.search("list") > 0) {
-                    alert("list:" + id_str);
-                } else {
-                    alert("detail:" + id_str);
-                }
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/todos',
-                    type: "POST",
-                    dataType: "json",
-                    {#contentType: "application/json; charset=utf-8", #}
-                    data: {"task": "something new"},
-                    error: function (xhr, err) {
-                        alert("error");
-                        alert(err);
-                    },
-                    success: function (data, textStatus) {
-                        {#                        alert(textStatus);#}
-                        alert(JSON.stringify(data, null, 4)); //转换成字符串
-                        alert(data.task);
-                    }
-                });
-            });
-        });
-    </script>
-{% endblock %}
 {% block content %}
     <h3 align="center">设定抓取信息
         <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
@@ -134,5 +76,51 @@
             {{ inputForm.save_run_detail(class="btn btn-info") }}
         </div>
     </form>
+{% endblock %}
 
+{% block scripts %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <!-- DataTables Javascript-->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        $(document).ready(function () {
+            <!-- 转换正则 -->
+            function submit_convert(e) {
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/convert',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: {
+                        convert_url: $('input[id="convert_url"]').val(),
+                        now: new Date().getTime()
+                    },
+                    error: function (xhr, err) {
+                        $('#regex_result').text(err);
+                    },
+                    success: function (data, textStatus) {
+                        $('#regex_result').text(data.regex);
+                    }
+                });
+            };
+            $('#convert_btn').click(submit_convert);
+
+            <!-- start_url 去掉 '/' -->
+            $("#start_url").change(function () {
+                var start_url = $('#start_url').val();
+                var without_slash = '';
+                alert(start_url);
+
+                patrn = /\/$/;
+                if (patrn.exec(start_url)) {
+                    without_slash = start_url.substr(0, start_url.length - 1);
+                } else {
+                    without_slash = start_url
+                }
+                $('#start_url').val(without_slash);
+            });
+        });
+    </script>
 {% endblock %}
