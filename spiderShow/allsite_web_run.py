@@ -1124,8 +1124,7 @@ class Util(object):
             return False
 
 
-            #####  推荐算法  start  ################################################################
-
+    #####  推荐算法  start  ################################################################
     def convert_path_to_rule_advice(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
         # print path
@@ -2550,74 +2549,76 @@ def tool_session_setting():
 
 ##########################################################################################
 #  restful api
-REGEXS = {
-    'regex1': {'regex': '\/$'},
-    'regex2': {'regex': '/list-'},
-    'regex3': {'regex': '/index'},
-    'regex4': {'regex': 'unkown'},
-}
-
-
-def abort_if_regex_doesnt_exist(regex):
-    user_id = session['user_id']
-    start_url, site_domain, black_domain_str = get_domain_init()
-    mysql_db = MySqlDrive()
-    current_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
-    regexs = []
-    for (scope, white_or_black, weight, regex, etc)  in current_regexs:
-        regexs.append(regex)
-    print regex,regexs
-    if regex not in regexs:
-        msg = "REGEXS {} doesn't exist".format(regex)
-        print msg
-        abort(404, message=msg)
-
-
 parser = reqparse.RequestParser()
 parser.add_argument('regex')
 
+def is_regex_exist(regex):
+    user_id = session['user_id']
+    start_url, site_domain, black_domain_str = get_domain_init()
+
+    regexs = []
+    mysql_db = MySqlDrive()
+    current_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
+    for (scope, white_or_black, weight, regex, etc) in current_regexs:
+        regexs.append(regex)
+    print '[info]is_regex_exist()',unicode(regex), regexs
+    for r in regexs:
+        if unicode(regex) == r:
+            print '[info]is_regex_exist() True'
+            return True
+        else:
+            print '[info]is_regex_exist() False'
+            return False
 
 # DetailRegexMaintenance
 class DetailRegexMaintenance(Resource):
-    def get(self, regex_id):
-        abort_if_regex_doesnt_exist(regex_id)
-        return {'regex': regex_id}
+    def get(self, regex_type):
+        msg = ''
+        args = parser.parse_args()
+        regex = args['regex']
+        if is_regex_exist(regex_type):
+            msg = u"{} 不存在。".format(regex)
+        return {'msg': msg}
 
-    def delete(self, regex_id):
-        print '[info]DetailRegexMaintenance() delete start', regex_id
+    def delete(self, regex_type):
+        print '[info]DetailRegexMaintenance() delete start.', regex_type
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
         if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-            regex_dic = {'regex': u'请设定主页，域名信息。'}
-            return regex_dic, 201
-
-        abort_if_regex_doesnt_exist(regex_id)
-        mysql_db = MySqlDrive()
-        ret = mysql_db.delete_regex(user_id, start_url, site_domain, 'detail', regex_id)
-
-        redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-        if regex_id.find('/^') < 0:  # 白名单
-            redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex_id)
-        else:  # 黑名单
-            redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex_id)
-
-        print '[info]DetailRegexMaintenance() delete end'
-        return {'regex': 'delete ok'}, 204
-
-    def put(self, regex_id):
-        # print '[info]DetailRegexMaintenance() put start', regex_id
-        user_id = session['user_id']
-        start_url, site_domain, black_domain_str = get_domain_init()
-        if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-            regex_dic = {'regex': u'请设定主页，域名信息。'}
-            return regex_dic, 201
+            return {'msg': u'请设定主页，域名信息。'}, 201
 
         args = parser.parse_args()
-        # print args
         regex = args['regex']
-        regex_dic = {'regex': regex}
-        # REGEXS[regex_id] = regex_dic
-        # print 'put end', REGEXS
+
+        if is_regex_exist(regex) is not True:
+            msg = u"{} 不存在，无法删除。".format(regex)
+            return {'msg': msg}, 404
+
+        mysql_db = MySqlDrive()
+        ret = mysql_db.delete_regex(user_id, start_url, site_domain, 'detail', regex)
+
+        redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+        if regex.find('/^') < 0:  # 白名单
+            redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex)
+        else:  # 黑名单
+            redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex)
+
+        print '[info]DetailRegexMaintenance() delete end.'
+        return {'regex': u'删除完成。'}, 204
+
+    def put(self, regex_type):
+        print '[info]DetailRegexMaintenance() put start.', regex_type
+        user_id = session['user_id']
+        start_url, site_domain, black_domain_str = get_domain_init()
+        if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+            return {'msg': u'请设定主页，域名信息。'}, 201
+
+        args = parser.parse_args()
+        regex = args['regex']
+
+        if is_regex_exist(regex) is True:
+            msg = u"{} 已存在，无法添加。".format(regex)
+            return {'msg': msg}, 404
 
         mysql_db = MySqlDrive()
         ret = mysql_db.add_regex(user_id, start_url, site_domain, black_domain_str, is_detail_regex=True, regex=regex)
@@ -2629,16 +2630,21 @@ class DetailRegexMaintenance(Resource):
         else:  # 黑名单
             if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
                 redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
-        # print '[info]DetailRegexMaintenance() put end'
-        return regex_dic, 201
+        print '[info]DetailRegexMaintenance() put end.'
+        return {'msg': u'添加完成。'}, 201
 
 
 ##
 ## Actually setup the Api resource routing here
 ##
-api.add_resource(DetailRegexMaintenance, '/regexs/<regex_id>')
+api.add_resource(DetailRegexMaintenance, '/regexs/<regex_type>')
 
-
+REGEXS = {
+    'regex1': {'regex': '\/$'},
+    'regex2': {'regex': '/list-'},
+    'regex3': {'regex': '/index'},
+    'regex4': {'regex': 'unkown'},
+}
 # TodoList
 # shows a list of all todos, and lets you POST to add new tasks
 class TodoList(Resource):
