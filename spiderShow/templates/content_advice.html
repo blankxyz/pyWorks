@@ -133,20 +133,23 @@
                     "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
                     "sInfoEmpty": "共 0 条",
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "检索（正则）：",
                     "oPaginate": {
                         "sFirst": "首页",
                         "sPrevious": "前页",
                         "sNext": "后页",
                         "sLast": "尾页"
-                    },
-                    "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />",
-                    "sSearch": "关键字匹配："
+                    }
                 },
+                "search": {"regex": true},//开启正则支持
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
                 "bFilter": true,
-                "bLengthChange": false,
+                "bLengthChange": true,
                 "bPaginate": true,
-                {#"aLengthMenu": [10, 20]#}
+                "scrollY": "380px",
+                "aLengthMenu": [10, 20, 50]
             });
             <!-- 异步提交 -->
             $('a').click(function () {

@@ -9,25 +9,33 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#search-result-tab').DataTable({
+            var my_tab = $('#search-result-tab').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
                     "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
                     "sInfoEmpty": "共 0 条",
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "检索表达式：",
                     "oPaginate": {
                         "sFirst": "首页",
                         "sPrevious": "前页",
                         "sNext": "后页",
                         "sLast": "尾页"
-                    },
-                    "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />",
-                    "sSearch": "关键字匹配："
+                    }
                 },
+{#                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},#}
+{#                "search": {"regex": true},//开启正则支持#}
+                "bStateSave": true, //状态保存,与正则检索矛盾
+                "bSort": true, //排序功能
+                "bScrollCollapse": true,
                 "bFilter": true,
                 "bLengthChange": true,
-                "aLengthMenu": [10, 20, 50]
+                "aLengthMenu": [10, 25, 50],
+                "ordering": true,//排序功能
+                "scrollY": "500px",
+                "aaSorting": [[5, "desc"]]
             });
         });
     </script>

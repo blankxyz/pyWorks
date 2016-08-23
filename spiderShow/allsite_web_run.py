@@ -1123,7 +1123,6 @@ class Util(object):
             print "[error]modify_config(): %s" % e
             return False
 
-
     #####  推荐算法  start  ################################################################
     def convert_path_to_rule_advice(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
@@ -1428,14 +1427,14 @@ class Util(object):
     def compress_url(self, url):
         (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
         # if url.find('%') >= 0:
-        url_new = urlparse.urlunparse(('', '', self.compress_path(path), params,
+        url_new = urlparse.urlunparse((scheme, netloc, self.compress_path_digit(path), params,
                                        self.compress_qurey(query), fragment))
         return url_new
 
-    def compress_path(self, path):
-        # /forum.php
-        # print path
-        path_without_digit = re.sub(r'\d', '', path)
+    def compress_path_digit(self, path):
+        # http://www.ynsf.ccoo.cn/forum/board-61399-1-1.html
+        # -> http://www.ynsf.ccoo.cn/forum/board-999-999-999.html
+        path_without_digit = re.sub(r'\d+', '999', path)
         return path_without_digit
 
     def compress_qurey(self, query):
@@ -1444,6 +1443,20 @@ class Util(object):
         q = re.sub(r'=.*?&', '=&', query)
         qurey_without_digit = q[:q.rfind('=') + 1]
         return qurey_without_digit
+
+    def compress_path_alpha(self, url):
+        # http://www.ynsf.ccoo.cn/forum/board-999-999-999.html
+        # -> http://www.ynsf.ccoo.cn/aaa/aaa-999-999-999.html
+        # url ='http://www.ynsf.ccoo.cn/forum/board-999-999-999.html'
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        # print type(scheme), type(netloc), type(path), type(params), type(query), type(fragment)
+        if path.rfind('.') >= 0:
+            path_without_alpha = re.sub(r'[a-zA-Z]+', 'AAA', path[:path.rfind('.')]) + path[path.rfind('.'):]
+        else:
+            path_without_alpha = re.sub(r'[a-zA-Z]+', 'AAA', path)
+        # path_without_alpha = path
+        # print (scheme, netloc, path_without_alpha, params, query, fragment)
+        return urlparse.urlunparse((scheme, netloc, path_without_alpha, params, query, fragment))
 
     def convert_urls_to_category(self, urls):
         category_dict = {}
@@ -1457,6 +1470,24 @@ class Util(object):
                 url_list = [url]
                 category_dict.update({category: url_list})
         return category_dict
+
+    def compress_category_alpha(self, category_dict):
+        category_compress_dict = {}
+        category_list = []
+        for (category, url_list) in category_dict.items():
+            category_compress = self.compress_path_alpha(category)
+            category_list.append((category_compress, len(url_list)))
+
+        category_set = set([k for (k, v) in category_list])
+        for category in category_set:
+            l = 0
+            for (k, v) in category_list:
+                if category == k:
+                    l += v
+            category_compress_dict.update({category: l})
+
+        return category_compress_dict
+
 
 #####  推荐算法  end  ################################################################
 
@@ -2050,11 +2081,10 @@ def setting_list_save_and_run():
 @app.route('/show_unkown_urls', methods=['GET', 'POST'])
 def show_unkown_urls():
     unkown_url_list = []
-    category_dict = {}
-    category_list=[]
-    keywords = []
-    regexs_str = ''
-    matched_cnt = ''
+    keywords_str = ''
+    keywords_matched_cnt = ''
+    category_list = []
+    category_compress_list =[]
 
     # 提取主页、域名
     user_id = session['user_id']
@@ -2063,8 +2093,10 @@ def show_unkown_urls():
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。', category='warning')
         return render_template('show_unkown_urls.html',
-                               unkown_url_list=unkown_url_list, keywords=keywords,category_list=category_list,
-                               regexs_str=regexs_str, matched_cnt=matched_cnt)
+                               unkown_url_list=unkown_url_list,  # left
+                               keywords_str=keywords_str, keywords_matched_cnt=keywords_matched_cnt,  # right
+                               category_list=category_list,  # left
+                               category_compress_list=category_compress_list)  # right
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     # for url in redis_db.get_unkown_urls():
@@ -2074,30 +2106,46 @@ def show_unkown_urls():
     if len(unkown_url_list) == 0:
         flash(u'目前URL已全部匹配。')
         return render_template('show_unkown_urls.html',
-                               unkown_url_list=unkown_url_list, keywords=keywords,category_list=category_list,
-                               regexs_str=regexs_str, matched_cnt=matched_cnt)
+                               unkown_url_list=unkown_url_list,  # left
+                               keywords_str=keywords_str, keywords_matched_cnt=keywords_matched_cnt,  # right
+                               category_list=category_list,  # left
+                               category_compress_list=category_compress_list)  # right
 
     util = Util()
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(unkown_url_list)
-    category_dict = util.convert_urls_to_category(unkown_url_list)
-    category_list = category_dict.keys()
-    # print advice_keyword_dic
-
+    # 关键字统计
     keywords = []
     score_list = []
-    for (k, v) in advice_keyword_dic.items():
+    sorted_list = sorted(advice_keyword_dic.iteritems(), key=lambda d: d[1], reverse=True)
+    for (k, v) in sorted_list:
         keywords.append(k)
         score_list.append(str(v))
 
-    matched_cnt = ','.join(score_list)
-    regexs_str = ("'" + "','".join(keywords) + "'")
-    print '[info]show_unkown_urls()', unkown_url_list
+    keywords_str = ("'" + "','".join(keywords) + "'")
+    keywords_matched_cnt = ','.join(score_list)
+
+    # 数字归一化后分类统计
+    category_withlist_dict = util.convert_urls_to_category(unkown_url_list)
+    for (k, v) in category_withlist_dict.items():
+        category_list.append({'category':k,'page_count':len(v)})
+
+    category_compress_dict = util.compress_category_alpha(category_withlist_dict)
+    for (k, v) in category_compress_dict.items():
+        category_compress_list.append({'category':k,'page_count':v})
+
+    category_list.sort(key=lambda x: x['page_count'],reverse=True)
+    category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
+    print category_list
+    print category_compress_list
     return render_template('show_unkown_urls.html',
-                           unkown_url_list=unkown_url_list, keywords=keywords,category_list=category_list,
-                           regexs_str=regexs_str, matched_cnt=matched_cnt)
+                           unkown_url_list=unkown_url_list,  # left
+                           keywords_str=keywords_str, keywords_matched_cnt=keywords_matched_cnt,  # right
+                           category_list=category_list,  # left
+                           category_compress_list=category_compress_list)  # right
 
 
 ######### show_result.html   #############################################################################
+
 @app.route('/show_result_init', methods=['GET', 'POST'])
 def show_result_init():
     user_id = session['user_id']
@@ -2590,6 +2638,7 @@ def tool_session_setting():
 parser = reqparse.RequestParser()
 parser.add_argument('regex')
 
+
 def is_regex_exist(regex):
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
@@ -2599,7 +2648,7 @@ def is_regex_exist(regex):
     current_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
     for (scope, white_or_black, weight, regex, etc) in current_regexs:
         regexs.append(regex)
-    print '[info]is_regex_exist()',unicode(regex), regexs
+    print '[info]is_regex_exist()', unicode(regex), regexs
     for r in regexs:
         if unicode(regex) == r:
             print '[info]is_regex_exist() True'
@@ -2607,6 +2656,7 @@ def is_regex_exist(regex):
         else:
             print '[info]is_regex_exist() False'
             return False
+
 
 # DetailRegexMaintenance
 class DetailRegexMaintenance(Resource):
@@ -2683,6 +2733,8 @@ REGEXS = {
     'regex3': {'regex': '/index'},
     'regex4': {'regex': 'unkown'},
 }
+
+
 # TodoList
 # shows a list of all todos, and lets you POST to add new tasks
 class TodoList(Resource):
@@ -2708,9 +2760,3 @@ if __name__ == '__main__':
         app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
     else:
         app.run(debug=True)
-
-        # -------------------unit test-----------------------------------
-        # mysql = MySqlDrive()
-        # print mysql.save_to_mysql('http://bbs.tianya.com','bbs.tianya.con','aaaaaaaaaaaaaaa')
-        # print mysql.get_current_main_setting()
-        # modify_config('http://bbs.tianya.cn','bbs.tianya.cn','blog.tianya.cn','\/$@/[a-zA-Z]{1,}/[a-zA-Z]{1,}/d{4}/?d{4}/d{1,}.html@/L/d{1,}.shtml@','list@index@')

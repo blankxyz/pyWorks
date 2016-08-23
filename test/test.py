@@ -33,50 +33,86 @@ class RedisDrive(object):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False)
 
 
-def compress_url(url):
-    (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
-    # if url.find('%') >= 0:
-    url_new = urlparse.urlunparse(('', '', compress_path(path), params, compress_qurey(query), fragment))
-    return url_new
+##################################################################################################
+class Util(object):
+    def __init__(self):
+        pass
 
+    # 未匹配URL归类算法
+    def compress_url(self, url):
+        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
+        # if url.find('%') >= 0:
+        url_new = urlparse.urlunparse((scheme, netloc, self.compress_path_digit(path), params,
+                                       self.compress_qurey(query), fragment))
+        return url_new
 
-def compress_path(path):
-    # /forum.php
-    # print path
-    path_without_digit = re.sub(r'\d', '', path)
-    return path_without_digit
+    def compress_path_digit(self, path):
+        # http://www.ynsf.ccoo.cn/forum/board-61399-1-1.html
+        # -> http://www.ynsf.ccoo.cn/forum/board-999-999-999.html
+        path_without_digit = re.sub(r'\d+', '999', path)
+        return path_without_digit
 
+    def compress_qurey(self, query):
+        # dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost
+        # print query
+        q = re.sub(r'=.*?&', '=&', query)
+        qurey_without_digit = q[:q.rfind('=') + 1]
+        return qurey_without_digit
 
-def compress_qurey(query):
-    # dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost
-    # print query
-    q = re.sub(r'=.*?&', '=&', query)
-    qurey_without_digit = q[:q.rfind('=') + 1]
-    return qurey_without_digit
-
-
-def convert_urls_to_category(urls):
-    category_dict = {}
-    for url in urls:
-        category = compress_url(url)
-        if category_dict.has_key(category):
-            url_list = category_dict.pop(category)
-            url_list.append(url)
-            category_dict.update({category: url_list})
+    def compress_path_alpha(self, url):
+        # http://www.ynsf.ccoo.cn/forum/board-999-999-999.html
+        # -> http://www.ynsf.ccoo.cn/aaa/aaa-999-999-999.html
+        # url ='http://www.ynsf.ccoo.cn/forum/board-999-999-999.html'
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        # print type(scheme), type(netloc), type(path), type(params), type(query), type(fragment)
+        if path.rfind('.') >= 0:
+            path_without_alpha = re.sub(r'[a-zA-Z]+', 'aaa', path[:path.rfind('.')]) + path[path.rfind('.'):]
         else:
-            url_list = [url]
-            category_dict.update({category: url_list})
-    return category_dict
+            path_without_alpha = re.sub(r'[a-zA-Z]+', 'aaa', path)
+        # path_without_alpha = path
+        # print (scheme, netloc, path_without_alpha, params, query, fragment)
+        return urlparse.urlunparse((scheme, netloc, path_without_alpha, params, query, fragment))
+
+    def convert_urls_to_category(self, urls):
+        category_dict = {}
+        for url in urls:
+            category = self.compress_url(url)
+            if category_dict.has_key(category):
+                url_list = category_dict.pop(category)
+                url_list.append(url)
+                category_dict.update({category: url_list})
+            else:
+                url_list = [url]
+                category_dict.update({category: url_list})
+        return category_dict
+
+    def compress_category_alpha(self, category_dict):
+        category_compress_dict = {}
+        category_list = []
+        for (category, url_list) in category_dict.items():
+            category_compress = self.compress_path_alpha(category)
+            category_list.append((category_compress,len(url_list)))
+
+        category_set = set([k for (k,v) in category_list])
+        for category in category_set:
+            l = 0
+            for (k, v) in category_list:
+                if category == k:
+                    l += v
+            category_compress_dict.update({category: l})
+
+        return category_compress_dict
+
 
 def union_query(category_dict):
     ret = {}
-    #{'/shop/index.php?act=&area_id=&brand=&key=&op=&order=':
-    #['http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=0&op=list&order=0',
+    # {'/shop/index.php?act=&area_id=&brand=&key=&op=&order=':
+    # ['http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=0&op=list&order=0',
     # 'http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=1&op=list&order=2',
     # 'http://shop.cxljl.cn/shop/index.php?act=brand&area_id=0&brand=365&key=2&op=list&order=2'],
     #
-    #'/shop/index.php?act=&brand=&key=&op=&order=':
-    #['http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=0&op=list&order=0',
+    # '/shop/index.php?act=&brand=&key=&op=&order=':
+    # ['http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=0&op=list&order=0',
     # 'http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=1&op=list&order=2',
     # 'http://shop.cxljl.cn/shop/index.php?act=brand&brand=365&key=2&op=list&order=2'] }
     category_list = category_dict.keys()
@@ -92,14 +128,37 @@ def union_query(category_dict):
         query = urllib.urlencode(keyvals)
     return query
 
+
 if __name__ == '__main__':
-    # url = 'http://www.cxljl.cn/forum/aaa/thread-111-11.html?dateline=86400&fid=2&filter=dateline&mod=forumdisplay&orderby=lastpost'
+    util = Util()
+    url = 'http://www.ynsf.ccoo.cn/forum/login.asp?comeurl='
     # url= 'http://www.cxljl.cn/space-username-%CE%DE%D1%D4%B5%C4%B8%E7.html'
-    url = '/shop/index.php?key=&act=&area_id=&brand=&op=&order='
-    # start_url = 'http://www.cxljl.cn'
-    # site_domain = 'cxljl.cn'
-    # redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    # urls = redis_db.get_list_urls()
-    # print urls
-    # print convert_urls_to_category(urls)
-    print sort_query(url)
+    # url = '/shop/index.php?key=&act=&area_id=&brand=&op=&order='
+    start_url = 'http://www.ynsf.ccoo.cn'
+    site_domain = 'ynsf.ccoo.cn'
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    unkown_url_list = redis_db.get_list_urls()
+
+    # 数字归一化后分类统计
+    category_dict = util.convert_urls_to_category(unkown_url_list)
+    category_keys = category_dict.keys()
+    l = 0
+    for k, v in category_dict.items(): l += len(v)
+    print 'category_dict', l, category_dict
+    print 'category_list', len(category_keys), category_keys
+
+    category_compress_dict = util.compress_category_alpha(category_dict)
+    l = 0
+    for k, v in category_compress_dict.items():  l += v
+    print 'category_compress_dict', l, category_compress_dict
+    # category_compress_list = []
+    # category_cnt_list = []
+    # for (k, v) in category_compress_dict.items():
+    #     category_compress_list.append(k)
+    #     category_cnt_list.append(str(v))
+    #
+    # category_str = ("'" + "','".join(category_compress_list) + "'")
+    # category_matched_cnt = ','.join(category_cnt_list)
+    #
+    # print 'category_str', category_str
+    # print 'category_matched_cnt', category_matched_cnt
