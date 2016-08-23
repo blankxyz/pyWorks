@@ -7,37 +7,17 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-        var patrn_rubbish = /uid|username|space|search|blog|group/;
-        var patrn_detail = /post|thread|detail/;
-        var patrn_list = /list|index|forum|fid/;
-{#        var patrn_rubbish;#}
-{#        var patrn_detail;#}
-{#        var patrn_list;#}
+{#        var patrn_rubbish = /uid|username|space|search|blog|group/;#}
+{#        var patrn_detail = /post|thread|detail/;#}
+{#        var patrn_list = /list|index|forum|fid/;#}
+        var patrn_rubbish = {{ patrn_rubbish | safe }};
+        var patrn_detail = {{ patrn_detail | safe }};
+        var patrn_list = {{ patrn_list | safe }};
+        <!-- 颜色标示 黄框：无效，绿框：列表，蓝框：详情 -->
         $(document).ready(function () {
-            $.ajax({
-                url: $SCRIPT_ROOT + '/get_preset',
-                contentType: "application/json; charset=UTF-8",
-                dataType: 'json',
-                data: {
-                    now: new Date().getTime()
-                },
-                error: function (xhr, err) {
-                    $('#advice_result').text(err);
-                },
-                success: function (data, textStatus) {
-                    {#                        alert(data);#}
-                    $('#advice_result').text(data);
-                }
-            });
-
             for (var i = 0; i < 10; i++) {
-                {#                var patrn_rubbish = /uid|username|space|search|blog|group/;#}
-                {#                var patrn_detail = /post|thread|detail/;#}
-                {#                var patrn_list = /list|index|forum|fid/;#}
-
                 var obj_k = "#keyword_list-" + i.toString() + "-keyword";
                 var keyword = $(obj_k).val();
-
                 if (patrn_rubbish.exec(keyword)) {
                     $(obj_k).css("borderColor", "orange");
                 }
@@ -47,10 +27,8 @@
                 if (patrn_list.exec(keyword)) {
                     $(obj_k).css("borderColor", "green");
                 }
-
                 var obj_r = "#regex_list-" + i.toString() + "-regex";
                 var regex = $(obj_r).val();
-
                 if (patrn_rubbish.exec(regex)) {
                     $(obj_r).css("borderColor", "orange");
                 }
@@ -61,68 +39,39 @@
                     $(obj_r).css("borderColor", "green");
                 }
             }
-
         });
-        function rtrim() {
+        <!-- 点击匹配次数打开子窗口 -->
+        $("a").click(function () {
+            var id_str = $(this).attr("id");
+            if (id_str.search("regex") >= 0) {
+                {#  regex_score_4 -> regex_list-3-regex  #}
+                {#  alert("id_str:" + id_str);#}
+                regex_id = "#regex_list-" + (parseInt(id_str.substr("regex_score_".length)) - 1).toString() + "-regex";
+                expr = $(regex_id).val();
+                {#  alert(regex_id + ":" + expr);#}
+            } else {
+                {#  keyword_score_4 -> keyword_list-3-keyword  #}
+                {#  alert("keyword:" + id_str);#}
+                regex_id = "#keyword_list-" + (parseInt(id_str.substr("keyword_score_".length)) - 1).toString() + "-keyword";
+                expr = $(regex_id).val();
+                {#  alert(regex_id + ":" + expr);#}
+            }
+            var myWin = window.open("setting_advice_window?regex=" + expr, "_blank",
+                    "top=200,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no,resizable=no,location=yes");
+            if (myWin.document) {
+                myWin.document.title = "推荐";
+            }
+        });
+        <!-- 去除start_url结尾的'/'-->
+        function trim_slash() {
             var patrn = /\/$/;
             var obj = $("#start_url");
             var url = $(obj).val();
-            {#            alert(url);#}
-            {#            document.getElementsByName("site_domain").value = "ccccccccc";#}
             if (patrn.exec($(obj).val())) {
-                var s = url.substr(url.length - 1);
-                $(obj).value = s;
+                var s = url.substr(0, url.length - 1);
+                $(obj).val(s);
             }
         }
-
-        $(function () {
-            <!-- 推荐 -->
-            function get_advice(e) {
-                var site_domain = $('input[id="site_domain"]').val()
-                {#                alert(site_domain);#}
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/setting_advice',
-                    contentType: "application/json; charset=UTF-8",
-                    dataType: 'json',
-                    data: {
-                        site_domain: site_domain,
-                        now: new Date().getTime()
-                    },
-                    error: function (xhr, err) {
-                        $('#advice_result').text(err);
-                    },
-                    success: function (data, textStatus) {
-                        {#                        alert(data);#}
-                        $('#advice_result').text(data);
-                    }
-                });
-            };
-            $('#advice_btn').click(get_advice);
-
-            {#### 推荐链接 ###################################################}
-            $("a").click(function () {
-                var id_str = $(this).attr("id");
-                {#$(this).css("color","red");#}
-                if (id_str.search("regex") >= 0) {
-                    {#  regex_score_4 -> regex_list-3-regex  #}
-                    {#  alert("id_str:" + id_str);#}
-                    regex_id = "#regex_list-" + (parseInt(id_str.substr("regex_score_".length)) - 1).toString() + "-regex";
-                    expr = $(regex_id).val();
-                    {#  alert(regex_id + ":" + expr);#}
-                } else {
-                    {#  keyword_score_4 -> keyword_list-3-keyword  #}
-                    {#  alert("keyword:" + id_str);#}
-                    regex_id = "#keyword_list-" + (parseInt(id_str.substr("keyword_score_".length)) - 1).toString() + "-keyword";
-                    expr = $(regex_id).val();
-                    {#  alert(regex_id + ":" + expr);#}
-                }
-                var myWin = window.open("setting_advice_window?regex=" + expr, "_blank",
-                        "top=200,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no,resizable=no,location=yes");
-                if (myWin.document) {
-                    myWin.document.title = "推荐";
-                }
-            });
-        });
     </script>
 {% endblock %}
 {% block content %}
@@ -146,7 +95,7 @@
         <hr>
         <div id="config_div" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;
-            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com",onblur="rtrim(this);") }}&nbsp;
+            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com",onblur="trim_slash(this);") }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;
             {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com",onblur="rtrim(this);") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;

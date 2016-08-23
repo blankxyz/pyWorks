@@ -758,6 +758,35 @@ class MySqlDrive(object):
 
         return partn_list
 
+    def get_preset_partn_draw_border(self):
+        rubbish_list = []
+        detail_list = []
+        list_list = []
+
+        sql_str = "SELECT partn_type, partn FROM preset_patrn"
+        try:
+            cnt = self.cur.execute(sql_str)
+            rs = self.cur.fetchall()
+            for r in rs:
+                if r[0] == 'list':
+                    list_list.append(r[1])
+                elif r[0] == 'detail':
+                    detail_list.append(r[1])
+                else:
+                    rubbish_list.append(r[1])
+            self.conn.commit()
+            print '[info]get_detail_regex()', cnt, sql_str
+        except Exception, e:
+            print '[error]get_detail_regex()', e, sql_str
+
+        patrn_list = '/' + '|'.join(list_list) + '/'
+        patrn_detail = '/' + '|'.join(detail_list) + '/'
+        patrn_rubbish = '/' + '|'.join(rubbish_list) + '/'
+        return patrn_list, patrn_detail, patrn_rubbish
+        # patrn_rubbish = '/uid|username|space|search|blog|group/'
+        # patrn_detail = '/post|thread|detail/'
+        # patrn_list = '/list|index|forum|fid/'
+
 
 ##################################################################################################
 class RedisDrive(object):
@@ -1628,9 +1657,14 @@ def setting_advice_init():
     for j in range(SHOW_MAX - len(advice_keyword_list)):
         inputForm.keyword_list.append_entry()
 
+    # 初始化预置规则
+    mysql_db = MySqlDrive()
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_draw_border()
+
     flash(u'初始化配置完成')
     # print '[info]setting_advice_init() end.'
-    return render_template('setting_advice.html', inputForm=inputForm)
+    return render_template('setting_advice.html', inputForm=inputForm,
+                           patrn_rubbish='', patrn_detail='', patrn_list='')
 
 
 @app.route('/setting_advice_try', methods=["GET", "POST"])
@@ -1639,7 +1673,6 @@ def setting_advice_try():
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
-
     # 提取主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
@@ -1650,7 +1683,8 @@ def setting_advice_try():
         for j in range(SHOW_MAX):
             inputForm.keyword_list.append_entry()
 
-        return render_template('setting_advice.html', inputForm=inputForm)
+        return render_template('setting_advice.html', inputForm=inputForm,
+                               patrn_rubbish='', patrn_detail='', patrn_list='')
     else:
         set_domain_init(inputForm, start_url, site_domain, black_domain_str)
 
@@ -1658,7 +1692,8 @@ def setting_advice_try():
     mysql_db = MySqlDrive()
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                       black_domain_str=black_domain_str, setting_json='')
-
+    # 初始化预置规则
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_draw_border()
     # 修改配置文件的执行入口信息
     util = Util()
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
@@ -1695,7 +1730,8 @@ def setting_advice_try():
         flash(u"文件不存在：" + f)
         print '[error]setting_advice_try() json file not found.', f
         url_list = []
-        return render_template('setting_advice.html', inputForm=inputForm)
+        return render_template('setting_advice.html', inputForm=inputForm,
+                               patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
 
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(url_list)
 
@@ -1732,12 +1768,18 @@ def setting_advice_try():
 
     flash(u'初始化配置完成')
     print '[info]setting_advice_try() end.'
-    return render_template('setting_advice.html', inputForm=inputForm)
+    print patrn_list, patrn_detail, patrn_rubbish
+    return render_template('setting_advice.html', inputForm=inputForm,
+                           patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
 
 
 @app.route('/setting_advice_use', methods=["GET", "POST"])
 def setting_advice_use():
     print '[info]setting_advice_save() start.'
+    patrn_rubbish = '\/uid|username|space|search|blog|group\/'
+    patrn_detail = '\/post\/'
+    patrn_list = '\/list\/'
+
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -1789,7 +1831,8 @@ def setting_advice_use():
         flash(u"采用项目保存失败.")
         print u'[error]setting_list_save_and_run() MySQL save failure.'
 
-    return render_template('setting_advice.html', inputForm=inputForm)
+    return render_template('setting_advice.html', inputForm=inputForm,
+                           patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
 
 
 @app.route('/setting_advice_window', methods=['GET', 'POST'])
@@ -2084,7 +2127,7 @@ def show_unkown_urls():
     keywords_str = ''
     keywords_matched_cnt = ''
     category_list = []
-    category_compress_list =[]
+    category_compress_list = []
 
     # 提取主页、域名
     user_id = session['user_id']
@@ -2127,13 +2170,13 @@ def show_unkown_urls():
     # 数字归一化后分类统计
     category_withlist_dict = util.convert_urls_to_category(unkown_url_list)
     for (k, v) in category_withlist_dict.items():
-        category_list.append({'category':k,'page_count':len(v)})
+        category_list.append({'category': k, 'page_count': len(v)})
 
     category_compress_dict = util.compress_category_alpha(category_withlist_dict)
     for (k, v) in category_compress_dict.items():
-        category_compress_list.append({'category':k,'page_count':v})
+        category_compress_list.append({'category': k, 'page_count': v})
 
-    category_list.sort(key=lambda x: x['page_count'],reverse=True)
+    category_list.sort(key=lambda x: x['page_count'], reverse=True)
     category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
     print category_list
     print category_compress_list

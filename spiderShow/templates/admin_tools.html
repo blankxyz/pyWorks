@@ -21,24 +21,23 @@
 </div>
 <div id="config" class="form-group center" style="width:80%; margin-left:50px">
     <hr>
-    <a class="bottom" href="{{ url_for('static', filename='export/help.xlsx') }}">下载帮助文档</a>
+    <a class="btn btn-success" href="{{ url_for('static', filename='export/help.xlsx') }}">下载帮助文档</a>
     <hr>
     <form action="tool_export_upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" value="选择导入文件"/>
         <br>
-        <input type="submit" value="导入文件(请使用英文名称)"/>
+        <input type="submit" value="导入文件(请使用英文名称)" class="btn btn-success"/>
     </form>
     <hr>
-    <a href="tool_reset_redis">清除所有Redis结果</a>
+    <a href="tool_reset_redis" class="btn btn-success">清除所有Redis结果</a>
     <hr>
-    <a href="tool_getenv">环境信息</a>
+    <a href="tool_getenv" class="btn btn-success">环境信息</a>
     <p>{{ json_str }}</p>
     <hr>
     <form action="tool_session_setting" method="post">
-        <label>Debug</label>&nbsp;&nbsp;&nbsp;
-        <label>主页</label><input type="text" name="start_url"/>&nbsp;&nbsp;&nbsp;
-        <label>限定域名</label><input type="text" name="site_domain"/>&nbsp;&nbsp;&nbsp;
-        <input type="submit" value="导入到session"/>
+        <label>主页</label><input type="text" name="start_url" size="50"/>&nbsp;&nbsp;&nbsp;
+        <label>限定域名</label><input type="text" name="site_domain" size="50"/>&nbsp;&nbsp;&nbsp;
+        <input type="submit" value="导入到session" class="btn btn-success"/>
     </form>
 </div>
 {% endblock %}
