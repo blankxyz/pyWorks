@@ -20,22 +20,20 @@
         <hr>
         <div id="config" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;
-            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
+            {{ inputForm.start_url(id="start_url",size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;
-            {{ inputForm.site_domain(id='site_domain',size=15,placeholder="例如：baidu.com") }}&nbsp;
+            {{ inputForm.site_domain(id="site_domain",size=15,placeholder="例如：baidu.com") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;
             {{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.scope_sel(id="scope_sel",placeholder="--select--",style="width:80px;") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.preset(id="preset") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.preset.label }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
             <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
                 /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
-            <input type=text size=90 id="convert_url" placeholder="请确认转换后的表达式， 编辑（拷贝） 到下面列表中。">&nbsp;
+            <input type=text id="convert_url" size=90 placeholder="请确认转换后的表达式， 编辑（拷贝） 到下面列表中。">&nbsp;
             <input type="button" id="convert_btn" class="btn btn-success btn-sm" value="转换为正则">&nbsp;
             <label id="regex_result"></label>
         </div>
@@ -109,7 +107,6 @@
                 });
             };
             $('#convert_btn').click(submit_convert);
-
             <!-- start_url 去掉 '/' -->
             $("#start_url").change(function () {
                 var start_url = $('#start_url').val();
@@ -121,6 +118,12 @@
                     without_slash = start_url
                 }
                 $('#start_url').val(without_slash);
+            });
+            <!-- 选择分类-->
+            $('#scope_sel').change(function () {
+                var scope_sel = $(this).children('option:selected').val();
+                {#alert(scope_sel);#}
+                window.location.href = "/list_detail_init?scope=" + scope_sel;
             });
         });
     </script>

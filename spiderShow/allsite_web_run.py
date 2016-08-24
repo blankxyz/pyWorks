@@ -120,7 +120,7 @@ class AdviceUrlListForm(Form):
 ######## setting_list_detail.html #####################################################################################
 class RegexSettingForm(Form):  # setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
+    weight = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
@@ -131,8 +131,7 @@ class ListDetailRegexSettingForm(Form):  # setting
     black_domain_str = StringField(label=u'域名黑名单')
     scope_sel = SelectField(label=u'分类',
                             choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'), ('05', u'平媒'),
-                                     ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')], default=('01', u'新闻'))
-    preset = BooleanField(label=u'采用预置规则', default=False)
+                                     ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')], default=('00', ''))
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
@@ -1899,8 +1898,8 @@ def list_detail_init():
     '''
     INIT_MAX = 10
     user_id = session['user_id']
-    # user_id = 'admin'
-    inputForm = ListDetailRegexSettingForm()
+    scope_sel = request.args.get('scope')
+    inputForm = ListDetailRegexSettingForm(request.form)
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = get_domain_init()
@@ -1922,70 +1921,85 @@ def list_detail_init():
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
-    #### 从MySql 设置/还原 redis 和 页面(详情页)
-    i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id, start_url,
-                                                                                   site_domain, black_domain_str):
-        # 还原redis
-        if regex.find('/^') < 0:  # 白名单
-            if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
-                redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
-                score = 0
-            else:
-                score = redis_db.conn.zscore(redis_db.manual_w_detail_rule_zset_key, regex)
-        else:  # 黑名单
-            if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
-                redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
-                score = 0
-            else:
-                score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
+    if inputForm.scope_sel.data != '00':
+        print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",inputForm.scope_sel.data,scope_sel
+        #### 从预置设定页面
+        partn_list = mysql_db.get_preset_partn(scope_sel)
+        for (partn_type, partn, weight) in partn_list:
+            regexForm = RegexSettingForm()
+            regexForm.regex = partn
+            regexForm.weight = weight
+            regexForm.score = 0
+            inputForm.list_regex_list.append_entry(regexForm)
 
-        # 还原页面
-        # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-        # regexForm = RegexSettingForm(regex_data)
-        # inputForm.detail_regex_list.entries[i] = regexForm
+        for j in range(SHOW_MAX - len(partn_list)):
+            inputForm.list_regex_list.append_entry()
 
-        regexForm = RegexSettingForm()
-        regexForm.regex = regex
-        regexForm.weight = weight
-        regexForm.score = int(score)
-        inputForm.detail_regex_list.append_entry(regexForm)
-        i += 1
+    else:
+        #### 从MySql 设置/还原 redis 和 页面(详情页)
+        i = 0
+        for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id, start_url,
+                                                                                       site_domain, black_domain_str):
+            # 还原redis
+            if regex.find('/^') < 0:  # 白名单
+                if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
+                    score = 0
+                else:
+                    score = redis_db.conn.zscore(redis_db.manual_w_detail_rule_zset_key, regex)
+            else:  # 黑名单
+                if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
+                    score = 0
+                else:
+                    score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
 
-    for j in range(INIT_MAX - i):
-        inputForm.detail_regex_list.append_entry()
+            # 还原页面
+            # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
+            # regexForm = RegexSettingForm(regex_data)
+            # inputForm.detail_regex_list.entries[i] = regexForm
 
-    ####  从MySql 设置/还原 redis 和 页面(列表页)
-    i = 0
-    for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id, start_url,
-                                                                                   site_domain, black_domain_str):
-        # 还原redis
-        if regex.find('/^') < 0:  # 白名单
-            if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
-                redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
-                score = 0
-            else:
-                score = redis_db.conn.zscore(redis_db.manual_w_list_rule_zset_key, regex)
-        else:  # 黑名单
-            if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
-                redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
-                score = 0
-            else:
-                score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
-        # 还原页面
-        # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-        # regexForm = RegexSettingForm(regex_data)
-        # inputForm.list_regex_list.entries[i] = regexForm
+            regexForm = RegexSettingForm()
+            regexForm.regex = regex
+            regexForm.weight = weight
+            regexForm.score = int(score)
+            inputForm.detail_regex_list.append_entry(regexForm)
+            i += 1
 
-        regexForm = RegexSettingForm()
-        regexForm.regex = regex
-        regexForm.weight = weight
-        regexForm.score = int(score)
-        inputForm.list_regex_list.append_entry(regexForm)
-        i += 1
+        for j in range(INIT_MAX - i):
+            inputForm.detail_regex_list.append_entry()
 
-    for j in range(INIT_MAX - i):
-        inputForm.list_regex_list.append_entry()
+        ####  从MySql 设置/还原 redis 和 页面(列表页)
+        i = 0
+        for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id, start_url,
+                                                                                       site_domain, black_domain_str):
+            # 还原redis
+            if regex.find('/^') < 0:  # 白名单
+                if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
+                    score = 0
+                else:
+                    score = redis_db.conn.zscore(redis_db.manual_w_list_rule_zset_key, regex)
+            else:  # 黑名单
+                if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
+                    score = 0
+                else:
+                    score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
+            # 还原页面
+            # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
+            # regexForm = RegexSettingForm(regex_data)
+            # inputForm.list_regex_list.entries[i] = regexForm
+
+            regexForm = RegexSettingForm()
+            regexForm.regex = regex
+            regexForm.weight = weight
+            regexForm.score = int(score)
+            inputForm.list_regex_list.append_entry(regexForm)
+            i += 1
+
+        for j in range(INIT_MAX - i):
+            inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成')
     return render_template('setting_list_detail.html', inputForm=inputForm)
@@ -2551,6 +2565,7 @@ def history_search():
 
     return render_template('history.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
+
 ######### admin_preset.html  #############################################################################
 @app.route('/preset_init', methods=['GET', 'POST'])
 def preset_init():
@@ -2568,7 +2583,7 @@ def preset_init():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX*5 - len(partn_list)):
+    for j in range(SHOW_MAX * 5 - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
@@ -2592,7 +2607,7 @@ def preset_change():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX*5 - len(partn_list)):
+    for j in range(SHOW_MAX * 5 - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
