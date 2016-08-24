@@ -1898,7 +1898,7 @@ def list_detail_init():
     '''
     INIT_MAX = 10
     user_id = session['user_id']
-    scope_sel = request.args.get('scope')
+    para_scope_sel = request.args.get('scope')
     inputForm = ListDetailRegexSettingForm(request.form)
 
     mysql_db = MySqlDrive()
@@ -1922,9 +1922,9 @@ def list_detail_init():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
     if inputForm.scope_sel.data != '00':
-        print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",inputForm.scope_sel.data,scope_sel
+        print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", inputForm.scope_sel.data, para_scope_sel
         #### 从预置设定页面
-        partn_list = mysql_db.get_preset_partn(scope_sel)
+        partn_list = mysql_db.get_preset_partn(para_scope_sel)
         for (partn_type, partn, weight) in partn_list:
             regexForm = RegexSettingForm()
             regexForm.regex = partn
