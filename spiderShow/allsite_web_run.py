@@ -82,7 +82,7 @@ api = Api(app)  # restful
 global process_id
 
 
-######## advice_setting.html ##############################################################################
+######## setting_advice.html ##############################################################################
 class AdviceRegexForm(Form):  # advice_setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}//[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     score = IntegerField(label=u'匹配数', default=0)
@@ -117,25 +117,29 @@ class AdviceUrlListForm(Form):
     url_list = FieldList(FormField(AdviceUrlForm), label=u'URL列表')
 
 
-######## setting.html #####################################################################################
-class RegexForm(Form):  # setting
+######## setting_list_detail.html #####################################################################################
+class RegexSettingForm(Form):  # setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
     score = IntegerField(label=u'匹配数', default=0)
 
 
-class ListRegexInputForm(Form):  # setting
+class ListDetailRegexSettingForm(Form):  # setting
     start_url = StringField(label=u'主页')  # 'http://cpt.xtu.edu.cn/'
     site_domain = StringField(label=u'限定域名')  # cpt.xtu.edu.cn'  # 湘潭大学
     white_list = StringField(label=u'白名单')
     black_domain_str = StringField(label=u'域名黑名单')
+    scope_sel = SelectField(label=u'分类',
+                            choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'), ('05', u'平媒'),
+                                     ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')], default=('01', u'新闻'))
+    preset = BooleanField(label=u'采用预置规则', default=False)
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
     url = StringField(label=u'URL例子')
 
-    list_regex_list = FieldList(FormField(RegexForm), label=u'列表页-正则表达式')
-    detail_regex_list = FieldList(FormField(RegexForm), label=u'详情页-正则表达式')
+    list_regex_list = FieldList(FormField(RegexSettingForm), label=u'列表页-正则表达式')
+    detail_regex_list = FieldList(FormField(RegexSettingForm), label=u'详情页-正则表达式')
 
     mode = BooleanField(label=u'精确匹配', default=True)
     hold = BooleanField(label=u'保留上次结果', default=True)
@@ -144,14 +148,17 @@ class ListRegexInputForm(Form):  # setting
     save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
 
-######## setting_result.html #############################################################################
+######## show_result.html #############################################################################
 class ResultForm(Form):  # 内容提取
     list_regex_sel = SelectField(label=u'列表页规则', choices=[], default='0')
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
-    list_result = []
-    detail_result = []
-    list_match = SubmitField(label=u'列表页正则匹配')
-    detail_match = SubmitField(label=u'详情页正则匹配')
+    list_match = SubmitField(label=u'列表正则')
+    detail_match = SubmitField(label=u'详情正则')
+    unkown_url_list = []  # 左侧
+    keywords_str = ''  # 右侧
+    keywords_matched_cnt = ''  # 右侧
+    category_list = []  # 左侧
+    category_compress_list = []  # 右侧
 
 
 ######## content_advice.html #############################################################################
@@ -186,7 +193,7 @@ class ContentAdvice(Form):
     save_run = SubmitField(label=u'保存并执行')
 
 
-######## content_setting.html #############################################################################
+######## content_advice.html #############################################################################
 class ContentItemForm(Form):  # 内容提取
     mode = BooleanField(label=u'自动提取', default=True)
     # 标题，内容，作者，创建时间，
@@ -223,7 +230,7 @@ class SearchResultForm(Form):  # user search
     black_domain_str = StringField(label=u'域名黑名单', default='')
     detail_or_list = BooleanField(label=u'列表/详情', default=False)
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
-    weight = SelectField(label=u'权重', choices=[('0', u'确定'), ('1', u'可能'), ('2', u'。。。')])
+    weight = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
     score = IntegerField(label=u'匹配数', default=0)
 
     search_result_list = []
@@ -233,6 +240,22 @@ class SearchResultForm(Form):  # user search
 class ShowServerLogInputForm(Form):  # show_server_log
     unkown_sel = BooleanField(label=u'仅显示筛选信息', default=True)
     refresh = SubmitField(label=u'刷新')
+
+
+######## admin_preset.html #############################################################################
+class PresetForm(Form):
+    partn_type_sel = SelectField(label=u'规则类别', choices=[('list', u'列表'), ('detail', u'详情'), ('rubbish', u'无效')])
+    partn = StringField(label=u'规则')
+    weight_sel = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
+
+
+class PresetListForm(Form):
+    # 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
+    scope_sel = SelectField(label=u'分类',
+                            choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'), ('05', u'平媒'),
+                                     ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')], default=('01', u'新闻'))
+    partn_list = FieldList(FormField(PresetForm), label=u'URL列表')
+    save = SubmitField(label=u'保存')
 
 
 ########################################################################################################
@@ -734,23 +757,17 @@ class MySqlDrive(object):
             print '[error]get_result_file()', e, start_url, cnt
             return None, None, 0
 
-    def get_preset_partn(self, partn_type=''):
+    def get_preset_partn(self, scope='01', partn_type=''):
+        # scope: 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
+        # partn_type: list,detail,rubbish
         partn_list = []
-        sql_str = "SELECT partn_type, partn FROM preset_patrn  WHERE partn_type LIKE '%" + partn_type + "%'"
+        sql_str = "SELECT partn_type, partn, weight FROM preset_patrn  WHERE scope='" + scope + "' AND partn_type LIKE '%" + partn_type + "%'"
 
         try:
             cnt = self.cur.execute(sql_str)
             rs = self.cur.fetchall()
             for r in rs:
-                if r[0] == 'list':
-                    t = u'列表'
-                elif r[0] == 'detail':
-                    t = u'详情'
-                else:
-                    t = u'无效'
-
-                partn_list.append((t, r[1]))
-
+                partn_list.append((r[0], r[1], r[2]))
             self.conn.commit()
             print '[info]get_detail_regex()', cnt, sql_str
         except Exception, e:
@@ -758,12 +775,13 @@ class MySqlDrive(object):
 
         return partn_list
 
-    def get_preset_partn_draw_border(self):
+    def get_preset_partn_to_str(self, scope='01'):
         rubbish_list = []
         detail_list = []
         list_list = []
 
-        sql_str = "SELECT partn_type, partn FROM preset_patrn"
+        sql_str = "SELECT partn_type, partn FROM preset_patrn WHERE scope=%s"
+        parameter = (scope,)
         try:
             cnt = self.cur.execute(sql_str)
             rs = self.cur.fetchall()
@@ -1659,12 +1677,12 @@ def setting_advice_init():
 
     # 初始化预置规则
     mysql_db = MySqlDrive()
-    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_draw_border()
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str('01')
 
     flash(u'初始化配置完成')
     # print '[info]setting_advice_init() end.'
     return render_template('setting_advice.html', inputForm=inputForm,
-                           patrn_rubbish='', patrn_detail='', patrn_list='')
+                           patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
 
 
 @app.route('/setting_advice_try', methods=["GET", "POST"])
@@ -1693,7 +1711,7 @@ def setting_advice_try():
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                       black_domain_str=black_domain_str, setting_json='')
     # 初始化预置规则
-    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_draw_border()
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(scope='01')
     # 修改配置文件的执行入口信息
     util = Util()
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
@@ -1874,15 +1892,15 @@ def setting_advice_window():
 
 
 ######### 配置详情页/列表页  #############################################################################
-@app.route('/setting_list_init', methods=['GET', 'POST'])
-def setting_list_init():
+@app.route('/list_detail_init', methods=['GET', 'POST'])
+def list_detail_init():
     '''
     从MySql初始化Web页面和Redis
     '''
     INIT_MAX = 10
     user_id = session['user_id']
     # user_id = 'admin'
-    inputForm = ListRegexInputForm()
+    inputForm = ListDetailRegexSettingForm()
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = get_domain_init()
@@ -1896,7 +1914,7 @@ def setting_list_init():
         for j in range(INIT_MAX):
             inputForm.list_regex_list.append_entry()
 
-        return render_template('setting.html', inputForm=inputForm)
+        return render_template('setting_list_detail.html', inputForm=inputForm)
     else:
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
@@ -1924,10 +1942,10 @@ def setting_list_init():
 
         # 还原页面
         # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-        # regexForm = RegexForm(regex_data)
+        # regexForm = RegexSettingForm(regex_data)
         # inputForm.detail_regex_list.entries[i] = regexForm
 
-        regexForm = RegexForm()
+        regexForm = RegexSettingForm()
         regexForm.regex = regex
         regexForm.weight = weight
         regexForm.score = int(score)
@@ -1956,10 +1974,10 @@ def setting_list_init():
                 score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
         # 还原页面
         # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-        # regexForm = RegexForm(regex_data)
+        # regexForm = RegexSettingForm(regex_data)
         # inputForm.list_regex_list.entries[i] = regexForm
 
-        regexForm = RegexForm()
+        regexForm = RegexSettingForm()
         regexForm.regex = regex
         regexForm.weight = weight
         regexForm.score = int(score)
@@ -1970,15 +1988,15 @@ def setting_list_init():
         inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成')
-    return render_template('setting.html', inputForm=inputForm)
+    return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
-@app.route('/list_save_and_run', methods=['POST'])
-def setting_list_save_and_run():
+@app.route('/list_detail_save_and_run', methods=['POST'])
+def list_detail_save_and_run():
     user_id = session['user_id']
     # user_id = 'admin'
     global process_id
-    inputForm = ListRegexInputForm(request.form)
+    inputForm = ListDetailRegexSettingForm(request.form)
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -1990,7 +2008,7 @@ def setting_list_save_and_run():
 
     if start_url.strip() == '' or site_domain.strip() == '':
         flash(u'必须设置主页、域名信息！')
-        return render_template('setting.html', inputForm=inputForm)
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 保存详情页配置
     detail_regex_save_list = []
@@ -2015,20 +2033,20 @@ def setting_list_save_and_run():
     #### check 详情页/列表页 正则表达式的整合性
     if len(list_regex_save_list) + len(detail_regex_save_list) == 0:
         flash(u"请填写并勾选要执行的 列表/详情页正则表达式。")
-        return render_template('setting.html', inputForm=inputForm)
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(list_regex_save_list) != len(set([i['regex'] + i['weight'] for i in list_regex_save_list])):
         flash(u"列表页正则表达式有重复。")
-        return render_template('setting.html', inputForm=inputForm)
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(detail_regex_save_list) != len(set([i['regex'] + i['weight'] for i in detail_regex_save_list])):
         flash(u"详情页正则表达式有重复。")
-        return render_template('setting.html', inputForm=inputForm)
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(set([i['regex'] for i in list_regex_save_list]).intersection(
             set([i['regex'] for i in detail_regex_save_list]))) > 0:
         flash(u"列表和详情页中的正则表达式不能重复。")
-        return render_template('setting.html', inputForm=inputForm)
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 清空所有Redis,保存手工配置,用于匹配次数积分。
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
@@ -2071,11 +2089,11 @@ def setting_list_save_and_run():
                                     list_regex_save_list=list_regex_save_list)
     if cnt == 1:
         flash(u"MySQL保存完毕.")
-        print u'[info]setting_list_save_and_run() MySQL save success.'
+        print u'[info]list_detail_save_and_run() MySQL save success.'
     else:
         flash(u"MySQL保存失败.")
-        print u'[error]setting_list_save_and_run() MySQL save failure.'
-        return render_template('setting.html', inputForm=inputForm)
+        print u'[error]list_detail_save_and_run() MySQL save failure.'
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 修改配置文件的执行入口信息
     detail_rule_str = ''
@@ -2091,8 +2109,8 @@ def setting_list_save_and_run():
                              list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
-        print u'[error]setting_main_save_and_run() modify ' + INIT_CONFIG + u' failure.'
-        return render_template('setting.html', inputForm=inputForm)
+        print u'[error]list_detail_save_and_run() modify ' + INIT_CONFIG + u' failure.'
+        return render_template('setting_list_detail.html', inputForm=inputForm)
 
     # 执行抓取程序
     if inputForm.save_run_list.data:
@@ -2117,78 +2135,10 @@ def setting_list_save_and_run():
             process_id = p.pid
             print '[info]--- process_id:', process_id
 
-    return render_template('setting.html', inputForm=inputForm)
-
-
-######### show_unkown.html  #############################################################################
-@app.route('/show_unkown_urls', methods=['GET', 'POST'])
-def show_unkown_urls():
-    unkown_url_list = []
-    keywords_str = ''
-    keywords_matched_cnt = ''
-    category_list = []
-    category_compress_list = []
-
-    # 提取主页、域名
-    user_id = session['user_id']
-    start_url, site_domain, black_domain_str = get_domain_init()
-    print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
-    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。', category='warning')
-        return render_template('show_unkown_urls.html',
-                               unkown_url_list=unkown_url_list,  # left
-                               keywords_str=keywords_str, keywords_matched_cnt=keywords_matched_cnt,  # right
-                               category_list=category_list,  # left
-                               category_compress_list=category_compress_list)  # right
-
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    # for url in redis_db.get_unkown_urls():
-    #     print url
-    #     unkown_url_list.append(urllib.quote(url))
-    unkown_url_list = redis_db.get_unkown_urls()
-    if len(unkown_url_list) == 0:
-        flash(u'目前URL已全部匹配。')
-        return render_template('show_unkown_urls.html',
-                               unkown_url_list=unkown_url_list,  # left
-                               keywords_str=keywords_str, keywords_matched_cnt=keywords_matched_cnt,  # right
-                               category_list=category_list,  # left
-                               category_compress_list=category_compress_list)  # right
-
-    util = Util()
-    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(unkown_url_list)
-    # 关键字统计
-    keywords = []
-    score_list = []
-    sorted_list = sorted(advice_keyword_dic.iteritems(), key=lambda d: d[1], reverse=True)
-    for (k, v) in sorted_list:
-        keywords.append(k)
-        score_list.append(str(v))
-
-    keywords_str = ("'" + "','".join(keywords) + "'")
-    keywords_matched_cnt = ','.join(score_list)
-
-    # 数字归一化后分类统计
-    category_withlist_dict = util.convert_urls_to_category(unkown_url_list)
-    for (k, v) in category_withlist_dict.items():
-        category_list.append({'category': k, 'page_count': len(v)})
-
-    category_compress_dict = util.compress_category_alpha(category_withlist_dict)
-    for (k, v) in category_compress_dict.items():
-        category_compress_list.append({'category': k, 'page_count': v})
-
-    category_list.sort(key=lambda x: x['page_count'], reverse=True)
-    category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
-    print category_list
-    print category_compress_list
-    return render_template('show_unkown_urls.html',
-                           unkown_url_list=unkown_url_list,  # left
-                           keywords_str=keywords_str, keywords_matched_cnt=keywords_matched_cnt,  # right
-                           category_list=category_list,  # left
-                           category_compress_list=category_compress_list)  # right
+    return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
 ######### show_result.html   #############################################################################
-
 @app.route('/show_result_init', methods=['GET', 'POST'])
 def show_result_init():
     user_id = session['user_id']
@@ -2263,11 +2213,72 @@ def show_result():
     return render_template('show_result.html', inputForm=inputForm)
 
 
+######### show_unkown.html  #############################################################################
+@app.route('/show_unkown_urls', methods=['GET', 'POST'])
+def show_unkown_urls():
+    inputForm = ResultForm()
+
+    # 提取主页、域名
+    user_id = session['user_id']
+    start_url, site_domain, black_domain_str = get_domain_init()
+    print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
+    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+        flash(u'请设置主页、限定的域名信息。', category='warning')
+        return render_template('show_unkown_urls.html', inputForm=inputForm)
+
+    mysql_db = MySqlDrive()
+    # 列表页正则
+    select_items = [(i, i) for i in mysql_db.get_list_regex(user_id, start_url, site_domain)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.list_regex_sel.choices = select_items
+
+    # 详情页正则
+    select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
+    select_items.append(('', ''))
+    select_items.sort()
+    inputForm.detail_regex_sel.choices = select_items
+
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    inputForm.unkown_url_list = redis_db.get_unkown_urls()
+    if len(inputForm.unkown_url_list) == 0:
+        flash(u'目前URL已全部匹配。')
+        return render_template('show_unkown_urls.html', inputForm=inputForm)
+
+    util = Util()
+    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(inputForm.unkown_url_list)
+    # 关键字统计
+    keywords = []
+    score_list = []
+    sorted_list = sorted(advice_keyword_dic.iteritems(), key=lambda d: d[1], reverse=True)
+    for (k, v) in sorted_list:
+        keywords.append(k)
+        score_list.append(str(v))
+
+    inputForm.keywords_str = ("'" + "','".join(keywords) + "'")
+    inputForm.keywords_matched_cnt = ','.join(score_list)
+
+    # 数字归一化后分类统计
+    category_withlist_dict = util.convert_urls_to_category(inputForm.unkown_url_list)
+    for (k, v) in category_withlist_dict.items():
+        inputForm.category_list.append({'category': k, 'page_count': len(v)})
+
+    category_compress_dict = util.compress_category_alpha(category_withlist_dict)
+    for (k, v) in category_compress_dict.items():
+        inputForm.category_compress_list.append({'category': k, 'page_count': v})
+
+    inputForm.category_list.sort(key=lambda x: x['page_count'], reverse=True)
+    inputForm.category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
+    print inputForm.category_list
+    print inputForm.category_compress_list
+    return render_template('show_unkown_urls.html', inputForm=inputForm)
+
+
 ######### show_process.html  #############################################################################
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
     user_id = session['user_id']
-    inputForm = ListRegexInputForm()
+    inputForm = ListDetailRegexSettingForm()
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
@@ -2425,17 +2436,6 @@ def get_content_advice():
     return jsonStr
 
 
-@app.route('/preset', methods=['GET', 'POST'])
-def preset():
-    user_id = session['user_id']
-    # user_id = 'admin'
-    inputForm = ContentItemForm(request.form)
-
-    mysql_db = MySqlDrive()
-    partn_list = mysql_db.get_preset_partn()
-    return render_template('preset.html', partn_list=partn_list)
-
-
 @app.route('/content_save_and_run', methods=['GET', 'POST'])
 def content_save_and_run():
     user_id = session['user_id']
@@ -2447,7 +2447,7 @@ def content_save_and_run():
     print '[info]content_save_and_run()', user_id, start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('preset.html', inputForm=inputForm)
+        return render_template('admin_preset.html', inputForm=inputForm)
 
     cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                         title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
@@ -2458,7 +2458,7 @@ def content_save_and_run():
     else:
         flash(u"MySQL保存失败.")
         print u'[error]content_save_and_run() MySQL save failure.'
-        return render_template('preset.html', inputForm=inputForm)
+        return render_template('admin_preset.html', inputForm=inputForm)
 
     if os.name == 'nt':
         # DOS "start" command
@@ -2470,7 +2470,7 @@ def content_save_and_run():
         process_id = p.pid
         print '[info] process_id:', process_id
 
-    return render_template('preset.html', inputForm=inputForm)
+    return render_template('admin_preset.html', inputForm=inputForm)
 
 
 ######### history.html  #############################################################################
@@ -2550,6 +2550,52 @@ def history_search():
             flash(u'请检索取得结果后再导入。')
 
     return render_template('history.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
+
+######### admin_preset.html  #############################################################################
+@app.route('/preset_init', methods=['GET', 'POST'])
+def preset_init():
+    user_id = session['user_id']
+    inputForm = PresetListForm(request.form)
+
+    mysql_db = MySqlDrive()
+    partn_list = mysql_db.get_preset_partn(scope='01')
+
+    ####  页面(regex)
+    for (partn_type, partn, weight) in partn_list:
+        presetForm = PresetForm()
+        presetForm.partn_type_sel = partn_type
+        presetForm.partn = partn
+        presetForm.weight_sel = weight
+        inputForm.partn_list.append_entry(presetForm)
+
+    for j in range(SHOW_MAX*5 - len(partn_list)):
+        inputForm.partn_list.append_entry()
+
+    return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
+
+
+@app.route('/preset_change', methods=['GET', 'POST'])
+def preset_change():
+    user_id = session['user_id']
+    scope_sel = request.args.get('scope')
+    inputForm = PresetListForm(request.form)
+    inputForm.scope_sel.data = scope_sel
+
+    mysql_db = MySqlDrive()
+    partn_list = mysql_db.get_preset_partn(scope_sel)
+
+    ####  页面(regex)
+    for (partn_type, partn, weight) in partn_list:
+        presetForm = PresetForm()
+        presetForm.partn_type_sel = partn_type
+        presetForm.partn = partn
+        presetForm.weight_sel = weight
+        inputForm.partn_list.append_entry(presetForm)
+
+    for j in range(SHOW_MAX*5 - len(partn_list)):
+        inputForm.partn_list.append_entry()
+
+    return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
 
 
 ######### admin_server_log.html #############################################################################

@@ -16,17 +16,20 @@
         {% endwith %}
     </div>
 
-    <form id="setting" method="POST" action="/list_save_and_run">
+    <form id="setting" method="POST" action="/list_detail_save_and_run">
         <hr>
         <div id="config" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;
             {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;
-            {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com") }}&nbsp;
+            {{ inputForm.site_domain(id='site_domain',size=15,placeholder="例如：baidu.com") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;
-            {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}
+            {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.scope_sel(id="scope_sel",placeholder="--select--",style="width:80px;") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.preset(id="preset") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.preset.label }}&nbsp;&nbsp;&nbsp;
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
@@ -111,8 +114,6 @@
             $("#start_url").change(function () {
                 var start_url = $('#start_url').val();
                 var without_slash = '';
-                alert(start_url);
-
                 patrn = /\/$/;
                 if (patrn.exec(start_url)) {
                     without_slash = start_url.substr(0, start_url.length - 1);

@@ -1,4 +1,40 @@
 {% extends "bootstrap/base.html" %}
+{% block content %}
+    <h3 align="center">抓取情况
+        <small>
+            &nbsp;&nbsp;&nbsp;
+            <a href="save_finally_result" class="btn btn-success btn-sm"
+               data-toggle="tooltip" title="最终列表页结果" data-placement="bottom">保存最终结果</a>
+            &nbsp;&nbsp;&nbsp;
+            <a href="kill_spider" class="btn btn-success btn-sm"
+               data-toggle="tooltip" title="用来结束后台爬虫程序" data-placement="bottom">强制终止爬虫</a>
+            &nbsp;&nbsp;&nbsp;
+            <a href="reset_all" class="btn btn-success btn-sm"
+               data-toggle="tooltip" title="清除所有计算用的中间数据" data-placement="bottom">清除中间数据</a>
+        </small>
+    </h3>
+    <hr>
+    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:50px">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <label>{{ message }}</label>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <hr>
+    <div id="process_list_div" style="min-width:700px;height:300px"></div>
+    <hr>
+    <div id="process_detail_div" style="min-width:700px;height:300px"></div>
+    <hr>
+    {#    <div id="regexs-div" style="float:left;width:60%;height:300px"></div>#}
+    {#    <div id="list-div" style="float:left;width:20%;height:300px"></div>#}
+    {#    <div id="detail-div" style="float:right;width:20%;height:300px"></div>#}
+{% endblock %}
+
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
@@ -6,9 +42,9 @@
     <script type="text/javascript">
         setTimeout('window.location.reload()', 30 * 1000);
         $(function () {
-            $('#process-div').highcharts({
+            $('#process_list_div').highcharts({
                 title: {
-                    text: '处理过程展示',
+                    text: '列表页',
                     x: -20 //center
                 },
                 subtitle: {
@@ -43,7 +79,40 @@
                 }, {
                     name: '列表页数(递归完成)',
                     data:{{ list_done_cnt }}
-                }, {
+                }]
+            });
+            $('#process_detail_div').highcharts({
+                title: {
+                    text: '详情页',
+                    x: -20 //center
+                },
+                subtitle: {
+                    text: '单位:30秒',
+                    x: -20
+                },
+                xAxis: {
+                    categories: {{ times }}
+                },
+                yAxis: {
+                    title: {
+                        text: '页数'
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }]
+                },
+                tooltip: {
+                    valueSuffix: '页'
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 1
+                },
+                series: [{
                     name: '详情页数',
                     data:{{ detail_cnt }}
                 }, {
@@ -52,188 +121,147 @@
                 }]
             });
         });
-
-        $(function () {
-            $('#list-div').highcharts({
-                chart: {
-                    plotBackgroundColor: null,
-                    plotBorderWidth: null,
-                    plotShadow: false
-                },
-                title: {
-                    text: '列表页扫描进度'
-                },
-                tooltip: {
-                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-                },
-                plotOptions: {
-                    pie: {
-                        allowPointSelect: true,
-                        cursor: 'pointer',
-                        dataLabels: {
-                            enabled: true,
-                            color: '#000000',
-                            connectorColor: '#000000',
-                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                        }
-                    }
-                },
-                series: [{
-                    type: 'pie',
-                    name: '完成率',
-                    data: [
-                        ['完成', {{ list_done_rate }}],
-                        {
-                            name: '未完成',
-                            y: {{ list_todo_rate }},
-                            sliced: true,
-                            selected: true
-                        }
-                    ]
-                }]
-            });
-        });
-
-        $(function () {
-            $('#detail-div').highcharts({
-                chart: {
-                    plotBackgroundColor: null,
-                    plotBorderWidth: null,
-                    plotShadow: false
-                },
-                title: {
-                    text: '详情页扫描进度'
-                },
-                tooltip: {
-                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-                },
-                plotOptions: {
-                    pie: {
-                        allowPointSelect: true,
-                        cursor: 'pointer',
-                        dataLabels: {
-                            enabled: true,
-                            color: '#000000',
-                            connectorColor: '#000000',
-                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                        }
-                    }
-                },
-                series: [{
-                    type: 'pie',
-                    name: '完成率',
-                    data: [
-                        ['完成', {{ detail_done_rate }}],
-                        {
-                            name: '未完成',
-                            y: {{ detail_todo_rate }},
-                            sliced: true,
-                            selected: true
-                        }
-                    ]
-                }]
-            });
-        });
-
-        $(function () {
-            $('#regexs-div').highcharts({
-                chart: {
-                    type: 'bar'
-                },
-                title: {
-                    text: '规则匹配次数统计'
-                },
-                subtitle: {
-                    text: '详情top5 + 列表top5'
-                },
-                xAxis: {
-                    categories: [{{ regexs_str|safe }}],
-                    title: {
-                        text: null
-                    }
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: '次数',
-                        align: 'high'
-                    },
-                    labels: {
-                        overflow: 'justify'
-                    }
-                },
-                tooltip: {
-                    valueSuffix: ' 次数'
-                },
-                plotOptions: {
-                    bar: {
-                        dataLabels: {
-                            enabled: true
-                        }
-                    }
-                },
-                legend: {
-                    layout: 'vertical',
-                    align: 'right',
-                    verticalAlign: 'top',
-                    x: -40,
-                    y: 100,
-                    floating: true,
-                    borderWidth: 1,
-                    backgroundColor: '#FFFFFF',
-                    shadow: true
-                },
-                credits: {
-                    enabled: false
-                },
-                series: [{
-                    name: '匹配',
-                    data: [{{ matched_cnt }}]
-                }]
-            });
-        });
+        {#        $(function () {#}
+        {#            $('#list-div').highcharts({#}
+        {#                chart: {#}
+        {#                    plotBackgroundColor: null,#}
+        {#                    plotBorderWidth: null,#}
+        {#                    plotShadow: false#}
+        {#                },#}
+        {#                title: {#}
+        {#                    text: '列表页扫描进度'#}
+        {#                },#}
+        {#                tooltip: {#}
+        {#                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'#}
+        {#                },#}
+        {#                plotOptions: {#}
+        {#                    pie: {#}
+        {#                        allowPointSelect: true,#}
+        {#                        cursor: 'pointer',#}
+        {#                        dataLabels: {#}
+        {#                            enabled: true,#}
+        {#                            color: '#000000',#}
+        {#                            connectorColor: '#000000',#}
+        {#                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'#}
+        {#                        }#}
+        {#                    }#}
+        {#                },#}
+        {#                series: [{#}
+        {#                    type: 'pie',#}
+        {#                    name: '完成率',#}
+        {#                    data: [#}
+        {#                        ['完成', {{ list_done_rate }}],#}
+        {#                        {#}
+        {#                            name: '未完成',#}
+        {#                            y: {{ list_todo_rate }},#}
+        {#                            sliced: true,#}
+        {#                            selected: true#}
+        {#                        }#}
+        {#                    ]#}
+        {#                }]#}
+        {#            });#}
+        {#        });#}
+        {##}
+        {#        $(function () {#}
+        {#            $('#detail-div').highcharts({#}
+        {#                chart: {#}
+        {#                    plotBackgroundColor: null,#}
+        {#                    plotBorderWidth: null,#}
+        {#                    plotShadow: false#}
+        {#                },#}
+        {#                title: {#}
+        {#                    text: '详情页扫描进度'#}
+        {#                },#}
+        {#                tooltip: {#}
+        {#                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'#}
+        {#                },#}
+        {#                plotOptions: {#}
+        {#                    pie: {#}
+        {#                        allowPointSelect: true,#}
+        {#                        cursor: 'pointer',#}
+        {#                        dataLabels: {#}
+        {#                            enabled: true,#}
+        {#                            color: '#000000',#}
+        {#                            connectorColor: '#000000',#}
+        {#                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'#}
+        {#                        }#}
+        {#                    }#}
+        {#                },#}
+        {#                series: [{#}
+        {#                    type: 'pie',#}
+        {#                    name: '完成率',#}
+        {#                    data: [#}
+        {#                        ['完成', {{ detail_done_rate }}],#}
+        {#                        {#}
+        {#                            name: '未完成',#}
+        {#                            y: {{ detail_todo_rate }},#}
+        {#                            sliced: true,#}
+        {#                            selected: true#}
+        {#                        }#}
+        {#                    ]#}
+        {#                }]#}
+        {#            });#}
+        {#        });#}
+        {##}
+        {#        $(function () {#}
+        {#            $('#regexs-div').highcharts({#}
+        {#                chart: {#}
+        {#                    type: 'bar'#}
+        {#                },#}
+        {#                title: {#}
+        {#                    text: '规则匹配次数统计'#}
+        {#                },#}
+        {#                subtitle: {#}
+        {#                    text: '详情top5 + 列表top5'#}
+        {#                },#}
+        {#                xAxis: {#}
+        {#                    categories: [{{ regexs_str|safe }}],#}
+        {#                    title: {#}
+        {#                        text: null#}
+        {#                    }#}
+        {#                },#}
+        {#                yAxis: {#}
+        {#                    min: 0,#}
+        {#                    title: {#}
+        {#                        text: '次数',#}
+        {#                        align: 'high'#}
+        {#                    },#}
+        {#                    labels: {#}
+        {#                        overflow: 'justify'#}
+        {#                    }#}
+        {#                },#}
+        {#                tooltip: {#}
+        {#                    valueSuffix: ' 次数'#}
+        {#                },#}
+        {#                plotOptions: {#}
+        {#                    bar: {#}
+        {#                        dataLabels: {#}
+        {#                            enabled: true#}
+        {#                        }#}
+        {#                    }#}
+        {#                },#}
+        {#                legend: {#}
+        {#                    layout: 'vertical',#}
+        {#                    align: 'right',#}
+        {#                    verticalAlign: 'top',#}
+        {#                    x: -40,#}
+        {#                    y: 100,#}
+        {#                    floating: true,#}
+        {#                    borderWidth: 1,#}
+        {#                    backgroundColor: '#FFFFFF',#}
+        {#                    shadow: true#}
+        {#                },#}
+        {#                credits: {#}
+        {#                    enabled: false#}
+        {#                },#}
+        {#                series: [{#}
+        {#                    name: '匹配',#}
+        {#                    data: [{{ matched_cnt }}]#}
+        {#                }]#}
+        {#            });#}
+        {#        });#}
         $(function () {
             $("[data-toggle='tooltip']").tooltip();
         });
     </script>
-{% endblock %}
-
-{% block content %}
-    <h3 align="center">抓取过程展示
-        <small>
-            &nbsp;&nbsp;&nbsp;
-            <a href="save_finally_result" class="btn btn-success btn-sm"
-               data-toggle="tooltip" title="最终列表页结果" data-placement="bottom">保存最终结果</a>
-            &nbsp;&nbsp;&nbsp;
-            <a href="kill_spider" class="btn btn-success btn-sm"
-               data-toggle="tooltip" title="用来结束后台爬虫程序" data-placement="bottom">强制终止爬虫</a>
-            &nbsp;&nbsp;&nbsp;
-            <a href="reset_all" class="btn btn-success btn-sm"
-               data-toggle="tooltip" title="清除所有计算用的中间数据" data-placement="bottom">清除中间数据</a>
-        </small>
-    </h3>
-    <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:50px">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                        <label>{{ message }}</label>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-    </div>
-    <hr>
-    <div id="process-div" style="min-width:700px;height:400px"></div>
-    <hr>
-    <div id="regexs-div" style="float:left;width:60%;height:300px"></div>
-    <div id="list-div" style="float:left;width:20%;height:300px"></div>
-    <div id="detail-div" style="float:right;width:20%;height:300px"></div>
-    <hr>
-    <div id="regexs" style="width:40%; margin-left:50px">
-        {% for regex in keywords %}
-            <label>No.{{ loop.index }}&nbsp;&nbsp;&nbsp;</label>{{ regex }}<br>
-        {% endfor %}
-    </div>
 {% endblock %}

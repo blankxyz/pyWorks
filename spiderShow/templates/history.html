@@ -1,46 +1,4 @@
 {% extends "bootstrap/base.html" %}
-
-{% block scripts %}
-    {{ super() }}
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
-    <!-- DataTables Javascript-->
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            var my_tab = $('#search-result-tab').DataTable({
-                "oLanguage": {
-                    "sLengthMenu": "每页 _MENU_ 条",
-                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                    "sInfoEmpty": "共 0 条",
-                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                    "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />",
-                    "sSearch": "检索表达式：",
-                    "oPaginate": {
-                        "sFirst": "首页",
-                        "sPrevious": "前页",
-                        "sNext": "后页",
-                        "sLast": "尾页"
-                    }
-                },
-{#                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},#}
-                "search": {"regex": true},//开启正则支持
-{#                "bStateSave": true, //状态保存,与正则检索矛盾#}
-                "bSort": true, //排序功能
-                "bScrollCollapse": true,
-                "bFilter": true,
-                "bLengthChange": true,
-                "aLengthMenu": [10, 25, 50],
-                "ordering": true,//排序功能
-                "scrollY": "500px",
-                "aaSorting": [[5, "desc"]]
-            });
-        });
-    </script>
-{% endblock %}
-
 {% block content %}
     <h3 align="center">配置信息-历史记录</h3>
     <hr/>
@@ -55,7 +13,6 @@
             {% endif %}
         {% endwith %}
     </div>
-
     <div id="search-cond-div" class="form-group center" style="width:95%; margin-left:50px">
         <form id="search-cond" method="POST" action="/history_search">
             <label><span class="glyphicon glyphicon-user"></span>&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
@@ -70,8 +27,7 @@
     </div>
     <hr/>
     <div id="search-result" class="form-group" style="width:95%; margin-left:50px">
-        {#        <label for="name">查询结果</label><br>#}
-        <table id="search-result-tab" class="table table-striped table-hover">
+        <table id="search_result_tab" class="table table-striped table-hover">
             <thead>
             <tr>
                 <th>主页</th>
@@ -79,7 +35,7 @@
                 <th>域名黑名单</th>
                 <th>分类</th>
                 <th>正则表达式</th>
-                {#                <th>权重</th>#}
+                {#<th>权重</th>#}
             </tr>
             </thead>
             <tbody>
@@ -90,10 +46,54 @@
                     <td>{{ row['black_domain_str'] }}</td>
                     <td>{{ row['detail_or_list'] }}</td>
                     <td>{{ row['regex'] }}</td>
-                    {#                    <td>{{ row['weight'] }}</td>#}
+                    {#<td>{{ row['weight'] }}</td>#}
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+    <!-- DataTables Javascript-->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#search_result_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "检索（支持正则）："
+                },
+                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+                "info": true,
+                "searching": true,
+                "processing": true,
+                "search": {"regex": true},//开启正则支持
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bFilter": true,
+                "bLengthChange": true,
+                "aLengthMenu": [10, 20, 50],
+                "scrollY": "500px",
+                "bScrollCollapse": true,
+                "aaSorting": [[0, "desc"]]
+            });
+        });
+    </script>
 {% endblock %}

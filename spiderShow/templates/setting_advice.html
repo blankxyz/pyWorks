@@ -7,9 +7,9 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-{#        var patrn_rubbish = /uid|username|space|search|blog|group/;#}
-{#        var patrn_detail = /post|thread|detail/;#}
-{#        var patrn_list = /list|index|forum|fid/;#}
+        {#        var patrn_rubbish = /uid|username|space|search|blog|group/;#}
+        {#        var patrn_detail = /post|thread|detail/;#}
+        {#        var patrn_list = /list|index|forum|fid/;#}
         var patrn_rubbish = {{ patrn_rubbish | safe }};
         var patrn_detail = {{ patrn_detail | safe }};
         var patrn_list = {{ patrn_list | safe }};
@@ -40,6 +40,17 @@
                 }
             }
         });
+        <!-- 去除start_url结尾的'/'-->
+        $("#start_url").onblur(function () {
+            var patrn = /\/$/;
+            var obj = $("#start_url");
+            var url = $(obj).val();
+            alert('trim');
+            if (patrn.exec($(obj).val())) {
+                var s = url.substr(0, url.length - 1);
+                $(obj).val(s);
+            }
+        });
         <!-- 点击匹配次数打开子窗口 -->
         $("a").click(function () {
             var id_str = $(this).attr("id");
@@ -62,16 +73,6 @@
                 myWin.document.title = "推荐";
             }
         });
-        <!-- 去除start_url结尾的'/'-->
-        function trim_slash() {
-            var patrn = /\/$/;
-            var obj = $("#start_url");
-            var url = $(obj).val();
-            if (patrn.exec($(obj).val())) {
-                var s = url.substr(0, url.length - 1);
-                $(obj).val(s);
-            }
-        }
     </script>
 {% endblock %}
 {% block content %}
@@ -95,7 +96,7 @@
         <hr>
         <div id="config_div" class="form-group center" style="width:100%; margin-left:20px">
             {{ inputForm.start_url.label }}&nbsp;
-            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com",onblur="trim_slash(this);") }}&nbsp;
+            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;
             {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com",onblur="rtrim(this);") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;
