@@ -4,8 +4,10 @@
     <nav class="navbar nav-pills" role="navigation">
         <div id="menu">
             <ul class="nav nav-tabs nav-justified nav-pills">
-                <li><a href="setting_advice_init" target="mainframe">①列表/详情-自动</a></li>
-                <li><a href="list_detail_init" target="mainframe">①列表/详情-手工</a></li>
+                <li class={% if request.path == '/setting_advice_init' %}active{% endif %}>
+                    <a href="setting_advice_init" target="mainframe">①列表/详情-自动</a>
+                </li>
+                <li class="active"><a href="list_detail_init" target="mainframe">①列表/详情-手工</a></li>
                 <li><a href="show_result_init" target="mainframe">①列表/详情-结果</a></li>
                 <li><a href="show_unkown_urls" target="mainframe">①列表/详情-未匹配</a></li>
                 <li><a href="show_process" target="mainframe">②过程监测</a></li>
@@ -27,4 +29,9 @@
 
 {% block scripts %}
     {{ super() }}
+    <script type="text/javascript">
+        $("li").click(function () {
+            $(this).className("active");
+        });
+    </script>
 {% endblock %}

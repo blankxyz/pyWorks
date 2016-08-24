@@ -129,9 +129,10 @@ class ListDetailRegexSettingForm(Form):  # setting
     site_domain = StringField(label=u'限定域名')  # cpt.xtu.edu.cn'  # 湘潭大学
     white_list = StringField(label=u'白名单')
     black_domain_str = StringField(label=u'域名黑名单')
-    scope_sel = SelectField(label=u'分类',
-                            choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'), ('05', u'平媒'),
-                                     ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')], default=('00', ''))
+    scope_sel = SelectField(label=u'分类', coerce=str,
+                            choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                                     ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                            default=('00', u'不使用预置规则'))
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
@@ -251,8 +252,9 @@ class PresetForm(Form):
 class PresetListForm(Form):
     # 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
     scope_sel = SelectField(label=u'分类',
-                            choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'), ('05', u'平媒'),
-                                     ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')], default=('01', u'新闻'))
+                            choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                                     ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                            default=('00', u'不使用预置规则'))
     partn_list = FieldList(FormField(PresetForm), label=u'URL列表')
     save = SubmitField(label=u'保存')
 
@@ -1711,15 +1713,18 @@ def setting_advice_try():
                                       black_domain_str=black_domain_str, setting_json='')
     # 初始化预置规则
     patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(scope='01')
+    # print patrn_list, patrn_detail, patrn_rubbish
+
     # 修改配置文件的执行入口信息
     util = Util()
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain,
                              black_domain_str=black_domain_str,
-                             list_rule_str='', detail_rule_str='', mode='all')
+                             list_rule_str='', detail_rule_str='', mode='all')  # mode 必须设置
     if ret == False:
         flash(u"修改" + INIT_CONFIG + u"文件失败.")
         print '[error]setting_advice_try() modify ' + INIT_CONFIG + u' failure.'
-        return render_template('setting_advice.html', inputForm=inputForm)
+        return render_template('setting_advice.html', inputForm=inputForm,
+                               patrn_rubbish='', patrn_detail='', patrn_list='')
     else:
         print '[info]setting_advice_try() modify ' + INIT_CONFIG + u' success.'
 
@@ -1746,13 +1751,12 @@ def setting_advice_try():
     else:
         flash(u"文件不存在：" + f)
         print '[error]setting_advice_try() json file not found.', f
-        url_list = []
         return render_template('setting_advice.html', inputForm=inputForm,
-                               patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
+                               patrn_rubbish='', patrn_detail='', patrn_list='')
 
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(url_list)
 
-    ####  页面(regex)
+    ####  页面设置计算结果(regex)
     advice_regex_list = []
     for (regex, score) in advice_regex_dic.items():
         regexForm = AdviceRegexForm()
@@ -1766,7 +1770,7 @@ def setting_advice_try():
         inputForm.regex_list.append_entry()
         advice_regex_list.append({'regex': '', 'score': '0', 'select': '0'})
 
-    ####  页面(keyword)
+    ####  页面设置计算结果(keyword)
     advice_keyword_list = []
     for (keyword, score) in advice_keyword_dic.items():
         regexForm = AdviceKeyWordForm()
@@ -1780,12 +1784,12 @@ def setting_advice_try():
         inputForm.keyword_list.append_entry()
         advice_keyword_list.append({'keyword': '', 'score': '0', 'select': '0'})
 
+    # 通过session保存,以免页面再次初始化时重新计算。
     session['advice_regex_list'] = json.dumps(advice_regex_list)
     session['advice_keyword_list'] = json.dumps(advice_keyword_list)
 
     flash(u'初始化配置完成')
     print '[info]setting_advice_try() end.'
-    print patrn_list, patrn_detail, patrn_rubbish
     return render_template('setting_advice.html', inputForm=inputForm,
                            patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
 
@@ -1898,8 +1902,10 @@ def list_detail_init():
     '''
     INIT_MAX = 10
     user_id = session['user_id']
-    para_scope_sel = request.args.get('scope')
+    req_scope_sel = request.args.get('scope')
+
     inputForm = ListDetailRegexSettingForm(request.form)
+    inputForm.scope_sel.data = req_scope_sel
 
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = get_domain_init()
@@ -1921,25 +1927,11 @@ def list_detail_init():
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
-    if inputForm.scope_sel.data != '00':
-        print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", inputForm.scope_sel.data, para_scope_sel
-        #### 从预置设定页面
-        partn_list = mysql_db.get_preset_partn(para_scope_sel)
-        for (partn_type, partn, weight) in partn_list:
-            regexForm = RegexSettingForm()
-            regexForm.regex = partn
-            regexForm.weight = weight
-            regexForm.score = 0
-            inputForm.list_regex_list.append_entry(regexForm)
-
-        for j in range(SHOW_MAX - len(partn_list)):
-            inputForm.list_regex_list.append_entry()
-
-    else:
+    if req_scope_sel is None or req_scope_sel == '00':  # 未设定 预置规则
         #### 从MySql 设置/还原 redis 和 页面(详情页)
-        i = 0
-        for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('detail', user_id, start_url,
-                                                                                       site_domain, black_domain_str):
+        detail_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
+        cnt = 0
+        for (scope, white_or_black, weight, regex, etc) in detail_regexs:
             # 还原redis
             if regex.find('/^') < 0:  # 白名单
                 if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
@@ -1964,15 +1956,15 @@ def list_detail_init():
             regexForm.weight = weight
             regexForm.score = int(score)
             inputForm.detail_regex_list.append_entry(regexForm)
-            i += 1
+            cnt += 1
 
-        for j in range(INIT_MAX - i):
+        for j in range(INIT_MAX - cnt):
             inputForm.detail_regex_list.append_entry()
 
         ####  从MySql 设置/还原 redis 和 页面(列表页)
-        i = 0
-        for (scope, white_or_black, weight, regex, etc) in mysql_db.get_current_regexs('list', user_id, start_url,
-                                                                                       site_domain, black_domain_str):
+        list_regexs = mysql_db.get_current_regexs('list', user_id, start_url, site_domain, black_domain_str)
+        cnt = 0
+        for (scope, white_or_black, weight, regex, etc) in list_regexs:
             # 还原redis
             if regex.find('/^') < 0:  # 白名单
                 if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
@@ -1996,9 +1988,22 @@ def list_detail_init():
             regexForm.weight = weight
             regexForm.score = int(score)
             inputForm.list_regex_list.append_entry(regexForm)
-            i += 1
+            cnt += 1
 
-        for j in range(INIT_MAX - i):
+        for j in range(INIT_MAX - cnt):
+            inputForm.list_regex_list.append_entry()
+
+    else:  # 设定 预置规则
+        #### 将预置设定 表示到 页面
+        partn_list = mysql_db.get_preset_partn(req_scope_sel)
+        for (partn_type, partn, weight) in partn_list:
+            regexForm = RegexSettingForm()
+            regexForm.regex = partn
+            regexForm.weight = weight
+            regexForm.score = 0
+            inputForm.list_regex_list.append_entry(regexForm)
+
+        for j in range(SHOW_MAX - len(partn_list)):
             inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成')
@@ -2664,6 +2669,7 @@ def admin_server_log():
 ######### admin_tools.html  #############################################################################
 @app.route('/admin_tools')
 def admin_tools():
+    # print request.path
     flash(u"请选择操作。")
     return redirect(url_for('tool_upload'), 302)
 

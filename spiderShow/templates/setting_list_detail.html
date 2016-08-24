@@ -22,9 +22,9 @@
             {{ inputForm.start_url.label }}&nbsp;
             {{ inputForm.start_url(id="start_url",size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
             {{ inputForm.site_domain.label }}&nbsp;
-            {{ inputForm.site_domain(id="site_domain",size=15,placeholder="例如：baidu.com") }}&nbsp;
+            {{ inputForm.site_domain(id="site_domain",size=20,placeholder="例如：baidu.com") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;
-            {{ inputForm.black_domain_str(size=20,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.black_domain_str(size=40,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;
@@ -90,6 +90,7 @@
         $(document).ready(function () {
             <!-- 转换正则 -->
             function submit_convert(e) {
+                alert({{ request.path }});
                 $.ajax({
                     url: $SCRIPT_ROOT + '/convert',
                     contentType: "application/json; charset=UTF-8",
@@ -105,7 +106,7 @@
                         $('#regex_result').text(data.regex);
                     }
                 });
-            };
+            }
             $('#convert_btn').click(submit_convert);
             <!-- start_url 去掉 '/' -->
             $("#start_url").change(function () {
