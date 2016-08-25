@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    <h3 align="center">设定抓取信息
-        <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
-    </h3>
-    <hr>
+{#    <h3 align="center">设定抓取信息#}
+{#        <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>#}
+{#    </h3>#}
+{#    <hr>#}
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -33,9 +33,9 @@
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
             <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
                 /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
-            <input type=text id="convert_url" size=90 placeholder="请确认转换后的表达式， 编辑（拷贝） 到下面列表中。">&nbsp;
-            <input type="button" id="convert_btn" class="btn btn-success btn-sm" value="转换为正则">&nbsp;
-            <label id="regex_result"></label>
+            <input id="convert_url" type=text size=90 placeholder="请确认转换后的表达式， 编辑（拷贝） 到下面列表中。">&nbsp;
+            <input id="convert_btn" type="button" class="btn btn-success btn-sm" value="转换为正则">&nbsp;
+            <label id="convert_result"></label>
         </div>
         <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
@@ -83,49 +83,46 @@
     {{ super() }}
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
     <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-        $(document).ready(function () {
-            <!-- 转换正则 -->
-            function submit_convert(e) {
-                alert({{ request.path }});
-                $.ajax({
-                    url: $SCRIPT_ROOT + '/convert',
-                    contentType: "application/json; charset=UTF-8",
-                    dataType: 'json',
-                    data: {
-                        convert_url: $('input[id="convert_url"]').val(),
-                        now: new Date().getTime()
-                    },
-                    error: function (xhr, err) {
-                        $('#regex_result').text(err);
-                    },
-                    success: function (data, textStatus) {
-                        $('#regex_result').text(data.regex);
-                    }
-                });
-            }
-            $('#convert_btn').click(submit_convert);
-            <!-- start_url 去掉 '/' -->
-            $("#start_url").change(function () {
-                var start_url = $('#start_url').val();
-                var without_slash = '';
-                patrn = /\/$/;
-                if (patrn.exec(start_url)) {
-                    without_slash = start_url.substr(0, start_url.length - 1);
-                } else {
-                    without_slash = start_url
+        <!-- 转化工具 -->
+        $('#convert_btn').click(function () {
+            $.ajax({
+                url: $SCRIPT_ROOT + '/convert',
+                contentType: "application/json; charset=UTF-8",
+                dataType: 'json',
+                data: {
+                    convert_url: $('#convert_url').val(),
+                    now: new Date().getTime()
+                },
+                error: function (xhr, err) {
+                    $('#convert_result').text(err);
+                },
+                success: function (data, textStatus) {
+                    $('#convert_result').text(data.regex);
                 }
-                $('#start_url').val(without_slash);
             });
-            <!-- 选择分类-->
-            $('#scope_sel').change(function () {
-                var scope_sel = $(this).children('option:selected').val();
-                {#alert(scope_sel);#}
-                window.location.href = "/list_detail_init?scope=" + scope_sel;
-            });
+        });
+        <!-- start_url 去掉 '/' -->
+        $("#start_url").change(function () {
+            var start_url = $('#start_url').val();
+            var without_slash = '';
+            patrn = /\/$/;
+            if (patrn.exec(start_url)) {
+                without_slash = start_url.substr(0, start_url.length - 1);
+            } else {
+                without_slash = start_url
+            }
+            $('#start_url').val(without_slash);
+        });
+        <!-- 选择分类-->
+        $('#scope_sel').change(function () {
+            var scope_sel = $(this).children('option:selected').val();
+            window.location.href = "/list_detail_init?scope=" + scope_sel;
         });
     </script>
 {% endblock %}
+

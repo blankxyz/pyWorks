@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    <h3 align="center">抓取结果
-        <small>列表/详情</small>
-    </h3>
-    <hr>
+    {#    <h3 align="center">抓取结果#}
+    {#        <small>列表/详情</small>#}
+    {#    </h3>#}
+    {#    <hr>#}
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -19,9 +19,10 @@
     <form id="cond" method="POST" action="/show_result">
         <!-- 列表抓取结果 -->
         <div id="list_result_div" class="form-group" style="float:left;width:48%; margin-left:10px">
-            {{ inputForm.list_regex_sel(placeholder="--select--",style="width:480px;") }}&nbsp;
+            {{ inputForm.list_regex_sel(id="list_regex_sel",placeholder="--select--",style="width:480px;") }}&nbsp;
             &nbsp;
-            <a id="list_plus_a" href="#list_plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
+            <a id="list_plus_a" href="#list_plus_regex_div" data-toggle="collapse"
+               data-parent="#list_url_list_div">
                 <span class="glyphicon glyphicon-plus"></span>
             </a>
             &nbsp;
@@ -33,7 +34,7 @@
             <div id="list_plus_regex_div" class="panel-collapse collapse">
                 <div class="panel-body">
                     <input id="list_plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
-                    <a id="list_plus_regex_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+                    <a id="list_plus_ok_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
                 </div>
             </div>
             <hr>
@@ -56,7 +57,7 @@
         </div>
         <!-- 详情抓取结果 -->
         <div id="detail_result_div" class="form-group" style="float:right;width:48%; margin-left:10px">
-            {{ inputForm.detail_regex_sel(placeholder="--select--",style="width:480px;") }}&nbsp;
+            {{ inputForm.detail_regex_sel(id="detail_regex_sel",placeholder="--select--",style="width:480px;") }}&nbsp;
             &nbsp;
             <a id="detail_plus_a" href="#detail_plus_regex_div" data-toggle="collapse"
                data-parent="#detail_url_list_div">
@@ -71,7 +72,7 @@
             <div id="detail_plus_regex_div" class="panel-collapse collapse">
                 <div class="panel-body">
                     <input id="detail_plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
-                    <a id="detail_plus_regex_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+                    <a id="detail_plus_ok_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
                 </div>
             </div>
             <hr>
@@ -159,6 +160,59 @@
                 "scrollY": "500px",
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
+            });
+            $('a').click(function () {
+                var id_str = $(this).attr("id");
+                var regex_type = "";
+                if (id_str.search("detail") >= 0) {
+                    regex_type = "detail";
+                } else {
+                    regex_type = "list";
+                }
+                <!-- 删除按钮 -->
+                if (id_str.search("_minus_a") >= 0) {
+                    var del_regex = $("#" + regex_type + "_regex_sel").val();
+                    if (del_regex.length == 0) {
+                        alert('请输入正则表达式。');
+                    } else {
+                        alert(regex_type + " : " + del_regex);
+                        $.ajax({
+                            url: $SCRIPT_ROOT + '/regexs/' + regex_type,
+                            type: 'delete',
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: 'json',
+                            data: JSON.stringify({regex: del_regex}),
+                            error: function (xhr, err) {
+                                alert(err);
+                            },
+                            success: function (data, textStatus) {
+                                alert(data.msg);
+                            }
+                        });
+                    }
+                }
+                <!-- 增加按钮 -->
+                if (id_str.search("_plus_ok_a") >= 0) {
+                    var add_regex = $("#" + regex_type + "_plus_regex_input").val();
+                    if (add_regex.length == 0) {
+                        alert('请输入正则表达式。');
+                    } else {
+{#                        alert(regex_type + " : " + add_regex);#}
+                        $.ajax({
+                            url: $SCRIPT_ROOT + '/regexs/' + regex_type,
+                            type: 'put',
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: 'json',
+                            data: JSON.stringify({regex: add_regex}),
+                            error: function (xhr, err) {
+                                alert(err);
+                            },
+                            success: function (data, textStatus) {
+                                alert(data.msg);
+                            }
+                        });
+                    }
+                }
             });
         });
     </script>

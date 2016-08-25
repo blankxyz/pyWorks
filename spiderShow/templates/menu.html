@@ -4,18 +4,60 @@
     <nav class="navbar nav-pills" role="navigation">
         <div id="menu">
             <ul class="nav nav-tabs nav-justified nav-pills">
-                <li class={% if request.path == '/setting_advice_init' %}active{% endif %}>
-                    <a href="setting_advice_init" target="mainframe">①列表/详情-自动</a>
+                <li><a href="setting_advice_init" target="mainframe" data-toggle="tooltip"
+                       title="主页URL归类 正则表达式/关键字">①列表/详情-自动
+                </a>
                 </li>
-                <li class="active"><a href="list_detail_init" target="mainframe">①列表/详情-手工</a></li>
-                <li><a href="show_result_init" target="mainframe">①列表/详情-结果</a></li>
-                <li><a href="show_unkown_urls" target="mainframe">①列表/详情-未匹配</a></li>
-                <li><a href="show_process" target="mainframe">②过程监测</a></li>
-                <li><a href="content_advice" target="mainframe">③内容提取</a></li>
-                <li><a href="history_search" target="mainframe">④历史查询</a></li>
-                <li><a href="preset_init" target="mainframe">⑤预置规则</a></li>
-                <li class="disabled"><a href="admin_tools" target="mainframe">⑥帮助</a></li>
-                <li class="disabled"><a href="admin_server_log" target="mainframe">⑥log</a></li>
+                <li>
+                    <a href="list_detail_init" target="mainframe" data-toggle="tooltip"
+                       title="主页、域名、详情页/列表页URL的特征词/正则表达式"> ①列表/详情-手工
+                    </a>
+                </li>
+                <li>
+                    <a href="show_result_init" target="mainframe" data-toggle="tooltip"
+                       title="抓取结果 列表/详情"> ①列表/详情-结果
+                    </a>
+                </li>
+                <li>
+                    <a href="show_unkown_urls" target="mainframe" data-toggle="tooltip"
+                       title="未匹配的URL信息"> ①列表/详情-未匹配
+                    </a>
+                </li>
+                <li>
+                    <a href="show_process" target="mainframe" data-toggle="tooltip"
+                       title="抓取情况展示"> ②过程监测
+                    </a>
+                </li>
+                <li>
+                    <a href="content_advice" target="mainframe" data-toggle="tooltip"
+                       title="内容提取 标题、创建时间、内容、作者"> ③内容提取
+                    </a>
+                </li>
+                <li>
+                    <a href="history_search" target="mainframe" data-toggle="tooltip"
+                       title="配置信息-历史记录"> ④历史查询
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a href="preset_init" target="mainframe" data-toggle="tooltip"
+                       title="无效，列表，详情"> ⑤预置规则
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a href="admin_tools" target="mainframe" data-toggle="tooltip"
+                       title="管理员 工具集"> ⑥帮助
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a href="admin_server_log" target="mainframe" data-toggle="tooltip"
+                       title="web server log"> ⑥log
+                    </a>
+                </li>
+{#                <li class="disabled">#}
+{#                    <a href="test" target="mainframe" data-toggle="tooltip"#}
+{#                       title="debug"> ⑥test#}
+{#                    </a>#}
+{#                </li>#}
             </ul>
         </div>
     </nav>
@@ -31,8 +73,8 @@
     {{ super() }}
     <script type="text/javascript">
         $("li").click(function () {
-            $(this).className("active");
-            #http://www.cnblogs.com/starof/p/4612411.html
+            $(this).addClass("active");
+            $(this).siblings().removeClass("active");
         });
     </script>
 {% endblock %}

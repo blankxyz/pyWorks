@@ -9,8 +9,8 @@
     <hr style="width:100%;">
     <div id="left_unkown_urls_div" style="float:left;width:49%; margin-left:10px">
         {{ inputForm.list_match.label }}&nbsp;
-        {{ inputForm.list_regex_sel(placeholder="--select--",style="width:480px;") }}&nbsp;
-        <a id="list_plus_a" href="#list_plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
+        {{ inputForm.list_regex_sel(id="list_regex_sel",placeholder="--select--",style="width:480px;") }}&nbsp;
+        <a id="list_plus_a" href="#list_plus_regex_div" data-toggle="collapse" data-parent="#list_url_list_div">
             <span class="glyphicon glyphicon-plus"></span>
         </a>&nbsp;
         <a id="list_minus_a" href="#">
@@ -18,17 +18,16 @@
         </a>&nbsp;
         <div id="list_plus_regex_div" class="panel-collapse collapse">
             <div class="panel-body">
-                <input id="list_plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
-                <a id="list_plus_regex_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+                <input id="list_plus_regex_input" type=text size=65 placeholder="编辑规则后，点击 √ 添加。">
+                <a id="list_plus_ok_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
             </div>
         </div>
     </div>
     <div id="right_category_compress_div" style="float:right;width:49%; margin-left:10px">
         {{ inputForm.detail_match.label }}&nbsp;
-        {{ inputForm.detail_regex_sel(placeholder="--select--",style="width:480px;") }}&nbsp;
+        {{ inputForm.detail_regex_sel(id="detail_regex_sel",placeholder="--select--",style="width:480px;") }}&nbsp;
         &nbsp;
-        <a id="detail_plus_a" href="#detail_plus_regex_div" data-toggle="collapse"
-           data-parent="#detail_url_list_div">
+        <a id="detail_plus_a" href="#detail_plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
             <span class="glyphicon glyphicon-plus"></span>
         </a>
         &nbsp;
@@ -38,8 +37,8 @@
         &nbsp;
         <div id="detail_plus_regex_div" class="panel-collapse collapse">
             <div class="panel-body">
-                <input id="detail_plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
-                <a id="detail_plus_regex_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+                <input id="detail_plus_regex_input" type=text size=65 placeholder="编辑规则后，点击 √ 添加。">
+                <a id="detail_plus_ok_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
             </div>
         </div>
     </div>
@@ -53,7 +52,7 @@
             <table id="unkown_urls_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>当前未匹配URL</th>
+                    <th><label class="alert-danger">当前未匹配URL</label></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -68,7 +67,7 @@
             <table id="category_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>归一化: 数字(999)、去除参数值</th>
+                    <th><label class="alert-warning">归一化(参考): 数字(999)、去除参数值</label></th>
                     <th>页数</th>
                 </tr>
                 </thead>
@@ -90,7 +89,7 @@
             <table id="category_compress_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>归一化: 字母（AAA）、数字(999)、去除参数值</th>
+                    <th><label class="alert-warning">归一化(参考): 字母（AAA）、数字(999)、去除参数值</label></th>
                     <th>页数</th>
                 </tr>
                 </thead>
@@ -107,6 +106,7 @@
     {% endif %}
 {% endblock %}
 
+
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
@@ -117,6 +117,7 @@
     <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(document).ready(function () {
             $('#unkown_urls_tab').DataTable({
                 "oLanguage": {
@@ -190,17 +191,15 @@
                 "bLengthChange": false,
                 "scrollY": "220px"
             });
-        });
-        $(function () {
             $('#right_keywords_div').highcharts({
                 chart: {
                     type: 'bar'
                 },
                 title: {
-                    text: '未匹配URL中的主要关键词'
+                    text: '未匹配URL中使用的主要关键词'
                 },
                 subtitle: {
-                    text: '覆盖超过80%'
+                    text: '使用次数超过80%'
                 },
                 xAxis: {
                     categories: [{{ inputForm.keywords_str|safe }}],
@@ -247,9 +246,60 @@
                     data: [{{ inputForm.keywords_matched_cnt }}]
                 }]
             });
-        });
-        $(function () {
-            $("[data-toggle='tooltip']").tooltip();
+            $('a').click(function () {
+                var id_str = $(this).attr("id");
+                var regex_type = "";
+                if (id_str.search("detail") >= 0) {
+                    regex_type = "detail";
+                } else {
+                    regex_type = "list";
+                }
+                <!-- 删除按钮 -->
+                if (id_str.search("_minus_a") >= 0) {
+                    var del_regex = $("#" + regex_type + "_regex_sel").val();
+                    if (del_regex.length == 0) {
+                        alert('请输入正则表达式。');
+                    } else {
+                        alert(regex_type + " : " + del_regex);
+                        $.ajax({
+                            url: $SCRIPT_ROOT + '/regexs/' + regex_type,
+                            type: 'delete',
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: 'json',
+                            data: JSON.stringify({regex: del_regex}),
+                            error: function (xhr, err) {
+                                alert(err);
+                            },
+                            success: function (data, textStatus) {
+                                alert(data.msg);
+                            }
+                        });
+                    }
+                }
+                <!-- 增加按钮 -->
+                if (id_str.search("_plus_ok_a") >= 0) {
+                    var add_regex = $("#" + regex_type + "_plus_regex_input").val();
+                    if (add_regex.length == 0) {
+                        alert('请输入正则表达式。');
+                    } else {
+                        alert(regex_type + " : " + add_regex);
+                        $.ajax({
+                            url: $SCRIPT_ROOT + '/regexs/' + regex_type,
+                            type: 'put',
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: 'json',
+                            data: JSON.stringify({regex: add_regex}),
+                            error: function (xhr, err) {
+                                alert(err);
+                            },
+                            success: function (data, textStatus) {
+                                alert(data.msg);
+                            }
+                        });
+                    }
+                }
+            });
         });
     </script>
 {% endblock %}
+

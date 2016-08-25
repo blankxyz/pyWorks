@@ -162,13 +162,13 @@ class MySpider(spider.Spider):
         new_url = urlparse.urlunparse(('', '', path, params, query, ''))
 
         # 页面手工配置规则
-        ret = self.is_manual_detail_rule(new_url)
-        if ret is not None:  # 未知
-            return not ret
-
         ret = self.is_manual_list_rule(new_url)
         if ret is not None:  # 未知
             return ret
+
+        ret = self.is_manual_detail_rule(new_url)
+        if ret is not None:  # 未知
+            return not ret
 
         print '[unkown]', new_url
         return None
@@ -223,6 +223,7 @@ class MySpider(spider.Spider):
         urls = []
         for link in links:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(link.strip())
+            if path == '': path = '/'
             if scheme:
                 url = urlparse.urlunparse((scheme, netloc, path, params, query, ''))
             else:

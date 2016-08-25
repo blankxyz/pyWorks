@@ -953,7 +953,7 @@ class RedisDrive(object):
         fp.write('\n')
         fp.close()
 
-    def reset_rule(self, mode, list_rules, detail_rules):
+    def hold_result(self, mode, list_rules, detail_rules):
         # 按照新规则，重置上次计算结果（unkown,list,detail）
         self.list_rules = [item['regex'] for item in list_rules]
         self.detail_rules = [item['regex'] for item in detail_rules]
@@ -962,16 +962,14 @@ class RedisDrive(object):
         for url in self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg, withscores=False):
             all_urls.append(url)
 
-        self.conn.delete(self.list_urls_zset_key)
-
         for url in self.conn.smembers(self.detail_urls_set_key):
             all_urls.append(url)
-
-        self.conn.delete(self.detail_urls_set_key)
 
         for url in self.conn.smembers(self.unkown_urls_set_key):
             all_urls.append(url)
 
+        self.conn.delete(self.list_urls_zset_key)
+        self.conn.delete(self.detail_urls_set_key)
         self.conn.delete(self.unkown_urls_set_key)
 
         for url in all_urls:
@@ -989,13 +987,13 @@ class RedisDrive(object):
         new_url = urlparse.urlunparse(('', '', path, params, query, ''))
 
         # 页面手工配置规则
-        ret = self.is_manual_detail_rule(new_url)
-        if ret is not None:  # 未知
-            return not ret
-
         ret = self.is_manual_list_rule(new_url)
         if ret is not None:  # 未知
             return ret
+
+        ret = self.is_manual_detail_rule(new_url)
+        if ret is not None:  # 未知
+            return not ret
 
         print '[unkown]', new_url
 
@@ -1902,9 +1900,10 @@ def list_detail_init():
     '''
     INIT_MAX = 10
     user_id = session['user_id']
-    req_scope_sel = request.args.get('scope')
-
     inputForm = ListDetailRegexSettingForm(request.form)
+
+    # 选择推荐规则
+    req_scope_sel = request.args.get('scope')
     inputForm.scope_sel.data = req_scope_sel
 
     mysql_db = MySqlDrive()
@@ -1995,16 +1994,32 @@ def list_detail_init():
 
     else:  # 设定 预置规则
         #### 将预置设定 表示到 页面
+        list_cnt = 0
+        detail_cnt = 0
         partn_list = mysql_db.get_preset_partn(req_scope_sel)
         for (partn_type, partn, weight) in partn_list:
+            # partn_type: list,detail,rubbish
             regexForm = RegexSettingForm()
-            regexForm.regex = partn
+            if partn_type == 'rubbish':
+                regexForm.regex = '/^' + partn + '/'
+            else:
+                regexForm.regex = partn
             regexForm.weight = weight
             regexForm.score = 0
-            inputForm.list_regex_list.append_entry(regexForm)
+            if partn_type == 'detail':
+                inputForm.detail_regex_list.append_entry(regexForm)
+                detail_cnt += 1
+            else:
+                inputForm.list_regex_list.append_entry(regexForm)
+                list_cnt += 1
 
-        for j in range(SHOW_MAX - len(partn_list)):
-            inputForm.list_regex_list.append_entry()
+        if SHOW_MAX > list_cnt:
+            for j in range(SHOW_MAX - list_cnt):
+                inputForm.list_regex_list.append_entry()
+
+        if SHOW_MAX > detail_cnt:
+            for j in range(SHOW_MAX - detail_cnt):
+                inputForm.detail_regex_list.append_entry()
 
     flash(u'初始化配置完成')
     return render_template('setting_list_detail.html', inputForm=inputForm)
@@ -2090,11 +2105,12 @@ def list_detail_save_and_run():
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, item['regex'])
 
-    if inputForm.hold.data == False:  # 清除上次结果
+    if inputForm.hold.data: # 保留上次结果
+        redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
+    else:  # 清除上次结果
         redis_db.conn.delete(redis_db.list_urls_zset_key)
         redis_db.conn.delete(redis_db.detail_urls_set_key)
-    else:  # 保留上次结果
-        redis_db.reset_rule(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
+        redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     #### 保存所有手工配置信息到MySql
     setting_json = ''
@@ -2743,29 +2759,26 @@ def tool_session_setting():
     return redirect(url_for('tool_upload'), 302)
 
 
+# @app.route('/test', methods=['GET', 'POST'])
+# def test():
+#     return render_template('test.html')
+
+
 ##########################################################################################
 #  restful api
 parser = reqparse.RequestParser()
 parser.add_argument('regex')
 
 
-def is_regex_exist(regex):
+def is_regex_exist(regex, regex_type):
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
 
-    regexs = []
     mysql_db = MySqlDrive()
-    current_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
-    for (scope, white_or_black, weight, regex, etc) in current_regexs:
-        regexs.append(regex)
-    print '[info]is_regex_exist()', unicode(regex), regexs
-    for r in regexs:
-        if unicode(regex) == r:
-            print '[info]is_regex_exist() True'
-            return True
-        else:
-            print '[info]is_regex_exist() False'
-            return False
+    current_regexs = [r for (scope, white_or_black, weight, r, etc) in
+                      mysql_db.get_current_regexs(regex_type, user_id, start_url, site_domain, black_domain_str)]
+    print '[info]is_regex_exist():', (regex in current_regexs), (regex, current_regexs)
+    return (regex in current_regexs)
 
 
 # DetailRegexMaintenance
@@ -2779,56 +2792,79 @@ class DetailRegexMaintenance(Resource):
         return {'msg': msg}
 
     def delete(self, regex_type):
+        # regex_type: "detail","list"
         print '[info]DetailRegexMaintenance() delete start.', regex_type
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
         if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+            print '[error]DetailRegexMaintenance() delete() not found start_url.'
             return {'msg': u'请设定主页，域名信息。'}, 201
 
         args = parser.parse_args()
         regex = args['regex']
 
-        if is_regex_exist(regex) is not True:
+        if is_regex_exist(regex, regex_type) is not True:
+            print '[error]DetailRegexMaintenance() delete() regex not exist.'
             msg = u"{} 不存在，无法删除。".format(regex)
             return {'msg': msg}, 404
 
         mysql_db = MySqlDrive()
-        ret = mysql_db.delete_regex(user_id, start_url, site_domain, 'detail', regex)
+        ret = mysql_db.delete_regex(user_id, start_url, site_domain, regex_type, regex)
 
         redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-        if regex.find('/^') < 0:  # 白名单
-            redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex)
-        else:  # 黑名单
-            redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex)
+        if regex_type == 'detail':
+            if regex.find('/^') < 0:  # 白名单
+                redis_db.conn.zrem(redis_db.manual_w_detail_rule_zset_key, regex)
+            else:  # 黑名单
+                redis_db.conn.zrem(redis_db.manual_b_detail_rule_zset_key, regex)
+        else:
+            if regex.find('/^') < 0:  # 白名单
+                redis_db.conn.zrem(redis_db.manual_w_list_rule_zset_key, regex)
+            else:  # 黑名单
+                redis_db.conn.zrem(redis_db.manual_b_list_rule_zset_key, regex)
 
         print '[info]DetailRegexMaintenance() delete end.'
         return {'regex': u'删除完成。'}, 204
 
     def put(self, regex_type):
-        print '[info]DetailRegexMaintenance() put start.', regex_type
+        # regex_type: "detail","list"
+        print '[info]DetailRegexMaintenance() put() start.', regex_type
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
         if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+            print '[error]DetailRegexMaintenance() put() not found start_url.'
             return {'msg': u'请设定主页，域名信息。'}, 201
 
         args = parser.parse_args()
         regex = args['regex']
+        print '[info]DetailRegexMaintenance() put().', regex
 
-        if is_regex_exist(regex) is True:
+        if is_regex_exist(regex, regex_type) is True:
+            print '[error]DetailRegexMaintenance() put() regex exist.'
             msg = u"{} 已存在，无法添加。".format(regex)
             return {'msg': msg}, 404
 
         mysql_db = MySqlDrive()
-        ret = mysql_db.add_regex(user_id, start_url, site_domain, black_domain_str, is_detail_regex=True, regex=regex)
+        ret = mysql_db.add_regex(user_id, start_url, site_domain, black_domain_str,
+                                 is_detail_regex=(regex_type == "detail"), regex=regex)
 
         redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-        if regex.find('/^') < 0:  # 白名单
-            if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
-                redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
-        else:  # 黑名单
-            if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
-                redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
-        print '[info]DetailRegexMaintenance() put end.'
+        if regex_type == 'detail':
+            if regex.find('/^') < 0:  # 白名单
+                if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
+            else:  # 黑名单
+                if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
+        else:
+            if regex.find('/^') < 0:  # 白名单
+                if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
+            else:  # 黑名单
+                if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
+                    redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
+
+        print '[info]DetailRegexMaintenance() put() end.'
         return {'msg': u'添加完成。'}, 201
 
 

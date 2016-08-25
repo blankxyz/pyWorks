@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    <h3 align="center">预置规则
-        <small>无效，列表，详情</small>
-    </h3>
-    <hr>
+{#    <h3 align="center">预置规则#}
+{#        <small>无效，列表，详情</small>#}
+{#    </h3>#}
+{#    <hr>#}
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:100px">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -80,13 +80,10 @@
             });
             <!-- 选择分类-->
             $('#scope_sel').change(function () {
-                        var scope_sel = $(this).children('option:selected').val();
-                        {#alert(scope_sel);#}
-                        window.location.href = "/preset_change?scope=" + scope_sel;
-                    }
-            );
+                var scope_sel = $(this).children('option:selected').val();
+                {#alert(scope_sel);#}
+                window.location.href = "/preset_change?scope=" + scope_sel;
+            });
         });
-
-
     </script>
 {% endblock %}
