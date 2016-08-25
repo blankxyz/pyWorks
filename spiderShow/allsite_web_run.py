@@ -157,8 +157,8 @@ class ResultForm(Form):  # 内容提取
     unkown_url_list = []  # 左侧
     keywords_str = ''  # 右侧
     keywords_matched_cnt = ''  # 右侧
-    category_list = []  # 左侧
-    category_compress_list = []  # 右侧
+    category_dict = {}  # 左侧
+    category_compress_dict = {}  # 右侧
 
 
 ######## content_advice.html #############################################################################
@@ -1504,7 +1504,12 @@ class Util(object):
         # print (scheme, netloc, path_without_alpha, params, query, fragment)
         return urlparse.urlunparse((scheme, netloc, path_without_alpha, params, query, fragment))
 
+
     def convert_urls_to_category(self, urls):
+        '''
+         return: {category1: url_list1, category2: url_list2, ... }
+         category: 归一化path+query中的数字为999、去除query参数值
+        '''
         category_dict = {}
         for url in urls:
             category = self.compress_url(url)
@@ -1517,7 +1522,12 @@ class Util(object):
                 category_dict.update({category: url_list})
         return category_dict
 
+
     def compress_category_alpha(self, category_dict):
+        '''
+         return: {category1: len(url_list1), category2: len(url_list2), ... }
+         category: 归一化path中的字母为AAA、path+query中的数字为999、去除query参数值
+        '''
         category_compress_dict = {}
         category_list = []
         for (category, url_list) in category_dict.items():
@@ -1893,6 +1903,52 @@ def setting_advice_window():
 
 
 ######### 配置详情页/列表页  #############################################################################
+@app.route('/list_detail_init_preset', methods=['GET', 'POST'])
+def list_detail_init_preset():
+    '''
+    从MySql初始化Web页面和Redis
+    '''
+    INIT_MAX = 10
+    user_id = session['user_id']
+    mysql_db = MySqlDrive()
+
+    inputForm = ListDetailRegexSettingForm(request.form)
+
+    # 选择推荐规则
+    req_scope_sel = request.args.get('scope')
+    inputForm.scope_sel.data = req_scope_sel
+
+    #### 将预置设定 表示到 页面
+    list_cnt = 0
+    detail_cnt = 0
+    partn_list = mysql_db.get_preset_partn(req_scope_sel)
+    for (partn_type, partn, weight) in partn_list:
+        # partn_type: list,detail,rubbish
+        regexForm = RegexSettingForm()
+        if partn_type == 'rubbish':
+            regexForm.regex = '/^' + partn + '/'
+        else:
+            regexForm.regex = partn
+        regexForm.weight = weight
+        regexForm.score = 0
+        if partn_type == 'detail':
+            inputForm.detail_regex_list.append_entry(regexForm)
+            detail_cnt += 1
+        else:
+            inputForm.list_regex_list.append_entry(regexForm)
+            list_cnt += 1
+
+    if SHOW_MAX > list_cnt:
+        for j in range(SHOW_MAX - list_cnt):
+            inputForm.list_regex_list.append_entry()
+
+    if SHOW_MAX > detail_cnt:
+        for j in range(SHOW_MAX - detail_cnt):
+            inputForm.detail_regex_list.append_entry()
+
+    flash(u'预置规则设定完成')
+    return render_template('setting_list_detail.html', inputForm=inputForm)
+
 @app.route('/list_detail_init', methods=['GET', 'POST'])
 def list_detail_init():
     '''
@@ -1900,15 +1956,12 @@ def list_detail_init():
     '''
     INIT_MAX = 10
     user_id = session['user_id']
+    mysql_db = MySqlDrive()
+
     inputForm = ListDetailRegexSettingForm(request.form)
 
-    # 选择推荐规则
-    req_scope_sel = request.args.get('scope')
-    inputForm.scope_sel.data = req_scope_sel
-
-    mysql_db = MySqlDrive()
     start_url, site_domain, black_domain_str = get_domain_init()
-    print start_url, site_domain, black_domain_str
+    # print start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -1925,101 +1978,70 @@ def list_detail_init():
         inputForm.black_domain_str.data = black_domain_str
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-
-    if req_scope_sel is None or req_scope_sel == '00':  # 未设定 预置规则
-        #### 从MySql 设置/还原 redis 和 页面(详情页)
-        detail_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
-        cnt = 0
-        for (scope, white_or_black, weight, regex, etc) in detail_regexs:
-            # 还原redis
-            if regex.find('/^') < 0:  # 白名单
-                if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
-                    redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
-                    score = 0
-                else:
-                    score = redis_db.conn.zscore(redis_db.manual_w_detail_rule_zset_key, regex)
-            else:  # 黑名单
-                if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
-                    redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
-                    score = 0
-                else:
-                    score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
-
-            # 还原页面
-            # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-            # regexForm = RegexSettingForm(regex_data)
-            # inputForm.detail_regex_list.entries[i] = regexForm
-
-            regexForm = RegexSettingForm()
-            regexForm.regex = regex
-            regexForm.weight = weight
-            regexForm.score = int(score)
-            inputForm.detail_regex_list.append_entry(regexForm)
-            cnt += 1
-
-        for j in range(INIT_MAX - cnt):
-            inputForm.detail_regex_list.append_entry()
-
-        ####  从MySql 设置/还原 redis 和 页面(列表页)
-        list_regexs = mysql_db.get_current_regexs('list', user_id, start_url, site_domain, black_domain_str)
-        cnt = 0
-        for (scope, white_or_black, weight, regex, etc) in list_regexs:
-            # 还原redis
-            if regex.find('/^') < 0:  # 白名单
-                if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
-                    redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
-                    score = 0
-                else:
-                    score = redis_db.conn.zscore(redis_db.manual_w_list_rule_zset_key, regex)
-            else:  # 黑名单
-                if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
-                    redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
-                    score = 0
-                else:
-                    score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
-            # 还原页面
-            # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
-            # regexForm = RegexSettingForm(regex_data)
-            # inputForm.list_regex_list.entries[i] = regexForm
-
-            regexForm = RegexSettingForm()
-            regexForm.regex = regex
-            regexForm.weight = weight
-            regexForm.score = int(score)
-            inputForm.list_regex_list.append_entry(regexForm)
-            cnt += 1
-
-        for j in range(INIT_MAX - cnt):
-            inputForm.list_regex_list.append_entry()
-
-    else:  # 设定 预置规则
-        #### 将预置设定 表示到 页面
-        list_cnt = 0
-        detail_cnt = 0
-        partn_list = mysql_db.get_preset_partn(req_scope_sel)
-        for (partn_type, partn, weight) in partn_list:
-            # partn_type: list,detail,rubbish
-            regexForm = RegexSettingForm()
-            if partn_type == 'rubbish':
-                regexForm.regex = '/^' + partn + '/'
+    #### 从MySql 设置/还原 redis 和 页面(详情页)
+    detail_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
+    cnt = 0
+    for (scope, white_or_black, weight, regex, etc) in detail_regexs:
+        # 还原redis
+        if regex.find('/^') < 0:  # 白名单
+            if redis_db.conn.zrank(redis_db.manual_w_detail_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_w_detail_rule_zset_key, 0, regex)
+                score = 0
             else:
-                regexForm.regex = partn
-            regexForm.weight = weight
-            regexForm.score = 0
-            if partn_type == 'detail':
-                inputForm.detail_regex_list.append_entry(regexForm)
-                detail_cnt += 1
+                score = redis_db.conn.zscore(redis_db.manual_w_detail_rule_zset_key, regex)
+        else:  # 黑名单
+            if redis_db.conn.zrank(redis_db.manual_b_detail_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, regex)
+                score = 0
             else:
-                inputForm.list_regex_list.append_entry(regexForm)
-                list_cnt += 1
+                score = redis_db.conn.zscore(redis_db.manual_b_detail_rule_zset_key, regex)
 
-        if SHOW_MAX > list_cnt:
-            for j in range(SHOW_MAX - list_cnt):
-                inputForm.list_regex_list.append_entry()
+        # 还原页面
+        # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
+        # regexForm = RegexSettingForm(regex_data)
+        # inputForm.detail_regex_list.entries[i] = regexForm
 
-        if SHOW_MAX > detail_cnt:
-            for j in range(SHOW_MAX - detail_cnt):
-                inputForm.detail_regex_list.append_entry()
+        regexForm = RegexSettingForm()
+        regexForm.regex = regex
+        regexForm.weight = weight
+        regexForm.score = int(score)
+        inputForm.detail_regex_list.append_entry(regexForm)
+        cnt += 1
+
+    for j in range(INIT_MAX - cnt):
+        inputForm.detail_regex_list.append_entry()
+
+    ####  从MySql 设置/还原 redis 和 页面(列表页)
+    list_regexs = mysql_db.get_current_regexs('list', user_id, start_url, site_domain, black_domain_str)
+    cnt = 0
+    for (scope, white_or_black, weight, regex, etc) in list_regexs:
+        # 还原redis
+        if regex.find('/^') < 0:  # 白名单
+            if redis_db.conn.zrank(redis_db.manual_w_list_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, 0, regex)
+                score = 0
+            else:
+                score = redis_db.conn.zscore(redis_db.manual_w_list_rule_zset_key, regex)
+        else:  # 黑名单
+            if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
+                redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
+                score = 0
+            else:
+                score = redis_db.conn.zscore(redis_db.manual_b_list_rule_zset_key, regex)
+        # 还原页面
+        # regex_data = MultiDict([('regex', regex), ('weight', weight), ('score', int(score))])
+        # regexForm = RegexSettingForm(regex_data)
+        # inputForm.list_regex_list.entries[i] = regexForm
+
+        regexForm = RegexSettingForm()
+        regexForm.regex = regex
+        regexForm.weight = weight
+        regexForm.score = int(score)
+        inputForm.list_regex_list.append_entry(regexForm)
+        cnt += 1
+
+    for j in range(INIT_MAX - cnt):
+        inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成')
     return render_template('setting_list_detail.html', inputForm=inputForm)
@@ -2277,12 +2299,12 @@ def show_unkown_urls():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     inputForm.unkown_url_list = redis_db.get_unkown_urls()
     if len(inputForm.unkown_url_list) == 0:
-        flash(u'目前URL已全部匹配。')
+        flash(u'没有未匹配URL信息。')
         return render_template('show_unkown_urls.html', inputForm=inputForm)
 
     util = Util()
-    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(inputForm.unkown_url_list)
     # 关键字统计
+    _, advice_keyword_dic = util.advice_regex_keyword(inputForm.unkown_url_list)
     keywords = []
     score_list = []
     sorted_list = sorted(advice_keyword_dic.iteritems(), key=lambda d: d[1], reverse=True)
@@ -2294,19 +2316,22 @@ def show_unkown_urls():
     inputForm.keywords_matched_cnt = ','.join(score_list)
 
     # 归一化(参考): 数字(999)、去除参数值
-    category_withlist_dict = util.convert_urls_to_category(inputForm.unkown_url_list)
-    for (k, v) in category_withlist_dict.items():
-        inputForm.category_list.append({'category': k, 'page_count': len(v)})
+    # {category: url_list}
+    dict1 = util.convert_urls_to_category(inputForm.unkown_url_list)
+    print 'convert_urls_to_category()',dict1
+    for (k, v) in dict1.items():
+        inputForm.category_dict.update({k: len(v)})
 
     # 归一化(参考): 字母（AAA）、数字(999)、去除参数值
-    category_compress_dict = util.compress_category_alpha(category_withlist_dict)
-    for (k, v) in category_compress_dict.items():
-        inputForm.category_compress_list.append({'category': k, 'page_count': v})
+    inputForm.category_compress_dict = util.compress_category_alpha(dict1)
+    # print 'compress_category_alpha()',dict2
+    # for (k, v) in dict2.items():
+    #     inputForm.category_compress_dict.update({k, v})
 
-    inputForm.category_list.sort(key=lambda x: x['page_count'], reverse=True)
-    inputForm.category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
-    print inputForm.category_list
-    print inputForm.category_compress_list
+    # inputForm.category_list.sort(key=lambda x: x['page_count'], reverse=True)
+    # inputForm.category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
+    print 'inputForm.category_dict',inputForm.category_dict
+    print 'inputForm.category_compress_dict',inputForm.category_compress_dict
     return render_template('show_unkown_urls.html', inputForm=inputForm)
 
 

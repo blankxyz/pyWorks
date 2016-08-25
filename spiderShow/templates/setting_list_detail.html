@@ -121,7 +121,7 @@
         <!-- 选择分类-->
         $('#scope_sel').change(function () {
             var scope_sel = $(this).children('option:selected').val();
-            window.location.href = "/list_detail_init?scope=" + scope_sel;
+            window.location.href = "/list_detail_init_preset?scope=" + scope_sel;
         });
     </script>
 {% endblock %}

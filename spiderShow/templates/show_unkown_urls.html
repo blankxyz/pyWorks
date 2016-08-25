@@ -72,10 +72,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for item in inputForm.category_list %}
+                {% for category,cnt in inputForm.category_dict.iteritems() %}
                     <tr style="max-height: 20px;">
-                        <td nowrap="nowrap">{{ item.category|safe }}</td>
-                        <td nowrap="nowrap">{{ item.page_count }}</td>
+                        <td nowrap="nowrap">{{ category|safe }}</td>
+                        <td nowrap="nowrap">{{ cnt }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -94,10 +94,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for item in inputForm.category_compress_list %}
+                {% for category,cnt in inputForm.category_compress_dict.iteritems() %}
                     <tr style="max-height: 20px;">
-                        <td nowrap="nowrap">{{ item.category|safe }}</td>
-                        <td nowrap="nowrap">{{ item.page_count }}</td>
+                        <td nowrap="nowrap">{{ category|safe }}</td>
+                        <td nowrap="nowrap">{{ cnt }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -260,7 +260,7 @@
                     if (del_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-                        alert(regex_type + " : " + del_regex);
+{#                        alert(regex_type + " : " + del_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'delete',
@@ -282,7 +282,7 @@
                     if (add_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-                        alert(regex_type + " : " + add_regex);
+{#                        alert(regex_type + " : " + add_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'put',
