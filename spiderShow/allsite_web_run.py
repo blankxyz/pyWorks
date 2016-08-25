@@ -2105,7 +2105,7 @@ def list_detail_save_and_run():
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, 0, item['regex'])
 
-    if inputForm.hold.data: # 保留上次结果
+    if inputForm.hold.data:  # 保留上次结果
         redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
     else:  # 清除上次结果
         redis_db.conn.delete(redis_db.list_urls_zset_key)
@@ -2293,11 +2293,12 @@ def show_unkown_urls():
     inputForm.keywords_str = ("'" + "','".join(keywords) + "'")
     inputForm.keywords_matched_cnt = ','.join(score_list)
 
-    # 数字归一化后分类统计
+    # 归一化(参考): 数字(999)、去除参数值
     category_withlist_dict = util.convert_urls_to_category(inputForm.unkown_url_list)
     for (k, v) in category_withlist_dict.items():
         inputForm.category_list.append({'category': k, 'page_count': len(v)})
 
+    # 归一化(参考): 字母（AAA）、数字(999)、去除参数值
     category_compress_dict = util.compress_category_alpha(category_withlist_dict)
     for (k, v) in category_compress_dict.items():
         inputForm.category_compress_list.append({'category': k, 'page_count': v})
