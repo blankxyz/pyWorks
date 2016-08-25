@@ -1504,7 +1504,6 @@ class Util(object):
         # print (scheme, netloc, path_without_alpha, params, query, fragment)
         return urlparse.urlunparse((scheme, netloc, path_without_alpha, params, query, fragment))
 
-
     def convert_urls_to_category(self, urls):
         '''
          return: {category1: url_list1, category2: url_list2, ... }
@@ -1521,7 +1520,6 @@ class Util(object):
                 url_list = [url]
                 category_dict.update({category: url_list})
         return category_dict
-
 
     def compress_category_alpha(self, category_dict):
         '''
@@ -1949,6 +1947,7 @@ def list_detail_init_preset():
     flash(u'预置规则设定完成')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
+
 @app.route('/list_detail_init', methods=['GET', 'POST'])
 def list_detail_init():
     '''
@@ -2318,20 +2317,16 @@ def show_unkown_urls():
     # 归一化(参考): 数字(999)、去除参数值
     # {category: url_list}
     dict1 = util.convert_urls_to_category(inputForm.unkown_url_list)
-    print 'convert_urls_to_category()',dict1
+    print 'convert_urls_to_category()', dict1
+    inputForm.category_dict.clear()
     for (k, v) in dict1.items():
         inputForm.category_dict.update({k: len(v)})
 
     # 归一化(参考): 字母（AAA）、数字(999)、去除参数值
     inputForm.category_compress_dict = util.compress_category_alpha(dict1)
-    # print 'compress_category_alpha()',dict2
-    # for (k, v) in dict2.items():
-    #     inputForm.category_compress_dict.update({k, v})
 
-    # inputForm.category_list.sort(key=lambda x: x['page_count'], reverse=True)
-    # inputForm.category_compress_list.sort(key=lambda x: x['page_count'], reverse=True)
-    print 'inputForm.category_dict',inputForm.category_dict
-    print 'inputForm.category_compress_dict',inputForm.category_compress_dict
+    # print 'inputForm.category_dict',inputForm.category_dict
+    # print 'inputForm.category_compress_dict',inputForm.category_compress_dict
     return render_template('show_unkown_urls.html', inputForm=inputForm)
 
 

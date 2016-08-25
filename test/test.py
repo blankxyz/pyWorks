@@ -1,5 +1,8 @@
-a =  [u'thread', u'post', u'/post/', u'aaa', u'bbbbb']
+a =  {'a1':['1', '2'],'a2':['1','2','3']}
 
-b = 'bbbbb'
+b = {}
+for (k,v) in a.items():
+    b.
 
-print (b in a)
+print a
+print b
