@@ -252,9 +252,9 @@ class PresetForm(Form):
 class PresetListForm(Form):
     # 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
     scope_sel = SelectField(label=u'分类',
-                            choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                            choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
                                      ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
-                            default=('00', u'不使用预置规则'))
+                            default=('01', u'新闻'))
     partn_list = FieldList(FormField(PresetForm), label=u'URL列表')
     save = SubmitField(label=u'保存')
 
@@ -776,7 +776,34 @@ class MySqlDrive(object):
 
         return partn_list
 
+    def set_preset_partn(self, scope, partn_list):
+        # scope: 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
+        # partn_type: list,detail,rubbish
+        try:
+            sql_str1 = "DELETE FROM preset_patrn WHERE scope=%s"
+            parameter1 = (scope, )
+            cnt = self.cur.execute(sql_str1, parameter1)
+            print '[info]get_detail_regex()', cnt, sql_str1 % parameter1
+
+            for (partn_type, partn, weight) in partn_list:
+                if partn.strip() != '':
+                    sql_str2 = "INSERT INTO preset_patrn(scope, partn_type, partn, weight) VALUES(%s,%s,%s,%s)"
+                    parameter2 = (scope, partn_type, partn, weight)
+                    cnt = self.cur.execute(sql_str2, parameter2)
+                    print '[info]get_detail_regex()', cnt, sql_str2 % parameter2
+
+            self.conn.commit()
+
+        except Exception, e:
+            print '[error]get_detail_regex()', e, sql_str2 % parameter2
+
+        return cnt
+
     def get_preset_partn_to_str(self, scope='01'):
+        # return:
+        #  patrn_rubbish = '/uid|username|space|search|blog|group/'
+        #  patrn_detail = '/post|thread|detail/'
+        #  patrn_list = '/list|index|forum|fid/'
         rubbish_list = []
         detail_list = []
         list_list = []
@@ -801,10 +828,8 @@ class MySqlDrive(object):
         patrn_list = '/' + '|'.join(list_list) + '/'
         patrn_detail = '/' + '|'.join(detail_list) + '/'
         patrn_rubbish = '/' + '|'.join(rubbish_list) + '/'
+
         return patrn_list, patrn_detail, patrn_rubbish
-        # patrn_rubbish = '/uid|username|space|search|blog|group/'
-        # patrn_detail = '/post|thread|detail/'
-        # patrn_list = '/list|index|forum|fid/'
 
 
 ##################################################################################################
@@ -2625,7 +2650,7 @@ def preset_init():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX * 5 - len(partn_list)):
+    for j in range(SHOW_MAX * 2 - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
@@ -2649,10 +2674,26 @@ def preset_change():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX * 5 - len(partn_list)):
+    for j in range(SHOW_MAX * 2 - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
+
+
+@app.route('/preset_save', methods=['GET', 'POST'])
+def preset_save():
+    user_id = session['user_id']
+    inputForm = PresetListForm(request.form)
+    partn_list = []
+
+    ####  页面(regex)
+    for item in inputForm.partn_list:
+        partn_list.append((item.partn_type_sel.data, item.partn.data, item.weight_sel.data))
+
+    mysql_db = MySqlDrive()
+    mysql_db.set_preset_partn(inputForm.scope_sel.data, partn_list)
+
+    return redirect(url_for('preset_init'), 302)
 
 
 ######### admin_server_log.html #############################################################################
