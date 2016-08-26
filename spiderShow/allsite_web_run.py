@@ -14,6 +14,9 @@ import subprocess
 from bs4 import BeautifulSoup, Comment
 import requests
 import traceback
+from functools import wraps
+from flask import make_response
+from flask.ext.cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 from flask import Flask, render_template, request, session, url_for, flash, redirect
 from flask import send_from_directory
@@ -63,12 +66,13 @@ SHOW_MAX = config.getint('show', 'show_max')
 # export path
 EXPORT_FOLDER = config.get('export', 'export_folder')
 CONFIG_JSON = config.get('export', 'config_json')
-# shell
+# run
 SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
 ALLSITE_INI = config.get(MY_OS, 'allsite_ini')
+ALLSITE_CONTENT = config.get(MY_OS, 'allsite_content')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
@@ -78,6 +82,7 @@ app.config['SECRET_KEY'] = 'success'
 app.config['EXPORT_FOLDER'] = EXPORT_FOLDER
 bootstrap = Bootstrap(app)
 api = Api(app)  # restful
+# CORS(app) #跨域请求
 
 global process_id
 
@@ -161,8 +166,8 @@ class ResultForm(Form):  # 内容提取
     category_compress_dict = {}  # 右侧
 
 
-######## content_advice.html #############################################################################
-class ContentAdvice(Form):
+######## content.html #############################################################################
+class ContentInputForm(Form):
     mode = BooleanField(label=u'自动提取', default=True)
 
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
@@ -192,26 +197,6 @@ class ContentAdvice(Form):
 
     save_run = SubmitField(label=u'保存并执行')
 
-
-######## content_advice.html #############################################################################
-class ContentItemForm(Form):  # 内容提取
-    mode = BooleanField(label=u'自动提取', default=True)
-    # 标题，内容，作者，创建时间，
-    title_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
-    title_exp = StringField(label=u'表达式')
-
-    content_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
-    content_exp = StringField(label=u'表达式')
-
-    author_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
-    author_exp = StringField(label=u'表达式')
-
-    ctime_sel = SelectField(label=u'提取方法', choices=[('0', u'xpath'), ('1', u'正则')], default='0')
-    ctime_exp = StringField(label=u'表达式')
-
-    save_run = SubmitField(label=u'保存并执行')
-
-
 ########## history.html  ####################################################################################
 class SearchCondForm(Form):  # user search
     start_url = StringField(label=u'主页', default='')
@@ -234,7 +219,6 @@ class SearchResultForm(Form):  # user search
     score = IntegerField(label=u'匹配数', default=0)
 
     search_result_list = []
-
 
 ######## admin_server_log.html #############################################################################
 class ShowServerLogInputForm(Form):  # show_server_log
@@ -781,7 +765,7 @@ class MySqlDrive(object):
         # partn_type: list,detail,rubbish
         try:
             sql_str1 = "DELETE FROM preset_patrn WHERE scope=%s"
-            parameter1 = (scope, )
+            parameter1 = (scope,)
             cnt = self.cur.execute(sql_str1, parameter1)
             print '[info]get_detail_regex()', cnt, sql_str1 % parameter1
 
@@ -1155,43 +1139,57 @@ class Util(object):
         try:
             config = ConfigParser.ConfigParser()
             config.read(ALLSITE_INI)
-            config.set('spider', 'start_urls', start_urls)
-            config.set('spider', 'site_domain', site_domain)
-            config.set('spider', 'black_domain_list', black_domain_str)
-            config.set('spider', 'list_rule_list', list_rule_str)
-            config.set('spider', 'detail_rule_list', detail_rule_str)
-            config.set('spider', 'mode', mode)
+            if start_urls.strip() != '': config.set('spider', 'start_urls', start_urls)
+            if site_domain.strip() != '': config.set('spider', 'site_domain', site_domain)
+            if black_domain_str.strip() != '': config.set('spider', 'black_domain_list', black_domain_str)
+            if list_rule_str.strip() != '': config.set('spider', 'list_rule_list', list_rule_str)
+            if detail_rule_str.strip() != '': config.set('spider', 'detail_rule_list', detail_rule_str)
+            if mode.strip() != '': config.set('spider', 'mode', mode)
             fp = open(ALLSITE_INI, "w")
             config.write(fp)
-            # write_ready = False
-            # copy_list = []
-            # fp = open('../spider/config.py', "r")
-            # for row in fp.readlines():
-            #     if row.find('spider-modify-start')>=0: write_ready = True
-            #     if row.find('spider-modify-end')>=0: write_ready = False
-            #     if write_ready:
-            #         if row.find('START_URLS')>=0:
-            #             row = "START_URLS = '" + start_urls + "'\n"
-            #         if row.find('SITE_DOMAIN')>=0:
-            #             row = "SITE_DOMAIN = '"+ site_domain + "'\n"
-            #         if row.find('BLACK_DOMAIN_LIST')>=0:
-            #             row = "BLACK_DOMAIN_LIST = '"+ black_domain_str + "'\n"
-            #         if row.find('DETAIL_RULE_LIST')>=0:
-            #             row = "DETAIL_RULE_LIST = '"+ detail_rule_str + "'\n"
-            #         if row.find('LIST_RULE_LIST')>=0:
-            #             row = "LIST_RULE_LIST = '"+ list_rule_str + "'\n"
-            #     copy_list.append(row)
-            #
-            # fp.close()
-            #
-            # fp = open('../spider/config.py', "w")
-            # for row in copy_list: fp.write(row)
-            # fp.close()
-
             print '[info]modify_config() success.'
             return True
         except Exception, e:
             print "[error]modify_config(): %s" % e
+            return False
+
+    def modify_config_for_content(self, start_urls, site_domain, title_regedx_str,
+                                  content_regex_str, author_regex_str, ctime_regex_str):
+        try:
+            write_ready = False
+            copy_list = []
+            fp = open(ALLSITE_CONTENT, "r")
+            for row in fp.readlines():
+                if row.find('spider-modify-start') >= 0: write_ready = True
+                if row.find('spider-modify-end') >= 0: write_ready = False
+                if write_ready:
+                    if row.find('START_URLS') >= 0:
+                        row = "START_URLS = '''" + start_urls + "'''\n"
+                    if row.find('SITE_DOMAIN') >= 0:
+                        row = "SITE_DOMAIN = '''" + site_domain + "'''\n"
+
+                    if row.find('TITLE_EXP') >= 0:
+                        row = "TITLE_EXP = '''" + title_regedx_str + "'''\n"
+                    if row.find('CONTENT_EXP') >= 0:
+                        row = "CONTENT_EXP = '''" + content_regex_str + "'''\n"
+                    if row.find('AUTHOR_EXP') >= 0:
+                        row = "AUTHOR_EXP = '''" + author_regex_str + "'''\n"
+                    if row.find('CTIME_EXP') >= 0:
+                        row = "CTIME_EXP = '''" + ctime_regex_str + "'''\n"
+
+                copy_list.append(row)
+
+            fp.close()
+
+            fp = open(ALLSITE_CONTENT, "w")
+            for row in copy_list:
+                fp.write(row)
+            fp.close()
+
+            print '[info]modify_config_for_content() success.'
+            return True
+        except Exception, e:
+            print "[error]modify_config_for_content(): %s" % e
             return False
 
     #####  推荐算法  start  ################################################################
@@ -2483,15 +2481,27 @@ def reset_all():
     return redirect(url_for('show_process'), 302)
 
 
-######### content_advice.html  #############################################################################
-@app.route('/content_advice', methods=['GET', 'POST'])
-def content_advice():
-    inputForm = ContentAdvice(request.form)
+######### content.html  #############################################################################
+def allow_cross_domain(fun):
+    @wraps(fun)
+    def wrapper_fun(*args, **kwargs):
+        rst = make_response(fun(*args, **kwargs))
+        rst.headers['Access-Control-Allow-Origin'] = '*'
+        rst.headers['Access-Control-Allow-Methods'] = 'PUT,GET,POST,DELETE'
+        allow_headers = "Referer,Accept,Origin,User-Agent"
+        rst.headers['Access-Control-Allow-Headers'] = allow_headers
+        return rst
+    return wrapper_fun
+
+@app.route('/content_init', methods=['GET', 'POST'])
+# @allow_cross_domain
+def content_init():
+    inputForm = ContentInputForm(request.form)
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('content_advice.html', inputForm=inputForm)
+        return render_template('content.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
     select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
@@ -2502,14 +2512,15 @@ def content_advice():
     # inputForm.detail_regex_list = inputForm.detail_regex_sel.data
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
-    print '[info]content_advice()', inputForm.detail_url_list
+    print '[info]content_init()', inputForm.detail_url_list
 
     flash(u'获取链接内容需要一点时间，请稍等。。。')
-    return render_template('content_advice.html', inputForm=inputForm)
+    return render_template('content.html', inputForm=inputForm)
 
 
-@app.route('/get_content_advice', methods=["GET", "POST"])
-def get_content_advice():
+@app.route('/content_auto_extract', methods=["GET", "POST"])
+def content_auto_extract():
+    # ajax myreadability 自动提取内容
     url = request.args.get('url')
     title, ctime, content, auther = myreadability.get_content_advice(url)
     ret = {'title': title, 'content': content}
@@ -2520,16 +2531,13 @@ def get_content_advice():
 @app.route('/content_save_and_run', methods=['GET', 'POST'])
 def content_save_and_run():
     user_id = session['user_id']
-    inputForm = ContentItemForm(request.form)
-
-    # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain_str = mysql_db.get_current_main_setting(user_id)
-    print '[info]content_save_and_run()', user_id, start_url, site_domain, black_domain_str
+    inputForm = ContentInputForm(request.form)
+    start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('admin_preset.html', inputForm=inputForm)
+        return render_template('content.html', inputForm=inputForm)
 
+    mysql_db = MySqlDrive()
     cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                         title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
                                         content_exp=inputForm.content_exp.data, ctime_exp=inputForm.ctime_exp.data)
@@ -2539,7 +2547,19 @@ def content_save_and_run():
     else:
         flash(u"MySQL保存失败.")
         print u'[error]content_save_and_run() MySQL save failure.'
-        return render_template('admin_preset.html', inputForm=inputForm)
+        return render_template('content.html', inputForm=inputForm)
+
+    util = Util()
+    ret = util.modify_config_for_content(start_urls=start_url,
+                                         site_domain=site_domain,
+                                         title_regedx_str=inputForm.title_exp.data,
+                                         content_regex_str=inputForm.content_exp.data,
+                                         author_regex_str=inputForm.author_exp.data,
+                                         ctime_regex_str=inputForm.ctime_exp.data)
+    if ret == False:
+        flash(u"修改" + INIT_CONFIG + u"文件失败.")
+        print u'[error]content_save_and_run() modify ' + INIT_CONFIG + u' failure.'
+        return render_template('content.html', inputForm=inputForm)
 
     if os.name == 'nt':
         # DOS "start" command
@@ -2551,7 +2571,7 @@ def content_save_and_run():
         process_id = p.pid
         print '[info] process_id:', process_id
 
-    return render_template('admin_preset.html', inputForm=inputForm)
+    return render_template('content.html', inputForm=inputForm)
 
 
 ######### history.html  #############################################################################

@@ -16,9 +16,18 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-# INIT_CONFIG = '/work/spider/allsite.ini' #linux
-# INIT_CONFIG = './allsite.ini' #windows
-INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'  # mac
+MY_OS = os.getenv('SPIDER_OS')
+if MY_OS is None:
+    print '[ERROR] must be set a MY_OS.'
+    exit(-1)
+else:
+    print '[info]--- The OS is: %s ----' % MY_OS
+    if MY_OS == 'linux':
+        INIT_CONFIG = '/work/spider/allsite.ini'
+    elif MY_OS == 'mac':
+        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite.ini'
+    else:  # windows
+        INIT_CONFIG = './allsite.ini'
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -27,29 +36,32 @@ if len(config.read(INIT_CONFIG)) == 0:
 else:
     print '[INFO] read the config file.', INIT_CONFIG
 
+EXPORT_FOLDER = config.get(MY_OS, 'export_folder')
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-# START_URLS = None
-# SITE_DOMAIN = None
-# BLACK_DOMAIN_LIST = None
-# DETAIL_RULE_LIST = None
-# LIST_RULE_LIST = None
+START_URLS = '''http://bbs.tianya.cn'''
+SITE_DOMAIN = '''bbs.tianya.cn'''
+BLACK_DOMAIN_LIST = None
+
+TITLE_EXP = ''''''
+CONTENT_EXP = ''''''
+AUTHOR_EXP = ''''''
+CTIME_EXP = ''''''
 # spider-modify-end
 
-START_URLS = config.get('spider', 'start_urls')
-SITE_DOMAIN = config.get('spider', 'site_domain')
-BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
-DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
-LIST_RULE_LIST = config.get('spider', 'list_rule_list')
+# TITLE_EXP = '''.//*[@id='post_head']/h1/span[1]/span'''
+# CONTENT_EXP = '''.//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
+# AUTHOR_EXP = '''.//*[@id='post_head']/div[2]/div[2]/span[1]/a'''
+# CTIME_EXP = '''.//*[@id='post_head']/div[2]/div[2]/span[2]'''
 
-TITLE_EXP = None
-CONTENT_EXP = None
-AUTHOR_EXP = None
-CTIME_EXP = None
-
+# START_URLS = config.get('spider', 'start_urls')
+# SITE_DOMAIN = config.get('spider', 'site_domain')
+# BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
+# DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
+# LIST_RULE_LIST = config.get('spider', 'list_rule_list')
 #############################################################################
 
 class MySpider(spider.Spider):
@@ -65,6 +77,8 @@ class MySpider(spider.Spider):
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "01"
         self.start_urls = START_URLS
+        self.site_domain = SITE_DOMAIN
+        self.black_domain_list = BLACK_DOMAIN_LIST
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输入详情页URL
@@ -96,26 +110,24 @@ class MySpider(spider.Spider):
             url = response.request.url
 
         result = []
-        title = data.xpath('''//tr[@valign="top"]//strong''').text().strip()
+        title = data.xpath(TITLE_EXP).text().strip()
         source = self.siteName
-        ctime = data.xpath('''//td[@align="middle"]/text()'''). \
-            replace(u'年', '-').replace(u'月', '-').replace(u'日', '').regex('(\d+-\d+-\d+)').datetime()
-        content = data.xpath('''//div[@id="ozoom"]''').text().strip()
+        ctime = data.xpath(CTIME_EXP).replace(u'年', '-').replace(u'月', '-').replace(u'日', ''). \
+            regex('(\d+-\d+-\d+)').datetime()
+        content = data.xpath(CONTENT_EXP).text().strip()
         utc_now = datetime.datetime.utcnow()
-        post = {'title': title,
+        post = {'url': url,
+                'title': title,
                 'content': content,
                 'ctime': ctime,
                 'gtime': utc_now,
-                'source': source,
-                'siteName': self.siteName,
-                'data_db': self.data_db,
-                'url': url,
                 }
         result.append(post)
         return result
 
+
 ##### ---------- test run function-----------------------------
-def test(unit_test):
+def main(unit_test):
     if unit_test is False:  # spider simulation
         print '[spider simulation] now starting ..........'
         for cnt in range(10000):
@@ -158,6 +170,7 @@ def test(unit_test):
                 resp = mySpider.download(url)
                 ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
                 for item in ret:
+                    print '----------------------------------------------------'
                     for k, v in item.iteritems():
                         print k, v
     else:  # ---------- unit test -----------------------------
@@ -174,8 +187,22 @@ def test(unit_test):
         # soup = mySpider.get_clean_soup(resp)
         # ----------------------------------------------------------
 
+def tttt():
+    mySpider = MySpider()
+    mySpider.proxy_enable = False
+    mySpider.init_dedup()
+    mySpider.init_downloader()
+    response = mySpider.download(mySpider.start_urls)
+
+    ret = mySpider.parse_detail_page(response, (mySpider.start_urls))
+    print '[INFO]write to ', EXPORT_FOLDER + 'content(' + SITE_DOMAIN + ').json'
+    f = open(EXPORT_FOLDER + 'content(' + SITE_DOMAIN + ').json', "wb")
+    f.writelines(["%s\n" % i  for i in ret])
+    f.close()
+
+
 if __name__ == '__main__':
-    test(unit_test=False)
+    main(unit_test=False)
     # test(unit_test=True)
     # import cProfile
     # cProfile.run("test(unit_test = False)")
