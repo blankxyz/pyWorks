@@ -15,7 +15,7 @@
             {% endif %}
         {% endwith %}
     </div>
-    {#    <div id="http"></div>#}
+    <div id="result"></div>
     <hr>
     <form id="cond" method="POST" action="/content_save_and_run">
         <!-- 左侧下拉选择及URL列表 -->
@@ -131,6 +131,7 @@
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(document).ready(function () {
+{#            $("#result").load("/admin_tools");#}
             $('#detail_url_tab').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
@@ -155,101 +156,113 @@
                 "scrollY": "380px",
                 "aLengthMenu": [10, 20, 50]
             });
-            <!-- 异步提交 -->
-            $('a').click(function () {
-                var id_str = $(this).attr("id");
-                {#alert($(this));#}
-                <!-- 提取内容 -->
-                if (id_str.search("url_") >= 0) {
-                    if ($("#mode").is(':checked')) {
-                        $.ajax({
-                            url: $SCRIPT_ROOT + '/content_auto_extract',
-                            contentType: "application/json; charset=UTF-8",
-                            dataType: 'json',
-                            data: {
-                                url: $(this).text(),
-                                now: new Date().getTime()
-                            },
-                            error: function (xhr, err) {
-                                $('#title').text('内容自动获取失败。');
-                                $('#content').text(err);
-                            },
-                            success: function (data, textStatus) {
-                                $('#title').text(data.title);
-                                $('#ctime').text(data.ctime);
-                                $('#content').text(data.content);
-                                $('#author').text(data.author);
-                            }
-                        });
-                    } else {
-                        var url = $(this).text();
-                        $.ajax({
-                            url: "http://bbs.tianya.cn/post-1012-23878-1.shtml",
-{#                            headers: {'Access-Control-Allow-Origin': '*'},#}
-{#                            crossDomain: true,#}
-                            type: 'GET',
-                            dataType: 'JSONP',
-                            async: false,
-                            error: function (xhr, err) {
-{#                                var d = JSON.parse(xhr.responseText);#}
-                                alert(err); // parseerr
-                                alert(xhr.status); //200
-                                alert(typeof(xhr.responseText)); //undefiend
-                                alert(xhr.responseXML);
-{#                                alert(d);#}
-                            },
-                            success: function (data, textStatus) {
-                                alert("success");
-                                alert(data);
-                            }
-                        });
-                    }
-                }
-                <!-- 删除按钮 -->
-                if (id_str == "minus_a") {
-                    var del_regex = $('#detail_regex_sel').val();
-                    if (del_regex.length == 0) {
-                        alert('请输入正则表达式。');
-                    } else {
-                        $.ajax({
-                            url: $SCRIPT_ROOT + '/regexs/detail',
-                            type: 'delete',
-                            contentType: "application/json; charset=UTF-8",
-                            dataType: 'json',
-                            data: JSON.stringify({regex: del_regex}),
-                            error: function (xhr, err) {
-                                alert(err);
-                            },
-                            success: function (data, textStatus) {
-                                {#alert(textStatus);#}
-                                alert(data.msg);
-                            }
-                        });
-                    }
-                }
-                <!-- 增加按钮 -->
-                if (id_str == "plus_regex_a") {
-                    var add_regex = $('#plus_regex_input').val();
-                    if (add_regex.length == 0) {
-                        alert('请输入正则表达式。');
-                    } else {
-                        $.ajax({
-                            url: $SCRIPT_ROOT + '/regexs/detail',
-                            type: 'put',
-                            contentType: "application/json; charset=UTF-8",
-                            dataType: 'json',
-                            data: JSON.stringify({regex: add_regex}),
-                            error: function (xhr, err) {
-                                alert(err);
-                            },
-                            success: function (data, textStatus) {
-                                {#alert(textStatus);#}
-                                alert(data.msg);
-                            }
-                        });
-                    }
-                }
-            });
         });
+        <!-- 异步提交 -->
+        $('a').click(function () {
+            var id_str = $(this).attr("id");
+            {#alert($(this));#}
+            <!-- 提取内容 -->
+            if (id_str.search("url_") >= 0) {
+                if ($("#mode").is(':checked')) {
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/content_auto_extract',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: {
+                            url: $(this).text(),
+                            now: new Date().getTime()
+                        },
+                        error: function (xhr, err) {
+                            $('#title').text('内容自动获取失败。');
+                            $('#content').text(err);
+                        },
+                        success: function (data, textStatus) {
+                            $('#title').text(data.title);
+                            $('#ctime').text(data.ctime);
+                            $('#content').text(data.content);
+                            $('#author').text(data.author);
+                        }
+                    });
+                } else {
+                    var url = $(this).text();
+                    {#                        $.ajax({#}
+                    {#                            type:'HEAD',#}
+                    {#                            dataType: 'JSONP',#}
+                    {#                            url: "http://bbs.tianya.cn/post-1012-23878-1.shtml",#}
+                    {#                            complete: function( xhr,data ){#}
+                    {#                                alert(xhr.getResponseHeader('Content-Type'));#}
+                    {#                            }#}
+                    {#                        });#}
+                    $.ajax({
+                        url: "http://bbs.tianya.cn/post-1012-23878-1.shtml",
+{#                        headers: {'Access-Control-Allow-Origin': '*'},#}
+                        crossDomain: true,
+                        type: 'get',
+                        dataType: 'jsonp',
+                        jsonp: "callback",
+                        jsonpCallback:"jsonpCallback",
+                        async: false,
+                        data:"{}",
+                        success: function (data, textStatus) {
+                            alert("success");
+                            alert(data);
+                        },
+                        error: function (xhr, err) {
+                            alert(err); // parseerr
+                            alert(xhr.status); //200
+                            alert(typeof(xhr.response));
+                            alert(typeof(xhr.responseText)); //undefiend
+                            alert(xhr.responseXML);
+                        },
+
+                    });
+                }
+            }
+            <!-- 删除按钮 -->
+            if (id_str == "minus_a") {
+                var del_regex = $('#detail_regex_sel').val();
+                if (del_regex.length == 0) {
+                    alert('请输入正则表达式。');
+                } else {
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/regexs/detail',
+                        type: 'delete',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: JSON.stringify({regex: del_regex}),
+                        error: function (xhr, err) {
+                            alert(err);
+                        },
+                        success: function (data, textStatus) {
+                            {#alert(textStatus);#}
+                            alert(data.msg);
+                        }
+                    });
+                }
+            }
+            <!-- 增加按钮 -->
+            if (id_str == "plus_regex_a") {
+                var add_regex = $('#plus_regex_input').val();
+                if (add_regex.length == 0) {
+                    alert('请输入正则表达式。');
+                } else {
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/regexs/detail',
+                        type: 'put',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: JSON.stringify({regex: add_regex}),
+                        error: function (xhr, err) {
+                            alert(err);
+                        },
+                        success: function (data, textStatus) {
+                            {#alert(textStatus);#}
+                            alert(data.msg);
+                        }
+                    });
+                }
+            }
+        });
+
     </script>
 {% endblock %}
