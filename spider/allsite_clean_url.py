@@ -22,7 +22,7 @@ class myexc(Exception):
 
 
 class Cleaner(object):
-    def __init__(self, site_domain, black_domain_list, conn=None):
+    def __init__(self, site_domain, black_domain_str, conn=None):
         self.site_domain = site_domain
         self.conn = conn
         if self.conn is None:
@@ -31,15 +31,15 @@ class Cleaner(object):
         self.now_year = datetime.datetime.strptime(datetime.datetime.now().strftime('%Y'), '%Y')
         self.hash_black_path_regex_key = 'hash_black_path_regex'
         self.black_path_regex = []
-        self.black_domain_regex = self.get_black_path_regex(black_domain_list)  # black_domain_list 以 ; 分割的字符串
+        self.black_domain_regex = self.get_black_path_regex(black_domain_str)  # black_domain_list 以 @ 分割的字符串
 
-    def get_black_path_regex(self, black_domain_list):
+    def get_black_path_regex(self, black_domain_str):
         '''路径正则黑名单
         @ 匹配到的路径应为 非列表页url
         '''
         default_regex = ['/', '^$']
         compile_list = []
-        for regex_str in black_domain_list.split('@'):
+        for regex_str in black_domain_str.split('@'):
             if regex_str != '': compile_list.append(regex_str)
 
         compile_list.extend(default_regex)
@@ -135,7 +135,7 @@ class Cleaner(object):
                 # 清理锚 # 之后的
                 url = url.split('#')[0]
                 # 汉字参数转义
-                # url = urllib.unquote(url)
+                url = urllib.unquote(url)
                 # 参数排序
                 url = self.url_sort(url)
                 # 去'/'

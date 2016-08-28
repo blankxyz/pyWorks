@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js">
+        var url = "http://bbs.tianya.cn/post-1012-23878-1.shtml";
+        {#$("#result").load("http://127.0.0.1/admin_tools.html");#}
+        var url3 = 'http://v.juhe.cn/weather/index?callback=?';
+        $("#result").get(url3, {
+            'cityname': '澳门',
+            'dtype': 'jsonp',
+            'key': 'xxxx',
+            '_': new Date().getTime()
+        }, function (data) {
+            if (data && data.resultcode == '200') {
+                alert(data.result.today);
+            }
+        }, 'json');
+    </script>
+</head>
+<body>
+<div id="result">load test</div>
+<button type="button" onclick="fun1()"> 跨域访问</button>
+</body>
+</html>

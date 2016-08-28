@@ -1,0 +1,286 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
+    {#    <h3 align="center">内容提取#}
+    {#        <small>标题、创建时间、内容、作者</small>#}
+    {#    </h3>#}
+    {#    <hr>#}
+    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <label>{{ message }}</label>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div id="result"></div>
+    <hr>
+    <form id="cond" method="POST" action="/content_save_and_run">
+        <!-- 左侧下拉选择及URL列表 -->
+        <div id="detail_url_list_div" class="panel-group" style="float:left;width:48%; margin-left:10px">
+            {{ inputForm.detail_regex_sel(id="detail_regex_sel",style="width:480px;") }}
+            &nbsp;
+            <a id="plus_a" href="#plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
+                <span class="glyphicon glyphicon-plus"></span>
+            </a>
+            &nbsp;
+            <a id="minus_a" href="#">
+                <span class="glyphicon glyphicon-minus"></span>
+            </a>
+            &nbsp;
+            {{ inputForm.match(id="match_btn",class="btn btn-info btn-xs") }}
+            <div id="plus_regex_div" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <input id="plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
+                    <a id="plus_regex_a" href="#"><span class="glyphicon glyphicon-ok"></span></a>
+                </div>
+            </div>
+            <br>
+            <table id="detail_url_tab" class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>详情页URL        >>>>> 配置完右侧的规则后，点击下面链接，获取相应内容 >>>>>></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in inputForm.detail_url_list %}
+                    <tr>
+                        <td><a id={{ "url_" ~ loop.index }} href="#">{{ row }}</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- 右侧具体项目 -->
+        <div id="item_div" class="form-group" style="float:right;width:48%; margin-left:10px">
+            {{ inputForm.mode(id="mode") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.save_run(class="btn btn-success btn-xs") }}
+            <table id="item_tab" class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>项目</th>
+                    <th>提取结果</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- 标题 -->
+                <tr>
+                    <td>标题</td>
+                    <td>{{ inputForm.title(id="title",rows="1",cols="76") }}</td>
+                </tr>
+                <tr>
+                    <td><span class="glyphicon glyphicon-pencil"></span></td>
+                    <td>
+                        {{ inputForm.title_sel(id="title_sel") }}&nbsp;&nbsp;&nbsp;
+                        {{ inputForm.title_exp(id="title_exp",size="63") }}
+                    </td>
+                </tr>
+                <!-- 创建时间 -->
+                <tr>
+                    <td>创建时间</td>
+                    <td>{{ inputForm.ctime(size=74) }}</td>
+                </tr>
+                <tr>
+                    <td><span class="glyphicon glyphicon-pencil"></span></td>
+                    <td>
+                        {{ inputForm.ctime_sel(id="ctime_sel") }} &nbsp;&nbsp;&nbsp;
+                        {{ inputForm.ctime_exp(id="ctime_exp",size="63") }}
+                    </td>
+                </tr>
+                <!-- 内容 -->
+                <tr>
+                    <td>内容</td>
+                    <td>{{ inputForm.content(id="content",rows="10",cols="76") }}</td>
+                </tr>
+                <tr>
+                    <td><span class="glyphicon glyphicon-pencil"></span></td>
+                    <td>
+                        {{ inputForm.content_sel(id="content_sel") }}&nbsp;&nbsp;&nbsp;
+                        {{ inputForm.content_exp(id="content_exp",size="63") }}
+                    </td>
+                </tr>
+                <!-- 作者 -->
+                <tr>
+                    <td>作者</td>
+                    <td>{{ inputForm.author(size=74) }}</td>
+                </tr>
+                <tr>
+                    <td><span class="glyphicon glyphicon-pencil"></span></td>
+                    <td>
+                        {{ inputForm.author_sel(id="author_sel") }}&nbsp;&nbsp;&nbsp;
+                        {{ inputForm.author_exp(id="author_exp",size="63") }}
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+    <!-- DataTables Javascript-->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        $(document).ready(function () {
+            {#            $("#result").load("/admin_tools");#}
+            $('#detail_url_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "检索（正则）：",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    }
+                },
+                "search": {"regex": true},//开启正则支持
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bFilter": true,
+                "bLengthChange": true,
+                "bPaginate": true,
+                "scrollY": "560px",
+                "aLengthMenu": [15, 30]
+            });
+        });
+        <!-- 删除按钮 -->
+        $('#minus_a').click(function () {
+            if (id_str == "minus_a") {
+                var del_regex = $('#detail_regex_sel').val();
+                if (del_regex.length == 0) {
+                    alert('请输入正则表达式。');
+                } else {
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/regexs/detail',
+                        type: 'delete',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: JSON.stringify({regex: del_regex}),
+                        error: function (xhr, err) {
+                            alert(err);
+                        },
+                        success: function (data, textStatus) {
+                            {#alert(textStatus);#}
+                            alert(data.msg);
+                        }
+                    });
+                }
+            }
+        });
+        <!-- 增加按钮 -->
+        $('#plus_regex_a').click(function () {
+            var add_regex = $('#plus_regex_input').val();
+            if (add_regex.length == 0) {
+                alert('请输入正则表达式。');
+            } else {
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/regexs/detail',
+                    type: 'put',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({regex: add_regex}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        {#alert(textStatus);#}
+                        alert(data.msg);
+                    }
+                });
+            }
+        });
+        <!-- 异步提交 -->
+        $('a').click(function () {
+            var id_str = $(this).attr("id");
+            <!-- 提取内容 -->
+            if (id_str.search("url_") >= 0) {
+                if ($("#mode").is(':checked')) {
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/content_auto_extract',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: {
+                            url: $(this).text(),
+                            now: new Date().getTime()
+                        },
+                        error: function (xhr, err) {
+                            $('#title').text('内容自动获取失败。');
+                            $('#content').text(err);
+                        },
+                        success: function (data, textStatus) {
+                            $('#title').text(data.title);
+                            $('#ctime').text(data.ctime);
+                            $('#content').text(data.content);
+                            $('#author').text(data.author);
+                        }
+                    });
+                } else {
+                    alert("manual");
+                    $.ajax({
+                        url: $SCRIPT_ROOT + '/content_manual_extract',
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: 'json',
+                        data: {
+                            url: $(this).text(),
+{#                            title_sel:$('#title_sel').value(),#}
+{#                            title_exp:$('#title_exp').val(),#}
+{#                            ctime_sel:$('#ctime_sel').value(),#}
+{#                            ctime_exp:$('#ctime_exp').val(),#}
+{#                            content_sel:$('#content_sel').value(),#}
+{#                            content_exp:$('#content_exp').val(),#}
+{#                            author_sel:$('#author_sel').value(),#}
+{#                            author_exp:$('#author_exp').val(),#}
+                            now: new Date().getTime()
+                        },
+                        error: function (xhr, err) {
+                            $('#title').text('内容自动获取失败。');
+                            $('#content').text(err);
+                        },
+                        success: function (data, textStatus) {
+                            $('#title').text(data.title);
+                            $('#ctime').val(data.ctime);
+                            $('#content').text(data.content);
+                            $('#author').val(data.author);
+                        }
+                    });
+                    {#                    $.ajax({#}
+                    {#                        url: "http://bbs.tianya.cn/post-1012-23878-1.shtml",#}
+                    {#                        headers: {'Access-Control-Allow-Origin': '*'},#}
+                    {#                        crossDomain: true,#}
+                    {#                        type: 'get',#}
+                    {#                        dataType: 'jsonp',#}
+                    {#                        jsonp: "callback",#}
+                    {#                        jsonpCallback:"jsonpCallback",#}
+                    {#                        async: false,#}
+                    {#                        data:"{}",#}
+                    {#                        success: function (data, textStatus) {#}
+                    {#                            alert("success");#}
+                    {#                            alert(data);#}
+                    {#                        },#}
+                    {#                        error: function (xhr, err) {#}
+                    {#                            alert(err); // parseerr#}
+                    {#                            alert(xhr.status); //200#}
+                    {#                            alert(typeof(xhr.response));#}
+                    {#                            alert(typeof(xhr.responseText)); //undefiend#}
+                    {#                            alert(xhr.responseXML);#}
+                    {#                        }#}
+                    {#                    });#}
+                }
+            }
+        });
+    </script>
+{% endblock %}

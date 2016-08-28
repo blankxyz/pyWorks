@@ -1,0 +1,91 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
+    {#    <h3 align="center">预置规则#}
+    {#        <small>无效，列表，详情</small>#}
+    {#    </h3>#}
+    {#    <hr>#}
+{#    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:100px">#}
+{#        {% with messages = get_flashed_messages() %}#}
+{#            {% if messages %}#}
+{#                <ul class=flashes>#}
+{#                    {% for message in messages %}#}
+{#                        <label>{{ message }}</label>#}
+{#                    {% endfor %}#}
+{#                </ul>#}
+{#            {% endif %}#}
+{#        {% endwith %}#}
+{#    </div>#}
+{#    <hr>#}
+    <div id="left_div" style="float:left;width:90%; margin-left: 100px;">
+        <form id="setting" method="POST" action="/preset_save">
+            <span class="glyphicon glyphicon-user"></span>&nbsp;<label>{{ user_id }}</label>&nbsp;&nbsp;&nbsp;
+            {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;
+            {{ inputForm.save(class="btn btn-info") }}
+            <hr>
+            <table id="preset_tab" class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>类别</th>
+                    <th>预置规则</th>
+                    <th>权重</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in inputForm.partn_list %}
+                    <tr style="max-height: 20px;">
+                        <td nowrap="nowrap">{{ row.partn_type_sel }}</td>
+                        <td nowrap="nowrap">{{ row.partn(size=120,placeholder="非逻辑 请使用：/^xxxxxx/") }}</td>
+                        <td nowrap="nowrap">{{ row.weight_sel }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
+    <!-- DataTables Javascript-->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            <!-- 列表展示 -->
+            $('#preset_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sSearch": "检索（正则）："
+                },
+                "aaSorting": [[2, "desc"]],
+                "search": {"regex": true},//开启正则支持
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bProcessing": true,
+                "bSort": true, //排序功能
+                "bFilter": true,
+                "bLengthChange": true,
+                "aLengthMenu": [15, 30],
+                "scrollY": "650px"
+            });
+            <!-- 选择分类-->
+            $('#scope_sel').change(function () {
+                var scope_sel = $(this).children('option:selected').val();
+                {#alert(scope_sel);#}
+                window.location.href = "/preset_change?scope=" + scope_sel;
+            });
+        });
+    </script>
+{% endblock %}

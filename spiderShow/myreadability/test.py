@@ -1,2 +1,0 @@
-import myreadability
-help(myreadability)
