@@ -229,7 +229,6 @@
                         }
                     });
                 } else {
-                    alert("manual");
                     $.ajax({
                         url: $SCRIPT_ROOT + '/content_manual_extract',
                         contentType: "application/json; charset=UTF-8",
@@ -237,13 +236,13 @@
                         data: {
                             url: $(this).text(),
 {#                            title_sel:$('#title_sel').value(),#}
-{#                            title_exp:$('#title_exp').val(),#}
+                            title_exp:$('#title_exp').val(),
 {#                            ctime_sel:$('#ctime_sel').value(),#}
-{#                            ctime_exp:$('#ctime_exp').val(),#}
+                            ctime_exp:$('#ctime_exp').val(),
 {#                            content_sel:$('#content_sel').value(),#}
-{#                            content_exp:$('#content_exp').val(),#}
+                            content_exp:$('#content_exp').val(),
 {#                            author_sel:$('#author_sel').value(),#}
-{#                            author_exp:$('#author_exp').val(),#}
+                            author_exp:$('#author_exp').val(),
                             now: new Date().getTime()
                         },
                         error: function (xhr, err) {

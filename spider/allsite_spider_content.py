@@ -132,6 +132,7 @@ class MySpider(spider.Spider):
 
         result = []
         title = data.xpath(self.title_exp).text().strip()
+        print 'title:', type(title), title
         source = self.siteName
         ctime = data.xpath(self.ctime_exp).replace(u'年', '-').replace(u'月', '-').replace(u'日', ''). \
             regex('(\d+-\d+-\d+)').datetime()
@@ -139,11 +140,14 @@ class MySpider(spider.Spider):
         utc_now = datetime.datetime.utcnow()
         author = data.xpath(self.author_exp).text().strip()
         post = {'url': url,
-                'title': title.encode('utf8'),
-                'content': content.encode('utf8'),
-                'ctime': ctime,
-                'utc_now': utc_now,
-                'author': author.encode('utf8'),
+                # 'title': unicode(title,encoding='utf-8'),
+                'title': title,
+                # 'content': unicode(content,encoding='utf-8'),
+                'content': content,
+                'ctime': '',
+                'utc_now': '',
+                # 'author': unicode(author,encoding='utf-8'),
+                'author': author,
                 }
         print '[INFO]parse_detail_page()', post
         result.append(post)
@@ -201,16 +205,16 @@ def get_one(url, setting_dict):
     mySpider.init_dedup()
     mySpider.init_downloader()
     response = mySpider.download(url)
-    one = mySpider.parse_detail_page(response, (mySpider.start_urls))
+    one = mySpider.parse_detail_page(response, url)
     print '[INFO]get_one() end.', one
     if one:
-        # return one[0]
-        return {'url': url,
-                'title': 'error',
-                'content': 'error',
-                'ctime': 'error',
-                'author': 'error',
-                }
+        return one[0]
+        # return {'url': url,
+        #         'title': 'error',
+        #         'content': 'error',
+        #         'ctime': 'error',
+        #         'author': 'error',
+        #         }
     else:
         return {'url': url,
                 'title': 'error',
@@ -222,7 +226,7 @@ def get_one(url, setting_dict):
 
 if __name__ == '__main__':
     url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
-    setting = {
+    setting_dict = {
         "start_url": "http://bbs.tianya.cn",
         "site_domain": "bbs.tianya.cn",
         "black_domain_str": "",
@@ -235,5 +239,8 @@ if __name__ == '__main__':
         "author_sel": "xpath",
         "author_exp": ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
     }
-    ret = main_once(url, json.dumps(setting))
+    ret = get_one(url, setting_dict)
     print ret
+    for k, v in ret.iteritems():
+        print k, v
+

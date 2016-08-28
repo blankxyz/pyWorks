@@ -2524,13 +2524,29 @@ def content_auto_extract():
     url = request.args.get('url')
     title, ctime, content, auther = myreadability.get_content_advice(url)
     ret = {'title': title, 'content': content}
-    jsonStr = json.dumps(ret, sort_keys=True)
+    jsonStr = json.dumps(ret, sort_keys=True, ensure_ascii=True)
     return jsonStr
 
 
 @app.route('/content_manual_extract', methods=["GET", "POST"])
 def content_manual_extract():
+    print '[info]content_manual_extract() start.'
     url = request.args.get('url')
+    print 'url', url
+    # start_url = request.args.get('start_url')
+    # print 'start_url', start_url
+    # site_domain = request.args.get('site_domain')
+    # print 'site_domain', site_domain
+    # black_domain_str = request.args.get('black_domain_str')
+    # print 'black_domain_str', black_domain_str
+    title_exp = request.args.get('title_exp')
+    print 'title_exp', title_exp
+    ctime_exp = request.args.get('ctime_exp')
+    print 'ctime_exp', ctime_exp
+    content_exp = request.args.get('content_exp')
+    print 'content_exp', content_exp
+    author_exp = request.args.get('author_exp')
+    print 'author_exp',author_exp
     setting_dict = {
         "start_url": "http://bbs.tianya.cn",
         "site_domain": "bbs.tianya.cn",
@@ -2544,10 +2560,10 @@ def content_manual_extract():
         "author_sel": "xpath",
         "author_exp": ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
     }
-    print '[info]content_manual_extract() start.', url, setting_dict
+
     import allsite_spider_content
     ret = allsite_spider_content.get_one(url, setting_dict=setting_dict)
-    jsonStr = json.dumps(ret, sort_keys=True)
+    jsonStr = json.dumps(ret, encoding='utf-8',ensure_ascii=True) # ensure_ascii=True 解决乱码
     print '[info]content_manual_extract() start.', jsonStr
     return jsonStr
 

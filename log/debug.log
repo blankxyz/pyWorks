@@ -713,3 +713,29 @@
 [2016-08-28 21:31:42,439] [WARNING] [downloader.py] [292] - 调试信息 下载返回码 404  请注意
 [2016-08-28 21:44:52,076] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 21:44:52] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1886469-1.shtml&now=1472391891006 HTTP/1.1" 200 -
 [2016-08-28 21:45:00,699] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 21:45:00] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472391899233 HTTP/1.1" 200 -
+[2016-08-28 23:43:11,988] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 23:43:11] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472398990738 HTTP/1.1" 200 -
+[2016-08-28 23:43:41,864] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 23:43:47,139] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 23:43:47] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472399025869 HTTP/1.1" 500 -
+[2016-08-28 23:46:04,024] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-08-28 23:47:16,923] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 23:47:16] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472399235443 HTTP/1.1" 500 -
+[2016-08-28 23:54:26,443] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-29 00:10:50,785] [DEBUG] [htmlparser.py] [140] - xpath 解析无结果: .//*[@id='post_head']/h1/span[1]/span; url: http://www.gapp.gov.cn/govinteract/1074/201543.shtml
+[2016-08-29 00:10:50,792] [DEBUG] [htmlparser.py] [140] - xpath 解析无结果: .//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]; url: http://www.gapp.gov.cn/govinteract/1074/201543.shtml
+[2016-08-29 00:11:47,289] [DEBUG] [htmlparser.py] [140] - xpath 解析无结果: //*[@id='post_head']/h1/span[1]/span; url: http://www.gapp.gov.cn/govinteract/1074/201543.shtml
+[2016-08-29 00:11:47,293] [DEBUG] [htmlparser.py] [140] - xpath 解析无结果: //*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]; url: http://www.gapp.gov.cn/govinteract/1074/201543.shtml
+[2016-08-29 00:49:17,036] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 00:49:17] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472402955309 HTTP/1.1" 500 -
+[2016-08-29 00:49:44,438] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-08-29 00:49:49,965] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 00:49:49] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1975209-1.shtml&now=1472402988737 HTTP/1.1" 500 -
+[2016-08-29 00:50:48,672] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-29 00:50:56,483] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 00:50:56] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1975209-1.shtml&now=1472403055522 HTTP/1.1" 200 -
+[2016-08-29 00:51:06,907] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 00:51:06] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-2000327-1.shtml&now=1472403066497 HTTP/1.1" 200 -
+[2016-08-29 00:51:11,958] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 00:51:11] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-2001326-1.shtml&now=1472403071717 HTTP/1.1" 200 -
+[2016-08-29 00:52:32,514] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 00:52:32] "GET /content_auto_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1886469-1.shtml&now=1472403151602 HTTP/1.1" 200 -
+[2016-08-29 00:55:25,297] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-08-29 01:01:28,652] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 01:01:28] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1993599-1.shtml&now=1472403687255 HTTP/1.1" 200 -
+[2016-08-29 01:02:06,023] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 01:02:06] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1993599-1.shtml&now=1472403725010 HTTP/1.1" 200 -
+[2016-08-29 01:03:14,929] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-08-29 01:03:53,965] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 01:03:53] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1975209-1.shtml&now=1472403832733 HTTP/1.1" 200 -
+[2016-08-29 01:12:58,311] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 01:12:58] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472404376648 HTTP/1.1" 200 -
+[2016-08-29 01:13:54,881] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-08-29 01:14:19,941] [INFO] [_internal.py] [87] - 127.0.0.1 - - [29/Aug/2016 01:14:19] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&title_exp=aaaa&ctime_exp=bbbb&content_exp=cccc&author_exp=ddd&now=1472404458447 HTTP/1.1" 200 -
