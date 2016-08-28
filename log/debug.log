@@ -1,0 +1,715 @@
+[2016-08-14 22:31:07,610] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,952] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,956] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,961] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,967] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,971] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,976] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,981] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,984] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:08,988] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:31:08,990] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,400] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,403] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,408] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,413] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,417] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,423] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,428] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,434] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,439] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:11,444] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,860] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,862] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,865] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,869] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:31:13,872] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,876] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,881] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,885] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,890] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:13,894] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:21,848] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,179] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,182] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,187] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:31:23,192] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,197] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,200] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,204] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:31:23,206] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,210] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:23,213] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,168] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,171] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,176] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,179] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,186] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:31:27,189] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,195] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:31:27,199] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,203] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:27,208] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,221] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,224] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,229] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,234] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,239] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,244] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,246] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,249] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,254] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:31:29,259] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:03,548] [DEBUG] [run.py] [264] - -----job_queue----qsize: 9
+[2016-08-14 22:33:03,550] [DEBUG] [run.py] [264] - -----job_queue----qsize: 8
+[2016-08-14 22:33:03,552] [DEBUG] [run.py] [264] - -----job_queue----qsize: 7
+[2016-08-14 22:33:03,555] [DEBUG] [run.py] [264] - -----job_queue----qsize: 6
+[2016-08-14 22:33:03,560] [DEBUG] [run.py] [264] - -----job_queue----qsize: 5
+[2016-08-14 22:33:03,562] [DEBUG] [run.py] [264] - -----job_queue----qsize: 4
+[2016-08-14 22:33:03,564] [DEBUG] [run.py] [264] - -----job_queue----qsize: 3
+[2016-08-14 22:33:03,566] [DEBUG] [run.py] [264] - -----job_queue----qsize: 2
+[2016-08-14 22:33:03,568] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:03,569] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,431] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,432] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,434] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,438] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,440] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,443] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,447] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,451] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,454] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:06,457] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:13,055] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:13,057] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:13,058] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:13,061] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:13,063] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:13,068] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:13,069] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:13,073] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:13,078] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:13,079] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,734] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,737] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,741] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:16,743] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,747] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:16,749] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,757] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,762] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,767] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:16,772] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,319] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,321] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,324] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,327] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,333] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,337] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,342] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,347] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,351] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:21,356] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,471] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,474] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,479] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,484] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,488] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,491] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,494] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,498] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,501] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:27,504] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,445] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,451] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,455] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,460] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,464] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,468] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,471] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:34,473] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:34,480] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:34,481] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,262] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,267] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,272] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,277] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,281] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,285] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,290] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,297] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,301] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:39,308] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:46,722] [DEBUG] [run.py] [264] - -----job_queue----qsize: 2
+[2016-08-14 22:33:46,724] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:46,726] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:46,731] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:46,738] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:46,743] [DEBUG] [run.py] [264] - -----job_queue----qsize: 2
+[2016-08-14 22:33:46,746] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:46,748] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:46,754] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:46,759] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,115] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,118] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,124] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,126] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,131] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,135] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,139] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:52,142] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,151] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:52,155] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,446] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,448] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,452] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,456] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,461] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,464] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,467] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,471] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:33:57,485] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:33:57,486] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,704] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,706] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,710] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,715] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,721] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:02,722] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,727] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,732] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:02,734] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:02,738] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,168] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,170] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,173] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,176] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,180] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:08,181] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,185] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,189] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,193] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:08,196] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,606] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,609] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,612] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,615] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,618] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,621] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,625] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,632] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:13,633] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:13,636] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,123] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,127] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,130] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,136] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,140] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,145] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,149] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,154] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,157] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:19,167] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,281] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,282] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,287] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,290] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,294] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,298] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,301] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,307] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,311] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:25,314] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,319] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,321] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,324] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,329] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:31,331] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,336] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,339] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:31,340] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:31,348] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:31,349] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:35,978] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:35,982] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:35,984] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:35,988] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:35,990] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:35,993] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:35,997] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:36,003] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:36,006] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:36,011] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,205] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,207] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,210] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,214] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,217] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:41,220] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,228] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:41,230] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,237] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:41,245] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,733] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,737] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,741] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,744] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,747] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,751] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,756] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:45,758] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:45,767] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:45,769] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,894] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,898] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,901] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,905] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,908] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,913] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,918] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,925] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,935] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:49,939] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:54,584] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:54,597] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:54,600] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:54,609] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:54,613] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:54,621] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:54,622] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:54,629] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:54,633] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:54,637] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,444] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,446] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,448] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,451] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,455] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:34:58,457] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,462] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,465] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,469] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:34:58,472] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,290] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,295] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:03,296] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,304] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,309] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:03,312] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,319] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,325] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:03,329] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:03,331] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,421] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,424] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:07,425] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,430] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,437] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,443] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,447] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,463] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:07,465] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:07,476] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,678] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,680] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,682] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,685] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,690] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,693] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:11,695] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,700] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:11,702] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:11,706] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,189] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,191] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,193] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,196] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,198] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,201] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,205] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,210] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,213] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:15,216] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,025] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,028] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,030] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,037] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,040] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,043] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,047] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,054] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,058] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:19,062] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,174] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,178] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,181] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,185] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,187] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,190] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,193] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,197] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,200] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:23,204] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:27,970] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:27,973] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:27,975] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:27,984] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:27,986] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:27,993] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:27,996] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:28,009] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:28,012] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:28,017] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,218] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,224] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,226] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,230] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,234] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,238] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,244] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,250] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:32,252] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:32,255] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:33,188] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,400] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,402] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,405] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,409] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,416] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,420] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,425] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,429] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:34,435] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:34,436] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,423] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,426] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,429] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,436] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,438] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,445] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,452] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,457] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,460] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,467] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,774] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,780] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,785] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,788] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,793] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,802] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,815] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,819] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:37,831] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:37,834] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,789] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,793] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,797] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:39,800] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,805] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,808] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,815] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,820] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,823] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:39,826] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,230] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,232] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,234] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,237] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,240] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,242] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,246] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,250] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:45,254] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:45,255] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,462] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,466] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,469] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,471] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,474] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,477] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,481] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,485] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,488] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:50,493] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,850] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,852] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,855] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,859] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:54,860] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,866] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:54,868] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,872] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,877] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:54,882] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:55,893] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,031] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,034] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,038] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,043] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,051] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,054] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,065] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,069] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:57,074] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:35:57,075] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,338] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,346] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,350] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,358] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,363] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,371] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,375] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,383] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,387] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,390] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,583] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,585] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,589] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,594] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,599] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,603] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,609] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,619] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,623] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:35:59,632] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,447] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,450] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,453] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,458] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,463] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,468] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:01,471] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,476] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,482] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:01,485] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,379] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,380] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,383] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,386] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,389] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,392] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,395] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,401] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,405] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:04,408] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:09,984] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:09,989] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:09,991] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:09,995] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:09,996] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:10,002] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:10,007] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:10,008] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:10,015] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:10,019] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,204] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,208] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,212] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,217] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,222] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,225] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,228] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:15,231] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,238] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:15,241] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,935] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,938] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:18,939] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,942] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,946] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,952] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,957] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,961] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,966] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:18,969] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:22,519] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:22,520] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:22,524] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:22,525] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:22,529] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:22,535] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:22,537] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:22,543] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:22,546] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:22,553] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,337] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,339] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,342] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,345] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,349] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,352] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,356] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,360] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,366] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:26,370] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,153] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,154] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,157] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,160] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,165] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,171] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,174] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,178] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,182] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:30,186] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,860] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,861] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,865] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,869] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,872] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,875] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,883] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:35,886] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,890] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:35,894] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,876] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,880] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,884] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,887] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,890] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,893] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,896] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,903] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:40,906] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:40,908] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,686] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,687] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,692] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:45,693] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,697] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,702] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-08-14 22:36:45,704] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,708] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,713] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-14 22:36:45,718] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-08-16 00:07:14,412] [ERROR] [downloader.py] [59] - HTTPConnectionPool(host='bbs.tianya.cn', port=80): Read timed out. (read timeout=15), Retrying in 1 seconds...
+[2016-08-16 00:08:14,019] [ERROR] [downloader.py] [59] - HTTPConnectionPool(host='bbs.tianya.cn', port=80): Read timed out. (read timeout=15), Retrying in 1 seconds...
+[2016-08-28 12:04:37,038] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:04:37] "POST /setting_advice_try HTTP/1.1" 500 -
+[2016-08-28 12:04:37,066] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:04:37] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+[2016-08-28 12:04:37,071] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:04:37] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=jquery.js HTTP/1.1" 200 -
+[2016-08-28 12:04:37,074] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:04:37] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+[2016-08-28 12:04:37,125] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:04:37] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=ubuntu.ttf HTTP/1.1" 200 -
+[2016-08-28 12:04:37,339] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:04:37] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+[2016-08-28 12:09:02,526] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:02] "POST /setting_advice_try HTTP/1.1" 500 -
+[2016-08-28 12:09:02,549] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:02] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+[2016-08-28 12:09:02,551] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:02] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=jquery.js HTTP/1.1" 200 -
+[2016-08-28 12:09:02,553] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:02] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+[2016-08-28 12:09:02,595] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:02] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=ubuntu.ttf HTTP/1.1" 200 -
+[2016-08-28 12:09:02,615] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:02] "GET /setting_advice_try?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+[2016-08-28 12:09:22,090] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_advice.py', reloading
+[2016-08-28 12:09:35,776] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:35] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-08-28 12:09:43,066] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:43] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-08-28 12:09:50,300] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 12:09:50] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-08-28 17:43:54,143] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:43:54] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1922033-1.shtml&now=1472377433872 HTTP/1.1" 500 -
+[2016-08-28 17:44:25,477] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 17:44:44,527] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:44:44] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-11424-1.shtml&now=1472377484252 HTTP/1.1" 500 -
+[2016-08-28 17:49:12,408] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:49:12] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-11424-1.shtml&now=1472377751356 HTTP/1.1" 500 -
+[2016-08-28 17:50:57,444] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 17:51:21,330] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:51:21] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-11424-1.shtml&now=1472377880402 HTTP/1.1" 500 -
+[2016-08-28 17:51:53,322] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 17:52:02,765] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:52:02] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-11424-1.shtml&now=1472377921898 HTTP/1.1" 200 -
+[2016-08-28 17:55:03,922] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:55:03] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-11424-1.shtml&now=1472378103057 HTTP/1.1" 200 -
+[2016-08-28 17:57:44,342] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 17:58:27,475] [DEBUG] [htmlparser.py] [140] - xpath 解析无结果: .//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]; url: 
+[2016-08-28 17:58:27,478] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 17:58:27] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1011-284-1.shtml&now=1472378306460 HTTP/1.1" 200 -
+[2016-08-28 17:59:38,676] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 18:02:10,717] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:02:10] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-7002-1.shtml&now=1472378529718 HTTP/1.1" 200 -
+[2016-08-28 18:03:28,919] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_spider_content.py', reloading
+[2016-08-28 18:03:39,341] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:03:39] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-1005-7002-1.shtml&now=1472378618418 HTTP/1.1" 200 -
+[2016-08-28 18:04:54,839] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:04:54] "GET /history_search HTTP/1.1" 200 -
+[2016-08-28 18:05:11,978] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:11] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-08-28 18:05:12,005] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:12] "GET /img/loading.gif HTTP/1.1" 404 -
+[2016-08-28 18:05:12,012] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:12] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-08-28 18:05:15,753] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:15] "GET /preset_init HTTP/1.1" 200 -
+[2016-08-28 18:05:15,879] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:15] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-08-28 18:05:15,922] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:15] "GET /img/loading.gif HTTP/1.1" 404 -
+[2016-08-28 18:05:15,927] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:15] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-08-28 18:05:35,358] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:35] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-08-28 18:05:38,541] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:05:38] "GET /list_detail_init_preset?scope=02 HTTP/1.1" 200 -
+[2016-08-28 18:10:29,975] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:29] "GET /history_search HTTP/1.1" 200 -
+[2016-08-28 18:10:30,128] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:30] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-08-28 18:10:30,149] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:30] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-08-28 18:10:30,153] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:30] "GET /img/loading.gif HTTP/1.1" 404 -
+[2016-08-28 18:10:31,787] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:31] "GET /preset_init HTTP/1.1" 200 -
+[2016-08-28 18:10:31,925] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:31] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-08-28 18:10:31,972] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:31] "GET /img/loading.gif HTTP/1.1" 404 -
+[2016-08-28 18:10:31,976] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 18:10:31] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-08-28 20:21:12,382] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:21:12] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-08-28 20:22:34,492] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:22:34] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-08-28 20:23:07,344] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:07] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-08-28 20:23:26,034] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:26] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:23:27,375] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:27] "GET /kill_spider HTTP/1.1" 302 -
+[2016-08-28 20:23:27,420] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:27] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:23:57,665] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:57] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:23:57,705] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:57] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:23:57,716] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:23:57] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:24:28,363] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:24:28] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:24:28,387] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:24:28] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:24:28,393] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:24:28] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:24:58,715] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:24:58] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:24:58,742] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:24:58] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:24:58,750] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:24:58] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:25:29,245] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:25:29] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:25:29,292] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:25:29] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:25:29,299] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:25:29] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:25:59,665] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:25:59] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:25:59,690] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:25:59] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:25:59,696] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:25:59] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:26:30,151] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:26:30] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:26:30,173] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:26:30] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:26:30,178] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:26:30] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:27:00,584] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:27:00] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:27:00,626] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:27:00] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:27:00,630] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:27:00] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:27:31,083] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:27:31] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:27:31,111] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:27:31] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:27:31,119] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:27:31] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:28:01,523] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:28:01] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:28:01,553] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:28:01] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:28:01,563] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:28:01] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:28:32,014] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:28:32] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:28:32,035] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:28:32] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:28:32,039] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:28:32] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:29:02,447] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:29:02] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:29:02,476] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:29:02] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:29:02,483] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:29:02] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:29:32,926] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:29:32] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:29:32,948] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:29:32] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:29:32,953] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:29:32] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:30:03,383] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:03] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:30:03,415] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:03] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:30:03,422] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:03] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:30:31,037] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:31] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:30:32,388] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:32] "GET /preset_init HTTP/1.1" 200 -
+[2016-08-28 20:30:32,631] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:32] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-08-28 20:30:32,694] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:32] "GET /img/loading.gif HTTP/1.1" 404 -
+[2016-08-28 20:30:32,699] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:32] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-08-28 20:30:33,117] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:33] "GET /admin_tools HTTP/1.1" 302 -
+[2016-08-28 20:30:33,128] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:33] "GET /tool_upload HTTP/1.1" 200 -
+[2016-08-28 20:30:33,981] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:33] "GET /tool_reset_redis HTTP/1.1" 302 -
+[2016-08-28 20:30:33,987] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:33] "GET /tool_upload HTTP/1.1" 200 -
+[2016-08-28 20:30:34,968] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:34] "GET /setting_advice_init HTTP/1.1" 200 -
+[2016-08-28 20:30:35,436] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:35] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-08-28 20:30:37,336] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:37] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-08-28 20:30:51,838] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:51] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:30:53,218] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:53] "GET /kill_spider HTTP/1.1" 302 -
+[2016-08-28 20:30:53,273] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:30:53] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:31:23,378] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:31:23] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:31:23,402] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:31:23] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:31:23,406] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:31:23] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:31:54,149] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:31:54] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:31:54,172] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:31:54] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:31:54,178] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:31:54] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:32:24,422] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:32:24] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:32:24,447] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:32:24] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:32:24,452] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:32:24] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:32:55,768] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:32:55] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:32:55,790] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:32:55] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:32:55,794] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:32:55] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 20:33:26,134] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:33:26] "GET /show_process HTTP/1.1" 200 -
+[2016-08-28 20:33:26,164] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:33:26] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-08-28 20:33:26,173] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 20:33:26] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-08-28 21:31:10,510] [WARNING] [downloader.py] [292] - 调试信息 下载返回码 404  请注意
+[2016-08-28 21:31:42,439] [WARNING] [downloader.py] [292] - 调试信息 下载返回码 404  请注意
+[2016-08-28 21:44:52,076] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 21:44:52] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1886469-1.shtml&now=1472391891006 HTTP/1.1" 200 -
+[2016-08-28 21:45:00,699] [INFO] [_internal.py] [87] - 127.0.0.1 - - [28/Aug/2016 21:45:00] "GET /content_manual_extract?url=http%3A%2F%2Fbbs.tianya.cn%2Fpost-100-1938419-1.shtml&now=1472391899233 HTTP/1.1" 200 -
