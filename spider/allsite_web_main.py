@@ -1605,7 +1605,7 @@ def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
 
 
 ######### router and action  ###############################################################################
-@app.route("/login", methods=['POST', 'GET'])
+@app.route("/", methods=['POST', 'GET'])
 def login():
     error = None
     if request.method == 'POST':
@@ -1623,7 +1623,7 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/menu', methods=['GET', 'POST'])
 def menu():
     # 初始化session
     session['user_id'] = 'admin'  # login页面设置

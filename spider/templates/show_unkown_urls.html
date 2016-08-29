@@ -132,7 +132,7 @@
                         "sLast": "尾页"
                     },
                     "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sProcessing": "<img src='  /img/loading.gif' />",
                     "sSearch": "检索（正则）："
                 },
                 "search": {"regex": true},//开启正则支持
@@ -140,6 +140,7 @@
                 "bProcessing": true,
                 "bSort": true, //排序功能
                 "bFilter": true,
+                "bPaginage": true,
                 "bLengthChange": false,
                 "scrollY": "300px"
             });
@@ -156,7 +157,7 @@
                         "sLast": "尾页"
                     },
                     "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sProcessing": "<img src='/img/loading.gif' />",
                     "sSearch": "检索（正则）："
                 },
                 "search": {"regex": true},//开启正则支持
@@ -164,8 +165,12 @@
                 "bProcessing": true,
                 "bSort": true, //排序功能
                 "bFilter": true,
+                "bPaginage": true,
                 "bLengthChange": false,
-                "scrollY": "220px"
+                "scrollY": "220px",
+                "order": [
+                    [1, "desc"]
+                ]
             });
             $('#category_compress_tab').DataTable({
                 "oLanguage": {
@@ -180,7 +185,7 @@
                         "sLast": "尾页"
                     },
                     "sZeroRecords": "没有数据 。。。",
-                    "sProcessing": "<img src='./img/loading.gif' />",
+                    "sProcessing": "<img src='/img/loading.gif' />",
                     "sSearch": "检索（正则）："
                 },
                 "search": {"regex": true},//开启正则支持
@@ -188,8 +193,12 @@
                 "bProcessing": true,
                 "bSort": true, //排序功能
                 "bFilter": true,
+                "bPaginage": true,
                 "bLengthChange": false,
-                "scrollY": "220px"
+                "scrollY": "220px",
+                "order": [
+                    [1, "desc"]
+                ]
             });
             $('#right_keywords_div').highcharts({
                 chart: {
@@ -260,7 +269,7 @@
                     if (del_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-{#                        alert(regex_type + " : " + del_regex);#}
+                        {#                        alert(regex_type + " : " + del_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'delete',
@@ -282,7 +291,7 @@
                     if (add_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-{#                        alert(regex_type + " : " + add_regex);#}
+                        {#                        alert(regex_type + " : " + add_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'put',

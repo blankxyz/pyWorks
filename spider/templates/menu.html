@@ -38,26 +38,21 @@
                        title="配置信息-历史记录"> ④历史查询
                     </a>
                 </li>
-                <li class="disabled">
+                <li id="admin_preset" class="disabled">
                     <a href="preset_init" target="mainframe" data-toggle="tooltip"
                        title="无效，列表，详情"> ⑤预置规则
                     </a>
                 </li>
-                <li class="disabled">
+                <li id="admin_tools" class="disabled">
                     <a href="admin_tools" target="mainframe" data-toggle="tooltip"
-                       title="管理员 工具集"> ⑥帮助
+                       title="管理员 工具集"> ⑥管理工具
                     </a>
                 </li>
-                <li class="disabled">
+                <li id="admin_server_log" class="disabled">
                     <a href="admin_server_log" target="mainframe" data-toggle="tooltip"
-                       title="web server log"> ⑥log
+                       title="web server log"> ⑥后台log
                     </a>
                 </li>
-{#                <li class="disabled">#}
-{#                    <a href="test" target="mainframe" data-toggle="tooltip"#}
-{#                       title="debug"> ⑥test#}
-{#                    </a>#}
-{#                </li>#}
             </ul>
         </div>
     </nav>
@@ -75,6 +70,18 @@
         $("li").click(function () {
             $(this).addClass("active");
             $(this).siblings().removeClass("active");
+        });
+
+        $(document).ready(function () {
+            {% if user_id == 'admin' %}
+                $('#admin_preset').show();
+                $('#admin_tools').show();
+                $('#admin_server_log').show();
+            {% else %}
+                $('#admin_preset').hide();
+                $('#admin_tools').hide();
+                $('#admin_server_log').hide();
+            {% endif %}
         });
     </script>
 {% endblock %}
