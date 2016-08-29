@@ -17,7 +17,7 @@ from functools import wraps
 from flask import make_response
 from flask.ext.cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
-from flask import Flask, render_template, request, session, url_for, flash, redirect
+from flask import Flask, render_template, request, session, url_for, flash, redirect, g
 from flask import send_from_directory
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
@@ -84,7 +84,9 @@ api = Api(app)  # restful
 # CORS(app) #跨域请求
 
 global process_id
-
+global g_advice_regex_list # 推荐所使用的 正则
+global g_advice_keyword_list  # 推荐所使用的 关键字
+global g_start_url_list # 推荐所使用的首页所有的url
 
 ######## setting_advice.html ##############################################################################
 class AdviceRegexForm(Form):  # advice_setting
@@ -708,8 +710,7 @@ class MySqlDrive(object):
             print '[error]get_result_file() start_url is None.'
             return None, None, 0
 
-        # user_id = session['user_id']
-        user_id = 'admin'
+        user_id = session['user_id']
         cnt = 0
 
         try:
@@ -1607,37 +1608,41 @@ def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
 ######### router and action  ###############################################################################
 @app.route("/", methods=['POST', 'GET'])
 def login():
-    error = None
     if request.method == 'POST':
         user_id = request.form['username']
         password = request.form['password']
         mysql_db = MySqlDrive()
         if mysql_db.check_password(user_id, password):
             session['user_id'] = user_id  # password OK！
-            mysql_db.set_current_main_setting(user_id=user_id)
-            # return redirect(url_for('menu'))
-            return render_template('menu.html', user_id=session.get('user_id'))
+            start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+
+            session['start_url'] = start_url
+            session['site_domain'] = site_domain
+            session['black_domain_str'] = black_domain
+
+            g_advice_regex_list = []  # 推荐所使用的 正则
+            g_advice_keyword_list = []  # 推荐所使用的 关键字
+            g_start_url_list = []  # 推荐所使用的首页所有的url
+
+            return render_template('menu.html', user_id=user_id)
         else:
             flash(u"输入密码不正确。")
 
     return render_template('login.html')
 
 
-@app.route('/menu', methods=['GET', 'POST'])
-def menu():
-    # 初始化session
-    session['user_id'] = 'admin'  # login页面设置
-    session['start_url'] = ''
-    session['site_domain'] = ''
-    session['black_domain_str'] = ''
-    session['advice_regex_list'] = json.dumps('')
-    session['advice_keyword_list'] = json.dumps('')
-
-    user_id = session['user_id']
-
-    mysql_db = MySqlDrive()
-    mysql_db.clean_current_main_setting(user_id)
-    return render_template('menu.html')
+# @app.route('/menu', methods=['GET', 'POST'])
+# def menu():
+#     # 初始化session
+#     # session['user_id'] = 'admin'  # login页面设置
+#     # session['start_url'] = ''
+#     # session['site_domain'] = ''
+#     # session['black_domain_str'] = ''
+#     # session['advice_regex_list'] = json.dumps([])
+#     # session['advice_keyword_list'] = json.dumps([])
+#
+#
+#     return render_template('menu.html')
 
 
 @app.errorhandler(404)
@@ -1669,8 +1674,8 @@ def setting_advice_init():
     inputForm = AdviceRegexListInputForm(request.form)
 
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
-    advice_regex_list = json.loads(session['advice_regex_list'])
-    advice_keyword_list = json.loads(session['advice_keyword_list'])
+    # advice_regex_list = json.loads(session['advice_regex_list'])
+    # advice_keyword_list = json.loads(session['advice_keyword_list'])
 
     # 恢复 主页、域名
     if start_url is None or start_url.strip() == '' or \
@@ -1685,25 +1690,25 @@ def setting_advice_init():
         return render_template('setting_advice.html', inputForm=inputForm)
 
     ####  页面(regex)
-    for (regex, score, select) in advice_regex_list:
+    for (regex, score, select) in g_advice_regex_list:
         regexForm = AdviceRegexForm()
         regexForm.regex = regex
         regexForm.score = score
         regexForm.select = select
         inputForm.regex_list.append_entry(regexForm)
 
-    for j in range(SHOW_MAX - len(advice_regex_list)):
+    for j in range(SHOW_MAX - len(g_advice_regex_list)):
         inputForm.regex_list.append_entry()
 
     ####  页面(keyword)
-    for (keyword, score, select) in advice_keyword_list:
+    for (keyword, score, select) in g_advice_keyword_list:
         regexForm = AdviceKeyWordForm()
         regexForm.keyword = keyword
         regexForm.score = score
         regexForm.select = select
         inputForm.keyword_list.append_entry(regexForm)
 
-    for j in range(SHOW_MAX - len(advice_keyword_list)):
+    for j in range(SHOW_MAX - len(g_advice_keyword_list)):
         inputForm.keyword_list.append_entry()
 
     # 初始化预置规则
@@ -1719,6 +1724,11 @@ def setting_advice_init():
 @app.route('/setting_advice_try', methods=["GET", "POST"])
 def setting_advice_try():
     print '[info]setting_advice_try() start.'
+    # 通过session保存,以免页面再次初始化时重新计算。
+    global g_advice_regex_list
+    global g_advice_keyword_list
+    global g_start_url_list
+
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -1747,12 +1757,12 @@ def setting_advice_try():
 
     # 修改配置文件的执行入口信息
     import allsite_spider_advice
-    url_list = allsite_spider_advice.main(start_urls=start_url,
-                                          site_domain=site_domain,
-                                          black_domain_str=black_domain_str)
+    g_start_url_list = allsite_spider_advice.main(start_urls=start_url,
+                                                  site_domain=site_domain,
+                                                  black_domain_str=black_domain_str)
 
     util = Util()
-    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(url_list)
+    advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(g_start_url_list)
 
     ####  页面设置计算结果(regex)
     advice_regex_list = []
@@ -1781,10 +1791,6 @@ def setting_advice_try():
     for j in range(SHOW_MAX - len(advice_keyword_dic)):
         inputForm.keyword_list.append_entry()
         advice_keyword_list.append({'keyword': '', 'score': '0', 'select': '0'})
-
-    # 通过session保存,以免页面再次初始化时重新计算。
-    session['advice_regex_list'] = json.dumps(advice_regex_list)
-    session['advice_keyword_list'] = json.dumps(advice_keyword_list)
 
     flash(u'初始化配置完成')
     print '[info]setting_advice_try() end.'
@@ -1861,10 +1867,10 @@ def setting_advice_use():
 def setting_advice_window():
     user_id = session['user_id']
     inputForm = AdviceUrlListForm()
+    global g_start_url_list
 
     # 提取主页、域名
     start_url, site_domain, black_domain_str = get_domain_init()
-    # 提取主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
@@ -1873,12 +1879,8 @@ def setting_advice_window():
     regex = request.args.get('regex')
     print '[info]setting_advice_window() regex or keyword is: ', regex
 
-    fp = open(EXPORT_FOLDER + '/advice(' + site_domain + ').json', "r")
-    url_list = fp.readlines()
-    fp.close()
-
     matched_url_list = []
-    for url in url_list:
+    for url in g_start_url_list:
         if re.search(regex, url):
             matched_url_list.append(url)
 
@@ -2052,7 +2054,6 @@ def list_detail_init():
 @app.route('/list_detail_save_and_run', methods=['POST'])
 def list_detail_save_and_run():
     user_id = session['user_id']
-    # user_id = 'admin'
     global process_id
     inputForm = ListDetailRegexSettingForm(request.form)
     # if inputForm.validate_on_submit():
@@ -2406,7 +2407,6 @@ def show_process():
 @app.route('/save_finally_result', methods=['GET', 'POST'])
 def save_finally_result():
     user_id = session['user_id']
-    # user_id = 'admin'
     start_url, site_domain, black_domain = get_domain_init()
 
     # 保存 实时 列表页结果
@@ -2546,7 +2546,7 @@ def content_manual_extract():
     content_exp = request.args.get('content_exp')
     print 'content_exp', content_exp
     author_exp = request.args.get('author_exp')
-    print 'author_exp',author_exp
+    print 'author_exp', author_exp
     setting_dict = {
         "start_url": "http://bbs.tianya.cn",
         "site_domain": "bbs.tianya.cn",
@@ -2563,7 +2563,7 @@ def content_manual_extract():
 
     import allsite_spider_content
     ret = allsite_spider_content.get_one(url, setting_dict=setting_dict)
-    jsonStr = json.dumps(ret, encoding='utf-8',ensure_ascii=True) # ensure_ascii=True 解决乱码
+    jsonStr = json.dumps(ret, encoding='utf-8', ensure_ascii=True)  # ensure_ascii=True 解决乱码
     print '[info]content_manual_extract() start.', jsonStr
     return jsonStr
 
@@ -2618,7 +2618,6 @@ def content_save_and_run():
 @app.route('/history_search', methods=['GET', 'POST'])
 def history_search():
     user_id = session['user_id']
-    # user_id = 'admin'
     print '[info]user_search()', user_id
     mysql_db = MySqlDrive()
 
@@ -2760,7 +2759,6 @@ def preset_save():
 @app.route('/admin_server_log', methods=['GET', 'POST'])
 def admin_server_log():
     user_id = session['user_id']
-    # user_id = 'admin'
     inputForm = ShowServerLogInputForm(request.form)
     # 提取主页、域名
     mysql_db = MySqlDrive()
