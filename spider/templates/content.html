@@ -235,19 +235,17 @@
                         dataType: 'json',
                         data: {
                             url: $(this).text(),
-{#                            title_sel:$('#title_sel').value(),#}
                             title_exp:$('#title_exp').val(),
-{#                            ctime_sel:$('#ctime_sel').value(),#}
                             ctime_exp:$('#ctime_exp').val(),
-{#                            content_sel:$('#content_sel').value(),#}
                             content_exp:$('#content_exp').val(),
-{#                            author_sel:$('#author_sel').value(),#}
                             author_exp:$('#author_exp').val(),
                             now: new Date().getTime()
                         },
                         error: function (xhr, err) {
                             $('#title').text('内容自动获取失败。');
+                            $('#ctime').val(err);
                             $('#content').text(err);
+                            $('#author').val(err);
                         },
                         success: function (data, textStatus) {
                             $('#title').text(data.title);

@@ -83,10 +83,10 @@ bootstrap = Bootstrap(app)
 api = Api(app)  # restful
 # CORS(app) #跨域请求
 
-global process_id
-global g_advice_regex_list # 推荐所使用的 正则
+global g_advice_regex_list  # 推荐所使用的 正则
 global g_advice_keyword_list  # 推荐所使用的 关键字
-global g_start_url_list # 推荐所使用的首页所有的url
+global g_start_url_list  # 推荐所使用的首页所有的url
+
 
 ######## setting_advice.html ##############################################################################
 class AdviceRegexForm(Form):  # advice_setting
@@ -110,6 +110,10 @@ class AdviceRegexListInputForm(Form):  # setting
     regex_list = FieldList(FormField(AdviceRegexForm), label=u'正则表达式')
     keyword_list = FieldList(FormField(AdviceKeyWordForm), label=u'关键字')
 
+    scope_sel = SelectField(label=u'分类', coerce=str,
+                            choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                                     ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                            default=('00', u'不使用预置规则'))
     advice = SubmitField(label=u'提取')
     use = SubmitField(label=u'采用')
 
@@ -123,7 +127,7 @@ class AdviceUrlListForm(Form):
     url_list = FieldList(FormField(AdviceUrlForm), label=u'URL列表')
 
 
-######## setting_list_detail.html #####################################################################################
+######## setting_list_detail.html #########################################################################
 class RegexSettingForm(Form):  # setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
@@ -1729,6 +1733,8 @@ def setting_advice_try():
     global g_advice_keyword_list
     global g_start_url_list
 
+    mysql_db = MySqlDrive()
+
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -1747,12 +1753,15 @@ def setting_advice_try():
     else:
         set_domain_init(inputForm, start_url, site_domain, black_domain_str)
 
+    # 选择推荐规则
+    req_scope_sel = request.args.get('scope')
+    inputForm.scope_sel.data = req_scope_sel
+
     # 保存初始化信息
-    mysql_db = MySqlDrive()
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                       black_domain_str=black_domain_str, setting_json='')
     # 初始化预置规则
-    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(scope='01')
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(scope=req_scope_sel)
     # print patrn_list, patrn_detail, patrn_rubbish
 
     # 修改配置文件的执行入口信息
@@ -1804,9 +1813,9 @@ def setting_advice_try():
 @app.route('/setting_advice_use', methods=["GET", "POST"])
 def setting_advice_use():
     print '[info]setting_advice_save() start.'
-    patrn_rubbish = '\/uid|username|space|search|blog|group\/'
-    patrn_detail = '\/post\/'
-    patrn_list = '\/list\/'
+    # patrn_rubbish = '\/uid|username|space|search|blog|group\/'
+    # patrn_detail = '\/post\/'
+    # patrn_list = '\/list\/'
 
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
@@ -2540,31 +2549,44 @@ def content_manual_extract():
     # black_domain_str = request.args.get('black_domain_str')
     # print 'black_domain_str', black_domain_str
     title_exp = request.args.get('title_exp')
-    print 'title_exp', title_exp
+    print '[info]content_manual_extract() title_exp', title_exp
     ctime_exp = request.args.get('ctime_exp')
-    print 'ctime_exp', ctime_exp
+    print '[info]content_manual_extract() ctime_exp', ctime_exp
     content_exp = request.args.get('content_exp')
-    print 'content_exp', content_exp
+    print '[info]content_manual_extract() content_exp', content_exp
     author_exp = request.args.get('author_exp')
-    print 'author_exp', author_exp
+    print '[info]content_manual_extract() author_exp', author_exp
+    # setting_dict = {
+    #     "start_url": "http://bbs.tianya.cn",
+    #     "site_domain": "bbs.tianya.cn",
+    #     "black_domain_str": "",
+    #     "title_sel": "xpath",
+    #     "title_exp": ".//*[@id='post_head']/h1/span[1]/span",
+    #     "ctime_sel": "xpath",
+    #     "ctime_exp": ".//*[@id='post_head']/div[2]/div[2]/span[2]",
+    #     "content_sel": "xpath",
+    #     "content_exp": ".//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]",
+    #     "author_sel": "xpath",
+    #     "author_exp": ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
+    # }
     setting_dict = {
-        "start_url": "http://bbs.tianya.cn",
-        "site_domain": "bbs.tianya.cn",
-        "black_domain_str": "",
-        "title_sel": "xpath",
-        "title_exp": ".//*[@id='post_head']/h1/span[1]/span",
-        "ctime_sel": "xpath",
-        "ctime_exp": ".//*[@id='post_head']/div[2]/div[2]/span[2]",
-        "content_sel": "xpath",
-        "content_exp": ".//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]",
-        "author_sel": "xpath",
-        "author_exp": ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
+        'start_url': '',
+        'site_domain': '',
+        'black_domain_str': '',
+        'title_sel': 'xpath',
+        'title_exp': title_exp,
+        'ctime_sel': 'xpath',
+        'ctime_exp': ctime_exp,
+        'content_sel': 'xpath',
+        'content_exp': content_exp,
+        'author_sel': 'xpath',
+        'author_exp': author_exp
     }
-
     import allsite_spider_content
     ret = allsite_spider_content.get_one(url, setting_dict=setting_dict)
+    print '[info]content_manual_extract() end.', ret
     jsonStr = json.dumps(ret, encoding='utf-8', ensure_ascii=True)  # ensure_ascii=True 解决乱码
-    print '[info]content_manual_extract() start.', jsonStr
+    print '[info]content_manual_extract() end.', jsonStr
     return jsonStr
 
 

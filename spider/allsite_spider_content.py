@@ -42,9 +42,9 @@ DEDUP_SETTING = config.get('redis', 'dedup_server')
 START_URLS = '''http://bbs.tianya.cn'''
 SITE_DOMAIN = '''bbs.tianya.cn'''
 BLACK_DOMAIN_STR = ''''''
-TITLE_EXP = ''''''
-CONTENT_EXP = ''''''
-AUTHOR_EXP = ''''''
+TITLE_EXP = '''//*[@id='post_head']/h1/span[1]/span1'''
+CONTENT_EXP = '''//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
+AUTHOR_EXP = '''//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
 CTIME_EXP = ''''''
 
 
@@ -120,36 +120,60 @@ class MySpider(spider.Spider):
         return urls, None, None
 
     def parse_detail_page(self, response=None, url=None):
-        try:
-            response.encoding = self.encoding
-            unicode_html_body = response.text
-            data = htmlparser.Parser(unicode_html_body)
-        except Exception, e:
-            print "[ERROR]parse_detail_page(): %s" % e
-            return None
+        result = []
+
         if url is None:
             url = response.request.url
 
-        result = []
-        title = data.xpath(self.title_exp).text().strip()
-        print 'title:', type(title), title
-        source = self.siteName
-        ctime = data.xpath(self.ctime_exp).replace(u'年', '-').replace(u'月', '-').replace(u'日', ''). \
-            regex('(\d+-\d+-\d+)').datetime()
-        content = data.xpath(self.content_exp).text().strip()
-        utc_now = datetime.datetime.utcnow()
-        author = data.xpath(self.author_exp).text().strip()
+        response.encoding = self.encoding
+        unicode_html_body = response.text
+        data = htmlparser.Parser(unicode_html_body)
+
+        try:
+            if self.title_exp !='':
+                title = data.xpath(self.title_exp).text().strip()
+            else:
+                title = 'None'
+        except Exception, e:
+            print "[ERROR]parse_detail_page(): title %s" % e
+            title = 'parse error'
+
+        try:
+            if self.ctime_exp != '':
+                # ctime = data.xpath(self.ctime_exp).replace(u'年', '-').replace(u'月', '-').replace(u'日', ''). \
+                #     regex('(\d+-\d+-\d+)').datetime()
+                ctime = data.xpath(self.ctime_exp).text().strip()
+            else:
+                ctime = 'None'
+        except Exception, e:
+            print "[ERROR]parse_detail_page(): ctime %s" % e
+            ctime = 'parse error'
+
+        try:
+            if self.content_exp != '':
+                content = data.xpath(self.content_exp).text().strip()
+            else:
+                content = ''
+        except Exception, e:
+            print "[ERROR]parse_detail_page(): content %s" % e
+            content = 'parse error'
+
+        try:
+            if self.author_exp != '':
+                author = data.xpath(self.author_exp).text().strip()
+            else:
+                author = 'None'
+        except Exception, e:
+            print "[ERROR]parse_detail_page(): author %s" % e
+            author = 'parse error'
+
         post = {'url': url,
-                # 'title': unicode(title,encoding='utf-8'),
                 'title': title,
-                # 'content': unicode(content,encoding='utf-8'),
                 'content': content,
-                'ctime': '',
-                'utc_now': '',
-                # 'author': unicode(author,encoding='utf-8'),
-                'author': author,
+                'ctime': ctime,
+                'author': author
                 }
-        print '[INFO]parse_detail_page()', post
+        # print '[INFO]parse_detail_page()', post
         result.append(post)
         return result
 
@@ -206,22 +230,7 @@ def get_one(url, setting_dict):
     mySpider.init_downloader()
     response = mySpider.download(url)
     one = mySpider.parse_detail_page(response, url)
-    print '[INFO]get_one() end.', one
-    if one:
-        return one[0]
-        # return {'url': url,
-        #         'title': 'error',
-        #         'content': 'error',
-        #         'ctime': 'error',
-        #         'author': 'error',
-        #         }
-    else:
-        return {'url': url,
-                'title': 'error',
-                'content': 'error',
-                'ctime': 'error',
-                'author': 'error',
-                }
+    return one[0]
 
 
 if __name__ == '__main__':
@@ -243,4 +252,3 @@ if __name__ == '__main__':
     print ret
     for k, v in ret.iteritems():
         print k, v
-
