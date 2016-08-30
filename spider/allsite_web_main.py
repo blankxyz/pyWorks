@@ -42,6 +42,7 @@ if MY_OS == 'linux':
     INIT_CONFIG = './allsite_web_deploy.ini'
 else:  # mac or windows
     INIT_CONFIG = './allsite_web_dev.ini'
+
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
@@ -2466,11 +2467,11 @@ def reset_all():
 
     # web_server.log清零
     if os.name == 'nt':  # windows
-        fp = open('web_server.log', 'w')
+        fp = open('allsite_web_server.log', 'w')
         fp.write('')
         fp.close()
     else:  # linux
-        fp = open('./web_server.log', 'w')
+        fp = open('./allsite_web_server.log', 'w')
         fp.write('')
         fp.close()
 
@@ -2787,7 +2788,7 @@ def admin_server_log():
     start_url, site_domain, black_domain_str = get_domain_init()
 
     if MY_OS == 'windows':  # windows
-        f = open('web_server.log', 'r').readlines()
+        f = open('allsite_web_server.log', 'r').readlines()
         if len(f) >= 80:
             l = f[-80:]
         else:
@@ -2795,10 +2796,10 @@ def admin_server_log():
         server_log_list = l
     else:  # linux mac
         if inputForm.unkown_sel.data:
-            cmd = 'tail -80 ./web_server.log'
-            # cmd = "tail -10000 web_server.log | grep -E 'unkown|list|detail' |tail -80"
+            cmd = 'tail -80 ./allsite_web_server.log'
+            # cmd = "tail -10000 allsite_web_server.log | grep -E 'unkown|list|detail' |tail -80"
         else:
-            cmd = 'tail -80 ./web_server.log'
+            cmd = 'tail -80 ./allsite_web_server.log'
 
         p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
         server_log_list = p.stdout.readlines()
@@ -3044,7 +3045,7 @@ api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
-    if INIT_CONFIG.find('deploy') > 0:
-        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    else:
-        app.run(debug=True)
+    # if INIT_CONFIG.find('deploy') > 0:
+    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    # else:
+    #     app.run(debug=True)

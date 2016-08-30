@@ -50,7 +50,7 @@
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
-                        <td>{{ row.regex(size=70,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
+                        <td>{{ row.regex(size=65,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
                         <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
@@ -71,7 +71,7 @@
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
-                        <td>{{ row.regex(size=70,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
+                        <td>{{ row.regex(size=65,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
                         <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
