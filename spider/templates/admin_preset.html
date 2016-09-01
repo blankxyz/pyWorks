@@ -50,17 +50,17 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
     <!-- DataTables Javascript-->
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
     <script type="text/javascript">
-        function fnGetSelected(oTableLocal) {
-            alert("fnGetSelected");
-            var aReturn = new Array();
-            var aTrs = oTableLocal.fnGetNodes();
-            for (var i = 0; i < aTrs.length; i++) {
-                aReturn.push(oTableLocal.fnGetData(aTrs[i]));
-            }
-            return aReturn;
-        }
+{#        function fnGetSelected(oTableLocal) {#}
+{#            alert("fnGetSelected");#}
+{#            var aReturn = new Array();#}
+{#            var aTrs = oTableLocal.fnGetNodes();#}
+{#            for (var i = 0; i < aTrs.length; i++) {#}
+{#                aReturn.push(oTableLocal.fnGetData(aTrs[i]));#}
+{#            }#}
+{#            return aReturn;#}
+{#        }#}
         $(document).ready(function () {
             <!-- 列表展示 -->
             var oTable = $('#preset_tab').DataTable({
@@ -97,9 +97,9 @@
             });
             $('#save').click(function () {
                 {#                alert($('form').serialize()); #}
-                var a = oTable.fnGetData();
+{#                var a = oTable.fnGetNodes();#}
                 alert("save start");
-                alert(typeof(a));
+{#                alert(typeof(oTable.fn._fnGetColumns));#}
                 alert("save end");
             });
         });

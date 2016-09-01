@@ -39,17 +39,17 @@ else:
     print '[info]--- The OS is: %s ----' % MY_OS
 ####################################################################
 if MY_OS == 'linux':
-    INIT_CONFIG = './allsite_web_deploy.ini'
+    WEB_MAIN_INI = './allsite_web_deploy.ini'
 else:  # mac or windows
-    INIT_CONFIG = './allsite_web_dev.ini'
+    WEB_MAIN_INI = './allsite_web_dev.ini'
 
 ####################################################################
 config = ConfigParser.ConfigParser()
-if len(config.read(INIT_CONFIG)) == 0:
-    print '[error]cannot read the config file.', INIT_CONFIG
+if len(config.read(WEB_MAIN_INI)) == 0:
+    print '[error]cannot read the config file.', WEB_MAIN_INI
     exit(-1)
 else:
-    print '[info]read the config file.', INIT_CONFIG
+    print '[info]read the config file.', WEB_MAIN_INI
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
@@ -71,7 +71,7 @@ SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
-ALLSITE_INI = config.get(MY_OS, 'allsite_ini')
+SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
 ALLSITE_CONTENT = config.get(MY_OS, 'allsite_content')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
@@ -943,23 +943,21 @@ class RedisDrive(object):
         return keywords, matched_cnt
 
     def covert_redis_cnt_to_json(self):
-        # rule0_cnt = self.conn.zcard(self.detail_urls_rule0_zset_key)
-        # rule1_cnt = self.conn.zcard(self.detail_urls_rule1_zset_key)
-        rule0_cnt = 0
-        rule1_cnt = 0
+        unkown_cnt = self.conn.scard(self.unkown_urls_set_key)
         detail_cnt = self.conn.scard(self.detail_urls_set_key)
         list_cnt = self.conn.zcard(self.list_urls_zset_key)
-        list_done_urls = self.conn.zrangebyscore(
-            self.list_urls_zset_key, self.done_flg, self.done_flg)
-        list_done_cnt = len(list_done_urls)
-
-        detail_done_urls = self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg)
-        detail_done_cnt = len(detail_done_urls)
+        list_done_cnt = len(self.conn.zrangebyscore(self.list_urls_zset_key, self.done_flg, self.done_flg))
+        detail_done_cnt = len(self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg))
 
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cnt_info = {'times': t_stamp, 'rule0_cnt': rule0_cnt, 'rule1_cnt': rule1_cnt,
-                    'detail_cnt': detail_cnt, 'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt,
-                    'detail_done_cnt': detail_done_cnt}
+        # {"times": "2016-09-01 14:14:11",
+        #  "unkown_cnt": 105,
+        #  "detail_cnt": 10448, "detail_done_cnt": 0,
+        #  "list_cnt": 311, "list_done_cnt": 11}
+        cnt_info = {'times': t_stamp,
+                    'unkown_cnt': unkown_cnt,
+                    'detail_cnt': detail_cnt, 'detail_done_cnt': detail_done_cnt,
+                    'list_cnt': list_cnt, 'list_done_cnt': list_done_cnt}
         self.conn.hset(
             self.process_cnt_hset_key, t_stamp, json.dumps(cnt_info, sort_keys=True))
         # print cnt_info
@@ -1053,26 +1051,31 @@ class CollageProcessInfo(object):
         self.json_file = PROCESS_SHOW_JSON
 
     def convert_file_to_list(self):
-        rule0_cnt = []
-        rule1_cnt = []
-        detail_cnt = []
-        list_cnt = []
-        list_done_cnt = []
-        detail_done_cnt = []
-        times = []
+        unkown_cnt_list = []
+        detail_cnt_list = []
+        list_cnt_list = []
+        list_done_cnt_list = []
+        detail_done_cnt_list = []
+        times_list = []
 
         fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + self.site_domain + ').json', 'r')
+        # {"times": "2016-09-01 14:14:11",
+        #  "unkown_cnt": 105,
+        #  "detail_cnt": 10448, "detail_done_cnt": 0,
+        #  "list_cnt": 311, "list_done_cnt": 11}
         for line in fp.readlines():
             dic = eval(line)
-            times.append(dic.get('times'))
-            rule0_cnt.append(dic.get('rule0_cnt'))
-            rule1_cnt.append(dic.get('rule1_cnt'))
-            detail_cnt.append(dic.get('detail_cnt'))
-            list_cnt.append(dic.get('list_cnt'))
-            list_done_cnt.append(dic.get('list_done_cnt'))
-            detail_done_cnt.append(dic.get('detail_done_cnt'))
+            times_list.append(dic['times'])
+            unkown_cnt_list.append(dic['unkown_cnt'])
+            detail_cnt_list.append(dic['detail_cnt'])
+            list_cnt_list.append(dic['list_cnt'])
+            list_done_cnt_list.append(dic['list_done_cnt'])
+            detail_done_cnt_list.append(dic['detail_done_cnt'])
         fp.close()
-        return times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt
+        return times_list, \
+               unkown_cnt_list, \
+               detail_cnt_list, detail_done_cnt_list, \
+               list_cnt_list, list_done_cnt_list
 
 
 ##################################################################################################
@@ -1145,14 +1148,14 @@ class Util(object):
     def modify_config(self, start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
         try:
             config = ConfigParser.ConfigParser()
-            config.read(ALLSITE_INI)
+            config.read(SPIDER_INI)
             if start_urls.strip() != '': config.set('spider', 'start_urls', start_urls)
             if site_domain.strip() != '': config.set('spider', 'site_domain', site_domain)
             if black_domain_str.strip() != '': config.set('spider', 'black_domain_list', black_domain_str)
             if list_rule_str.strip() != '': config.set('spider', 'list_rule_list', list_rule_str)
             if detail_rule_str.strip() != '': config.set('spider', 'detail_rule_list', detail_rule_str)
             if mode.strip() != '': config.set('spider', 'mode', mode)
-            fp = open(ALLSITE_INI, "w")
+            fp = open(SPIDER_INI, "w")
             config.write(fp)
             print '[info]modify_config() success.'
             return True
@@ -2194,8 +2197,8 @@ def list_detail_save_and_run():
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                              list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
-        flash(u"修改" + INIT_CONFIG + u"文件失败.")
-        print u'[error]list_detail_save_and_run() modify ' + INIT_CONFIG + u' failure.'
+        flash(u"修改" + SPIDER_INI + u"文件失败.")
+        print u'[error]list_detail_save_and_run() modify ' + SPIDER_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     # 执行抓取程序
@@ -2360,6 +2363,15 @@ def show_unkown_urls():
     return render_template('show_unkown_urls.html', inputForm=inputForm)
 
 
+def diff_time(date1, date2):
+    date1 = time.strptime(date1, "%Y-%m-%d %H:%M:%S")
+    date2 = time.strptime(date2, "%Y-%m-%d %H:%M:%S")
+    date1 = datetime.datetime(date1[0], date1[1], date1[2], date1[3], date1[4], date1[5])
+    date2 = datetime.datetime(date2[0], date2[1], date2[2], date2[3], date2[4], date2[5])
+    ret = (date2 - date1).seconds
+    return ret
+
+
 ######### show_process.html  #############################################################################
 @app.route('/show_process', methods=['GET', 'POST'])
 def show_process():
@@ -2378,40 +2390,38 @@ def show_process():
     redis_db.covert_redis_cnt_to_json()
 
     collage = CollageProcessInfo(site_domain)
-    times, rule0_cnt, rule1_cnt, detail_cnt, list_cnt, list_done_cnt, detail_done_cnt = collage.convert_file_to_list()
-    times = range(len(times))  # 转换成序列[1,2,3...], high-chart不识别时间
+    times_list, unkown_cnt_list, detail_cnt_list, detail_done_cnt_list, list_cnt_list, list_done_cnt_list = \
+        collage.convert_file_to_list()
 
-    # print list_done_cnt[-1],list_cnt[-1]
-    if len(list_cnt) == 0 or list_cnt[-1] == 0:
-        list_done_rate = 0
-    else:
-        list_done_rate = float(list_done_cnt[-1]) / list_cnt[-1] * 100.0
+    total_cnt_list = []
+    velocity_list = []
+    for i in range(len(times_list)):
+        total_cnt_list.append(unkown_cnt_list[i] + detail_cnt_list[i] + list_cnt_list[i])
 
-    if len(list_cnt) == 0 or list_cnt[-1] == 0:
-        detail_done_rate = 0
-    else:
-        detail_done_rate = float(detail_done_cnt[-1]) / list_cnt[-1] * 100.0
+        t, v = 0, float(0)
+        if len(times_list) >= 2:
+            t = diff_time(times_list[0], times_list[i])  # min
 
-    keywords, matched_cnt = redis_db.get_keywords_match()
+        if t != 0:
+            v = float(total_cnt_list[i] - total_cnt_list[0]) * 60 / t
 
-    regexs_str = ("'" + "','".join(keywords) + "'")
-    # from flask import Markup
+        velocity_list.append(v)
+
+    times = range(len(times_list))  # 转换成序列[1,2,3...], high-chart不识别时间
     # 将json映射到html
     flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。')
     return render_template('show_process.html',
                            times=times,
-                           rule1_cnt=rule1_cnt,
-                           detail_cnt=detail_cnt,
-                           list_cnt=list_cnt,
-                           list_done_cnt=list_done_cnt,
-                           detail_done_cnt=detail_done_cnt,
-                           list_done_rate=list_done_rate,
-                           list_todo_rate=(100.0 - list_done_rate),
-                           detail_done_rate=detail_done_rate,
-                           detail_todo_rate=(100.0 - detail_done_rate),
-                           keywords=keywords,
-                           regexs_str=regexs_str,
-                           matched_cnt=matched_cnt)
+                           total_cnt_list=total_cnt_list,
+                           unkown_cnt_list=unkown_cnt_list,
+                           detail_cnt_list=detail_cnt_list,
+                           detail_done_cnt_list=detail_done_cnt_list,
+                           list_cnt_list=list_cnt_list,
+                           list_done_cnt_list=list_done_cnt_list,
+                           unkown_cnt_now=unkown_cnt_list[-1],
+                           detail_cnt_now=detail_cnt_list[-1],
+                           list_cnt_now=list_cnt_list[-1],
+                           velocity_list=velocity_list)
 
 
 @app.route('/save_finally_result', methods=['GET', 'POST'])
@@ -2620,8 +2630,8 @@ def content_save_and_run():
                                          author_regex_str=inputForm.author_exp.data,
                                          ctime_regex_str=inputForm.ctime_exp.data)
     if ret == False:
-        flash(u"修改" + INIT_CONFIG + u"文件失败.")
-        print u'[error]content_save_and_run() modify ' + INIT_CONFIG + u' failure.'
+        flash(u"修改" + SPIDER_INI + u"文件失败.")
+        print u'[error]content_save_and_run() modify ' + SPIDER_INI + u' failure.'
         return render_template('content.html', inputForm=inputForm)
 
     if os.name == 'nt':
@@ -2830,7 +2840,7 @@ def admin_server_log():
 def admin_tools():
     # print request.path
     flash(u"请选择操作。")
-    return redirect(url_for('tool_upload'), 302)
+    return render_template('admin_tools.html')
 
 
 @app.route('/export/<path:filename>')
@@ -2861,12 +2871,12 @@ def tool_reset_redis():
     for key in keys:
         redis_db.conn.delete(key)
 
-    return redirect(url_for('tool_upload'), 302)
+    return render_template('admin_tools.html')
 
 
 @app.route('/tool_getenv', methods=['GET', 'POST'])
 def tool_getenv():
-    json_str = {'INIT_CONFIG': INIT_CONFIG,
+    json_str = {'WEB_MAIN_INI': WEB_MAIN_INI,
 
                 'REDIS_SERVER': REDIS_SERVER,
                 'DEDUP_SETTING': DEDUP_SETTING,
@@ -2887,7 +2897,7 @@ def tool_getenv():
                 'SHELL_ADVICE_CMD': SHELL_ADVICE_CMD,
                 'SHELL_LIST_CMD': SHELL_LIST_CMD,
                 'SHELL_CONTENT_CMD': SHELL_CONTENT_CMD,
-                'ALLSITE_INI': ALLSITE_INI,
+                'SPIDER_INI': SPIDER_INI,
 
                 'DEPLOY_HOST': DEPLOY_HOST,
                 'DEPLOY_PORT': DEPLOY_PORT
@@ -2897,14 +2907,46 @@ def tool_getenv():
 
 @app.route('/tool_session_setting', methods=['POST'])
 def tool_session_setting():
-    session['start_url'] = request.form['start_url']
-    session['site_domain'] = request.form['site_domain']
-    return redirect(url_for('tool_upload'), 302)
+    start_url = request.form['start_url']
+    site_domain = request.form['site_domain']
+    if start_url.strip() == '' or site_domain.strip() == '':
+        flash(u'请输入必要信息。')
+    else:
+        session['start_url'] = request.form['start_url']
+        session['site_domain'] = request.form['site_domain']
+        flash(u'session已经被更新。')
+    return redirect(url_for('admin_tools'), 302)
 
 
-# @app.route('/test', methods=['GET', 'POST'])
-# def test():
-#     return render_template('test.html')
+@app.route('/tool_redis_setting', methods=['POST'])
+def tool_redis_setting():
+    redis_server = request.form['redis_server']
+    dedup_server = request.form['dedup_server']
+
+    if redis_server.strip() == '' or dedup_server.strip() == '':
+        flash(u'请输入必要信息。')
+    else:
+        config = ConfigParser.ConfigParser()
+        config.read(SPIDER_INI)
+        config.set('redis', 'redis_server', 'redis://' + redis_server)
+        config.set('redis', 'dedup_server', 'redis://' + dedup_server)
+        fp = open(SPIDER_INI, "w")
+        config.write(fp)
+
+        config = ConfigParser.ConfigParser()
+        config.read(WEB_MAIN_INI)
+        config.set('redis', 'redis_server', 'redis://' + redis_server)
+        config.set('redis', 'dedup_server', 'redis://' + dedup_server)
+        fp = open(WEB_MAIN_INI, "w")
+        config.write(fp)
+
+        flash(WEB_MAIN_INI + u'和' + SPIDER_INI + u'已经被更新。')
+    return redirect(url_for('admin_tools'), 302)
+
+
+@app.route('/test', methods=['GET', 'POST'])
+def test():
+    return render_template('test.html')
 
 
 ##########################################################################################
@@ -3045,7 +3087,7 @@ api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
-    # if INIT_CONFIG.find('deploy') > 0:
-    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    # else:
-    #     app.run(debug=True)
+    if WEB_MAIN_INI.find('deploy') > 0:
+        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    else:
+        app.run(debug=True)

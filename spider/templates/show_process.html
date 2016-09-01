@@ -26,13 +26,10 @@
         {% endwith %}
     </div>
     <hr>
-    <div id="process_list_div" style="min-width:700px;height:300px"></div>
+    <div id="process_list_div" style="float:left;width:50%;height:300px;min-width:500px"> </div> <div id="process_detail_div" style="float:right;width:50%;height:300px;min-width:500px"></div>
     <hr>
-    <div id="process_detail_div" style="min-width:700px;height:300px"></div>
+    <div id="list_by_total_div" style="float:left;width:50%;height:300px"></div> <div id="velocity_div" style="float:right;width:50%;height:300px"></div>
     <hr>
-    {#    <div id="regexs-div" style="float:left;width:60%;height:300px"></div>#}
-    {#    <div id="list-div" style="float:left;width:20%;height:300px"></div>#}
-    {#    <div id="detail-div" style="float:right;width:20%;height:300px"></div>#}
 {% endblock %}
 
 {% block scripts %}
@@ -61,7 +58,7 @@
                     plotLines: [{
                         value: 0,
                         width: 1,
-                        color: '#808080'
+                        color: '#00ff00'
                     }]
                 },
                 tooltip: {
@@ -74,11 +71,11 @@
                     borderWidth: 1
                 },
                 series: [{
-                    name: '列表页数',
-                    data: {{ list_cnt }}
+                    name: '总数',
+                    data: {{ list_cnt_list }}
                 }, {
-                    name: '列表页数(递归完成)',
-                    data:{{ list_done_cnt }}
+                    name: '完成',
+                    data:{{ list_done_cnt_list }}
                 }]
             });
             $('#process_detail_div').highcharts({
@@ -100,7 +97,7 @@
                     plotLines: [{
                         value: 0,
                         width: 1,
-                        color: '#808080'
+                        color: '#00ff00'
                     }]
                 },
                 tooltip: {
@@ -113,154 +110,98 @@
                     borderWidth: 1
                 },
                 series: [{
-                    name: '详情页数',
-                    data:{{ detail_cnt }}
+                    name: '总数',
+                    data:{{ detail_cnt_list }}
                 }, {
-                    name: '列表页数(详情页扫描完成)',
-                    data:{{ detail_done_cnt }}
+                    name: '完成',
+                    data:{{ detail_done_cnt_list }}
                 }]
             });
-        });
-        {#        $(function () {#}
-        {#            $('#list-div').highcharts({#}
-        {#                chart: {#}
-        {#                    plotBackgroundColor: null,#}
-        {#                    plotBorderWidth: null,#}
-        {#                    plotShadow: false#}
-        {#                },#}
-        {#                title: {#}
-        {#                    text: '列表页扫描进度'#}
-        {#                },#}
-        {#                tooltip: {#}
-        {#                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'#}
-        {#                },#}
-        {#                plotOptions: {#}
-        {#                    pie: {#}
-        {#                        allowPointSelect: true,#}
-        {#                        cursor: 'pointer',#}
-        {#                        dataLabels: {#}
-        {#                            enabled: true,#}
-        {#                            color: '#000000',#}
-        {#                            connectorColor: '#000000',#}
-        {#                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'#}
-        {#                        }#}
-        {#                    }#}
-        {#                },#}
-        {#                series: [{#}
-        {#                    type: 'pie',#}
-        {#                    name: '完成率',#}
-        {#                    data: [#}
-        {#                        ['完成', {{ list_done_rate }}],#}
-        {#                        {#}
-        {#                            name: '未完成',#}
-        {#                            y: {{ list_todo_rate }},#}
-        {#                            sliced: true,#}
-        {#                            selected: true#}
-        {#                        }#}
-        {#                    ]#}
-        {#                }]#}
-        {#            });#}
-        {#        });#}
-        {##}
-        {#        $(function () {#}
-        {#            $('#detail-div').highcharts({#}
-        {#                chart: {#}
-        {#                    plotBackgroundColor: null,#}
-        {#                    plotBorderWidth: null,#}
-        {#                    plotShadow: false#}
-        {#                },#}
-        {#                title: {#}
-        {#                    text: '详情页扫描进度'#}
-        {#                },#}
-        {#                tooltip: {#}
-        {#                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'#}
-        {#                },#}
-        {#                plotOptions: {#}
-        {#                    pie: {#}
-        {#                        allowPointSelect: true,#}
-        {#                        cursor: 'pointer',#}
-        {#                        dataLabels: {#}
-        {#                            enabled: true,#}
-        {#                            color: '#000000',#}
-        {#                            connectorColor: '#000000',#}
-        {#                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'#}
-        {#                        }#}
-        {#                    }#}
-        {#                },#}
-        {#                series: [{#}
-        {#                    type: 'pie',#}
-        {#                    name: '完成率',#}
-        {#                    data: [#}
-        {#                        ['完成', {{ detail_done_rate }}],#}
-        {#                        {#}
-        {#                            name: '未完成',#}
-        {#                            y: {{ detail_todo_rate }},#}
-        {#                            sliced: true,#}
-        {#                            selected: true#}
-        {#                        }#}
-        {#                    ]#}
-        {#                }]#}
-        {#            });#}
-        {#        });#}
-        {##}
-        {#        $(function () {#}
-        {#            $('#regexs-div').highcharts({#}
-        {#                chart: {#}
-        {#                    type: 'bar'#}
-        {#                },#}
-        {#                title: {#}
-        {#                    text: '规则匹配次数统计'#}
-        {#                },#}
-        {#                subtitle: {#}
-        {#                    text: '详情top5 + 列表top5'#}
-        {#                },#}
-        {#                xAxis: {#}
-        {#                    categories: [{{ regexs_str|safe }}],#}
-        {#                    title: {#}
-        {#                        text: null#}
-        {#                    }#}
-        {#                },#}
-        {#                yAxis: {#}
-        {#                    min: 0,#}
-        {#                    title: {#}
-        {#                        text: '次数',#}
-        {#                        align: 'high'#}
-        {#                    },#}
-        {#                    labels: {#}
-        {#                        overflow: 'justify'#}
-        {#                    }#}
-        {#                },#}
-        {#                tooltip: {#}
-        {#                    valueSuffix: ' 次数'#}
-        {#                },#}
-        {#                plotOptions: {#}
-        {#                    bar: {#}
-        {#                        dataLabels: {#}
-        {#                            enabled: true#}
-        {#                        }#}
-        {#                    }#}
-        {#                },#}
-        {#                legend: {#}
-        {#                    layout: 'vertical',#}
-        {#                    align: 'right',#}
-        {#                    verticalAlign: 'top',#}
-        {#                    x: -40,#}
-        {#                    y: 100,#}
-        {#                    floating: true,#}
-        {#                    borderWidth: 1,#}
-        {#                    backgroundColor: '#FFFFFF',#}
-        {#                    shadow: true#}
-        {#                },#}
-        {#                credits: {#}
-        {#                    enabled: false#}
-        {#                },#}
-        {#                series: [{#}
-        {#                    name: '匹配',#}
-        {#                    data: [{{ matched_cnt }}]#}
-        {#                }]#}
-        {#            });#}
-        {#        });#}
-        $(function () {
+            $('#list_by_total_div').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '抓取比例'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: false,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '抓取比例',
+                    data: [
+                        ['列表', {{ list_cnt_now}}],
+                        ['未匹配', {{ unkown_cnt_now }}],
+                        ['详情', {{ detail_cnt_now }}]
+                    ]
+                }]
+            });
+            $('#velocity_div').highcharts({
+                chart: {
+                    type: 'area'
+                },
+                title: {
+                    text: '瞬时速度(列表+详情+未匹配/使用时间)'
+                },
+                subtitle: {
+                    text: '1000页/分钟'
+                },
+                xAxis: {
+                    labels: {
+                        formatter: function () {
+                            return this.value; // clean, unformatted number for year
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: '页数'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value / 1000 + 'k';
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '的{series.name} 为{point.y:.0f}'
+                },
+                plotOptions: {
+                    area: {
+                        pointStart: 0,
+                        marker: {
+                            enabled: false,
+                            symbol: 'circle',
+                            radius: 2,
+                            states: {
+                                hover: {
+                                    enabled: true
+                                }
+                            }
+                        }
+                    }
+                },
+                series: [{
+                    name: '速度',
+                    data: {{ velocity_list }}
+                }]
+            });
             $("[data-toggle='tooltip']").tooltip();
         });
     </script>
