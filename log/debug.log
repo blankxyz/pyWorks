@@ -6186,3 +6186,31 @@ NameError: global name 'patrn_rubbish' is not defined
 [2016-09-01 14:45:45,487] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
 [2016-09-01 14:45:45,490] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
 [2016-09-01 14:45:45,490] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-01 17:30:22,778] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:22] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-01 17:30:22,793] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:22] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:30:26,555] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:26] "GET /setting_advice_window?regex=/list-\d{2,4}-\d{1,1}.shtml HTTP/1.1" 200 -
+[2016-09-01 17:30:26,569] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:26] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:30:39,240] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:39] "GET /setting_advice_window?regex= HTTP/1.1" 200 -
+[2016-09-01 17:30:39,269] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:39] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:30:39,417] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:30:39] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:31:06,505] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:06] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-01 17:31:06,523] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:06] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:31:07,676] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:07] "GET /setting_advice_window?regex=/post-spirit-\d{6,6}-\d{1,1}.shtml HTTP/1.1" 200 -
+[2016-09-01 17:31:07,778] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:07] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-01 17:31:07,801] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:07] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-01 17:31:10,510] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:10] "GET /setting_advice_window?regex= HTTP/1.1" 200 -
+[2016-09-01 17:31:10,907] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:10] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-01 17:31:11,075] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:11] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-01 17:31:39,859] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:39] "GET /admin_tools HTTP/1.1" 200 -
+[2016-09-01 17:31:40,305] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:40] "GET /preset_init HTTP/1.1" 200 -
+[2016-09-01 17:31:40,489] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:40] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-01 17:31:40,540] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:40] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-01 17:31:42,881] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:42] "GET /preset_change?scope=02 HTTP/1.1" 200 -
+[2016-09-01 17:31:43,046] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:43] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-01 17:31:43,101] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:43] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-01 17:31:46,802] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:46] "GET /setting_advice_init HTTP/1.1" 200 -
+[2016-09-01 17:31:46,835] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:46] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:31:46,855] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:46] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:31:57,819] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:57] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-01 17:31:57,838] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:57] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
+[2016-09-01 17:31:57,884] [INFO] [_internal.py] [87] - 127.0.0.1 - - [01/Sep/2016 17:31:57] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 404 -
