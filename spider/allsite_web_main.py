@@ -72,7 +72,7 @@ SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
 SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
-ALLSITE_CONTENT = config.get(MY_OS, 'allsite_content')
+ALLSITE_SPIDER_CONTENT_PY = config.get(MY_OS, 'allsite_spider_content_py')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
 DEPLOY_PORT = config.get('deploy', 'deploy_port')
@@ -179,6 +179,11 @@ class ContentInputForm(Form):
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
     detail_regex_list = []
     match = SubmitField(label=u'详情页正则匹配')
+    # 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
+    info_flg_sel = SelectField(label=u'分类',
+                               choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                                        ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                               default=('01', u'新闻'))
     content_advice = SubmitField(label=u'自动提取')
 
     detail_url_list = []
@@ -357,7 +362,8 @@ class MySqlDrive(object):
 
         return ret_cnt
 
-    def save_content_setting(self, user_id, start_url, site_domain, title_exp, author_exp, content_exp, ctime_exp):
+    def save_content_setting(self, user_id, start_url, site_domain, info_flg,
+                             title_exp, author_exp, content_exp, ctime_exp):
         # print 'save_content_setting() start...', start_url, site_domain
         ret_cnt = 0
         try:
@@ -368,27 +374,31 @@ class MySqlDrive(object):
             list_regex = ''
             regex_or_xpath = '0'
             # title
-            sql_title = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                        "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-            parameter_title = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'title', title_exp)
+            sql_title = "INSERT INTO content_rule(user_id,start_url,site_domain,info_flg,list_regex,regex_or_xpath,item,content_rule) " \
+                        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            parameter_title = (
+                user_id, start_url, site_domain, info_flg, list_regex, regex_or_xpath, 'title', title_exp)
             print '[info]save_content_setting()', sql_title % parameter_title
             ret_cnt = self.cur.execute(sql_title, parameter_title)
             # author
-            sql_author = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                         "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-            parameter_author = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'author', author_exp)
+            sql_author = "INSERT INTO content_rule(user_id,start_url,site_domain,info_flg,list_regex,regex_or_xpath,item,content_rule) " \
+                         "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            parameter_author = (
+                user_id, start_url, site_domain, info_flg, list_regex, regex_or_xpath, 'author', author_exp)
             print '[info]save_content_setting()', sql_author % parameter_author
             ret_cnt = self.cur.execute(sql_author, parameter_author)
             # content
-            sql_content = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                          "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-            parameter_content = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'content', content_exp)
+            sql_content = "INSERT INTO content_rule(user_id,start_url,site_domain,info_flg,list_regex,regex_or_xpath,item,content_rule) " \
+                          "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            parameter_content = (
+                user_id, start_url, site_domain, info_flg, list_regex, regex_or_xpath, 'content', content_exp)
             print '[info]save_content_setting()', sql_content % parameter_content
             ret_cnt = self.cur.execute(sql_content, parameter_content)
             # ctime
-            sql_ctime = "INSERT INTO content_rule(user_id,start_url,site_domain,list_regex,regex_or_xpath,item,content_rule) " \
-                        "VALUES (%s,%s,%s,%s,%s,%s,%s)"
-            parameter_ctime = (user_id, start_url, site_domain, list_regex, regex_or_xpath, 'ctime', ctime_exp)
+            sql_ctime = "INSERT INTO content_rule(user_id,start_url,site_domain,info_flg,list_regex,regex_or_xpath,item,content_rule) " \
+                        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            parameter_ctime = (
+                user_id, start_url, site_domain, info_flg, list_regex, regex_or_xpath, 'ctime', ctime_exp)
             print '[info]save_content_setting()', sql_ctime % parameter_ctime
             ret_cnt = self.cur.execute(sql_ctime, parameter_ctime)
 
@@ -831,6 +841,7 @@ class RedisDrive(object):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
+        self.detail_urls_set_copy_key = 'detail_urls_set_copy_%s' % self.site_domain  # 输入详情页URL
         self.unkown_urls_set_key = 'unkown_urls_set_%s' % self.site_domain  # 计算结果(未知)
         self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
@@ -947,7 +958,7 @@ class RedisDrive(object):
         detail_cnt = self.conn.scard(self.detail_urls_set_key)
         list_cnt = self.conn.zcard(self.list_urls_zset_key)
         list_done_cnt = len(self.conn.zrangebyscore(self.list_urls_zset_key, self.done_flg, self.done_flg))
-        detail_done_cnt = len(self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg))
+        detail_done_cnt = self.conn.scard(self.detail_urls_set_key) - self.conn.scard(self.detail_urls_set_copy_key)
 
         t_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # {"times": "2016-09-01 14:14:11",
@@ -1146,6 +1157,7 @@ class Util(object):
     #####  setting convert end  ##########################################################
 
     def modify_config(self, start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
+        '''修改spider_ini文件'''
         try:
             config = ConfigParser.ConfigParser()
             config.read(SPIDER_INI)
@@ -1163,12 +1175,13 @@ class Util(object):
             print "[error]modify_config(): %s" % e
             return False
 
-    def modify_config_for_content(self, start_urls, site_domain, title_regedx_str,
-                                  content_regex_str, author_regex_str, ctime_regex_str):
+    def modify_config_for_content(self, start_urls, site_domain, info_flg, config_id,
+                                  title_regedx_str, content_regex_str, author_regex_str, ctime_regex_str):
+        '''直接修改爬虫文件代码'''
         try:
             write_ready = False
             copy_list = []
-            fp = open(ALLSITE_CONTENT, "r")
+            fp = open(ALLSITE_SPIDER_CONTENT_PY, "r")
             for row in fp.readlines():
                 if row.find('spider-modify-start') >= 0: write_ready = True
                 if row.find('spider-modify-end') >= 0: write_ready = False
@@ -1177,6 +1190,11 @@ class Util(object):
                         row = "START_URLS = '''" + start_urls + "'''\n"
                     if row.find('SITE_DOMAIN') >= 0:
                         row = "SITE_DOMAIN = '''" + site_domain + "'''\n"
+
+                    if row.find('CONFIG_ID') >= 0:
+                        row = "CONFIG_ID = '''" + config_id + "'''\n"
+                    if row.find('INFO_FLG') >= 0:
+                        row = "INFO_FLG = '''" + info_flg + "'''\n"
 
                     if row.find('TITLE_EXP') >= 0:
                         row = "TITLE_EXP = '''" + title_regedx_str + "'''\n"
@@ -1191,7 +1209,7 @@ class Util(object):
 
             fp.close()
 
-            fp = open(ALLSITE_CONTENT, "w")
+            fp = open(ALLSITE_SPIDER_CONTENT_PY, "w")
             for row in copy_list:
                 fp.write(row)
             fp.close()
@@ -2490,6 +2508,7 @@ def reset_all():
     redis_db.conn.delete(redis_db.process_cnt_hset_key)
     redis_db.conn.delete(redis_db.list_urls_zset_key)
     redis_db.conn.delete(redis_db.detail_urls_set_key)
+    redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
     redis_db.conn.delete(redis_db.manual_w_list_rule_zset_key)
     redis_db.conn.delete(redis_db.manual_b_list_rule_zset_key)
     redis_db.conn.delete(redis_db.manual_w_detail_rule_zset_key)
@@ -2534,7 +2553,7 @@ def content_init():
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
     print '[info]content_init()', inputForm.detail_url_list
 
-    flash(u'获取链接内容需要一点时间，请稍等。。。')
+    # flash(u'获取链接内容需要一点时间，请稍等。。。')
     return render_template('content.html', inputForm=inputForm)
 
 
@@ -2554,36 +2573,21 @@ def content_manual_extract():
     url = request.args.get('url')
     print 'url', url
     # start_url = request.args.get('start_url')
-    # print 'start_url', start_url
     # site_domain = request.args.get('site_domain')
-    # print 'site_domain', site_domain
     # black_domain_str = request.args.get('black_domain_str')
-    # print 'black_domain_str', black_domain_str
     title_exp = request.args.get('title_exp')
-    print '[info]content_manual_extract() title_exp', title_exp
+    # print '[info]content_manual_extract() title_exp', title_exp
     ctime_exp = request.args.get('ctime_exp')
-    print '[info]content_manual_extract() ctime_exp', ctime_exp
+    # print '[info]content_manual_extract() ctime_exp', ctime_exp
     content_exp = request.args.get('content_exp')
-    print '[info]content_manual_extract() content_exp', content_exp
+    # print '[info]content_manual_extract() content_exp', content_exp
     author_exp = request.args.get('author_exp')
-    print '[info]content_manual_extract() author_exp', author_exp
-    # setting_dict = {
-    #     "start_url": "http://bbs.tianya.cn",
-    #     "site_domain": "bbs.tianya.cn",
-    #     "black_domain_str": "",
-    #     "title_sel": "xpath",
-    #     "title_exp": ".//*[@id='post_head']/h1/span[1]/span",
-    #     "ctime_sel": "xpath",
-    #     "ctime_exp": ".//*[@id='post_head']/div[2]/div[2]/span[2]",
-    #     "content_sel": "xpath",
-    #     "content_exp": ".//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]",
-    #     "author_sel": "xpath",
-    #     "author_exp": ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
-    # }
+
     setting_dict = {
         'start_url': '',
         'site_domain': '',
         'black_domain_str': '',
+        'info_flg': '99',
         'title_sel': 'xpath',
         'title_exp': title_exp,
         'ctime_sel': 'xpath',
@@ -2608,10 +2612,11 @@ def content_save_and_run():
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。')
-        return render_template('content.html', inputForm=inputForm)
+        return redirect(url_for('content_init'), 302)
 
     mysql_db = MySqlDrive()
     cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
+                                        info_flg=inputForm.info_flg_sel.data,
                                         title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
                                         content_exp=inputForm.content_exp.data, ctime_exp=inputForm.ctime_exp.data)
     if cnt == 1:
@@ -2620,11 +2625,13 @@ def content_save_and_run():
     else:
         flash(u"MySQL保存失败.")
         print u'[error]content_save_and_run() MySQL save failure.'
-        return render_template('content.html', inputForm=inputForm)
+        return redirect(url_for('content_init'), 302)
 
     util = Util()
     ret = util.modify_config_for_content(start_urls=start_url,
                                          site_domain=site_domain,
+                                         info_flg=inputForm.info_flg_sel.data,
+                                         config_id='9999',
                                          title_regedx_str=inputForm.title_exp.data,
                                          content_regex_str=inputForm.content_exp.data,
                                          author_regex_str=inputForm.author_exp.data,
@@ -2632,19 +2639,19 @@ def content_save_and_run():
     if ret == False:
         flash(u"修改" + SPIDER_INI + u"文件失败.")
         print u'[error]content_save_and_run() modify ' + SPIDER_INI + u' failure.'
-        return render_template('content.html', inputForm=inputForm)
+        return redirect(url_for('content_init'), 302)
 
     if os.name == 'nt':
         # DOS "start" command
-        print '[info] run windows', SHELL_CONTENT_CMD
+        print '[info] run on windows', SHELL_CONTENT_CMD
         os.startfile(SHELL_CONTENT_CMD)
     else:
-        print '[info] run linux', SHELL_CONTENT_CMD
+        print '[info] run on linux', SHELL_CONTENT_CMD
         p = subprocess.Popen(SHELL_CONTENT_CMD, shell=True)
         process_id = p.pid
         print '[info] process_id:', process_id
 
-    return render_template('content.html', inputForm=inputForm)
+    return redirect(url_for('content_init'), 302)
 
 
 ######### history.html  #############################################################################
@@ -2920,6 +2927,8 @@ def tool_session_setting():
 
 @app.route('/tool_redis_setting', methods=['POST'])
 def tool_redis_setting():
+    global REDIS_SERVER
+    global DEDUP_SETTING
     redis_server = request.form['redis_server']
     dedup_server = request.form['dedup_server']
 
@@ -2939,6 +2948,10 @@ def tool_redis_setting():
         config.set('redis', 'dedup_server', 'redis://' + dedup_server)
         fp = open(WEB_MAIN_INI, "w")
         config.write(fp)
+
+        # 修改系统内存中的环境参数
+        REDIS_SERVER = 'redis://' + redis_server
+        DEDUP_SETTING = 'redis://' + dedup_server
 
         flash(WEB_MAIN_INI + u'和' + SPIDER_INI + u'已经被更新。')
     return redirect(url_for('admin_tools'), 302)
@@ -3087,7 +3100,6 @@ api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
-    if WEB_MAIN_INI.find('deploy') > 0:
-        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    else:
-        app.run(debug=True)
+    # if WEB_MAIN_INI.find('deploy') > 0:
+    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    # else:

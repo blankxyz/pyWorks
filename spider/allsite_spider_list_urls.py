@@ -333,8 +333,8 @@ class MySpider(spider.Spider):
         return result
 
 
-# ---------- test run function-----------------------------
-def test(unit_test):
+# ---------- main function-----------------------------
+def main(unit_test):
     if unit_test is False:  # spider simulation
         print '[spider simulation] now starting ..........'
         for cnt in range(10000):
@@ -401,7 +401,7 @@ def test(unit_test):
 
 
 if __name__ == '__main__':
-    test(unit_test=False)
-    # test(unit_test=True)
+    main(unit_test=False)
+    # main(unit_test=True)
     # import cProfile
-    # cProfile.run("test(unit_test = False)")
+    # cProfile.run("main(unit_test = False)")

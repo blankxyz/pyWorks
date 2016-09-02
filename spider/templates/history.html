@@ -22,7 +22,7 @@
             {{ inputForm.detail_download(class="btn btn-success btn-xs") }}
             {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
             {{ inputForm.search(class="btn btn-info") }}
-            {#            {{ inputForm.recover() }}#}
+            {# {{ inputForm.recover() }}#}
         </form>
     </div>
     <hr/>
@@ -44,6 +44,7 @@
                     <td>{{ row['start_url'] }}</td>
                     <td>{{ row['site_domain'] }}</td>
                     <td>{{ row['black_domain_str'] }}</td>
+                    <td>{{ row['scope'] }}</td>
                     <td>{{ row['detail_or_list'] }}</td>
                     <td>{{ row['regex'] }}</td>
                     <td>{{ row['weight'] }}</td>

@@ -23,10 +23,10 @@
         <hr>
         <a class="btn btn-success btn-sm" href="{{ url_for('static', filename='export/help.doc') }}">下载帮助文档</a>
         <hr>
-        <form action="tool_export_upload" method="post" enctype="multipart/form-data">
-            <input type="file" class="input-large" style="height:30px;" name="file" value="选择导入文件"/>
+        <form action="tool_upload" method="post" enctype="multipart/form-data">
+            <input type="file" class="input-large" style="height:30px;" name="file" value="选择文件"/>
             <br>
-            <input type="submit" value="导入文件(请使用英文名称)" class="btn btn-success btn-sm"/>
+            <input type="submit" value="上传 help.doc" class="btn btn-success btn-sm"/>
         </form>
         <hr>
         <a href="tool_reset_redis" class="btn btn-success btn-sm">清除所有Redis结果</a>

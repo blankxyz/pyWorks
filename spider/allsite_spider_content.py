@@ -41,11 +41,13 @@ DEDUP_SETTING = config.get('redis', 'dedup_server')
 # spider-modify-start
 START_URLS = '''http://bbs.tianya.cn'''
 SITE_DOMAIN = '''bbs.tianya.cn'''
+CONFIG_ID = '''9999'''
+INFO_FLG = '''01'''
 BLACK_DOMAIN_STR = ''''''
-TITLE_EXP = '''//*[@id='post_head']/h1/span[1]/span1'''
+TITLE_EXP = '''.//*[@id='post_head']/h1/span[1]/span'''
 CONTENT_EXP = '''//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
 AUTHOR_EXP = '''//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
-CTIME_EXP = ''''''
+CTIME_EXP = '''.//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
 
 
 # spider-modify-end
@@ -60,6 +62,7 @@ CTIME_EXP = ''''''
 # BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
 # DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
 # LIST_RULE_LIST = config.get('spider', 'list_rule_list')
+
 #############################################################################
 
 class MySpider(spider.Spider):
@@ -73,7 +76,7 @@ class MySpider(spider.Spider):
         # 网站名称
         self.siteName = "all"
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
-        self.info_flag = "01"
+        self.info_flg = "01"
         self.start_urls = START_URLS
         self.site_domain = SITE_DOMAIN
         self.black_domain_list = BLACK_DOMAIN_STR
@@ -89,7 +92,9 @@ class MySpider(spider.Spider):
 
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输入详情页URL
+        # self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输入详情页URL
+        self.detail_urls_set_copy_key = 'detail_urls_set_copy_%s' % self.site_domain  # 输入详情页URL copy
+        self.content_list_key = 'content_list_%s' % self.site_domain  # 输出抓取结果
         self.todo_urls_limits = 100
         self.dedup_key = 'dedup'
 
@@ -97,6 +102,7 @@ class MySpider(spider.Spider):
         self.start_urls = setting_dict['start_url']
         self.site_domain = setting_dict['site_domain']
         self.black_domain_list = setting_dict['black_domain_str']
+        self.info_flg = setting_dict['info_flg']
         # xpath或regex,采集 标题,做成时间,内容,作者。
         self.title_sel = setting_dict['title_sel']
         self.title_exp = setting_dict['title_exp']
@@ -113,7 +119,7 @@ class MySpider(spider.Spider):
     def parse(self, response):
         urls = []
         for i in range(self.todo_urls_limits):
-            url = self.conn.spop(self.detail_urls_set_key)
+            url = self.conn.spop(self.detail_urls_set_copy_key)
             if url is not None or url != '':
                 urls.append(url)
 
@@ -130,7 +136,7 @@ class MySpider(spider.Spider):
         data = htmlparser.Parser(unicode_html_body)
 
         try:
-            if self.title_exp !='':
+            if self.title_exp != '':
                 title = data.xpath(self.title_exp).text().strip()
             else:
                 title = 'None'
@@ -167,7 +173,9 @@ class MySpider(spider.Spider):
             print "[ERROR]parse_detail_page(): author %s" % e
             author = 'parse error'
 
-        post = {'url': url,
+        post = {'config_id': CONFIG_ID,
+                'info_flg': INFO_FLG,
+                'url': url,
                 'title': title,
                 'content': content,
                 'ctime': ctime,
@@ -177,48 +185,57 @@ class MySpider(spider.Spider):
         result.append(post)
         return result
 
+# ---------- main function-----------------------------
+def get_all():
+    my = MySpider()
+    loop_cnt = my.conn.scard(my.detail_urls_set_copy_key)
 
-def get_all(setting_json):
-    detail_job_list = []  # equal to run.py detail_job_queue
+    for cnt in range(loop_cnt):
+        print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
 
-    # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
-    def __detail_page_urls(urls, func):
-        next_page_url = None
-        if func is not None:
-            if urls:
-                for url in urls:
-                    try:
-                        response = mySpider.download(url)
-                        list_urls, callback, next_page_url = func(response)  # parse()
-                        for url in list_urls:
-                            detail_job_list.append(url)
-                    except Exception, e:
-                        print '[ERROR] main() Exception: %s' % e
-                        list_urls, callback, next_page_url = [], None, None
+        detail_job_list = []  # equal to run.py detail_job_queue
+        # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
+        def __detail_page_urls(urls, func):
+            next_page_url = None
+            if func is not None:
+                if urls:
+                    for url in urls:
+                        try:
+                            response = mySpider.download(url)
+                            list_urls, callback, next_page_url = func(response)  # parse()
+                            for url in list_urls:
+                                detail_job_list.append(url)
+                        except Exception, e:
+                            print '[ERROR] main() Exception: %s' % e
+                            list_urls, callback, next_page_url = [], None, None
 
-                    __detail_page_urls(list_urls, callback)
+                        __detail_page_urls(list_urls, callback)
 
-                    if next_page_url is not None:
-                        print 'next_page_url'
-                        __detail_page_urls([next_page_url], func)
+                        if next_page_url is not None:
+                            print 'next_page_url'
+                            __detail_page_urls([next_page_url], func)
 
-    # --equal to run.py list_page_thread() -------------------------
-    mySpider = MySpider()
-    mySpider.proxy_enable = False
-    mySpider.init_dedup()
-    mySpider.init_downloader()
-    start_urls = mySpider.get_start_urls()  # get_start_urls()
-    print '[test]start_urls:', start_urls
-    __detail_page_urls(start_urls, mySpider.parse)  # parse()
+        # --equal to run.py list_page_thread() -------------------------
+        mySpider = MySpider()
+        mySpider.proxy_enable = False
+        mySpider.init_dedup()
+        mySpider.init_downloader()
 
-    # --equal to run.py detail_page_thread() -------------------------
-    for url in detail_job_list:
-        resp = mySpider.download(url)
-        ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
-        for item in ret:
+        start_urls = mySpider.get_start_urls()  # get_start_urls()
+        print '[test]start_urls:', start_urls
+        __detail_page_urls(start_urls, mySpider.parse)  # parse()
+
+        # --equal to run.py detail_page_thread() -------------------------
+        for url in detail_job_list:
+            resp = mySpider.download(url)
+            ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
+
+            # --equal to run.py save to redis() -------------------------
+            mySpider.conn.lpush(mySpider.content_list_key, ret)
             print '----------------------------------------------------'
-            for k, v in item.iteritems():
-                print k, v
+            for item in ret:
+                for k, v in item.iteritems():
+                    print k, v
 
 
 def get_one(url, setting_dict):
@@ -232,23 +249,29 @@ def get_one(url, setting_dict):
     one = mySpider.parse_detail_page(response, url)
     return one[0]
 
+def main(unit_test):
+    if unit_test is False:  # spider simulation
+        print '[spider simulation] now starting ..........'
+        get_all()
+
+    else: # 测试
+        url = ''
+        setting_dict = {
+            'start_url': '',
+            'site_domain': '',
+            'black_domain_str': '',
+            'info_flg': '',
+            'title_sel': 'xpath',
+            'title_exp': ".//*[@id='post_head']/h1/span[1]/span",
+            'ctime_sel': 'xpath',
+            'ctime_exp': ".//*[@id='post_head']/div[2]/div[2]/span[2]",
+            'content_sel': 'xpath',
+            'content_exp': "//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]",
+            'author_sel': 'xpath',
+            'author_exp': ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
+        }
+        get_one(url,setting_dict)
 
 if __name__ == '__main__':
-    url = 'http://bbs.tianya.cn/post-41-1236689-1.shtml'
-    setting_dict = {
-        "start_url": "http://bbs.tianya.cn",
-        "site_domain": "bbs.tianya.cn",
-        "black_domain_str": "",
-        "title_sel": "xpath",
-        "title_exp": ".//*[@id='post_head']/h1/span[1]/span",
-        "ctime_sel": "xpath",
-        "ctime_exp": ".//*[@id='post_head']/div[2]/div[2]/span[2]",
-        "content_sel": "xpath",
-        "content_exp": ".//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]",
-        "author_sel": "xpath",
-        "author_exp": ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
-    }
-    ret = get_one(url, setting_dict)
-    print ret
-    for k, v in ret.iteritems():
-        print k, v
+    main(unit_test=False)
+

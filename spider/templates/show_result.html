@@ -48,7 +48,8 @@
                 {% for url in inputForm.list_result %}
                     <tr>
                         <td>
-                            <a id={{ "list_url_" ~ loop.index }} href="{{ url }}">{{ url }}</a>
+                            <a id={{ "list_url_" ~ loop.index }} href="{{ url }}"
+                               title="请右键单击打开新窗口，显示网页内容确认正确性。">{{ url }}</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -86,7 +87,8 @@
                 {% for url in inputForm.detail_result %}
                     <tr>
                         <td>
-                            <a id={{ "detail_url_" ~ loop.index }} href="{{ url }}">{{ url }}</a>
+                            <a id={{ "detail_url_" ~ loop.index }} href="{{ url }}"
+                            title="请右键单击打开新窗口，显示网页内容确认正确性。">{{ url }}</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -197,7 +199,7 @@
                     if (add_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-{#                        alert(regex_type + " : " + add_regex);#}
+                        {#                        alert(regex_type + " : " + add_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'put',

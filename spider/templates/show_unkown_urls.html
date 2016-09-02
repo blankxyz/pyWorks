@@ -58,7 +58,11 @@
                 <tbody>
                 {% for url in inputForm.unkown_url_list %}
                     <tr style="max-height: 20px;">
-                        <td><a id={{ "url_" ~ loop.index }} href="{{ url|safe }}">{{ url|safe }}</a></td>
+                        <td>
+                            <a id={{ "url_" ~ loop.index }} href="{{ url|safe }}"
+                               title="请右键单击打开新窗口，显示网页内容确认正确性。">{{ url|safe }}
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
