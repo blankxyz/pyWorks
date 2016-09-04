@@ -25,7 +25,29 @@
             {{ inputForm.black_domain_str.label }}&nbsp;
             {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}
+            {#            {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}#}
+            <button type="submit" href="#" data-toggle="modal" data-target="#myModal"
+                    class="btn btn-info btn-sm">提取</button>
+            <!-- 模态框（Modal） -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                &times;
+                            </button>
+                            <label class="modal-title" id="myModalLabel">
+                                提取结果后,页面将自动刷新，请等待。
+                            </label>
+                        </div>
+{#                        <div class="modal-footer">#}
+{#                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>#}
+{#                        </div>#}
+                    </div>
+                </div>
+            </div>
+
         </div>
     </form>
     <hr>
@@ -77,7 +99,9 @@
             </table>
         </div>
         <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.use(id="use_btn",class="btn btn-info") }}
+            {{ inputForm.use(id="use_btn",class="btn btn-info",type="bottun") }}
+
+            {#            <input id="use_btn" type="button" class="btn btn-info">&nbsp;#}
         </div>
     </form>
 {% endblock %}
@@ -97,6 +121,11 @@
         {#        var patrn_detail = {{ patrn_detail | safe }};#}
         {#        var patrn_list = {{ patrn_list | safe }};#}
         <!-- 颜色标示 黄框：无效，绿框：列表，蓝框：详情 -->
+        function aaa() {
+            alert("aaaa");
+            location.href = $SCRIPT_ROOT + "/setting_advice_try";
+            return false;
+        }
         $(document).ready(function () {
             for (var i = 0; i < 10; i++) {
                 var obj_k = "#keyword_list-" + i.toString() + "-keyword";

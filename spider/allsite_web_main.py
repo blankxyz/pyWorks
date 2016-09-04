@@ -71,7 +71,7 @@ SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
-SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
+ALLSITE_SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
 ALLSITE_SPIDER_CONTENT_PY = config.get(MY_OS, 'allsite_spider_content_py')
 # deploy
 DEPLOY_HOST = config.get('deploy', 'deploy_host')
@@ -154,9 +154,9 @@ class ListDetailRegexSettingForm(Form):  # setting
 
     mode = BooleanField(label=u'精确匹配', default=True)
     hold = BooleanField(label=u'保留上次结果', default=True)
-
-    save_run_list = SubmitField(label=u'保存-执行(列表页)')
-    save_run_detail = SubmitField(label=u'保存-执行(详情页)')
+    list_or_detail = RadioField(label=u'列表或详情', coerce=int, choices=[(0, u'列表'), (1, u'详情')], default=0)
+    # save_run_list = SubmitField(label=u'保存-执行(列表页)')
+    # save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
 
 ######## show_result.html #############################################################################
@@ -997,8 +997,10 @@ class RedisDrive(object):
         self.conn.delete(self.detail_urls_set_key)
         self.conn.delete(self.unkown_urls_set_key)
 
+        from allsite_spider_list_urls import MySpider
+        mySpider = MySpider()
         for url in all_urls:
-            ret = self.path_is_list(mode, url)
+            ret = mySpider.path_is_list(url)
             if ret == True:
                 self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
             elif ret == False:
@@ -1006,53 +1008,62 @@ class RedisDrive(object):
             else:
                 self.conn.sadd(self.unkown_urls_set_key, url)
 
-    def path_is_list(self, mode, url):
-        # None：未知, True：列表页，False：详情页
-        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-        new_url = urlparse.urlunparse(('', '', path, params, query, ''))
-
-        # 页面手工配置规则
-        ret = self.is_manual_list_rule(new_url)
-        if ret is not None:  # 未知
-            return ret
-
-        ret = self.is_manual_detail_rule(new_url)
-        if ret is not None:  # 未知
-            return not ret
-
-        print '[unkown]', new_url
-
-        if mode == 'all':
-            return True
-
-        if mode == 'exact':
-            return None
-
-        return True
-
-    def is_manual_detail_rule(self, url):
-        for rule in self.detail_rules:
-            if rule.find('/^') < 0:  # 白
-                if re.search(rule, url):
-                    print '[detail-white]', rule, '<-', url
-                    return True  # 符合详情页规则（白）
-
-            else:  # 黑
-                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
-                    print '[detail-black]', rule, '<-', url
-                    return False  # 符合详情页规则（黑）
-
-    def is_manual_list_rule(self, url):
-        for rule in self.list_rules:
-            if rule.find('/^') < 0:  # 白
-                if re.search(rule, url):
-                    print '[list-white]', rule, '<-', url
-                    return True  # 符合详情页规则（白）
-
-            else:  # 黑
-                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
-                    print '[list-black]', rule, '<-', url
-                    return False  # 符合详情页规则（黑）
+                #     for url in all_urls:
+                #         ret = self.path_is_list(mode, url)
+                #         if ret == True:
+                #             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
+                #         elif ret == False:
+                #             self.conn.sadd(self.detail_urls_set_key, url)
+                #         else:
+                #             self.conn.sadd(self.unkown_urls_set_key, url)
+                #
+                # def path_is_list(self, mode, url):
+                #     # None：未知, True：列表页，False：详情页
+                #     scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+                #     new_url = urlparse.urlunparse(('', '', path, params, query, ''))
+                #
+                #     # 页面手工配置规则
+                #     ret = self.is_manual_list_rule(new_url)
+                #     if ret is not None:  # 未知
+                #         return ret
+                #
+                #     ret = self.is_manual_detail_rule(new_url)
+                #     if ret is not None:  # 未知
+                #         return not ret
+                #
+                #     print '[unkown]', new_url
+                #
+                #     if mode == 'all':
+                #         return True
+                #
+                #     if mode == 'exact':
+                #         return None
+                #
+                #     return True
+                #
+                # def is_manual_detail_rule(self, url):
+                #     for rule in self.detail_rules:
+                #         if rule.find('/^') < 0:  # 白
+                #             if re.search(rule, url):
+                #                 print '[detail-white]', rule, '<-', url
+                #                 return True  # 符合详情页规则（白）
+                #
+                #         else:  # 黑
+                #             if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
+                #                 print '[detail-black]', rule, '<-', url
+                #                 return False  # 符合详情页规则（黑）
+                #
+                # def is_manual_list_rule(self, url):
+                #     for rule in self.list_rules:
+                #         if rule.find('/^') < 0:  # 白
+                #             if re.search(rule, url):
+                #                 print '[list-white]', rule, '<-', url
+                #                 return True  # 符合详情页规则（白）
+                #
+                #         else:  # 黑
+                #             if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
+                #                 print '[list-black]', rule, '<-', url
+                #                 return False  # 符合详情页规则（黑）
 
 
 ##################################################################################################
@@ -1160,14 +1171,14 @@ class Util(object):
         '''修改spider_ini文件'''
         try:
             config = ConfigParser.ConfigParser()
-            config.read(SPIDER_INI)
+            config.read(ALLSITE_SPIDER_INI)
             if start_urls.strip() != '': config.set('spider', 'start_urls', start_urls)
             if site_domain.strip() != '': config.set('spider', 'site_domain', site_domain)
             if black_domain_str.strip() != '': config.set('spider', 'black_domain_list', black_domain_str)
             if list_rule_str.strip() != '': config.set('spider', 'list_rule_list', list_rule_str)
             if detail_rule_str.strip() != '': config.set('spider', 'detail_rule_list', detail_rule_str)
             if mode.strip() != '': config.set('spider', 'mode', mode)
-            fp = open(SPIDER_INI, "w")
+            fp = open(ALLSITE_SPIDER_INI, "w")
             config.write(fp)
             print '[info]modify_config() success.'
             return True
@@ -1640,11 +1651,12 @@ def login():
         mysql_db = MySqlDrive()
         if mysql_db.check_password(user_id, password):
             session['user_id'] = user_id  # password OK！
-            start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
+            mysql_db.set_current_main_setting(user_id=user_id, start_url='', site_domain='', black_domain_str='',
+                                              setting_json='')
 
-            session['start_url'] = start_url
-            session['site_domain'] = site_domain
-            session['black_domain_str'] = black_domain
+            session['start_url'] = ''
+            session['site_domain'] = ''
+            session['black_domain_str'] = ''
 
             g_advice_regex_list = []  # 推荐所使用的 正则
             g_advice_keyword_list = []  # 推荐所使用的 关键字
@@ -1794,6 +1806,7 @@ def setting_advice_try():
 
     util = Util()
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(g_start_url_list)
+    time.sleep(10)
 
     ####  页面设置计算结果(regex)
     advice_regex_list = []
@@ -2082,7 +2095,7 @@ def list_detail_init():
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
-@app.route('/list_detail_save_and_run', methods=['POST'])
+@app.route('/list_detail_save_and_run', methods=['POST', 'GET'])
 def list_detail_save_and_run():
     user_id = session['user_id']
     global process_id
@@ -2138,15 +2151,15 @@ def list_detail_save_and_run():
         flash(u"列表和详情页中的正则表达式不能重复。")
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
-    #### 清空所有Redis,保存手工配置,用于匹配次数积分。
+    #### 重置Redis
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
 
     redis_db.conn.delete(redis_db.manual_w_list_rule_zset_key)
     for item in list_regex_save_list:
         if item['weight'] == '0':
-            w = 0.5
+            w = 0.5  # 权重：高
         else:
-            w = 0.25
+            w = 0.25  # 权重：中
         if item['regex'].find('/^') < 0:
             redis_db.conn.zadd(redis_db.manual_w_list_rule_zset_key, w, item['regex'])
 
@@ -2177,9 +2190,10 @@ def list_detail_save_and_run():
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, w, item['regex'])
 
-    if inputForm.hold.data:  # 保留上次结果
+    #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
+    if inputForm.hold.data:
         redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
-    else:  # 清除上次结果
+    else:  # 非保留模式
         redis_db.conn.delete(redis_db.list_urls_zset_key)
         redis_db.conn.delete(redis_db.detail_urls_set_key)
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
@@ -2195,10 +2209,10 @@ def list_detail_save_and_run():
                                     detail_regex_save_list=detail_regex_save_list,
                                     list_regex_save_list=list_regex_save_list)
     if cnt == 1:
-        flash(u"MySQL保存完毕.")
+        flash(u"[MySQL]所有手工配置信息已保存.")
         print u'[info]list_detail_save_and_run() MySQL save success.'
     else:
-        flash(u"MySQL保存失败.")
+        flash(u"[MySQL]手工配置信息保存失败.")
         print u'[error]list_detail_save_and_run() MySQL save failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2215,12 +2229,13 @@ def list_detail_save_and_run():
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                              list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
-        flash(u"修改" + SPIDER_INI + u"文件失败.")
-        print u'[error]list_detail_save_and_run() modify ' + SPIDER_INI + u' failure.'
+        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.")
+        print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     # 执行抓取程序
-    if inputForm.save_run_list.data:
+    if inputForm.list_or_detail.data == 0: #list
+        flash(u"后台列表页爬虫启动。")
         if os.name == 'nt':
             # DOS "start" command
             print '[info]--- %s run on windows' % SHELL_LIST_CMD
@@ -2231,7 +2246,8 @@ def list_detail_save_and_run():
             process_id = p.pid
             print '[info]--- process_id:', process_id
 
-    if inputForm.save_run_detail.data:
+    if inputForm.list_or_detail.data == 1: #detail
+        flash(u"后台详情页爬虫启动.")
         if os.name == 'nt':
             # DOS "start" command
             print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
@@ -2505,15 +2521,10 @@ def reset_all():
 
     # 清除redis 计算过程中的数据
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    redis_db.conn.delete(redis_db.process_cnt_hset_key)
-    redis_db.conn.delete(redis_db.list_urls_zset_key)
-    redis_db.conn.delete(redis_db.detail_urls_set_key)
-    redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
-    redis_db.conn.delete(redis_db.manual_w_list_rule_zset_key)
-    redis_db.conn.delete(redis_db.manual_b_list_rule_zset_key)
-    redis_db.conn.delete(redis_db.manual_w_detail_rule_zset_key)
-    redis_db.conn.delete(redis_db.manual_b_detail_rule_zset_key)
-    redis_db.conn.delete(redis_db.unkown_urls_set_key)
+    keys = redis_db.conn.keys()
+    for key in keys:
+        if key.find(site_domain):
+            redis_db.conn.delete(key)
 
     return redirect(url_for('show_process'), 302)
 
@@ -2637,8 +2648,8 @@ def content_save_and_run():
                                          author_regex_str=inputForm.author_exp.data,
                                          ctime_regex_str=inputForm.ctime_exp.data)
     if ret == False:
-        flash(u"修改" + SPIDER_INI + u"文件失败.")
-        print u'[error]content_save_and_run() modify ' + SPIDER_INI + u' failure.'
+        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.")
+        print u'[error]content_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return redirect(url_for('content_init'), 302)
 
     if os.name == 'nt':
@@ -2904,7 +2915,7 @@ def tool_getenv():
                 'SHELL_ADVICE_CMD': SHELL_ADVICE_CMD,
                 'SHELL_LIST_CMD': SHELL_LIST_CMD,
                 'SHELL_CONTENT_CMD': SHELL_CONTENT_CMD,
-                'SPIDER_INI': SPIDER_INI,
+                'ALLSITE_SPIDER_INI': ALLSITE_SPIDER_INI,
 
                 'DEPLOY_HOST': DEPLOY_HOST,
                 'DEPLOY_PORT': DEPLOY_PORT
@@ -2936,10 +2947,10 @@ def tool_redis_setting():
         flash(u'请输入必要信息。')
     else:
         config = ConfigParser.ConfigParser()
-        config.read(SPIDER_INI)
+        config.read(ALLSITE_SPIDER_INI)
         config.set('redis', 'redis_server', 'redis://' + redis_server)
         config.set('redis', 'dedup_server', 'redis://' + dedup_server)
-        fp = open(SPIDER_INI, "w")
+        fp = open(ALLSITE_SPIDER_INI, "w")
         config.write(fp)
 
         config = ConfigParser.ConfigParser()
@@ -2953,7 +2964,7 @@ def tool_redis_setting():
         REDIS_SERVER = 'redis://' + redis_server
         DEDUP_SETTING = 'redis://' + dedup_server
 
-        flash(WEB_MAIN_INI + u'和' + SPIDER_INI + u'已经被更新。')
+        flash(WEB_MAIN_INI + u'和' + ALLSITE_SPIDER_INI + u'已经被更新。')
     return redirect(url_for('admin_tools'), 302)
 
 

@@ -44,7 +44,7 @@
                     <td>{{ row['start_url'] }}</td>
                     <td>{{ row['site_domain'] }}</td>
                     <td>{{ row['black_domain_str'] }}</td>
-                    <td>{{ row['scope'] }}</td>
+{#                    <td>{{ row['scope'] }}</td>#}
                     <td>{{ row['detail_or_list'] }}</td>
                     <td>{{ row['regex'] }}</td>
                     <td>{{ row['weight'] }}</td>
@@ -57,14 +57,12 @@
 
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
     <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
     <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(document).ready(function () {
             $('#search_result_tab').DataTable({
                 "oLanguage": {
