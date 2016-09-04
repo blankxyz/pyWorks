@@ -275,12 +275,12 @@ class MySpider(spider.Spider):
         removed = list(set(all_links) - set(remove_links))
 
         urls = self.urls_join(org_url, removed)
-        print len(all_links), all_links
+        # print len(all_links), all_links
         # print len(remove_links), remove_links
         # print len(removed), removed
         # print len(urls), urls
         urls = self.filter_links(urls)
-        print '[INFO]get_page_valid_urls() end'
+        # print '[INFO]get_page_valid_urls() end'
         return urls
 
     def get_start_urls(self, data=None):

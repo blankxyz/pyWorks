@@ -1,18 +1,17 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    <div id="refresh_div" style="width:90%;margin-left:10px">
+    <div id="refresh_div" style="float:left;width:49%; margin-left:10px">
         <form id="show_unkown_urls" method="POST" action="/show_unkown_urls">
             <button id="refresh" href="#" class="btn btn-success btn-sm" data-toggle="modal"
-               data-target="#myModal" title="实时刷新当前抓取结果">实时刷新</button>
+                    data-target="#myModal" title="实时刷新当前抓取结果">实时刷新
+            </button>
             <!-- 模态框（Modal） -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
                  aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                                &times;
-                            </button>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                             <label class="modal-title" id="myModalLabel">
                                 获取最新未匹配信息后,页面将自动刷新，请等待。
                             </label>
@@ -21,7 +20,9 @@
                 </div>
             </div>
         </form>
-        <a id="kill" href="kill_spider" class="btn btn-success btn-sm"
+    </div>
+    <div id="kill_div" style="float:right;width:49%; margin-left:10px">
+            <a id="kill" href="kill_spider" class="btn btn-success btn-sm"
            data-toggle="tooltip" title="结束后台爬虫程序,重新配置规则">强制终止爬虫</a>
     </div>
     <hr style="width:100%;">

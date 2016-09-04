@@ -979,6 +979,7 @@ class RedisDrive(object):
         fp.close()
 
     def hold_result(self, mode, list_rules, detail_rules):
+        print '[info]hold_result() start.'
         # 按照新规则，重置上次计算结果（unkown,list,detail）
         self.list_rules = [item['regex'] for item in list_rules]
         self.detail_rules = [item['regex'] for item in detail_rules]
@@ -1001,12 +1002,23 @@ class RedisDrive(object):
         mySpider = MySpider()
         for url in all_urls:
             ret = mySpider.path_is_list(url)
-            if ret == True:
+            if ret == 'black':
+                continue
+            elif ret == 'list':
                 self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
-            elif ret == False:
+            elif ret == 'detail':
                 self.conn.sadd(self.detail_urls_set_key, url)
-            else:
+            else:  # unkown
                 self.conn.sadd(self.unkown_urls_set_key, url)
+                if mode == 'all':
+                    self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
+            #
+            # if ret == True:
+            #     self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
+            # elif ret == False:
+            #     self.conn.sadd(self.detail_urls_set_key, url)
+            # else:
+            #     self.conn.sadd(self.unkown_urls_set_key, url)
 
                 #     for url in all_urls:
                 #         ret = self.path_is_list(mode, url)
@@ -2190,13 +2202,6 @@ def list_detail_save_and_run():
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, w, item['regex'])
 
-    #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
-    if inputForm.hold.data:
-        redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
-    else:  # 非保留模式
-        redis_db.conn.delete(redis_db.list_urls_zset_key)
-        redis_db.conn.delete(redis_db.detail_urls_set_key)
-        redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     #### 保存所有手工配置信息到MySql
     setting_json = ''
@@ -2233,6 +2238,15 @@ def list_detail_save_and_run():
         print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
+
+    #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
+    if inputForm.hold.data:
+        redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
+    else:  # 非保留模式
+        redis_db.conn.delete(redis_db.list_urls_zset_key)
+        redis_db.conn.delete(redis_db.detail_urls_set_key)
+        redis_db.conn.delete(redis_db.unkown_urls_set_key)
+        
     # 执行抓取程序
     if inputForm.list_or_detail.data == 0: #list
         flash(u"后台列表页爬虫启动。")

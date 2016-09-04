@@ -8968,3 +8968,82 @@ TypeError: object of type 'int' has no len()
 [2016-09-05 00:46:35,174] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:46:35] "GET /static/images/sort_both.png HTTP/1.1" 404 -
 [2016-09-05 00:46:35,545] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:46:35] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
 [2016-09-05 00:46:35,581] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:46:35] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 00:52:19,977] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:19] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-05 00:52:21,779] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,216] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,216] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,220] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,226] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,230] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,230] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,236] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,236] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,240] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:27,240] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 00:52:30,099] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:30] "GET /show_result_init HTTP/1.1" 200 -
+[2016-09-05 00:52:30,236] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:30] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:52:30,292] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:30] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 00:52:34,283] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:34] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 00:52:35,253] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:35] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:52:35,615] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:35] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 00:52:35,651] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:52:35] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 00:53:42,206] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:42] "GET /show_process HTTP/1.1" 200 -
+[2016-09-05 00:53:46,341] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:46] "GET /content_init HTTP/1.1" 200 -
+[2016-09-05 00:53:46,526] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:46] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:53:46,585] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:46] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 00:53:48,098] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:48] "GET /show_process HTTP/1.1" 200 -
+[2016-09-05 00:53:56,690] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:56] "GET /content_init HTTP/1.1" 200 -
+[2016-09-05 00:53:56,878] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:56] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:53:56,941] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:56] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 00:53:57,700] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:57] "GET /history_search HTTP/1.1" 200 -
+[2016-09-05 00:53:57,832] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:57] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:53:57,865] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:53:57] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 00:54:08,532] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:08] "GET /show_process HTTP/1.1" 200 -
+[2016-09-05 00:54:13,362] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:13] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 00:54:14,331] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:14] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:54:14,693] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:14] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 00:54:14,732] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:14] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 00:54:19,993] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:19] "POST /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 00:54:20,759] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:20] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:54:21,134] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:21] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 00:54:21,168] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:21] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 00:54:24,177] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:24] "GET /show_result_init HTTP/1.1" 200 -
+[2016-09-05 00:54:24,289] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:24] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 00:54:24,329] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 00:54:24] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 01:13:33,525] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:33] "GET /show_result_init HTTP/1.1" 200 -
+[2016-09-05 01:13:33,637] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:33] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 01:13:33,684] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:33] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 01:13:36,763] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:36] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 01:13:37,569] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:37] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 01:13:37,927] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:37] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 01:13:37,967] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:37] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 01:13:44,477] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:44] "POST /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 01:13:45,272] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:45] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 01:13:45,632] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:45] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 01:13:45,667] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:45] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 01:13:50,545] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:13:50] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-05 01:14:25,177] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:14:25] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-05 01:14:27,438] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,365] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,365] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,371] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,371] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,375] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,375] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,381] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,384] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,388] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:14:32,388] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:15:41,117] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:15:41] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-05 01:15:43,105] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-05 01:24:12,266] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:24:12] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-05 01:24:18,346] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:24:18] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 01:24:19,180] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:24:19] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 01:24:19,548] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:24:19] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 01:24:19,585] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:24:19] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-05 01:28:03,829] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:28:03] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-05 01:43:53,562] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:43:53] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-05 01:43:58,450] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:43:58] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-05 01:43:59,262] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:43:59] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-05 01:43:59,630] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:43:59] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-05 01:43:59,670] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 01:43:59] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
