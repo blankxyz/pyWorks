@@ -24,6 +24,7 @@ from flask_wtf import Form
 from wtforms import validators
 from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
+from wtforms.widgets.core import HTMLString, ListWidget, TextInput
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 from flask_restful import Resource, Api
@@ -135,6 +136,18 @@ class RegexSettingForm(Form):  # setting
     score = IntegerField(label=u'匹配数', default=0)
 
 
+class BSListWidget(ListWidget):
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('id', field.id)
+        # html = [u'<%s %s>' % (self.html_tag, html_params(**kwargs))]
+        html = []
+        for subfield in field:
+            html.append(u'<label class="checkbox-inline"> %s %s </label>' % (subfield(), subfield.label.text))
+
+        # html.append(u'</%s>' % self.html_tag)
+        return HTMLString(u''.join(html))
+
+
 class ListDetailRegexSettingForm(Form):  # setting
     start_url = StringField(label=u'主页')  # 'http://cpt.xtu.edu.cn/'
     site_domain = StringField(label=u'限定域名')  # cpt.xtu.edu.cn'  # 湘潭大学
@@ -154,7 +167,8 @@ class ListDetailRegexSettingForm(Form):  # setting
 
     mode = BooleanField(label=u'精确匹配', default=True)
     hold = BooleanField(label=u'保留上次结果', default=True)
-    list_or_detail = RadioField(label=u'列表或详情', coerce=int, choices=[(0, u'列表'), (1, u'详情')], default=0)
+    list_or_detail = RadioField(label=u'列表或详情', coerce=int, choices=[(0, u'列表'), (1, u'详情')], default=0,
+                                widget=BSListWidget())
     # save_run_list = SubmitField(label=u'保存-执行(列表页)')
     # save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
@@ -1977,6 +1991,7 @@ def list_detail_init_preset():
     flash(u'预置规则设定完成')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
+
 ######### 详情页/列表页---手工配置 #############################################################################
 @app.route('/list_detail_init', methods=['GET', 'POST'])
 def list_detail_init():
@@ -2752,7 +2767,7 @@ def preset_init():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX * 2 - len(partn_list)):
+    for j in range(SHOW_MAX - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     flash(u'每一类规则最多可设置30条。')
@@ -2777,7 +2792,7 @@ def preset_change():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX * 2 - len(partn_list)):
+    for j in range(SHOW_MAX - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
@@ -3103,6 +3118,7 @@ api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
-    # if WEB_MAIN_INI.find('deploy') > 0:
-    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    # else:
+    if WEB_MAIN_INI.find('deploy') > 0:
+        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    else:
+        app.run(debug=True)

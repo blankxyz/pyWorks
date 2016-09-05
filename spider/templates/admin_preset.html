@@ -48,7 +48,6 @@
     {{ super() }}
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
     <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
     <script type="text/javascript">
@@ -79,6 +78,8 @@
                     "sProcessing": "<img src='/static/images/loading.gif'/>",
                     "sSearch": "检索（正则）："
                 },
+                "info": false,
+                "paging": false,
                 "aaSorting": [[2, "desc"]],
                 {#                "search": {"regex": true},//开启正则支持#}
                 "bStateSave": true, //状态保存,与正则检索矛盾
