@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    {#    <h3 align="center">主页URL归类#}
-    {#        <small>正则表达式/关键字 (黄框：无效，绿框：列表，蓝框：详情)</small>#}
-    {#    </h3>#}
-    {#    <hr>#}
+    <h3 align="center">主页URL归类
+        <small>正则表达式/关键字 (黄框：无效，绿框：列表，蓝框：详情)</small>
+    </h3>
+    <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -25,25 +25,20 @@
             {{ inputForm.black_domain_str.label }}&nbsp;
             {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;&nbsp;&nbsp;
-            {#            {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}#}
+            {# {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}#}
             <button type="submit" href="#" data-toggle="modal" data-target="#myModal"
-                    class="btn btn-info btn-sm">提取</button>
+                    class="btn btn-primary btn-sm">提取
+            </button>
             <!-- 模态框（Modal） -->
             <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
                  aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                                &times;
-                            </button>
                             <label class="modal-title" id="myModalLabel">
                                 提取结果后,页面将自动刷新，请等待。
                             </label>
                         </div>
-{#                        <div class="modal-footer">#}
-{#                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>#}
-{#                        </div>#}
                     </div>
                 </div>
             </div>
@@ -99,7 +94,7 @@
             </table>
         </div>
         <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.use(id="use_btn",class="btn btn-info",type="bottun") }}
+            {{ inputForm.use(id="use_btn",class="btn btn-primary",type="bottun") }}
 
             {#            <input id="use_btn" type="button" class="btn btn-info">&nbsp;#}
         </div>
@@ -111,7 +106,7 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
     <!-- DataTables Javascript-->
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         var patrn_rubbish = /uid|username|space|search|blog|group/;
@@ -182,6 +177,66 @@
                 var s = url.substr(0, url.length - 1);
                 $(this).val(s);
             }
+        });
+        $(document).ready(function () {
+            $('#regex_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='/static/images/loading.gif'/>",
+                    "sSearch": "正则表达式检索："
+                },
+                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+                "info": false,
+                "searching": false,
+                "processing": true,
+                "search": {"regex": true},//开启正则支持
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bFilter": false,
+                "bLengthChange": false,
+                "aLengthMenu": [30],
+                "scrollY": "500px",
+                "bScrollCollapse": true,
+                "aaSorting": [[0, "desc"]]
+            });
+            $('#keyword_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='/static/images/loading.gif'/>",
+                    "sSearch": "正则表达式检索："
+                },
+                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+                "info": false,
+                "searching": false,
+                "processing": true,
+                {#                "search": {"regex": true},//开启正则支持#}
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bFilter": false,
+                "bLengthChange": false,
+                "aLengthMenu": [30],
+                "scrollY": "500px",
+                "bScrollCollapse": true,
+                "aaSorting": [[0, "desc"]]
+            });
         });
     </script>
 {% endblock %}

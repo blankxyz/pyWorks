@@ -1,26 +1,26 @@
 {% extends "bootstrap/base.html" %}
 {% block title %} 全站爬虫v0.01 {% endblock %}
 {% block navbar %}
-    <nav class="navbar nav-pills" role="navigation">
-        <div id="menu">
-            <ul class="nav nav-tabs nav-justified nav-pills">
+    <div id="menu" style="height:100%;width:6.06%;float:left;" class="navbar navbar-inverse navbar-fixed-top">
+        <nav class="navbar nav-pills" role="navigation">
+            <ul class="nav nav-pills nav-stacked">
                 <li><a href="setting_advice_init" target="mainframe" data-toggle="tooltip"
-                       title="主页URL归类 正则表达式/关键字">①列表/详情-自动
+                       title="主页URL归类 正则表达式/关键字">①列表/详情 ---自动推荐
                 </a>
                 </li>
                 <li>
                     <a href="list_detail_init" target="mainframe" data-toggle="tooltip"
-                       title="主页、域名、详情页/列表页URL的特征词/正则表达式"> ①列表/详情-手工
+                       title="主页、域名、详情页/列表页URL的特征词/正则表达式"> ①列表/详情 ---手工配置规则
                     </a>
                 </li>
                 <li>
                     <a href="show_result_init" target="mainframe" data-toggle="tooltip"
-                       title="抓取结果 列表/详情"> ①列表/详情-结果
+                       title="抓取结果 列表/详情"> ①列表/详情 ---匹配结果
                     </a>
                 </li>
                 <li>
                     <a href="show_unkown_urls" target="mainframe" data-toggle="tooltip"
-                       title="未匹配的URL信息"> ①列表/详情-未匹配
+                       title="未匹配的URL信息"> ①列表/详情 ---未匹配
                     </a>
                 </li>
                 <li>
@@ -38,17 +38,17 @@
                        title="配置信息-历史记录"> ④历史查询
                     </a>
                 </li>
-                <li id="admin_preset" class="disabled">
+                <li id="admin_preset">
                     <a href="preset_init" target="mainframe" data-toggle="tooltip"
                        title="无效，列表，详情"> ⑤预置规则
                     </a>
                 </li>
-                <li id="admin_tools" class="disabled">
+                <li id="admin_tools">
                     <a href="admin_tools" target="mainframe" data-toggle="tooltip"
                        title="管理员 工具集"> ⑥管理工具
                     </a>
                 </li>
-                <li id="admin_server_log" class="disabled">
+                <li id="admin_server_log">
                     <a href="admin_server_log" target="mainframe" data-toggle="tooltip"
                        title="web server log"> ⑥后台log
                     </a>
@@ -59,12 +59,12 @@
                     </a>
                 </li>
             </ul>
-        </div>
-    </nav>
+        </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <div id="main" style="height:1000px;width:1280px;float:left;">
+    <div id="main" style="height:100%;width:90%;float:right;">
         <iframe name="mainframe" style="height:1280px;width:1360px" frameborder="0" scrolling="no"></iframe>
     </div>
 {% endblock %}

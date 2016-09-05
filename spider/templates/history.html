@@ -1,7 +1,7 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-{#    <h3 align="center">配置信息-历史记录</h3>#}
-{#    <hr/>#}
+    <h3 align="center">配置信息-历史记录</h3>
+    <hr/>
     <div id="message" class="alert alert-warning form-group center" style="width:95%; margin-left:50px">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -18,10 +18,10 @@
             <label><span class="glyphicon glyphicon-user"></span>&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
             {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
             {{ inputForm.start_url_sel.label }}&nbsp; {{ inputForm.start_url_sel() }}
-            {{ inputForm.list_download(class="btn btn-success btn-xs") }}
-            {{ inputForm.detail_download(class="btn btn-success btn-xs") }}
+            {{ inputForm.list_download(class="btn btn-primary btn-xs") }}
+            {{ inputForm.detail_download(class="btn btn-primary btn-xs") }}
             {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
-            {{ inputForm.search(class="btn btn-info") }}
+            {{ inputForm.search(class="btn btn-primary") }}
             {# {{ inputForm.recover() }}#}
         </form>
     </div>
@@ -78,7 +78,7 @@
                     },
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading.gif'/>",
-                    "sSearch": "检索（支持正则）："
+                    "sSearch": "正则表达式检索："
                 },
                 "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
                 "info": true,
@@ -88,8 +88,8 @@
                 {#"bStateSave": true, //状态保存,与正则检索矛盾#}
                 "bFilter": true,
                 "bLengthChange": true,
-                "aLengthMenu": [10, 20, 50],
-                "scrollY": "500px",
+                "aLengthMenu": [15, 30],
+                "scrollY": "600px",
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
             });

@@ -875,7 +875,7 @@ class RedisDrive(object):
                 if re.search(regex, url):
                     urls.append(url)
                     cnt += 1
-                # if cnt > 100: break
+                    # if cnt > 100: break
 
         return urls
 
@@ -896,7 +896,7 @@ class RedisDrive(object):
                 if re.search(regex, url):
                     urls.append(url)
                     cnt += 1
-                # if cnt > 100: break
+                    # if cnt > 100: break
 
         return urls
 
@@ -1012,70 +1012,6 @@ class RedisDrive(object):
                 self.conn.sadd(self.unkown_urls_set_key, url)
                 if mode == 'all':
                     self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
-            #
-            # if ret == True:
-            #     self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
-            # elif ret == False:
-            #     self.conn.sadd(self.detail_urls_set_key, url)
-            # else:
-            #     self.conn.sadd(self.unkown_urls_set_key, url)
-
-                #     for url in all_urls:
-                #         ret = self.path_is_list(mode, url)
-                #         if ret == True:
-                #             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, url)
-                #         elif ret == False:
-                #             self.conn.sadd(self.detail_urls_set_key, url)
-                #         else:
-                #             self.conn.sadd(self.unkown_urls_set_key, url)
-                #
-                # def path_is_list(self, mode, url):
-                #     # None：未知, True：列表页，False：详情页
-                #     scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
-                #     new_url = urlparse.urlunparse(('', '', path, params, query, ''))
-                #
-                #     # 页面手工配置规则
-                #     ret = self.is_manual_list_rule(new_url)
-                #     if ret is not None:  # 未知
-                #         return ret
-                #
-                #     ret = self.is_manual_detail_rule(new_url)
-                #     if ret is not None:  # 未知
-                #         return not ret
-                #
-                #     print '[unkown]', new_url
-                #
-                #     if mode == 'all':
-                #         return True
-                #
-                #     if mode == 'exact':
-                #         return None
-                #
-                #     return True
-                #
-                # def is_manual_detail_rule(self, url):
-                #     for rule in self.detail_rules:
-                #         if rule.find('/^') < 0:  # 白
-                #             if re.search(rule, url):
-                #                 print '[detail-white]', rule, '<-', url
-                #                 return True  # 符合详情页规则（白）
-                #
-                #         else:  # 黑
-                #             if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
-                #                 print '[detail-black]', rule, '<-', url
-                #                 return False  # 符合详情页规则（黑）
-                #
-                # def is_manual_list_rule(self, url):
-                #     for rule in self.list_rules:
-                #         if rule.find('/^') < 0:  # 白
-                #             if re.search(rule, url):
-                #                 print '[list-white]', rule, '<-', url
-                #                 return True  # 符合详情页规则（白）
-                #
-                #         else:  # 黑
-                #             if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
-                #                 print '[list-black]', rule, '<-', url
-                #                 return False  # 符合详情页规则（黑）
 
     def path_is_list(self, url):
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
@@ -1117,6 +1053,7 @@ class RedisDrive(object):
         else:
             print '[unkown]', score, url
             return 'unkown'
+
 
 ##################################################################################################
 class CollageProcessInfo(object):
@@ -1993,13 +1930,13 @@ def setting_advice_window():
     return render_template('setting_advice_window.html', inputForm=inputForm)
 
 
-######### 配置详情页/列表页  #############################################################################
+######### 详情页/列表页---推荐 #############################################################################
 @app.route('/list_detail_init_preset', methods=['GET', 'POST'])
 def list_detail_init_preset():
     '''
     从MySql初始化Web页面和Redis
     '''
-    INIT_MAX = 10
+    SHOW_MAX = 10
     user_id = session['user_id']
     mysql_db = MySqlDrive()
 
@@ -2040,13 +1977,12 @@ def list_detail_init_preset():
     flash(u'预置规则设定完成')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
-
+######### 详情页/列表页---手工配置 #############################################################################
 @app.route('/list_detail_init', methods=['GET', 'POST'])
 def list_detail_init():
     '''
     从MySql初始化Web页面和Redis
     '''
-    INIT_MAX = 10
     user_id = session['user_id']
     mysql_db = MySqlDrive()
 
@@ -2057,10 +1993,10 @@ def list_detail_init():
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。')
-        for j in range(INIT_MAX):
+        for j in range(SHOW_MAX):
             inputForm.detail_regex_list.append_entry()
 
-        for j in range(INIT_MAX):
+        for j in range(SHOW_MAX):
             inputForm.list_regex_list.append_entry()
 
         return render_template('setting_list_detail.html', inputForm=inputForm)
@@ -2104,7 +2040,7 @@ def list_detail_init():
         inputForm.detail_regex_list.append_entry(regexForm)
         cnt += 1
 
-    for j in range(INIT_MAX - cnt):
+    for j in range(SHOW_MAX - cnt):
         inputForm.detail_regex_list.append_entry()
 
     ####  从MySql 设置/还原 redis 和 页面(列表页)
@@ -2140,7 +2076,7 @@ def list_detail_init():
         inputForm.list_regex_list.append_entry(regexForm)
         cnt += 1
 
-    for j in range(INIT_MAX - cnt):
+    for j in range(SHOW_MAX - cnt):
         inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成')
@@ -2242,7 +2178,6 @@ def list_detail_save_and_run():
         if item['regex'].find('/^') >= 0:
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, w, item['regex'])
 
-
     #### 保存所有手工配置信息到MySql
     setting_json = ''
     mysql_db = MySqlDrive()
@@ -2278,7 +2213,6 @@ def list_detail_save_and_run():
         print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
-
     #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
     if inputForm.hold.data:
         redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
@@ -2289,7 +2223,7 @@ def list_detail_save_and_run():
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     # 执行抓取程序
-    if inputForm.list_or_detail.data == 0: #list
+    if inputForm.list_or_detail.data == 0:  # list
         flash(u"后台列表页爬虫启动。")
         if os.name == 'nt':
             # DOS "start" command
@@ -2301,7 +2235,7 @@ def list_detail_save_and_run():
             process_id = p.pid
             print '[info]--- process_id:', process_id
 
-    if inputForm.list_or_detail.data == 1: #detail
+    if inputForm.list_or_detail.data == 1:  # detail
         flash(u"后台详情页爬虫启动.")
         if os.name == 'nt':
             # DOS "start" command
@@ -2347,6 +2281,7 @@ def show_result_init():
     regex_sel = inputForm.detail_regex_sel.data
     inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
 
+    flash(u'抓取结果数据较多时，请等待数据显示完成后，再做其他操作。')
     return render_template('show_result.html', inputForm=inputForm)
 
 
@@ -2619,7 +2554,7 @@ def content_init():
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
     print '[info]content_init()', inputForm.detail_url_list
 
-    # flash(u'获取链接内容需要一点时间，请稍等。。。')
+    flash(u'点击下面链接，获取链接内容需要一些时间。')
     return render_template('content.html', inputForm=inputForm)
 
 
@@ -2627,9 +2562,11 @@ def content_init():
 def content_auto_extract():
     # ajax myreadability 自动提取内容
     url = request.args.get('url')
-    title, ctime, content, auther = myreadability.get_content_advice(url)
-    ret = {'title': title, 'content': content}
+    title, content, auther, ctime = myreadability.get_content_advice(url)
+
+    ret = {'title': title, 'ctime': str(ctime), 'content': content, 'auther': auther}
     jsonStr = json.dumps(ret, sort_keys=True, ensure_ascii=True)
+    print '[info]content_auto_extract()', jsonStr
     return jsonStr
 
 
@@ -2818,6 +2755,7 @@ def preset_init():
     for j in range(SHOW_MAX * 2 - len(partn_list)):
         inputForm.partn_list.append_entry()
 
+    flash(u'每一类规则最多可设置30条。')
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
 
 
@@ -2872,17 +2810,17 @@ def admin_server_log():
 
     if MY_OS == 'windows':  # windows
         f = open('allsite_web_server.log', 'r').readlines()
-        if len(f) >= 80:
-            l = f[-80:]
+        if len(f) >= 40:
+            l = f[-40:]
         else:
             l = f
         server_log_list = l
     else:  # linux mac
         if inputForm.unkown_sel.data:
-            cmd = 'tail -80 ./allsite_web_server.log'
+            cmd = 'tail -60 ./allsite_web_server.log'
             # cmd = "tail -10000 allsite_web_server.log | grep -E 'unkown|list|detail' |tail -80"
         else:
-            cmd = 'tail -80 ./allsite_web_server.log'
+            cmd = 'tail -60 ./allsite_web_server.log'
 
         p = subprocess.Popen(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE)
         server_log_list = p.stdout.readlines()
@@ -3092,7 +3030,6 @@ class DetailRegexMaintenance(Resource):
 
     def put(self, regex_type):
         # regex_type: "detail","list"
-        print '[info]DetailRegexMaintenance() put() start.', regex_type
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
         if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
@@ -3101,7 +3038,7 @@ class DetailRegexMaintenance(Resource):
 
         args = parser.parse_args()
         regex = args['regex']
-        print '[info]DetailRegexMaintenance() put().', regex
+        print '[info]DetailRegexMaintenance() put() start. ', regex_type, regex
 
         if is_regex_exist(regex, regex_type) is True:
             print '[error]DetailRegexMaintenance() put() regex exist.'

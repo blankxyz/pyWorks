@@ -11,7 +11,7 @@
             var unkown_cnt = 0;
             var system_cnt = 0;
             var error_cnt = 0;
-            for (var i = 0; i < 80; i++) {
+            for (var i = 0; i < 40; i++) {
                 if ($("#log_" + i + "_").text().search("list-") > 0) {
                     badge = "列表";
                     badge_color = "green";
@@ -48,6 +48,8 @@
 {% endblock %}
 
 {% block content %}
+    <h3 align="center">查看后台log</h3>
+    <hr>
     <div id="download" style="margin-left:50px">
         <form id="show_server_log" method="POST" action="/show_server_log">
             <label style="color: green">列表页</label><span id="list_span" class="badge pull-top">0</span>&nbsp;&nbsp;
@@ -55,9 +57,11 @@
             <label style="color: orange">未知</label><span id="unkown_span" class="badge pull-top">0</span>&nbsp;&nbsp;
             <label style="color: gray">系统信息</label><span id="system_span" class="badge pull-top">0</span>&nbsp;&nbsp;
             <label style="color: red">错误信息</label><span id="error_span" class="badge pull-top">0</span>&nbsp;&nbsp;
-            {{ inputForm.unkown_sel() }}&nbsp;{{ inputForm.unkown_sel.label }}&nbsp;{{ inputForm.refresh(class="btn btn-info") }}
+            {{ inputForm.unkown_sel() }}&nbsp;{{ inputForm.unkown_sel.label }}&nbsp;
+            {{ inputForm.refresh(class="btn btn-primary") }}
         </form>
     </div>
+    <hr>
     <div id="server_log_left_div" style="float:left;width:49%; margin-left:10px">
         <table id="server_log_left_tab" class="table table-striped table-hover">
             <thead>
@@ -67,7 +71,7 @@
             </tr>
             </thead>
             <tbody>
-            {% for log in server_log_list[:40] %}
+            {% for log in server_log_list[:20] %}
                 <tr style="max-height: 20px;" id={{ 'tr_' ~ loop.index ~ '_' }}>
                     <td><span class="badge pull-left" id={{ 'type_' ~ loop.index ~ '_' }}>XXXX</span></td>
                     <td nowrap="nowrap" id={{ 'log_' ~ loop.index ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
@@ -85,10 +89,10 @@
             </tr>
             </thead>
             <tbody>
-            {% for log in server_log_list[41:] %}
-                <tr style="max-height: 20px;" id={{ 'tr_' ~ (loop.index + 40) ~ '_' }}>
-                    <td><span class="badge pull-left" id={{ 'type_' ~ (loop.index + 40) ~ '_' }}>XXXX</span></td>
-                    <td nowrap="nowrap" id={{ 'log_' ~ (loop.index + 40) ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
+            {% for log in server_log_list[21:] %}
+                <tr style="max-height: 20px;" id={{ 'tr_' ~ (loop.index + 20) ~ '_' }}>
+                    <td><span class="badge pull-left" id={{ 'type_' ~ (loop.index + 20) ~ '_' }}>XXXX</span></td>
+                    <td nowrap="nowrap" id={{ 'log_' ~ (loop.index + 20) ~ '_' }}>&nbsp;&nbsp;{{ log }}</td>
                 </tr>
             {% endfor %}
             </tbody>

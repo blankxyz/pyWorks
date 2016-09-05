@@ -3,13 +3,13 @@
     <h3 align="center">抓取情况
         <small>
             &nbsp;&nbsp;&nbsp;
-            <a href="save_finally_result" class="btn btn-success btn-sm"
+            <a href="save_finally_result" class="btn btn-primary btn-sm"
                data-toggle="tooltip" title="最终列表页结果" data-placement="bottom">保存最终结果</a>
             &nbsp;&nbsp;&nbsp;
-            <a href="kill_spider" class="btn btn-success btn-sm"
+            <a href="kill_spider" class="btn btn-primary btn-sm"
                data-toggle="tooltip" title="用来结束后台爬虫程序" data-placement="bottom">强制终止爬虫</a>
             &nbsp;&nbsp;&nbsp;
-            <a href="reset_all" class="btn btn-success btn-sm"
+            <a href="reset_all" class="btn btn-primary btn-sm"
                data-toggle="tooltip" title="清除所有计算用的中间数据" data-placement="bottom">清除中间数据</a>
         </small>
     </h3>
@@ -26,10 +26,11 @@
         {% endwith %}
     </div>
     <hr>
-    <div id="process_list_div" style="float:left;width:50%;height:300px;min-width:500px"> </div> <div id="process_detail_div" style="float:right;width:50%;height:300px;min-width:500px"></div>
-    <hr>
+    <div id="process_list_div" style="float:left;width:50%;height:300px;min-width:500px"></div><br> <div id="process_detail_div" style="float:right;width:50%;height:300px;min-width:500px"></div><br>
+    <hr><hr><hr>
+    <br>
     <div id="list_by_total_div" style="float:left;width:50%;height:300px"></div> <div id="velocity_div" style="float:right;width:50%;height:300px"></div>
-    <hr>
+    <hr><hr><hr>
 {% endblock %}
 
 {% block scripts %}

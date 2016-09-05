@@ -254,8 +254,8 @@ def utc_datetime(html, url=''):
 if __name__ == '__main__':
     import requests
     url = 'http://www.110.com/panli/panli_48424.html'
-    url = 'http://www.zyjjw.cn/news/china/2016-08-10/360176.html'
-    url = 'http://www.weibo.com/p/230418638695670102wy6u'
+    url = 'http://bbs.tianya.cn/post-100-1141425-1.shtml'
+    # url = 'http://www.weibo.com/p/230418638695670102wy6u'
     resp = requests.get(url)
     resp.encoding = 'utf8'
     ctime = GetDate().getDate(resp.text)

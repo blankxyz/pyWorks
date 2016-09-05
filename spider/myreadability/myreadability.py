@@ -715,16 +715,21 @@ def get_content_advice(url):
     html = resp.content
     doc = Document(html, url=url)
     title = doc.title
-    ctime = doc.get_ctime()
     summry = doc.summary(False)
     author = 'author'
 
-    print '--url:      ', url
-    print "--title:    ", title
-    print "--encoding: ", doc.encoding
-    print '--ctime:    ', ctime
-    print '--summary:  ', len(summry), summry
-    return title, ctime, summry, author
+    from find_date import GetDate
+    t = GetDate()
+    # resp = requests.get(url)
+    resp.encoding = 'utf8'
+    ctime = t.getDate(resp.text)
+
+    print 'url:      ', url
+    print 'ctime:    ', ctime
+    print "title:    ", title
+    print "encoding: ", doc.encoding
+    print 'summary:  ', len(summry), summry
+    return title, summry, author, ctime
 
 
 if __name__ == "__main__":

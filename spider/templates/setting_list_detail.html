@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    {#    <h3 align="center">设定抓取信息#}
-    {#        <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>#}
-    {#    </h3>#}
-    {#    <hr>#}
+    <h3 align="center">设定抓取信息
+        <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
+    </h3>
+    <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -34,12 +34,12 @@
             <label>[例] http://cpt.xtu.edu.cn/a/gonggao/2013/1125/225.html >>>
                 /[a-zA-Z]{1}/[a-zA-Z]{7}/\d{4}/\d{4}/\d{3}.html </label><br>
             <input id="convert_url" type=text size=90 placeholder="请确认转换后的表达式， 编辑（拷贝） 到下面列表中。">&nbsp;
-            <input id="convert_btn" type="button" class="btn btn-success btn-sm" value="转换为正则">&nbsp;
+            <input id="convert_btn" type="button" class="btn btn-primary btn-sm" value="转换为正则">&nbsp;
             <label id="convert_result"></label>
         </div>
         <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
-            <table id="list-regex-tab" class="table table-striped table-hover">
+            <table id="list_regex_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th>列表页-正则表达式</th>
@@ -50,7 +50,7 @@
                 <tbody>
                 {% for row in inputForm.list_regex_list %}
                     <tr id= {{ "list_" ~ loop.index }}>
-                        <td>{{ row.regex(size=65,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
+                        <td>{{ row.regex(size=60,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
                         <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
@@ -60,7 +60,7 @@
             {#            {{ inputForm.save_run_list(class="btn btn-info") }}#}
             {{ inputForm.list_or_detail() }}
             <button id="save_run_list" name="save_run_list" type="submit" href="#"
-                    data-toggle="modal" data-target="#myModal" class="btn btn-info">保存-执行
+                    data-toggle="modal" data-target="#myModal" class="btn btn-primary">保存-执行
             </button>
             {#            <a id="save_run_list" name="save_run_list" type="submit" href="list_detail_save_and_run"#}
             {#               data-toggle="modal" data-target="#myModal" class="btn btn-info">保存-执行(列表页)</a>#}
@@ -70,9 +70,6 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                                &times;
-                            </button>
                             <label class="modal-title" id="myModalLabel">
                                 保留结果被重置后,页面将自动刷新，请等待。
                             </label>
@@ -82,7 +79,7 @@
             </div>
         </div>
         <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-left:10px">
-            <table id="detail-regex-tab" class="table table-striped table-hover">
+            <table id="detail_regex_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th>详情页-正则表达式</th>
@@ -93,14 +90,14 @@
                 <tbody>
                 {% for row in inputForm.detail_regex_list %}
                     <tr id= {{ "detail_" ~ loop.index }}>
-                        <td>{{ row.regex(size=65,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
+                        <td>{{ row.regex(size=60,placeholder="反向逻辑请使用：/^xxxxxx/") }}</td>
                         <td>{{ row.weight() }}</td>
                         <td>{{ row.score(size=6,readonly="readonly") }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-{#            {{ inputForm.save_run_detail(class="btn btn-info") }}#}
+            {#            {{ inputForm.save_run_detail(class="btn btn-info") }}#}
         </div>
     </form>
 {% endblock %}
@@ -112,7 +109,7 @@
     <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css">
     <!-- DataTables Javascript-->
     <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
-    <script type="javascript">
+    <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         <!-- 转化工具 -->
         $('#convert_btn').click(function () {
@@ -148,6 +145,66 @@
         $('#scope_sel').change(function () {
             var scope_sel = $(this).children('option:selected').val();
             window.location.href = "/list_detail_init_preset?scope=" + scope_sel;
+        });
+        $(document).ready(function () {
+            $('#list_regex_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='/static/images/loading.gif'/>",
+                    "sSearch": "正则表达式检索："
+                },
+                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+                "info": false,
+                "searching": false,
+                "processing": true,
+                "search": {"regex": true},//开启正则支持
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bFilter": false,
+                "bLengthChange": false,
+                "aLengthMenu": [30],
+                "scrollY": "500px",
+                "bScrollCollapse": true,
+                "aaSorting": [[0, "desc"]]
+            });
+            $('#detail_regex_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='/static/images/loading.gif'/>",
+                    "sSearch": "正则表达式检索："
+                },
+                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+                "info": false,
+                "searching": false,
+                "processing": true,
+{#                "search": {"regex": true},//开启正则支持#}
+                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bFilter": false,
+                "bLengthChange": false,
+                "aLengthMenu": [30],
+                "scrollY": "500px",
+                "bScrollCollapse": true,
+                "aaSorting": [[0, "desc"]]
+            });
         });
     </script>
 {% endblock %}

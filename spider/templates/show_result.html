@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
-    {#    <h3 align="center">抓取结果#}
-    {#        <small>列表/详情</small>#}
-    {#    </h3>#}
-    {#    <hr>#}
+        <h3 align="center">抓取结果
+            <small>列表/详情</small>
+        </h3>
+        <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -30,7 +30,7 @@
                 <span class="glyphicon glyphicon-minus"></span>
             </a>
             &nbsp;
-            {{ inputForm.list_match(id="list_match_btn",class="btn btn-info btn-xs") }}
+            {{ inputForm.list_match(id="list_match_btn",class="btn btn-primary btn-sm") }}
             <div id="list_plus_regex_div" class="panel-collapse collapse">
                 <div class="panel-body">
                     <input id="list_plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
@@ -69,7 +69,7 @@
                 <span class="glyphicon glyphicon-minus"></span>
             </a>
             &nbsp;
-            {{ inputForm.detail_match(id="detail_match_btn",class="btn btn-info btn-xs") }}
+            {{ inputForm.detail_match(id="detail_match_btn",class="btn btn-primary btn-sm") }}
             <div id="detail_plus_regex_div" class="panel-collapse collapse">
                 <div class="panel-body">
                     <input id="detail_plus_regex_input" type=text size=65 placeholder="编辑 详情页规则 后，点击 √ 添加。">
@@ -88,7 +88,7 @@
                     <tr>
                         <td>
                             <a id={{ "detail_url_" ~ loop.index }} href="{{ url }}"
-                            title="请右键单击打开新窗口，显示网页内容确认正确性。">{{ url }}</a>
+                               title="请右键单击打开新窗口，显示网页内容确认正确性。">{{ url }}</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -120,7 +120,7 @@
                     },
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading.gif'/>",
-                    "sSearch": "检索（支持正则）："
+                    "sSearch": "检索："
                 },
                 "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
                 "info": true,
@@ -149,7 +149,7 @@
                     },
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading.gif'/>",
-                    "sSearch": "关键字匹配："
+                    "sSearch": "检索："
                 },
                 "info": true,
                 "searching": true,
@@ -177,7 +177,7 @@
                     if (del_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-                        alert(regex_type + " : " + del_regex);
+                        {#alert(regex_type + " : " + del_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'delete',
@@ -199,7 +199,7 @@
                     if (add_regex.length == 0) {
                         alert('请输入正则表达式。');
                     } else {
-                        {#                        alert(regex_type + " : " + add_regex);#}
+                        {#alert(regex_type + " : " + add_regex);#}
                         $.ajax({
                             url: $SCRIPT_ROOT + '/regexs/' + regex_type,
                             type: 'put',
