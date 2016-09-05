@@ -124,7 +124,7 @@
                     plotShadow: false
                 },
                 title: {
-                    text: '抓取比例'
+                    text: '当前抓取到 {{ total_cnt_list[-1] }} 页中的比例'
                 },
                 tooltip: {
                     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -157,10 +157,10 @@
                     type: 'area'
                 },
                 title: {
-                    text: '瞬时速度(列表+详情+未匹配/使用时间)'
+                    text: '处理速度(列表+详情+未匹配/抓取时间)'
                 },
                 subtitle: {
-                    text: '1K页/分钟'
+                    text: 'K-Pages/Min'
                 },
                 xAxis: {
                     labels: {
@@ -198,7 +198,7 @@
                     }
                 },
                 series: [{
-                    name: '速度',
+                    name: '瞬时速度',
                     data: {{ velocity_list }}
                 }]
             });

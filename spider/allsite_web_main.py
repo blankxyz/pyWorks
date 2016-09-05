@@ -869,13 +869,13 @@ class RedisDrive(object):
             for url in self.conn.smembers(self.detail_urls_set_key):
                 urls.append(url)
                 cnt += 1
-                if cnt > 100: break
+                # if cnt > 100: break
         else:
             for url in self.conn.smembers(self.detail_urls_set_key):
                 if re.search(regex, url):
                     urls.append(url)
                     cnt += 1
-                if cnt > 100: break
+                # if cnt > 100: break
 
         return urls
 
@@ -888,7 +888,7 @@ class RedisDrive(object):
                                                withscores=False):
                 urls.append(url)
                 cnt += 1
-                if cnt > 100: break
+                # if cnt > 100: break
         else:  # match
             print '[info]get_list_urls_by_regex() regex'
             for url in self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg,
@@ -896,7 +896,7 @@ class RedisDrive(object):
                 if re.search(regex, url):
                     urls.append(url)
                     cnt += 1
-                if cnt > 100: break
+                # if cnt > 100: break
 
         return urls
 
@@ -985,7 +985,7 @@ class RedisDrive(object):
         self.detail_rules = [item['regex'] for item in detail_rules]
 
         all_urls = []
-        for url in self.conn.zrangebyscore(self.list_urls_zset_key, self.detail_flg, self.detail_flg, withscores=False):
+        for url in self.conn.zrangebyscore(self.list_urls_zset_key, self.todo_flg, self.end_flg, withscores=False):
             all_urls.append(url)
 
         for url in self.conn.smembers(self.detail_urls_set_key):
@@ -998,10 +998,10 @@ class RedisDrive(object):
         self.conn.delete(self.detail_urls_set_key)
         self.conn.delete(self.unkown_urls_set_key)
 
-        from allsite_spider_list_urls import MySpider
-        mySpider = MySpider()
+        # from allsite_spider_list_urls import MySpider
+        # mySpider = MySpider()
         for url in all_urls:
-            ret = mySpider.path_is_list(url)
+            ret = self.path_is_list(url)
             if ret == 'black':
                 continue
             elif ret == 'list':
@@ -1077,6 +1077,46 @@ class RedisDrive(object):
                 #                 print '[list-black]', rule, '<-', url
                 #                 return False  # 符合详情页规则（黑）
 
+    def path_is_list(self, url):
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        new_url = urlparse.urlunparse(('', '', path, params, query, ''))
+        score = float(0)
+        # 页面手工配置规则
+        for rule in self.list_rules:
+            if rule.find('/^') >= 0:  # 黑
+                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
+                    self.conn.zincrby(self.manual_b_list_rule_zset_key, value=rule, amount=1)
+                    print '[list-black]', rule, '<-', url
+                    return 'black'  # 符合详情页规则（黑）
+            else:  # 白
+                if re.search(rule, url):
+                    self.conn.zincrby(self.manual_w_list_rule_zset_key, value=rule, amount=1)
+                    s = self.conn.zscore(self.manual_w_list_rule_zset_key, value=rule)
+                    score += (s - int(s))
+                    # print '[list-white]', (s - int(s)), rule, '<-', url
+
+        for rule in self.detail_rules:
+            if rule.find('/^') >= 0:  # 黑
+                if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
+                    self.conn.zincrby(self.manual_b_detail_rule_zset_key, value=rule, amount=1)
+                    print '[detail-black]', rule, '<-', url
+                    return 'black'  # 符合详情页规则（黑）
+            else:  # 白
+                if re.search(rule, url):
+                    self.conn.zincrby(self.manual_w_detail_rule_zset_key, value=rule, amount=1)
+                    s = self.conn.zscore(self.manual_w_detail_rule_zset_key, value=rule)
+                    score -= (s - int(s))
+                    # print '[detail-white]', -(s - int(s)), rule, '<-', url
+
+        if score <= -0.25:
+            print '[detail]', score, url
+            return 'detail'
+        elif score >= 0.25:
+            print '[list]', score, url
+            return 'list'
+        else:
+            print '[unkown]', score, url
+            return 'unkown'
 
 ##################################################################################################
 class CollageProcessInfo(object):
@@ -1910,10 +1950,10 @@ def setting_advice_use():
                                     detail_regex_save_list, list_regex_save_list)
     if cnt == 1:
         flash(u"采用项目保存完成.")
-        print u'[info]setting_list_save_and_run() MySQL save success.'
+        print u'[info]setting_advice_use() MySQL save success.'
     else:
         flash(u"采用项目保存失败.")
-        print u'[error]setting_list_save_and_run() MySQL save failure.'
+        print u'[error]setting_advice_use() MySQL save failure.'
 
     return render_template('setting_advice.html', inputForm=inputForm,
                            patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
@@ -2245,8 +2285,9 @@ def list_detail_save_and_run():
     else:  # 非保留模式
         redis_db.conn.delete(redis_db.list_urls_zset_key)
         redis_db.conn.delete(redis_db.detail_urls_set_key)
+        redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
-        
+
     # 执行抓取程序
     if inputForm.list_or_detail.data == 0: #list
         flash(u"后台列表页爬虫启动。")
