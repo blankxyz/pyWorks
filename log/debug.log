@@ -11174,3 +11174,8 @@ TypeError: object of type 'int' has no len()
 [2016-09-07 00:20:46,392] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/images/sort_both.png HTTP/1.1" 404 -
 [2016-09-07 00:20:46,500] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
 [2016-09-07 00:20:46,526] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:43:31,811] [INFO] [_internal.py] [87] -  * Detected change in 'D:\\workspace\\pyWorks\\spider\\downloader.py', reloading
+[2016-09-07 00:43:35,917] [DEBUG] [proxy.py] [85] - update proxy file  D:\workspace\pyWorks\spider\proxy\proxy.txt successful
+[2016-09-07 00:43:36,750] [WARNING] [downloader.py] [288] - 调试信息 下载返回码 [1m[44m[37m403[0m  请注意
+[2016-09-07 00:43:36,750] [ERROR] [downloader.py] [59] - [1m[34m403 Client Error: Forbidden for url: http://bbs.tianya.cn/[0m, Retrying in 1 seconds...
+[2016-09-07 00:43:57,750] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='120.1.19.157', port=8998): Max retries exceeded with url: http://bbs.tianya.cn/ (Caused by ConnectTimeoutError(<requests.packages.urllib3.connection.HTTPConnection object at 0x00000000031F8A58>, 'Connection to 120.1.19.157 timed out. (connect timeout=20)'))[0m, Retrying in 2 seconds...

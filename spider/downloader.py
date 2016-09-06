@@ -405,7 +405,7 @@ if __name__ == '__main__':
 #     pool.join()
 #     print "thread: ", time.time() - t1
 #    url = 'http://bbs.jztele.com/thread-3575106123-1-1.html'
-    url = 'http://tieba.baidu.com/p/3231819545'
+    url = 'http://bbs.tianya.cn'
 #     header = {'Accept':'*/*',
 #               'User-Agent':'python-requests/2.2.1 CPython/2.7.6 Windows/7'}
     d = Downloader(True, 3,3, timeout=20)
