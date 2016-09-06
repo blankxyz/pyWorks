@@ -11081,3 +11081,69 @@ TypeError: object of type 'int' has no len()
 [2016-09-05 17:32:29,818] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 17:32:29] "GET /setting_advice_window?regex=/list-\d{2,4}-\d{1,1}.shtml HTTP/1.1" 200 -
 [2016-09-05 17:32:30,069] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 17:32:30] "GET /static/images/sort_both.png HTTP/1.1" 404 -
 [2016-09-05 17:32:30,154] [INFO] [_internal.py] [87] - 172.16.5.152 - - [05/Sep/2016 17:32:30] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-06 10:18:34,002] [DEBUG] [run.py] [264] - -----job_queue----qsize: 9
+[2016-09-06 10:18:34,002] [DEBUG] [run.py] [264] - -----job_queue----qsize: 8
+[2016-09-06 10:18:34,002] [DEBUG] [run.py] [264] - -----job_queue----qsize: 7
+[2016-09-06 10:18:34,006] [DEBUG] [run.py] [264] - -----job_queue----qsize: 6
+[2016-09-06 10:18:34,006] [DEBUG] [run.py] [264] - -----job_queue----qsize: 5
+[2016-09-06 10:18:34,006] [DEBUG] [run.py] [264] - -----job_queue----qsize: 4
+[2016-09-06 10:18:34,012] [DEBUG] [run.py] [264] - -----job_queue----qsize: 3
+[2016-09-06 10:18:34,012] [DEBUG] [run.py] [264] - -----job_queue----qsize: 2
+[2016-09-06 10:18:34,012] [DEBUG] [run.py] [264] - -----job_queue----qsize: 1
+[2016-09-06 10:18:34,012] [DEBUG] [run.py] [264] - -----job_queue----qsize: 0
+[2016-09-06 10:22:31,609] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:22:31] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-06 10:22:31,825] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:22:31] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-06 10:22:31,904] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:22:31] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-06 10:24:52,595] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:24:52] "GET /setting_advice_window?regex=/list-\d{2,4}-\d{1,1}.shtml HTTP/1.1" 200 -
+[2016-09-06 10:24:52,828] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:24:52] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-06 10:24:52,915] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:24:52] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-06 10:24:57,861] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:24:57] "GET /show_result_init HTTP/1.1" 200 -
+[2016-09-06 10:25:01,049] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:25:01] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-06 10:25:01,845] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:25:01] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-06 10:31:30,734] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:31:30] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:32:00,852] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:32:00] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:32:00,868] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:32:00] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:32:00,871] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:32:00] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:32:31,707] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:32:31] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:32:31,723] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:32:31] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:32:31,726] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:32:31] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:33:02,028] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:33:02] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:33:02,043] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:33:02] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:33:02,046] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:33:02] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:33:32,367] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:33:32] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:33:32,381] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:33:32] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:33:32,385] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:33:32] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:34:02,686] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:34:02] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:34:02,701] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:34:02] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:34:02,704] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:34:02] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:34:33,025] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:34:33] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:34:33,039] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:34:33] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:34:33,042] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:34:33] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:35:03,375] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:35:03] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:35:03,390] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:35:03] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:35:03,394] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:35:03] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:35:33,740] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:35:33] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:35:33,756] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:35:33] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:35:33,759] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:35:33] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:36:04,098] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:36:04] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:36:04,122] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:36:04] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:36:04,125] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:36:04] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:36:34,453] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:36:34] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:36:34,467] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:36:34] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:36:34,470] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:36:34] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:37:04,923] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:37:04] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:37:04,973] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:37:04] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:37:04,986] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:37:04] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:37:35,289] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:37:35] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:37:35,309] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:37:35] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:37:35,312] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:37:35] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:38:05,608] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:05] "GET /show_process HTTP/1.1" 200 -
+[2016-09-06 10:38:05,621] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:05] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-06 10:38:05,625] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:05] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-06 10:38:32,197] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:32] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-06 10:38:32,519] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:32] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-06 10:38:32,631] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:32] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-06 10:38:32,660] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:32] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-06 10:38:38,599] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:38] "GET /show_result_init HTTP/1.1" 200 -
+[2016-09-06 10:38:41,627] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:41] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-06 10:38:42,437] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:42] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
