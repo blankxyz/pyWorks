@@ -40,7 +40,7 @@ else:
     print '[info]--- The OS is: %s ----' % MY_OS
 ####################################################################
 if MY_OS == 'linux':
-    WEB_MAIN_INI = './allsite_web_deploy.ini'
+    WEB_MAIN_INI = '/work/spider/allsite_web_deploy.ini'
 else:  # mac or windows
     WEB_MAIN_INI = './allsite_web_dev.ini'
 
