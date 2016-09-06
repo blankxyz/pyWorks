@@ -1,0 +1,9 @@
+<uwsgi>
+    <pythonpath>/work/spider</pythonpath>
+    <module>allsite_web_main</module>
+    <callable>app</callable>
+    <socket>127.0.0.1:1234</socket>
+    <master>true</master>
+    <processes>5</processes>
+    <memory-report/>
+</uwsgi>
