@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python allsite_spider_advice.py
+python /work/spider/allsite_spider_advice.py
 
