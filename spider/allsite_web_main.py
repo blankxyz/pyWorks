@@ -785,9 +785,9 @@ class MySqlDrive(object):
             for r in rs:
                 partn_list.append((r[0], r[1], r[2]))
             self.conn.commit()
-            print '[info]get_detail_regex()', cnt, sql_str
+            print '[info]get_preset_partn()', cnt, sql_str
         except Exception, e:
-            print '[error]get_detail_regex()', e, sql_str
+            print '[error]get_preset_partn()', e, sql_str
 
         return partn_list
 
@@ -798,7 +798,7 @@ class MySqlDrive(object):
             sql_str1 = "DELETE FROM preset_patrn WHERE scope=%s"
             parameter1 = (scope,)
             cnt = self.cur.execute(sql_str1, parameter1)
-            print '[info]get_detail_regex()', cnt, sql_str1 % parameter1
+            print '[info]set_preset_partn()', cnt, sql_str1 % parameter1
 
             for (partn_type, partn, weight) in partn_list:
                 if partn.strip() != '':
@@ -810,7 +810,7 @@ class MySqlDrive(object):
             self.conn.commit()
 
         except Exception, e:
-            print '[error]get_detail_regex()', e, sql_str2 % parameter2
+            print '[error]set_preset_partn()', e, sql_str2 % parameter2
 
         return cnt
 
@@ -826,7 +826,7 @@ class MySqlDrive(object):
         sql_str = "SELECT partn_type, partn FROM preset_patrn WHERE scope=%s"
         parameter = (scope,)
         try:
-            cnt = self.cur.execute(sql_str)
+            cnt = self.cur.execute(sql_str,parameter)
             rs = self.cur.fetchall()
             for r in rs:
                 if r[0] == 'list':
@@ -836,9 +836,9 @@ class MySqlDrive(object):
                 else:
                     rubbish_list.append(r[1])
             self.conn.commit()
-            print '[info]get_detail_regex()', cnt, sql_str
+            print '[info]get_preset_partn_to_str()', cnt, sql_str
         except Exception, e:
-            print '[error]get_detail_regex()', e, sql_str
+            print '[error]get_preset_partn_to_str()', e, sql_str
 
         patrn_list = '/' + '|'.join(list_list) + '/'
         patrn_detail = '/' + '|'.join(detail_list) + '/'

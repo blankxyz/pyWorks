@@ -11147,3 +11147,30 @@ TypeError: object of type 'int' has no len()
 [2016-09-06 10:38:38,599] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:38] "GET /show_result_init HTTP/1.1" 200 -
 [2016-09-06 10:38:41,627] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:41] "GET /static/images/sort_both.png HTTP/1.1" 404 -
 [2016-09-06 10:38:42,437] [INFO] [_internal.py] [87] - 127.0.0.1 - - [06/Sep/2016 10:38:42] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:14:57,354] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:14:57] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-07 00:14:57,562] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:14:57] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:14:57,634] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:14:57] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:18:55,359] [INFO] [_internal.py] [87] -  * Detected change in 'D:\\workspace\\pyWorks\\spider\\allsite_web_main.py', reloading
+[2016-09-07 00:19:14,762] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:19:14] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-07 00:19:14,946] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:19:14] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:19:15,015] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:19:15] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:19:44,627] [INFO] [_internal.py] [87] -  * Detected change in 'D:\\workspace\\pyWorks\\spider\\allsite_web_main.py', reloading
+[2016-09-07 00:20:05,255] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:05] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-07 00:20:05,430] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:05] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:20:05,503] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:05] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:20:12,766] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:12] "GET /setting_advice_window?regex=/list-\d{2,4}-\d{1,1}.shtml HTTP/1.1" 200 -
+[2016-09-07 00:20:12,954] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:12] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:20:13,033] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:13] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-07 00:20:15,474] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:15] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-07 00:20:15,621] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:15] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:20:15,684] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:15] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:20:23,951] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:23] "GET /convert?convert_url=&now=1473178823942 HTTP/1.1" 200 -
+[2016-09-07 00:20:37,165] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:37] "GET /show_result_init HTTP/1.1" 200 -
+[2016-09-07 00:20:40,204] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:40] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:20:40,954] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:40] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 00:20:45,937] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:45] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-07 00:20:46,130] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-07 00:20:46,134] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-07 00:20:46,392] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 00:20:46,500] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-07 00:20:46,526] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 00:20:46] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
