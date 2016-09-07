@@ -1903,7 +1903,7 @@ def setting_advice_use():
         flash(u"采用项目保存完成.")
         print u'[info]setting_advice_use() MySQL save success.'
     else:
-        flash(u"采用项目保存失败.")
+        flash(u"采用项目保存失败.",'error')
         print u'[error]setting_advice_use() MySQL save failure.'
 
     return render_template('setting_advice.html', inputForm=inputForm,
@@ -2113,7 +2113,7 @@ def list_detail_save_and_run():
         mode = 'exact'  # 精确匹配
 
     if start_url.strip() == '' or site_domain.strip() == '':
-        flash(u'必须设置主页、域名信息！')
+        flash(u'必须设置主页、域名信息！','error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 保存详情页配置
@@ -2138,20 +2138,20 @@ def list_detail_save_and_run():
 
     #### check 详情页/列表页 正则表达式的整合性
     if len(list_regex_save_list) + len(detail_regex_save_list) == 0:
-        flash(u"请填写并勾选要执行的 列表/详情页正则表达式。")
+        flash(u"请填写并勾选要执行的 列表/详情页正则表达式。",'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(list_regex_save_list) != len(set([i['regex'] + i['weight'] for i in list_regex_save_list])):
-        flash(u"列表页正则表达式有重复。")
+        flash(u"列表页正则表达式有重复。",'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(detail_regex_save_list) != len(set([i['regex'] + i['weight'] for i in detail_regex_save_list])):
-        flash(u"详情页正则表达式有重复。")
+        flash(u"详情页正则表达式有重复。",'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(set([i['regex'] for i in list_regex_save_list]).intersection(
             set([i['regex'] for i in detail_regex_save_list]))) > 0:
-        flash(u"列表和详情页中的正则表达式不能重复。")
+        flash(u"列表和详情页中的正则表达式不能重复。",'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 重置Redis
@@ -2207,7 +2207,7 @@ def list_detail_save_and_run():
         flash(u"[MySQL]所有手工配置信息已保存.")
         print u'[info]list_detail_save_and_run() MySQL save success.'
     else:
-        flash(u"[MySQL]手工配置信息保存失败.")
+        flash(u"[MySQL]手工配置信息保存失败.",'error')
         print u'[error]list_detail_save_and_run() MySQL save failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2224,7 +2224,7 @@ def list_detail_save_and_run():
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                              list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
-        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.")
+        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.",'error')
         print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2641,7 +2641,7 @@ def content_save_and_run():
         flash(u"MySQL保存完毕.")
         print u'[info]content_save_and_run() MySQL save success.'
     else:
-        flash(u"MySQL保存失败.")
+        flash(u"MySQL保存失败.",'error')
         print u'[error]content_save_and_run() MySQL save failure.'
         return redirect(url_for('content_init'), 302)
 
@@ -2655,7 +2655,7 @@ def content_save_and_run():
                                          author_regex_str=inputForm.author_exp.data,
                                          ctime_regex_str=inputForm.ctime_exp.data)
     if ret == False:
-        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.")
+        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.",'error')
         print u'[error]content_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return redirect(url_for('content_init'), 302)
 
