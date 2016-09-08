@@ -1,5 +1,5 @@
 ﻿# Host: 127.0.0.1  (Version 5.6.20)
-# Date: 2016-09-06 17:24:33
+# Date: 2016-09-08 22:58:09
 # Generator: MySQL-Front 5.4  (Build 1.1)
 
 /*!40101 SET NAMES utf8 */;
@@ -43,13 +43,13 @@ CREATE TABLE `current_domain_setting` (
   `black_domain_str` varchar(255) DEFAULT NULL COMMENT '以 ; 分割的列表',
   `setting_json` longtext COMMENT '配置简报，json版',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=371 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=412 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "current_domain_setting"
 #
 
-INSERT INTO `current_domain_setting` VALUES (190,'user','http://bbs.tianya.cn','bbs.tianya.cn','',''),(370,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','');
+INSERT INTO `current_domain_setting` VALUES (190,'user','http://bbs.tianya.cn','bbs.tianya.cn','',''),(411,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','');
 
 #
 # Structure for table "preset_patrn"
@@ -58,18 +58,18 @@ INSERT INTO `current_domain_setting` VALUES (190,'user','http://bbs.tianya.cn','
 DROP TABLE IF EXISTS `preset_patrn`;
 CREATE TABLE `preset_patrn` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `scope` varchar(255) DEFAULT '''01''' COMMENT '01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎',
+  `info_flg` varchar(255) DEFAULT '''01''' COMMENT '01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎',
   `partn_type` varchar(255) DEFAULT NULL COMMENT 'list,detail,rubbish',
   `partn` varchar(255) DEFAULT NULL,
   `weight` varchar(255) DEFAULT '0' COMMENT '0：确定, 1：可能, 2： 。。。',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=134 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "preset_patrn"
 #
 
-INSERT INTO `preset_patrn` VALUES (66,'02','list','/list-','1'),(67,'02','list','/hotArticle','1'),(68,'02','detail','/post-','1'),(69,'02','list','\\/$','1'),(101,'03','list','/list1','0'),(102,'01','rubbish','uid','1'),(103,'01','rubbish','username','1'),(104,'01','rubbish','space','1'),(105,'01','rubbish','search','1'),(106,'01','rubbish','blog','1'),(107,'01','rubbish','group','1'),(108,'01','list','list','1'),(109,'01','list','index','1'),(110,'01','list','forum','1'),(111,'01','list','fid','1'),(112,'01','detail','post','1'),(113,'01','detail','thread','1'),(114,'01','detail','detail','1'),(115,'01','detail','content','1'),(131,'06','list','bbb','0');
+INSERT INTO `preset_patrn` VALUES (66,'02','list','/list-','1'),(67,'02','list','/hotArticle','1'),(68,'02','detail','/post-','1'),(69,'02','list','\\/$','1'),(101,'03','list','/list1','0'),(102,'01','rubbish','uid','1'),(103,'01','rubbish','username','1'),(104,'01','rubbish','space','1'),(105,'01','rubbish','search','1'),(106,'01','rubbish','blog','1'),(107,'01','rubbish','group','1'),(108,'01','list','list','1'),(109,'01','list','index','1'),(110,'01','list','forum','1'),(111,'01','list','fid','1'),(112,'01','detail','post','1'),(113,'01','detail','thread','1'),(114,'01','detail','detail','1'),(115,'01','detail','content','1'),(131,'06','list','bbb','0'),(132,'02','detail','thread','1'),(133,'02','list','forum','1');
 
 #
 # Structure for table "result_file"
@@ -94,26 +94,6 @@ CREATE TABLE `result_file` (
 # Data for table "result_file"
 #
 
-
-#
-# Structure for table "task_manage"
-#
-
-DROP TABLE IF EXISTS `task_manage`;
-CREATE TABLE `task_manage` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` varchar(255) NOT NULL DEFAULT 'admin',
-  `start_url` varchar(255) NOT NULL DEFAULT '',
-  `site_domain` varchar(255) DEFAULT NULL,
-  `status` varchar(255) NOT NULL DEFAULT '''0''' COMMENT '0:准备，1:执行中，9：执行完毕',
-  PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-#
-# Data for table "task_manage"
-#
-
-
 #
 # Structure for table "url_rule"
 #
@@ -133,13 +113,13 @@ CREATE TABLE `url_rule` (
   `etc` varchar(255) DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`Id`),
   KEY `scope` (`start_url`,`site_domain`)
-) ENGINE=InnoDB AUTO_INCREMENT=1416 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1430 DEFAULT CHARSET=utf8;
 
 #
 # Data for table "url_rule"
 #
 
-INSERT INTO `url_rule` VALUES (1015,'user','http://bbs.tianya.cn','bbs.tianya.cn','','0','1','0','0','/post-',NULL),(1016,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/list-',NULL),(1017,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/hotArticle',NULL),(1018,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','1','0','/^space/',NULL),(1019,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','1','0','/^search/',NULL),(1072,'admin','http://www.qbjggzy.com','qbjggzy.com','','0','1','0','0','/Article/ArticleDetail',NULL),(1073,'admin','http://www.qbjggzy.com','qbjggzy.com','','1','1','0','0','/',NULL),(1074,'admin','http://www.qbjggzy.com','qbjggzy.com','','1','1','0','0','Category',NULL),(1101,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','0','1','0','0','/post.php',NULL),(1102,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','/index.php',NULL),(1103,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','/city.php',NULL),(1104,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','\\/$',NULL),(1105,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','/list.php',NULL),(1106,'admin','http://liuyan.people.com.cn/city.php?fid=638','liuyan.people.com.cn','','1','1','0','0','/index.php',NULL),(1159,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','0','1','0','1','/post-',NULL),(1160,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','1','1','0','0','/list-',NULL),(1161,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','1','1','0','1','/hotArticle',NULL),(1162,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','1','1','0','1','\\/$',NULL),(1163,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','1','1','0','0','/list.jsp',NULL),(1409,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','0','1','0','0','/post-',NULL),(1410,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','0','1','0','0','aaa',NULL),(1411,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/list-',NULL),(1412,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','1','/hotArticle',NULL),(1413,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','1','\\/$',NULL),(1414,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/list.jsp',NULL),(1415,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','aa',NULL);
+INSERT INTO `url_rule` VALUES (1015,'user','http://bbs.tianya.cn','bbs.tianya.cn','','0','1','0','0','/post-',NULL),(1016,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/list-',NULL),(1017,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/hotArticle',NULL),(1018,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','1','0','/^space/',NULL),(1019,'user','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','1','0','/^search/',NULL),(1072,'admin','http://www.qbjggzy.com','qbjggzy.com','','0','1','0','0','/Article/ArticleDetail',NULL),(1073,'admin','http://www.qbjggzy.com','qbjggzy.com','','1','1','0','0','/',NULL),(1074,'admin','http://www.qbjggzy.com','qbjggzy.com','','1','1','0','0','Category',NULL),(1101,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','0','1','0','0','/post.php',NULL),(1102,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','/index.php',NULL),(1103,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','/city.php',NULL),(1104,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','\\/$',NULL),(1105,'admin','http://liuyan.people.com.cn/index.php?gid=4','liuyan.people.com.cn','','1','1','0','0','/list.php',NULL),(1106,'admin','http://liuyan.people.com.cn/city.php?fid=638','liuyan.people.com.cn','','1','1','0','0','/index.php',NULL),(1409,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','0','1','0','0','/post-',NULL),(1410,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','0','1','0','0','aaa',NULL),(1411,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/list-',NULL),(1412,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','1','/hotArticle',NULL),(1413,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','1','\\/$',NULL),(1414,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','/list.jsp',NULL),(1415,'admin','http://bbs.tianya.cn','bbs.tianya.cn','','1','1','0','0','aa',NULL),(1416,'admin','http://bbs.shunderen.com','bbs.shunderen.com','','0','1','0','1','/post-',NULL),(1417,'admin','http://bbs.shunderen.com','bbs.shunderen.com','','0','1','0','1','thread',NULL),(1418,'admin','http://bbs.shunderen.com','bbs.shunderen.com','','1','1','0','1','/list-',NULL),(1419,'admin','http://bbs.shunderen.com','bbs.shunderen.com','','1','1','0','1','/hotArticle',NULL),(1420,'admin','http://bbs.shunderen.com','bbs.shunderen.com','','1','1','0','1','\\/$',NULL),(1421,'admin','http://bbs.shunderen.com','bbs.shunderen.com','','1','1','0','1','forum',NULL),(1429,'admin','http://www.ynsf.ccoo.cn','ynsf.ccoo.cn','','1','1','0','0','\\/$',NULL);
 
 #
 # Structure for table "user"

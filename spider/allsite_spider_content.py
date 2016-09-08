@@ -39,15 +39,16 @@ REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SETTING = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-START_URLS = '''http://bbs.tianya.cn'''
-SITE_DOMAIN = '''bbs.tianya.cn'''
+START_URLS = '''http://www.ynsf.ccoo.cn'''
+SITE_DOMAIN = '''ynsf.ccoo.cn'''
 CONFIG_ID = '''9999'''
 INFO_FLG = '''01'''
+CONTENT_MODE = '''auto'''
 BLACK_DOMAIN_STR = ''''''
-TITLE_EXP = '''.//*[@id='post_head']/h1/span[1]/span'''
-CONTENT_EXP = '''//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
-AUTHOR_EXP = '''//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
-CTIME_EXP = '''.//*[@id='bd']/div[4]/div[1]/div/div[2]/div[1]'''
+TITLE_EXP = ''''''
+CONTENT_EXP = ''''''
+AUTHOR_EXP = ''''''
+CTIME_EXP = ''''''
 
 
 # spider-modify-end

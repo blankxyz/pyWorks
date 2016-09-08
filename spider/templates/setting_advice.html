@@ -18,7 +18,7 @@
             {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com",onblur="rtrim(this);") }}&nbsp;
             {{ inputForm.black_domain_str.label }}&nbsp;
             {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;&nbsp;&nbsp;
             {# {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}#}
             <button type="submit" href="#" data-toggle="modal" data-target="#myModal"
                     class="btn btn-primary btn-default">提取
@@ -88,9 +88,8 @@
             </table>
         </div>
         <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.use(id="use_btn",class="btn btn-primary btn-default",type="bottun") }}
-
-            {#            <input id="use_btn" type="button" class="btn btn-info">&nbsp;#}
+            {{ inputForm.use(id="use_btn",class="btn btn-primary btn-default",type="submit") }}
+            {#<input id="use_btn" type="button" class="btn btn-info">&nbsp;#}
         </div>
     </form>
 {% endblock %}
@@ -106,16 +105,18 @@
         var patrn_rubbish = /uid|username|space|search|blog|group/;
         var patrn_detail = /post|thread|detail/;
         var patrn_list = /list|index|forum|fid/;
-        {#        var patrn_rubbish = {{ patrn_rubbish | safe }};#}
-        {#        var patrn_detail = {{ patrn_detail | safe }};#}
-        {#        var patrn_list = {{ patrn_list | safe }};#}
+        {#        var patrn_rubbish;#}
+        {#        var patrn_detail;#}
+        {#        var patrn_list;#}
+        {##}
+        {#        patrn_rubbish = {{ patrn_rubbish | safe }};#}
+        {#        patrn_detail = {{ patrn_detail | safe }};#}
+        {#        patrn_list = {{ patrn_list | safe }};#}
         <!-- 颜色标示 黄框：无效，绿框：列表，蓝框：详情 -->
-        function aaa() {
-            alert("aaaa");
-            location.href = $SCRIPT_ROOT + "/setting_advice_try";
-            return false;
-        }
         $(document).ready(function () {
+{#            alert(patrn_rubbish);#}
+{#            alert(patrn_detail);#}
+{#            alert(patrn_list);#}
             for (var i = 0; i < 10; i++) {
                 var obj_k = "#keyword_list-" + i.toString() + "-keyword";
                 var keyword = $(obj_k).val();
@@ -191,6 +192,7 @@
                 },
                 "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
                 "info": false,
+                "paging": false,
                 "searching": false,
                 "processing": true,
                 "search": {"regex": true},//开启正则支持
@@ -198,7 +200,7 @@
                 "bFilter": false,
                 "bLengthChange": false,
                 "aLengthMenu": [30],
-                "scrollY": "500px",
+                "scrollY": "600px",
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
             });
@@ -220,14 +222,15 @@
                 },
                 "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
                 "info": false,
+                "paging": false,
                 "searching": false,
                 "processing": true,
-                {#                "search": {"regex": true},//开启正则支持#}
+                {#"search": {"regex": true},//开启正则支持#}
                 {#"bStateSave": true, //状态保存,与正则检索矛盾#}
                 "bFilter": false,
                 "bLengthChange": false,
                 "aLengthMenu": [30],
-                "scrollY": "500px",
+                "scrollY": "600px",
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
             });

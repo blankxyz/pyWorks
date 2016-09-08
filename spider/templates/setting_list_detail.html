@@ -21,7 +21,7 @@
             {{ inputForm.black_domain_str(size=40,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;
+            {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;
         </div>
         <hr>
         <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
@@ -51,6 +51,11 @@
                 </tbody>
             </table>
             <hr>
+            {{ inputForm.list_or_detail(style="float:left") }}
+            <button id="save_run_list" name="save_run_list" type="submit" href="#" style="float:right"
+                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-default">保存-执行
+            </button>
+            {#{{ inputForm.save_run_detail(class="btn btn-info") }}#}
             {# {{ inputForm.save_run_list(class="btn btn-info") }}#}
             {#<a id="save_run_list" name="save_run_list" type="submit" href="list_detail_save_and_run"#}
             {#  data-toggle="modal" data-target="#myModal" class="btn btn-info">保存-执行(列表页)</a>#}
@@ -88,11 +93,6 @@
                 </tbody>
             </table>
             <hr>
-            {{ inputForm.list_or_detail(style="float:left") }}
-            <button id="save_run_list" name="save_run_list" type="submit" href="#" style="float:right"
-                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-default">保存-执行
-            </button>
-            {#            {{ inputForm.save_run_detail(class="btn btn-info") }}#}
         </div>
     </form>
 {% endblock %}
@@ -136,9 +136,9 @@
             $('#start_url').val(without_slash);
         });
         <!-- 选择分类-->
-        $('#scope_sel').change(function () {
-            var scope_sel = $(this).children('option:selected').val();
-            window.location.href = "/list_detail_init_preset?scope=" + scope_sel;
+        $('#info_flg_sel').change(function () {
+            var info_flg_sel = $(this).children('option:selected').val();
+            window.location.href = "/list_detail_init_preset?info_flg=" + info_flg_sel;
         });
         $(document).ready(function () {
             $('#list_regex_tab').DataTable({
@@ -192,7 +192,7 @@
                 "paging": false,
                 "searching": false,
                 "processing": true,
-                {#                "search": {"regex": true},//开启正则支持#}
+                {#"search": {"regex": true},//开启正则支持#}
                 {#"bStateSave": true, //状态保存,与正则检索矛盾#}
                 "bFilter": false,
                 "bLengthChange": false,

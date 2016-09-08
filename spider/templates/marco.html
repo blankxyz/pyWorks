@@ -3,7 +3,12 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <ul class=flashes>
-                {% for color, message in messages %}
+                {% for categoly, message in messages %}
+                    {% if categoly =='info' %} {% set color = 'blue' %}
+                    {% elif categoly =='warning' %}{% set color = 'orange' %}
+                    {% elif categoly =='error' %}{% set color = 'red' %}
+                    {% else %} {% set color = 'black' %}
+                    {% endif %}
                     <li style="color: {{ color }}">{{ message|safe }}</li>
                 {% endfor %}
             </ul>

@@ -1,27 +1,21 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
     <h3 align="center">配置信息-历史记录</h3>
     <hr>
     <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for color, message in messages %}
-                        <li style="color: {{ color }}">{{ message|safe }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+        {{ t.top_massage() }}
     </div>
     <hr>
     <div id="search-cond-div" class="form-group center" style="width:98%; margin-left:20px">
         <form id="search-cond" method="POST" action="/history_search">
             <label><span class="glyphicon glyphicon-user"></span>&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
-            {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
+            {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20,placeholder='支持 like 查询') }}
             {{ inputForm.start_url_sel.label }}&nbsp; {{ inputForm.start_url_sel() }}
             {{ inputForm.list_download(class="btn btn-primary btn-xs") }}
             {{ inputForm.detail_download(class="btn btn-primary btn-xs") }}
-            {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20) }}
+            {{ inputForm.site_domain.label }}&nbsp; {{ inputForm.site_domain(size=20,placeholder='支持 like 查询') }}
             {{ inputForm.search(class="btn btn-primary") }}
             {# {{ inputForm.recover() }}#}
         </form>
@@ -45,7 +39,7 @@
                     <td>{{ row['start_url'] }}</td>
                     <td>{{ row['site_domain'] }}</td>
                     <td>{{ row['black_domain_str'] }}</td>
-{#                    <td>{{ row['scope'] }}</td>#}
+                    {#                    <td>{{ row['scope'] }}</td>#}
                     <td>{{ row['detail_or_list'] }}</td>
                     <td>{{ row['regex'] }}</td>
                     <td>{{ row['weight'] }}</td>

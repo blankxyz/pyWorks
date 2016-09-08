@@ -112,15 +112,15 @@ class AdviceRegexListInputForm(Form):  # setting
     regex_list = FieldList(FormField(AdviceRegexForm), label=u'正则表达式')
     keyword_list = FieldList(FormField(AdviceKeyWordForm), label=u'关键字')
 
-    scope_sel = SelectField(label=u'分类', coerce=str,
-                            choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
-                                     ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
-                            default=('00', u'不使用预置规则'))
+    info_flg_sel = SelectField(label=u'分类', coerce=str,
+                               choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                                        ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                               default=('00', u'不使用预置规则'))
     advice = SubmitField(label=u'提取')
     use = SubmitField(label=u'采用')
 
 
-######## advice_setting_window.html #######################################################################
+######## setting_advice_window.html #######################################################################
 class AdviceUrlForm(Form):
     url = StringField(label=u'url')
 
@@ -153,10 +153,10 @@ class ListDetailRegexSettingForm(Form):  # setting
     site_domain = StringField(label=u'限定域名')  # cpt.xtu.edu.cn'  # 湘潭大学
     white_list = StringField(label=u'白名单')
     black_domain_str = StringField(label=u'域名黑名单')
-    scope_sel = SelectField(label=u'分类', coerce=str,
-                            choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
-                                     ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
-                            default=('00', u'不使用预置规则'))
+    info_flg_sel = SelectField(label=u'分类', coerce=str,
+                               choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
+                                        ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                               default=('00', u'不使用预置规则'))
 
     result = StringField(label=u'转换结果')
     convert = SubmitField(label=u'<< 转换')
@@ -188,7 +188,7 @@ class ResultForm(Form):  # 内容提取
 
 ######## content.html #############################################################################
 class ContentInputForm(Form):
-    mode = BooleanField(label=u'自动提取', default=True)
+    content_mode = BooleanField(label=u'自动提取', default=True)
 
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
     detail_regex_list = []
@@ -773,11 +773,11 @@ class MySqlDrive(object):
             print '[error]get_result_file()', e, start_url, cnt
             return None, None, 0
 
-    def get_preset_partn(self, scope='01', partn_type=''):
+    def get_preset_partn(self, info_flg, partn_type):
         # scope: 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
         # partn_type: list,detail,rubbish
         partn_list = []
-        sql_str = "SELECT partn_type, partn, weight FROM preset_patrn  WHERE scope='" + scope + "' AND partn_type LIKE '%" + partn_type + "%'"
+        sql_str = "SELECT partn_type, partn, weight FROM preset_patrn  WHERE info_flg='" + info_flg + "' AND partn_type LIKE '%" + partn_type + "%'"
 
         try:
             cnt = self.cur.execute(sql_str)
@@ -814,7 +814,7 @@ class MySqlDrive(object):
 
         return cnt
 
-    def get_preset_partn_to_str(self, scope='01'):
+    def get_preset_partn_to_str(self, info_flg):
         # return:
         #  patrn_rubbish = '/uid|username|space|search|blog|group/'
         #  patrn_detail = '/post|thread|detail/'
@@ -823,10 +823,10 @@ class MySqlDrive(object):
         detail_list = []
         list_list = []
 
-        sql_str = "SELECT partn_type, partn FROM preset_patrn WHERE scope=%s"
-        parameter = (scope,)
+        sql_str = "SELECT partn_type, partn FROM preset_patrn WHERE info_flg=%s"
+        parameter = (info_flg,)
         try:
-            cnt = self.cur.execute(sql_str,parameter)
+            cnt = self.cur.execute(sql_str, parameter)
             rs = self.cur.fetchall()
             for r in rs:
                 if r[0] == 'list':
@@ -1189,7 +1189,7 @@ class Util(object):
             print "[error]modify_config(): %s" % e
             return False
 
-    def modify_config_for_content(self, start_urls, site_domain, info_flg, config_id,
+    def modify_config_for_content(self, start_urls, site_domain, info_flg, config_id,content_mode,
                                   title_regedx_str, content_regex_str, author_regex_str, ctime_regex_str):
         '''直接修改爬虫文件代码'''
         try:
@@ -1209,6 +1209,8 @@ class Util(object):
                         row = "CONFIG_ID = '''" + config_id + "'''\n"
                     if row.find('INFO_FLG') >= 0:
                         row = "INFO_FLG = '''" + info_flg + "'''\n"
+                    if row.find('CONTENT_MODE') >= 0:
+                        row = "CONTENT_MODE = '''" + content_mode + "'''\n"
 
                     if row.find('TITLE_EXP') >= 0:
                         row = "TITLE_EXP = '''" + title_regedx_str + "'''\n"
@@ -1607,14 +1609,15 @@ class Util(object):
 
         return category_compress_dict
 
-    def is_connect_success(self,url):
+    def is_connect_success(self, url):
         import downloader
-        d = downloader.Downloader(proxy_enable=False,timeout=10)
+        d = downloader.Downloader(proxy_enable=False, timeout=10)
         response = d.download(url)
         if response:
             return response.status_code == 200
         else:
             return False
+
 
 #####  推荐算法  end  ################################################################
 
@@ -1656,6 +1659,10 @@ def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
 ######### router and action  ###############################################################################
 @app.route("/", methods=['POST', 'GET'])
 def login():
+    global g_advice_regex_list
+    global g_advice_keyword_list
+    global g_start_url_list
+
     if request.method == 'POST':
         user_id = request.form['username']
         password = request.form['password']
@@ -1675,7 +1682,7 @@ def login():
 
             return render_template('menu.html', user_id=user_id)
         else:
-            flash(u"输入密码不正确。")
+            flash(u"输入密码不正确。", "error")
 
     return render_template('login.html')
 
@@ -1720,6 +1727,9 @@ def convert_to_regex():
 def setting_advice_init():
     # print '[info]setting_advice_init() start.'
     user_id = session['user_id']
+    global g_advice_regex_list
+    global g_advice_keyword_list
+
     inputForm = AdviceRegexListInputForm(request.form)
 
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -1729,7 +1739,7 @@ def setting_advice_init():
     # 恢复 主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。', category='info')
+        flash(u'请设置主页、域名信息。', category='warning')
         for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
@@ -1762,9 +1772,9 @@ def setting_advice_init():
 
     # 初始化预置规则
     mysql_db = MySqlDrive()
-    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str('01')
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(info_flg='01')
 
-    flash(u'初始化配置完成')
+    flash(u'初始化配置完成', 'info')
     # print '[info]setting_advice_init() end.'
     return render_template('setting_advice.html', inputForm=inputForm,
                            patrn_rubbish=patrn_rubbish, patrn_detail=patrn_detail, patrn_list=patrn_list)
@@ -1787,7 +1797,7 @@ def setting_advice_try():
     # 提取主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。')
+        flash(u'请设置主页、域名信息。', 'warning')
         for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
@@ -1797,22 +1807,21 @@ def setting_advice_try():
         return render_template('setting_advice.html', inputForm=inputForm,
                                patrn_rubbish='', patrn_detail='', patrn_list='')
     elif util.is_connect_success(start_url) is False:
-        flash(u'主页访问超时或无法访问。')
+        flash(u'主页访问超时或无法访问。', 'error')
         return render_template('setting_advice.html', inputForm=inputForm,
                                patrn_rubbish='', patrn_detail='', patrn_list='')
     else:
         set_domain_init(inputForm, start_url, site_domain, black_domain_str)
 
     # 选择推荐规则
-    req_scope_sel = request.args.get('scope')
-    inputForm.scope_sel.data = req_scope_sel
+    req_info_flg_sel = inputForm.info_flg_sel.data
 
     # 保存初始化信息
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                       black_domain_str=black_domain_str, setting_json='')
     # 初始化预置规则
-    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(scope=req_scope_sel)
-    # print patrn_list, patrn_detail, patrn_rubbish
+    patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(info_flg=req_info_flg_sel)
+    print '[info]setting_advice_try()', 'list:', patrn_list, 'detail:', patrn_detail, 'rubbish:', patrn_rubbish
 
     # 修改配置文件的执行入口信息
     import allsite_spider_advice
@@ -1851,7 +1860,7 @@ def setting_advice_try():
         inputForm.keyword_list.append_entry()
         advice_keyword_list.append({'keyword': '', 'score': '0', 'select': '0'})
 
-    flash(u'初始化配置完成')
+    flash(u'提取完成', 'info')
     print '[info]setting_advice_try() end.'
     return render_template('setting_advice.html',
                            inputForm=inputForm,
@@ -1863,9 +1872,9 @@ def setting_advice_try():
 @app.route('/setting_advice_use', methods=["GET", "POST"])
 def setting_advice_use():
     print '[info]setting_advice_save() start.'
-    # patrn_rubbish = '\/uid|username|space|search|blog|group\/'
-    # patrn_detail = '\/post\/'
-    # patrn_list = '\/list\/'
+    patrn_rubbish = '\/uid|username|space|search|blog|group\/'
+    patrn_detail = '\/post\/'
+    patrn_list = '\/list\/'
 
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
@@ -1874,7 +1883,7 @@ def setting_advice_use():
     # 提取主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。')
+        flash(u'请设置主页、域名信息。', 'warning')
         for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
@@ -1905,17 +1914,17 @@ def setting_advice_use():
             continue
 
     if len(detail_regex_save_list) == 0 and len(list_regex_save_list) == 0:
-        flash(u'请选择采用规则或关键字的类别。')
+        flash(u'请选择采用规则或关键字的类别。', 'error')
         return render_template('setting_advice.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
     cnt = mysql_db.save_all_setting(user_id, start_url, site_domain, '', black_domain_str,
                                     detail_regex_save_list, list_regex_save_list)
     if cnt == 1:
-        flash(u"采用项目保存完成.")
+        flash(u"采用项目保存完成.", 'info')
         print u'[info]setting_advice_use() MySQL save success.'
     else:
-        flash(u"采用项目保存失败.",'error')
+        flash(u"采用项目保存失败.", 'error')
         print u'[error]setting_advice_use() MySQL save failure.'
 
     return render_template('setting_advice.html', inputForm=inputForm,
@@ -1932,7 +1941,7 @@ def setting_advice_window():
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。')
+        flash(u'请设置主页、域名信息。', 'warning')
         return render_template('setting_advice_window.html', inputForm=inputForm)
 
     regex = request.args.get('regex')
@@ -1962,20 +1971,19 @@ def list_detail_init_preset():
     '''
     从MySql初始化Web页面和Redis
     '''
-    SHOW_MAX = 10
     user_id = session['user_id']
     mysql_db = MySqlDrive()
 
     inputForm = ListDetailRegexSettingForm(request.form)
 
     # 选择推荐规则
-    req_scope_sel = request.args.get('scope')
-    inputForm.scope_sel.data = req_scope_sel
+    req_info_flg_sel = request.args.get('info_flg')
+    inputForm.info_flg_sel.data = req_info_flg_sel
 
     #### 将预置设定 表示到 页面
     list_cnt = 0
     detail_cnt = 0
-    partn_list = mysql_db.get_preset_partn(req_scope_sel)
+    partn_list = mysql_db.get_preset_partn(req_info_flg_sel, partn_type='')
     for (partn_type, partn, weight) in partn_list:
         # partn_type: list,detail,rubbish
         regexForm = RegexSettingForm()
@@ -2000,7 +2008,7 @@ def list_detail_init_preset():
         for j in range(SHOW_MAX - detail_cnt):
             inputForm.detail_regex_list.append_entry()
 
-    flash(u'预置规则设定完成')
+    flash(u'预置规则设定完成', 'info')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
@@ -2019,7 +2027,7 @@ def list_detail_init():
     # print start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。')
+        flash(u'请设置主页、域名信息。', 'warning')
         for j in range(SHOW_MAX):
             inputForm.detail_regex_list.append_entry()
 
@@ -2106,7 +2114,7 @@ def list_detail_init():
     for j in range(SHOW_MAX - cnt):
         inputForm.list_regex_list.append_entry()
 
-    flash(u'初始化配置完成')
+    flash(u'初始化配置完成', 'info')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
@@ -2126,11 +2134,11 @@ def list_detail_save_and_run():
         mode = 'exact'  # 精确匹配
 
     if start_url.strip() == '' or site_domain.strip() == '':
-        flash(u'必须设置主页、域名信息！','error')
+        flash(u'必须设置主页、域名信息！', 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if util.is_connect_success(start_url) is False:
-        flash(u'主页访问超时或无法访问。')
+        flash(u'主页访问超时或无法访问。', 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 保存详情页配置
@@ -2155,20 +2163,20 @@ def list_detail_save_and_run():
 
     #### check 详情页/列表页 正则表达式的整合性
     if len(list_regex_save_list) + len(detail_regex_save_list) == 0:
-        flash(u"请填写并勾选要执行的 列表/详情页正则表达式。",'error')
+        flash(u"请填写并勾选要执行的 列表/详情页正则表达式。", 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(list_regex_save_list) != len(set([i['regex'] + i['weight'] for i in list_regex_save_list])):
-        flash(u"列表页正则表达式有重复。",'error')
+        flash(u"列表页正则表达式有重复。", 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(detail_regex_save_list) != len(set([i['regex'] + i['weight'] for i in detail_regex_save_list])):
-        flash(u"详情页正则表达式有重复。",'error')
+        flash(u"详情页正则表达式有重复。", 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     if len(set([i['regex'] for i in list_regex_save_list]).intersection(
             set([i['regex'] for i in detail_regex_save_list]))) > 0:
-        flash(u"列表和详情页中的正则表达式不能重复。",'error')
+        flash(u"列表和详情页中的正则表达式不能重复。", 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 重置Redis
@@ -2221,10 +2229,10 @@ def list_detail_save_and_run():
                                     detail_regex_save_list=detail_regex_save_list,
                                     list_regex_save_list=list_regex_save_list)
     if cnt == 1:
-        flash(u"[MySQL]所有手工配置信息已保存.")
+        flash(u'[MySQL]所有手工配置信息已保存.', 'info')
         print u'[info]list_detail_save_and_run() MySQL save success.'
     else:
-        flash(u"[MySQL]手工配置信息保存失败.",'error')
+        flash(u'[MySQL]手工配置信息保存失败.', 'error')
         print u'[error]list_detail_save_and_run() MySQL save failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2240,7 +2248,7 @@ def list_detail_save_and_run():
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                              list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
-        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.",'error')
+        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.", 'error')
         print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2255,7 +2263,7 @@ def list_detail_save_and_run():
 
     # 执行抓取程序
     if inputForm.list_or_detail.data == 0:  # list
-        flash(u"后台列表页爬虫启动。")
+        flash(u'后台列表页爬虫启动。', 'info')
         if os.name == 'nt':
             # DOS "start" command
             print '[info]--- %s run on windows' % SHELL_LIST_CMD
@@ -2267,14 +2275,14 @@ def list_detail_save_and_run():
             print '[info]--- process_id:', process_id
 
     if inputForm.list_or_detail.data == 1:  # detail
-        flash(u"后台详情页爬虫启动.")
+        flash(u"后台详情页爬虫启动.", 'info')
         if os.name == 'nt':
             # DOS "start" command
             print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
             os.startfile(SHELL_DETAIL_CMD)
         else:
             print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
-            p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True)
+            p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             process_id = p.pid
             print '[info]--- process_id:', process_id
 
@@ -2290,7 +2298,7 @@ def show_result_init():
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。', category='warning')
+        flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('show_result.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
@@ -2312,7 +2320,7 @@ def show_result_init():
     regex_sel = inputForm.detail_regex_sel.data
     inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
 
-    flash(u'抓取结果数据较多时，请等待数据显示完成后，再做其他操作。')
+    flash(u'抓取结果数据较多时，请等待数据显示完成后，再做其他操作。', 'info')
     return render_template('show_result.html', inputForm=inputForm)
 
 
@@ -2324,7 +2332,7 @@ def show_result():
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_result()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。', category='warning')
+        flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('show_result.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
@@ -2367,7 +2375,7 @@ def show_unkown_urls():
     start_url, site_domain, black_domain_str = get_domain_init()
     print '[info]show_unkown_urls()', start_url, site_domain, black_domain_str
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。', category='warning')
+        flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('show_unkown_urls.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
@@ -2386,8 +2394,14 @@ def show_unkown_urls():
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     inputForm.unkown_url_list = redis_db.get_unkown_urls()
     if len(inputForm.unkown_url_list) == 0:
-        flash(u'没有未匹配URL信息。')
+        flash(u'没有未匹配URL信息。', 'info')
         return render_template('show_unkown_urls.html', inputForm=inputForm)
+    # else:
+    #     new_list = []
+    #     for url in inputForm.unkown_url_list:
+    #         new_list.append(urlparse.unquote(url) )
+    #
+    #     inputForm.unkown_url_list = new_list
 
     util = Util()
     # 关键字统计
@@ -2437,8 +2451,19 @@ def show_process():
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
     print '[info]show_process()', user_id, start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
-        return render_template('show_process.html', inputForm=inputForm)
+        flash(u'请设置主页、限定的域名信息。', 'warning')
+        return render_template('show_process.html',
+                               times=[],
+                               total_cnt_list=[],
+                               unkown_cnt_list=[],
+                               detail_cnt_list=[],
+                               detail_done_cnt_list=[],
+                               list_cnt_list=[],
+                               list_done_cnt_list=[],
+                               unkown_cnt_now=0,
+                               detail_cnt_now=0,
+                               list_cnt_now=0,
+                               velocity_list=[])
 
     # 从redis提取实时信息，转换成json文件
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
@@ -2464,7 +2489,7 @@ def show_process():
 
     times = range(len(times_list))  # 转换成序列[1,2,3...], high-chart不识别时间
     # 将json映射到html
-    flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。')
+    flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。', 'info')
     return render_template('show_process.html',
                            times=times,
                            total_cnt_list=total_cnt_list,
@@ -2499,7 +2524,7 @@ def save_finally_result():
     # 将实时结果作为最终结果保存到DB
     mysql_db = MySqlDrive()
     mysql_db.save_result_file_to_mysql(start_url, site_domain)
-    flash(u'列表页结果保存DB成功。')
+    flash(u'列表页结果保存DB成功。', 'info')
     print '[info]save finally result to DB OK.'
     return redirect(url_for('show_process'), 302)
 
@@ -2507,13 +2532,13 @@ def save_finally_result():
 @app.route('/kill_spider', methods=['GET', 'POST'])
 def kill_spider():
     if MY_OS == 'windows':
-        flash(u"请手工关闭windows控制台.")
+        flash(u"请手工关闭windows控制台.", 'info')
         print '[info]kill_spider() @windows please close the bat cmd.'
         # os.system("taskkill /PID %s /F" % process_id)
     else:
         subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
         print '[info]kill_spider() @linux or @mac ok.'
-        flash(u"已经结束进程.")
+        flash(u"已经结束进程.", 'info')
     return redirect(url_for('show_process'), 302)
 
 
@@ -2522,7 +2547,7 @@ def reset_all():
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
+        flash(u'请设置主页、限定的域名信息。', 'warning')
         return redirect(url_for('show_process'), 302)
 
     # 绘图文件清零
@@ -2571,7 +2596,7 @@ def content_init():
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
+        flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('content.html', inputForm=inputForm)
 
     mysql_db = MySqlDrive()
@@ -2585,7 +2610,7 @@ def content_init():
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
     print '[info]content_init()', inputForm.detail_url_list
 
-    flash(u'点击下面链接，获取链接内容需要一些时间。')
+    flash(u'点击下面链接，获取链接内容需要一些时间。', 'warning')
     return render_template('content.html', inputForm=inputForm)
 
 
@@ -2645,8 +2670,13 @@ def content_save_and_run():
     inputForm = ContentInputForm(request.form)
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、限定的域名信息。')
+        flash(u'请设置主页、限定的域名信息。', 'warning')
         return redirect(url_for('content_init'), 302)
+
+    if inputForm.content_mode.data:
+        content_mode = 'auto'
+    else:
+        content_mode = 'xpath'
 
     mysql_db = MySqlDrive()
     cnt = mysql_db.save_content_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
@@ -2654,10 +2684,10 @@ def content_save_and_run():
                                         title_exp=inputForm.title_exp.data, author_exp=inputForm.author_exp.data,
                                         content_exp=inputForm.content_exp.data, ctime_exp=inputForm.ctime_exp.data)
     if cnt == 1:
-        flash(u"MySQL保存完毕.")
+        flash(u"MySQL保存完毕.", 'info')
         print u'[info]content_save_and_run() MySQL save success.'
     else:
-        flash(u"MySQL保存失败.",'error')
+        flash(u"MySQL保存失败.", 'error')
         print u'[error]content_save_and_run() MySQL save failure.'
         return redirect(url_for('content_init'), 302)
 
@@ -2666,14 +2696,19 @@ def content_save_and_run():
                                          site_domain=site_domain,
                                          info_flg=inputForm.info_flg_sel.data,
                                          config_id='9999',
+                                         content_mode=content_mode,
                                          title_regedx_str=inputForm.title_exp.data,
                                          content_regex_str=inputForm.content_exp.data,
                                          author_regex_str=inputForm.author_exp.data,
                                          ctime_regex_str=inputForm.ctime_exp.data)
     if ret == False:
-        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.",'error')
+        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.", 'error')
         print u'[error]content_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
         return redirect(url_for('content_init'), 302)
+
+    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    for url in redis_db.conn.smembers(redis_db.detail_urls_set_key):
+        redis_db.conn.sadd(redis_db.detail_urls_set_copy_key,url)
 
     if os.name == 'nt':
         # DOS "start" command
@@ -2711,40 +2746,42 @@ def history_search():
     # 点击 查询 按钮
     if inputForm.search.data:
         if len(outputForm.search_result_list) == 0:
-            flash(u'请输入合适的查询条件（ 主页，限定域名   支持like查询 ）。')
+            flash(u'请输入合适的查询条件。', 'error')
         else:
-            flash(u'请确认的查询结果。')
+            flash(u'请确认的查询结果。', 'info')
 
         if start_url_sel != '':
             start_url = start_url_sel
         outputForm.search_result_list = mysql_db.search_regex_by_user(user_id, start_url, site_domain)
+    else:  # 没有点击 查询 按钮（初始化）
+        flash(u'请输入合适的查询条件。', 'warning')
 
-    # 点击 导出列表页历史结果 按钮
+    # 点击 导出列表页结果 按钮
     if inputForm.list_download.data:
         if start_url_sel == '':
-            flash(u'请从历史记录中选择主页。')
+            flash(u'请从历史记录中选择主页。', 'info')
         else:
             list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
             if list_copy_file is not None and cnt != 0:
-                flash(u'列表页历史记录下载成功。')
+                flash(u'列表页历史记录下载成功。', 'info')
                 return send_from_directory(app.config['EXPORT_FOLDER'], list_copy_file, as_attachment=True)
 
             if cnt == 0:
-                flash(u'没有列表页历史记录。')
+                flash(u'没有列表页历史记录。', 'warning')
                 print '[error]user_search() get_result_file() not found.', start_url_sel
 
-    # 点击 导出详情页历史结果 按钮
+    # 点击 导出详情页结果 按钮
     if inputForm.detail_download.data:
         if start_url_sel == '':
-            flash(u'请从历史记录中选择主页。')
+            flash(u'请从历史记录中选择主页。', 'warning')
         else:
             list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
             if detail_copy_file is not None and cnt != 0:
-                flash(u'详情页历史记录下载成功。')
+                flash(u'详情页历史记录下载成功。', 'info')
                 return send_from_directory(app.config['EXPORT_FOLDER'], detail_copy_file, as_attachment=True)
 
             if cnt == 0:
-                flash(u'没有详情页历史记录。')
+                flash(u'没有详情页历史记录。', 'warning')
                 print '[error]user_search() get_result_file() not found.', start_url_sel
 
     # 点击 导入 按钮
@@ -2759,9 +2796,9 @@ def history_search():
             if len(d) == 1:
                 mysql_db.set_current_main_setting(user_id, start_url, site_domain, '', '')
             else:
-                flash(u'请选择唯一的首页和域名进行导入。')
+                flash(u'请选择唯一的首页和域名进行导入。', 'error')
         else:
-            flash(u'请检索取得结果后再导入。')
+            flash(u'请检索取得结果后再导入。', 'error')
 
     return render_template('history.html', user_id=user_id, inputForm=inputForm, outputForm=outputForm)
 
@@ -2773,7 +2810,7 @@ def preset_init():
     inputForm = PresetListForm(request.form)
 
     mysql_db = MySqlDrive()
-    partn_list = mysql_db.get_preset_partn(scope='01')
+    partn_list = mysql_db.get_preset_partn(info_flg='01', partn_type='')
 
     ####  页面(regex)
     for (partn_type, partn, weight) in partn_list:
@@ -2786,7 +2823,7 @@ def preset_init():
     for j in range(SHOW_MAX - len(partn_list)):
         inputForm.partn_list.append_entry()
 
-    flash(u'每一类规则最多可设置30条。')
+    flash(u'每一类规则最多可设置30条。', 'warning')
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
 
 
@@ -2798,7 +2835,7 @@ def preset_change():
     inputForm.scope_sel.data = scope_sel
 
     mysql_db = MySqlDrive()
-    partn_list = mysql_db.get_preset_partn(scope_sel)
+    partn_list = mysql_db.get_preset_partn(scope_sel, partn_type='')
 
     ####  页面(regex)
     for (partn_type, partn, weight) in partn_list:
@@ -2857,7 +2894,7 @@ def admin_server_log():
         server_log_list = p.stdout.readlines()
 
     if len(server_log_list) == 0:
-        flash(u'web_server.log未生成。')
+        flash(u'Server log 未生成。', 'error')
         return render_template('admin_server_log.html', inputForm=inputForm, server_log_list=[])
 
     # 保存 实时 列表页结果
@@ -2881,7 +2918,7 @@ def admin_server_log():
 @app.route('/admin_tools')
 def admin_tools():
     # print request.path
-    flash(u"请选择操作。")
+    flash(u"请选择操作。", 'info')
     return render_template('admin_tools.html')
 
 
@@ -2901,7 +2938,7 @@ def tool_upload():
         # 获取一个安全的文件名，仅支持ascii字符。
         f_name = secure_filename(f.filename)
         f.save(os.path.join(EXPORT_FOLDER, f_name))
-        flash(u"上传成功.")
+        flash(u"上传成功.", 'info')
         print '[info]help_upload() ok.', f_name
         return render_template('admin_tools.html')
 
@@ -2952,11 +2989,11 @@ def tool_session_setting():
     start_url = request.form['start_url']
     site_domain = request.form['site_domain']
     if start_url.strip() == '' or site_domain.strip() == '':
-        flash(u'请输入必要信息。')
+        flash(u'请输入必要信息。', 'error')
     else:
         session['start_url'] = request.form['start_url']
         session['site_domain'] = request.form['site_domain']
-        flash(u'session已经被更新。')
+        flash(u'session已经被更新。', 'info')
     return redirect(url_for('admin_tools'), 302)
 
 
@@ -2968,7 +3005,7 @@ def tool_redis_setting():
     dedup_server = request.form['dedup_server']
 
     if redis_server.strip() == '' or dedup_server.strip() == '':
-        flash(u'请输入必要信息。')
+        flash(u'请输入必要信息。', 'error')
     else:
         config = ConfigParser.ConfigParser()
         config.read(ALLSITE_SPIDER_INI)
@@ -2988,7 +3025,7 @@ def tool_redis_setting():
         REDIS_SERVER = 'redis://' + redis_server
         DEDUP_SETTING = 'redis://' + dedup_server
 
-        flash(WEB_MAIN_INI + u'和' + ALLSITE_SPIDER_INI + u'已经被更新。')
+        flash(WEB_MAIN_INI + u'和' + ALLSITE_SPIDER_INI + u'已经被更新。', 'info')
     return redirect(url_for('admin_tools'), 302)
 
 
