@@ -1,4 +1,6 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block scripts %}
     {#todo#}
 {% endblock %}
@@ -8,18 +10,10 @@
         <small>工具集</small>
     </h3>
     <hr/>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:50px">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                        <label>{{ message }}</label>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
-    <div id="config" class="form-group center" style="100%; margin-left:50px">
+    <div id="config" class="form-group center" style="width:98%; margin-left:20px">
         <hr>
         <a class="btn btn-primary btn-sm" href="{{ url_for('static', filename='export/help.doc') }}">下载帮助文档</a>
         <hr>

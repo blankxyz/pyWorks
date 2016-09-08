@@ -1,19 +1,13 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
     <h3 align="center">主页URL归类
         <small>正则表达式/关键字 (黄框：无效，绿框：列表，蓝框：详情)</small>
     </h3>
     <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message|safe }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
     <form id="setting" method="POST" action="/setting_advice_try">
         <hr>
@@ -47,7 +41,7 @@
     </form>
     <hr>
     <form id="setting" method="POST" action="/setting_advice_use">
-        <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:10px">
+        <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:20px">
             <table id="regex_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
@@ -70,7 +64,7 @@
                 </tbody>
             </table>
         </div>
-        <div id="keyword_div" class="form-group" style="float:right;width:48%; margin-left:10px">
+        <div id="keyword_div" class="form-group" style="float:right;width:48%; margin-right:20px">
             <table id="keyword_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>

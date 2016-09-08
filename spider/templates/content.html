@@ -1,25 +1,19 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
     <h3 align="center">内容提取
         <small>标题、创建时间、内容、作者</small>
     </h3>
     <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                        <label>{{ message }}</label>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
     <div id="result"></div>
     <hr>
     <form id="cond" method="POST" action="/content_save_and_run">
         <!-- 左侧下拉选择及URL列表 -->
-        <div id="detail_url_list_div" class="panel-group" style="float:left;width:48%; margin-left:10px">
+        <div id="detail_url_list_div" class="panel-group" style="float:left;width:48%; margin-left:20px">
             {{ inputForm.detail_regex_sel(id="detail_regex_sel",style="width:480px;") }}
             &nbsp;
             <a id="plus_a" href="#plus_regex_div" data-toggle="collapse" data-parent="#detail_url_list_div">
@@ -41,7 +35,7 @@
             <table id="detail_url_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th>详情页URL </th>
+                    <th>详情页URL</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -54,7 +48,7 @@
             </table>
         </div>
         <!-- 右侧具体项目 -->
-        <div id="item_div" class="form-group" style="float:right;width:48%; margin-left:10px">
+        <div id="item_div" class="form-group" style="float:right;width:48%; margin-right:20px">
             {{ inputForm.mode(id="mode") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;&nbsp;&nbsp;
@@ -237,10 +231,10 @@
                         dataType: 'json',
                         data: {
                             url: $(this).text(),
-                            title_exp:$('#title_exp').val(),
-                            ctime_exp:$('#ctime_exp').val(),
-                            content_exp:$('#content_exp').val(),
-                            author_exp:$('#author_exp').val(),
+                            title_exp: $('#title_exp').val(),
+                            ctime_exp: $('#ctime_exp').val(),
+                            content_exp: $('#content_exp').val(),
+                            author_exp: $('#author_exp').val(),
                             now: new Date().getTime()
                         },
                         error: function (xhr, err) {

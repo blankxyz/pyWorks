@@ -11179,3 +11179,62 @@ TypeError: object of type 'int' has no len()
 [2016-09-07 00:43:36,750] [WARNING] [downloader.py] [288] - 调试信息 下载返回码 [1m[44m[37m403[0m  请注意
 [2016-09-07 00:43:36,750] [ERROR] [downloader.py] [59] - [1m[34m403 Client Error: Forbidden for url: http://bbs.tianya.cn/[0m, Retrying in 1 seconds...
 [2016-09-07 00:43:57,750] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='120.1.19.157', port=8998): Max retries exceeded with url: http://bbs.tianya.cn/ (Caused by ConnectTimeoutError(<requests.packages.urllib3.connection.HTTPConnection object at 0x00000000031F8A58>, 'Connection to 120.1.19.157 timed out. (connect timeout=20)'))[0m, Retrying in 2 seconds...
+[2016-09-07 01:18:13,857] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 01:18:13] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-07 01:18:14,085] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 01:18:14] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 01:18:14,164] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 01:18:14] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-07 01:19:18,579] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 01:19:18] "GET /setting_advice_window?regex=space HTTP/1.1" 200 -
+[2016-09-07 01:19:18,690] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 01:19:18] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-07 01:19:18,719] [INFO] [_internal.py] [87] - 127.0.0.1 - - [07/Sep/2016 01:19:18] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-07 01:25:49,815] [INFO] [_internal.py] [87] -  * Detected change in 'D:\\workspace\\pyWorks\\spider\\allsite_web_main.py', reloading
+[2016-09-08 08:45:40,384] [DEBUG] [proxy.py] [85] - update proxy file  D:\workspace\pyWorks\spider\proxy\proxy.txt successful
+[2016-09-08 10:03:06,598] [DEBUG] [proxy.py] [85] - update proxy file  D:\workspace\pyWorks\spider\proxy\proxy.txt successful
+[2016-09-08 10:03:26,598] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='45.32.47.117', port=3128): Max retries exceeded with url: http://bbs.tianya.cn/ (Caused by ConnectTimeoutError(<requests.packages.urllib3.connection.HTTPConnection object at 0x0000000003199278>, 'Connection to 45.32.47.117 timed out. (connect timeout=20)'))[0m, Retrying in 1 seconds...
+[2016-09-08 10:03:47,641] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='120.192.92.98', port=80): Read timed out. (read timeout=20)[0m, Retrying in 2 seconds...
+[2016-09-08 10:04:37,746] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='bbs.tianya.cn1', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<requests.packages.urllib3.connection.HTTPConnection object at 0x00000000032B7E10>: Failed to establish a new connection: [Errno 11004] getaddrinfo failed',))[0m, Retrying in 1 seconds...
+[2016-09-08 10:04:41,246] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='bbs.tianya.cn1', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<requests.packages.urllib3.connection.HTTPConnection object at 0x00000000032DD080>: Failed to establish a new connection: [Errno 11004] getaddrinfo failed',))[0m, Retrying in 2 seconds...
+[2016-09-08 10:07:47,707] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:07:47] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-08 10:07:47,872] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:07:47] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:07:47,944] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:07:47] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 10:07:55,380] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='bbs.tianya.cn1', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<requests.packages.urllib3.connection.HTTPConnection object at 0x0000000004876320>: Failed to establish a new connection: [Errno 11004] getaddrinfo failed',))[0m, Retrying in 1 seconds...
+[2016-09-08 10:07:58,831] [ERROR] [downloader.py] [59] - [1m[34mHTTPConnectionPool(host='bbs.tianya.cn1', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<requests.packages.urllib3.connection.HTTPConnection object at 0x00000000048762B0>: Failed to establish a new connection: [Errno 11004] getaddrinfo failed',))[0m, Retrying in 2 seconds...
+[2016-09-08 10:08:00,835] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:08:00] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-08 10:08:00,905] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:08:00] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:08:00,924] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:08:00] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 10:08:16,040] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:08:16] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-08 10:08:16,178] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:08:16] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:08:16,240] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:08:16] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 10:10:01,559] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:01] "GET /setting_advice_window?regex=/post-worldlook-\d{7,7}-\d{1,1}.shtml HTTP/1.1" 200 -
+[2016-09-08 10:10:01,634] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:01] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:10:01,654] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:01] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-08 10:10:05,359] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:05] "GET /setting_advice_window?regex=post HTTP/1.1" 200 -
+[2016-09-08 10:10:05,526] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:05] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:10:05,602] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:05] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-08 10:10:44,230] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:44] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-08 10:10:44,401] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:44] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:10:44,463] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:10:44] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 10:20:10,869] [INFO] [_internal.py] [87] -  * Detected change in 'D:\\workspace\\pyWorks\\spider\\allsite_web_main.py', reloading
+[2016-09-08 10:49:38,142] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:49:38] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-08 10:49:38,283] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:49:38] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:49:38,349] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:49:38] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 10:49:50,615] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:49:50] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-08 10:49:50,732] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:49:50] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:49:50,789] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:49:50] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 10:52:39,980] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:52:39] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-08 10:52:40,104] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:52:40] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 10:52:40,164] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 10:52:40] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 11:06:34,428] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:34] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-08 11:06:35,115] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:35] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 11:06:35,115] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:35] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 11:06:36,440] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:36] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-08 11:06:37,454] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:37] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 11:06:37,470] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:37] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 11:06:40,342] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:40] "GET /show_unkown_urls HTTP/1.1" 200 -
+[2016-09-08 11:06:40,483] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:40] "GET /static/js/highcharts.js HTTP/1.1" 200 -
+[2016-09-08 11:06:40,497] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:40] "GET /static/js/exporting.js HTTP/1.1" 200 -
+[2016-09-08 11:06:41,184] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:41] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-08 11:06:41,184] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:41] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-08 11:06:41,246] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:41] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-08 11:06:41,341] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:06:41] "GET /show_process HTTP/1.1" 200 -
+[2016-09-08 11:07:11,536] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:07:11] "GET /show_process HTTP/1.1" 200 -
+[2016-09-08 11:07:11,598] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:07:11] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-08 11:07:11,598] [INFO] [_internal.py] [87] - 127.0.0.1 - - [08/Sep/2016 11:07:11] "GET /static/js/exporting.js HTTP/1.1" 304 -

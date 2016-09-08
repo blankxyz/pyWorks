@@ -1,4 +1,6 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
     <h3 align="center">抓取情况
         <small>
@@ -14,23 +16,16 @@
         </small>
     </h3>
     <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:50px">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                        <label>{{ message }}</label>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
     <hr>
-    <div id="process_list_div" style="float:left;width:50%;height:300px;min-width:500px"></div><br> <div id="process_detail_div" style="float:right;width:50%;height:300px;min-width:500px"></div><br>
-    <hr><hr><hr>
+    <div id="process_list_div" style="float:left;width:48%;margin-left:20px;height:300px;min-width:500px"></div>
     <br>
-    <div id="list_by_total_div" style="float:left;width:50%;height:300px"></div> <div id="velocity_div" style="float:right;width:50%;height:300px"></div>
-    <hr><hr><hr>
+    <div id="process_detail_div" style="float:right;width:48%;margin-right:20px;height:300px;min-width:500px"></div>
+    <br>
+    <div id="list_by_total_div" style="float:left;width:48%;margin-left:20px;height:300px"></div>
+    <div id="velocity_div" style="float:right;width:48%;margin-right:20px;height:300px"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -125,7 +120,7 @@
                     plotShadow: false
                 },
                 title: {
-                    text: '当前抓取到  页中的比例'
+                    text: '当前抓取到{{ unkown_cnt_now+list_cnt_now+detail_cnt_now }}  页中的比例'
                 },
                 tooltip: {
                     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'

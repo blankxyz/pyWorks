@@ -1,22 +1,16 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
     <h3 align="center">预置规则
         <small>无效，列表，详情</small>
     </h3>
     <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:95%; margin-left:10px">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                        <label>{{ message }}</label>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
     <hr>
-    <div id="left_div" style="float:left;width:95%; margin-left: 10px;">
+    <div id="left_div" style="float:left;width:98%; margin-left: 20px;">
         {#<form id="setting" method="POST" action="/preset_save">#}
         <span class="glyphicon glyphicon-user"></span>&nbsp;<label>{{ user_id }}</label>&nbsp;&nbsp;&nbsp;
         {{ inputForm.scope_sel(id="scope_sel") }}&nbsp;

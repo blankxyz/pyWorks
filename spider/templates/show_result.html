@@ -1,24 +1,18 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
-        <h3 align="center">抓取结果
-            <small>列表/详情</small>
-        </h3>
-        <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message|safe }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <h3 align="center">抓取结果
+        <small>列表/详情</small>
+    </h3>
+    <hr>
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
     <hr>
     <form id="cond" method="POST" action="/show_result">
         <!-- 列表抓取结果 -->
-        <div id="list_result_div" class="form-group" style="float:left;width:48%; margin-left:10px">
+        <div id="list_result_div" class="form-group" style="float:left;width:48%; margin-left:20px">
             {{ inputForm.list_regex_sel(id="list_regex_sel",placeholder="--select--",style="width:480px;") }}&nbsp;
             &nbsp;
             <a id="list_plus_a" href="#list_plus_regex_div" data-toggle="collapse"
@@ -57,7 +51,7 @@
             </table>
         </div>
         <!-- 详情抓取结果 -->
-        <div id="detail_result_div" class="form-group" style="float:right;width:48%; margin-left:10px">
+        <div id="detail_result_div" class="form-group" style="float:right;width:48%; margin-right:20px">
             {{ inputForm.detail_regex_sel(id="detail_regex_sel",placeholder="--select--",style="width:480px;") }}&nbsp;
             &nbsp;
             <a id="detail_plus_a" href="#detail_plus_regex_div" data-toggle="collapse"

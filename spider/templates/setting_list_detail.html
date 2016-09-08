@@ -1,19 +1,13 @@
 {% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
 {% block content %}
     <h3 align="center">设定抓取信息
         <small>主页、域名、详情页/列表页URL的特征词/正则表达式</small>
     </h3>
     <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:100%; margin-left:10px">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
     </div>
 
     <form id="setting" method="POST" action="/list_detail_save_and_run">
@@ -37,7 +31,7 @@
             <label id="convert_result"></label>
         </div>
         <hr>
-        <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:10px">
+        <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:20px">
             <table id="list_regex_tab" class="table table-striped table-hover">
                 <thead>
                 <tr>
@@ -74,7 +68,7 @@
                 </div>
             </div>
         </div>
-        <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-left:10px">
+        <div id="detail-regex" class="form-group" style="float:right;width:48%; margin-right:20px">
             <table id="detail_regex_tab" class="table table-striped table-hover ">
                 <thead>
                 <tr>

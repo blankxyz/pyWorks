@@ -1607,6 +1607,14 @@ class Util(object):
 
         return category_compress_dict
 
+    def is_connect_success(self,url):
+        import downloader
+        d = downloader.Downloader(proxy_enable=False,timeout=10)
+        response = d.download(url)
+        if response:
+            return response.status_code == 200
+        else:
+            return False
 
 #####  推荐算法  end  ################################################################
 
@@ -1721,7 +1729,7 @@ def setting_advice_init():
     # 恢复 主页、域名
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
-        flash(u'请设置主页、域名信息。', category='warning')
+        flash(u'请设置主页、域名信息。', category='info')
         for j in range(SHOW_MAX):
             inputForm.regex_list.append_entry()
 
@@ -1771,6 +1779,7 @@ def setting_advice_try():
     global g_start_url_list
 
     mysql_db = MySqlDrive()
+    util = Util()
 
     user_id = session['user_id']
     inputForm = AdviceRegexListInputForm(request.form)
@@ -1785,6 +1794,10 @@ def setting_advice_try():
         for j in range(SHOW_MAX):
             inputForm.keyword_list.append_entry()
 
+        return render_template('setting_advice.html', inputForm=inputForm,
+                               patrn_rubbish='', patrn_detail='', patrn_list='')
+    elif util.is_connect_success(start_url) is False:
+        flash(u'主页访问超时或无法访问。')
         return render_template('setting_advice.html', inputForm=inputForm,
                                patrn_rubbish='', patrn_detail='', patrn_list='')
     else:
@@ -1807,9 +1820,8 @@ def setting_advice_try():
                                                   site_domain=site_domain,
                                                   black_domain_str=black_domain_str)
 
-    util = Util()
     advice_regex_dic, advice_keyword_dic = util.advice_regex_keyword(g_start_url_list)
-    time.sleep(10)
+    # time.sleep(10)
 
     ####  页面设置计算结果(regex)
     advice_regex_list = []
@@ -2102,6 +2114,7 @@ def list_detail_init():
 def list_detail_save_and_run():
     user_id = session['user_id']
     global process_id
+    util = Util()
     inputForm = ListDetailRegexSettingForm(request.form)
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
@@ -2114,6 +2127,10 @@ def list_detail_save_and_run():
 
     if start_url.strip() == '' or site_domain.strip() == '':
         flash(u'必须设置主页、域名信息！','error')
+        return render_template('setting_list_detail.html', inputForm=inputForm)
+
+    if util.is_connect_success(start_url) is False:
+        flash(u'主页访问超时或无法访问。')
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 保存详情页配置
@@ -2220,7 +2237,6 @@ def list_detail_save_and_run():
     for item in list_regex_save_list:
         list_rule_str += item['regex'] + '@'
 
-    util = Util()
     ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
                              list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
     if ret == False:
@@ -2495,7 +2511,7 @@ def kill_spider():
         print '[info]kill_spider() @windows please close the bat cmd.'
         # os.system("taskkill /PID %s /F" % process_id)
     else:
-        subprocess.Popen(['/bin/sh', '-c', './allsite_spider_stop.sh'])
+        subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
         print '[info]kill_spider() @linux or @mac ok.'
         flash(u"已经结束进程.")
     return redirect(url_for('show_process'), 302)

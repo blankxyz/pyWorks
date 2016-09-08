@@ -1,19 +1,20 @@
 {% extends "bootstrap/base.html" %}
 {% block content %}
     <h3 align="center">配置信息-历史记录</h3>
-    <hr/>
-    <div id="message" class="alert alert-warning form-group center" style="width:95%; margin-left:50px">
-        {% with messages = get_flashed_messages() %}
+    <hr>
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class=flashes>
-                    {% for message in messages %}
-                        <label>{{ message }}</label>
+                    {% for color, message in messages %}
+                        <li style="color: {{ color }}">{{ message|safe }}</li>
                     {% endfor %}
                 </ul>
             {% endif %}
         {% endwith %}
     </div>
-    <div id="search-cond-div" class="form-group center" style="width:95%; margin-left:50px">
+    <hr>
+    <div id="search-cond-div" class="form-group center" style="width:98%; margin-left:20px">
         <form id="search-cond" method="POST" action="/history_search">
             <label><span class="glyphicon glyphicon-user"></span>&nbsp; {{ user_id }}&nbsp;&nbsp;&nbsp;</label>
             {{ inputForm.start_url.label }}&nbsp; {{ inputForm.start_url(size=20) }}
@@ -25,8 +26,8 @@
             {# {{ inputForm.recover() }}#}
         </form>
     </div>
-    <hr/>
-    <div id="search-result" class="form-group" style="width:95%; margin-left:50px">
+    <hr>
+    <div id="search-result" class="form-group" style="width:98%; margin-left:20px">
         <table id="search_result_tab" class="table table-striped table-hover">
             <thead>
             <tr>

@@ -1,0 +1,12 @@
+{% extends "bootstrap/base.html" %}
+{% macro top_massage() -%}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for color, message in messages %}
+                    <li style="color: {{ color }}">{{ message|safe }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+{%- endmacro %}

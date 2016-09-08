@@ -408,10 +408,11 @@ if __name__ == '__main__':
     url = 'http://bbs.tianya.cn'
 #     header = {'Accept':'*/*',
 #               'User-Agent':'python-requests/2.2.1 CPython/2.7.6 Windows/7'}
-    d = Downloader(True, 3,3, timeout=20)
+    d = Downloader(False,  timeout=20)
     response = d.download(url)
+    print type(response.status_code)
     print response.status_code
-    print response.text
+    # print response.text
 #     print response.request.headers
     
 #     import requests

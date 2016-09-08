@@ -64,8 +64,8 @@
 {% endblock %}
 
 {% block content %}
-    <div id="main" style="height:100%;width:90%;float:right;" class="inverse">
-        <iframe name="mainframe" style="height:1280px;width:1360px" frameborder="0" scrolling="no"></iframe>
+    <div id="main" style="height:100%;width:94%;float:right;" class="inverse">
+        <iframe name="mainframe" style="height:1080px;width:1680px" frameborder="0" scrolling="no"></iframe>
     </div>
 {% endblock %}
 
@@ -91,3 +91,15 @@
         });
     </script>
 {% endblock %}
+
+{% macro top_massage() -%}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for color, message in messages %}
+                    <li style="color: {{ color }}">{{ message|safe }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+{%- endmacro %}
