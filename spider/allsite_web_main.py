@@ -2282,8 +2282,11 @@ def list_detail_save_and_run():
             os.startfile(SHELL_DETAIL_CMD)
         else:
             print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
+            fd = open("/work/spider/1.log", "w")
             p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             process_id = p.pid
+            fd.write(p.stdout.read())
+            fd.close()
             print '[info]--- process_id:', process_id
 
     return render_template('setting_list_detail.html', inputForm=inputForm)

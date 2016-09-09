@@ -49,8 +49,8 @@
         </div>
         <!-- 右侧具体项目 -->
         <div id="item_div" class="form-group" style="float:right;width:48%; margin-right:20px">
-            {{ inputForm.mode(id="mode") }}&nbsp;&nbsp;&nbsp;
-            {{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.content_mode(id="content_mode") }}&nbsp;&nbsp;&nbsp;
+            {{ inputForm.content_mode.label(for="content_mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.save_run(class="btn btn-primary btn-xs") }}
             <hr>
@@ -204,7 +204,7 @@
             var id_str = $(this).attr("id");
             <!-- 提取内容 -->
             if (id_str.search("url_") >= 0) {
-                if ($("#mode").is(':checked')) {
+                if ($("#content_mode").is(':checked')) {
                     $.ajax({
                         url: $SCRIPT_ROOT + '/content_auto_extract',
                         contentType: "application/json; charset=UTF-8",

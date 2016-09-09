@@ -11,6 +11,7 @@ import ConfigParser
 from bs4 import BeautifulSoup, Comment
 import json
 import allsite_clean_url
+from myreadability import myreadability
 
 ####################################################################
 MY_OS = os.getenv('SPIDER_OS')
@@ -128,51 +129,54 @@ class MySpider(spider.Spider):
 
     def parse_detail_page(self, response=None, url=None):
         result = []
+        if CONTENT_MODE != 'auto':
+            if url is None:
+                url = response.request.url
 
-        if url is None:
-            url = response.request.url
+            response.encoding = self.encoding
+            unicode_html_body = response.text
+            data = htmlparser.Parser(unicode_html_body)
 
-        response.encoding = self.encoding
-        unicode_html_body = response.text
-        data = htmlparser.Parser(unicode_html_body)
+            try:
+                if self.title_exp != '':
+                    title = data.xpath(self.title_exp).text().strip()
+                else:
+                    title = 'None'
+            except Exception, e:
+                print "[ERROR]parse_detail_page(): title %s" % e
+                title = 'parse error'
 
-        try:
-            if self.title_exp != '':
-                title = data.xpath(self.title_exp).text().strip()
-            else:
-                title = 'None'
-        except Exception, e:
-            print "[ERROR]parse_detail_page(): title %s" % e
-            title = 'parse error'
+            try:
+                if self.ctime_exp != '':
+                    # ctime = data.xpath(self.ctime_exp).replace(u'年', '-').replace(u'月', '-').replace(u'日', ''). \
+                    #     regex('(\d+-\d+-\d+)').datetime()
+                    ctime = data.xpath(self.ctime_exp).text().strip()
+                else:
+                    ctime = 'None'
+            except Exception, e:
+                print "[ERROR]parse_detail_page(): ctime %s" % e
+                ctime = 'parse error'
 
-        try:
-            if self.ctime_exp != '':
-                # ctime = data.xpath(self.ctime_exp).replace(u'年', '-').replace(u'月', '-').replace(u'日', ''). \
-                #     regex('(\d+-\d+-\d+)').datetime()
-                ctime = data.xpath(self.ctime_exp).text().strip()
-            else:
-                ctime = 'None'
-        except Exception, e:
-            print "[ERROR]parse_detail_page(): ctime %s" % e
-            ctime = 'parse error'
+            try:
+                if self.content_exp != '':
+                    content = data.xpath(self.content_exp).text().strip()
+                else:
+                    content = ''
+            except Exception, e:
+                print "[ERROR]parse_detail_page(): content %s" % e
+                content = 'parse error'
 
-        try:
-            if self.content_exp != '':
-                content = data.xpath(self.content_exp).text().strip()
-            else:
-                content = ''
-        except Exception, e:
-            print "[ERROR]parse_detail_page(): content %s" % e
-            content = 'parse error'
+            try:
+                if self.author_exp != '':
+                    author = data.xpath(self.author_exp).text().strip()
+                else:
+                    author = 'None'
+            except Exception, e:
+                print "[ERROR]parse_detail_page(): author %s" % e
+                author = 'parse error'
 
-        try:
-            if self.author_exp != '':
-                author = data.xpath(self.author_exp).text().strip()
-            else:
-                author = 'None'
-        except Exception, e:
-            print "[ERROR]parse_detail_page(): author %s" % e
-            author = 'parse error'
+        else:
+            title, content, author, ctime = myreadability.get_content_advice(url)
 
         post = {'config_id': CONFIG_ID,
                 'info_flg': INFO_FLG,
@@ -180,11 +184,11 @@ class MySpider(spider.Spider):
                 'title': title,
                 'content': content,
                 'ctime': ctime,
-                'author': author
-                }
+                'author': author}
         # print '[INFO]parse_detail_page()', post
         result.append(post)
         return result
+
 
 # ---------- main function-----------------------------
 def get_all():
@@ -195,6 +199,7 @@ def get_all():
         print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
 
         detail_job_list = []  # equal to run.py detail_job_queue
+
         # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
         def __detail_page_urls(urls, func):
             next_page_url = None
@@ -250,12 +255,13 @@ def get_one(url, setting_dict):
     one = mySpider.parse_detail_page(response, url)
     return one[0]
 
+
 def main(unit_test):
     if unit_test is False:  # spider simulation
-        print '[spider simulation] now starting ..........'
+        print '[spider simulation] content_mode:', CONTENT_MODE
         get_all()
 
-    else: # 测试
+    else:  # 测试
         url = ''
         setting_dict = {
             'start_url': '',
@@ -271,8 +277,8 @@ def main(unit_test):
             'author_sel': 'xpath',
             'author_exp': ".//*[@id='post_head']/div[2]/div[2]/span[1]/a"
         }
-        get_one(url,setting_dict)
+        get_one(url, setting_dict)
+
 
 if __name__ == '__main__':
     main(unit_test=False)
-
