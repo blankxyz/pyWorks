@@ -13,6 +13,7 @@ import subprocess
 from bs4 import BeautifulSoup, Comment
 import requests
 import traceback
+import imp
 from functools import wraps
 from flask import make_response
 from flask.ext.cors import CORS
@@ -853,6 +854,7 @@ class RedisDrive(object):
         self.site_domain = site_domain
         self.start_url = start_url
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.task_manager_key = 'task_manager'  # 任务管理
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
         self.detail_urls_set_copy_key = 'detail_urls_set_copy_%s' % self.site_domain  # 输入详情页URL
@@ -1068,6 +1070,41 @@ class RedisDrive(object):
             print '[unkown]', score, url
             return 'unkown'
 
+    def add_task(self, user_id, site_domain, spider_type, spider_config_src, spider_status):
+        k = user_id + '@' + site_domain + '@' + spider_type
+        fd = open(spider_config_src, 'r')
+        src = fd.read()
+        fd.close()
+        v = {'config_content': src, 'status': spider_status}
+        if self.conn.hexists(self.task_manager_key, k):
+            print '[error]add_task() add error.'
+            return False
+        else:
+            self.conn.hset(self.task_manager_key, k, v)
+            print '[info]add_task() add ok.'
+            return True
+
+    def run_task(self, user_id, site_domain, spider_type):
+        k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.hexists(self.task_manager_key, k):
+            v = self.conn.hget(self.task_manager_key, k)
+            print 'v:', v
+            config = eval(v).get('config_content').encode('utf-8')
+            print'config_content-------------------\n', config
+            print'---------------------------------\n',
+            code = compile(config, '', 'exec')
+            module = imp.new_module('allsite_spider_list')
+            try:
+                exec code in module.__dict__
+            except Exception as e:
+                print "-- exec code in module.__dict__ excepiton: %s" % e
+                return False
+
+            return True
+        else:
+            print '[error]run_task() not found.'
+            return False
+
 
 ##################################################################################################
 class CollageProcessInfo(object):
@@ -1189,7 +1226,7 @@ class Util(object):
             print "[error]modify_config(): %s" % e
             return False
 
-    def modify_config_for_content(self, start_urls, site_domain, info_flg, config_id,content_mode,
+    def modify_config_for_content(self, start_urls, site_domain, info_flg, config_id, content_mode,
                                   title_regedx_str, content_regex_str, author_regex_str, ctime_regex_str):
         '''直接修改爬虫文件代码'''
         try:
@@ -2261,20 +2298,30 @@ def list_detail_save_and_run():
         redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
-    # 执行抓取程序
-    if inputForm.list_or_detail.data == 0:  # list
+    # 执行抓取程序 list
+    if inputForm.list_or_detail.data == 0:  # 0:'list'
         flash(u'后台列表页爬虫启动。', 'info')
         if os.name == 'nt':
             # DOS "start" command
             print '[info]--- %s run on windows' % SHELL_LIST_CMD
-            os.startfile(SHELL_LIST_CMD)
+            # os.startfile(SHELL_LIST_CMD)
+            redis_db.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'start')
+            # fd = open("1.log", "a")
+            # p = subprocess.Popen(SHELL_LIST_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # print '[info]subprocess run.'
+            # process_id = p.pid
+            # fd.write(p.stdout.read())
+            # fd.flush()
+            # fd.close()
+            # print '[info]--- process_id:', process_id
         else:
             print '[info]--- %s run on %s' % (SHELL_LIST_CMD, MY_OS)
             p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
             process_id = p.pid
             print '[info]--- process_id:', process_id
 
-    if inputForm.list_or_detail.data == 1:  # detail
+    # 执行抓取程序 detail
+    if inputForm.list_or_detail.data == 1:  # 1:'detail'
         flash(u"后台详情页爬虫启动.", 'info')
         if os.name == 'nt':
             # DOS "start" command
@@ -2283,11 +2330,13 @@ def list_detail_save_and_run():
         else:
             print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
             fd = open("/work/spider/1.log", "w")
-            p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             process_id = p.pid
             fd.write(p.stdout.read())
             fd.close()
             print '[info]--- process_id:', process_id
+
+    redis_db.run_task(user_id, site_domain, 'list')
 
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2611,7 +2660,7 @@ def content_init():
     # inputForm.detail_regex_list = inputForm.detail_regex_sel.data
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
-    print '[info]content_init()', inputForm.detail_url_list
+    # print '[info]content_init()', inputForm.detail_url_list
 
     flash(u'点击下面链接，获取链接内容需要一些时间。', 'warning')
     return render_template('content.html', inputForm=inputForm)
@@ -2711,7 +2760,7 @@ def content_save_and_run():
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     for url in redis_db.conn.smembers(redis_db.detail_urls_set_key):
-        redis_db.conn.sadd(redis_db.detail_urls_set_copy_key,url)
+        redis_db.conn.sadd(redis_db.detail_urls_set_copy_key, url)
 
     if os.name == 'nt':
         # DOS "start" command
@@ -3038,7 +3087,7 @@ def test():
 
 
 ##########################################################################################
-#  restful api
+####  restful api    #####
 parser = reqparse.RequestParser()
 parser.add_argument('regex')
 
@@ -3174,7 +3223,7 @@ api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
-    if WEB_MAIN_INI.find('deploy') > 0:
-        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    else:
-        app.run(debug=True)
+    # if WEB_MAIN_INI.find('deploy') > 0:
+    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    # else:
+    #     app.run(debug=True)

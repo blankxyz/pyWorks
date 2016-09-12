@@ -8,7 +8,7 @@ import urlparse
 import redis
 import spider
 import setting
-import urllib
+import log
 import ConfigParser
 from bs4 import BeautifulSoup, Comment
 import requests
@@ -17,10 +17,12 @@ import allsite_clean_url
 ####################################################################
 MY_OS = os.getenv('SPIDER_OS')
 if MY_OS is None:
+    # log.logger.error('[ERROR] must be set a SPIDER_OS env.')
     print '[ERROR] must be set a MY_OS.'
     exit(-1)
 else:
-    print '[info]--- The OS is: %s ----' % MY_OS
+    # log.logger.info('[info]--- The OS is: %s ----' % MY_OS)
+    print '[info]--- allsite_spider_list The OS is: %s ----' % MY_OS
     if MY_OS == 'linux':
         INIT_CONFIG = '/work/spider/allsite_spider.ini'
     elif MY_OS == 'mac':
@@ -30,9 +32,11 @@ else:
 ####################################################################
 config = ConfigParser.ConfigParser()
 if len(config.read(INIT_CONFIG)) == 0:
+    # log.logger.error('[ERROR]cannot read the config file. %s' % INIT_CONFIG)
     print '[ERROR]cannot read the config file.', INIT_CONFIG
     exit(-1)
 else:
+    # log.logger.info('[INFO] read the config file.%s' % INIT_CONFIG)
     print '[INFO] read the config file.', INIT_CONFIG
 
 # redis
@@ -121,7 +125,8 @@ class MySpider(spider.Spider):
             # urls = filter(lambda x: not self.cleaner.is_not_found(x), urls)
             # print '[INFO]filter_links() end', len(urls), urls
         except Exception, e:
-            print '[ERROR]filter_links()', e
+            log.logger.error('[ERROR]filter_links() %s' % e)
+            # print '[ERROR]filter_links()', e
         return urls
 
     def path_is_list(self, url):
@@ -133,7 +138,7 @@ class MySpider(spider.Spider):
             if rule.find('/^') >= 0:  # 黑
                 if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
                     self.conn.zincrby(self.manual_b_list_rule_zset_key, value=rule, amount=1)
-                    print '[list-black]', rule, '<-', url
+                    # print '[list-black]', rule, '<-', url
                     return 'black'  # 符合详情页规则（黑）
             else:  # 白
                 if re.search(rule, url):
@@ -146,7 +151,7 @@ class MySpider(spider.Spider):
             if rule.find('/^') >= 0:  # 黑
                 if re.search(rule[2:-1], url):  # 去掉 /^xxxxxx/ 中的 '/^','/'
                     self.conn.zincrby(self.manual_b_detail_rule_zset_key, value=rule, amount=1)
-                    print '[detail-black]', rule, '<-', url
+                    # print '[detail-black]', rule, '<-', url
                     return 'black'  # 符合详情页规则（黑）
             else:  # 白
                 if re.search(rule, url):
@@ -156,15 +161,17 @@ class MySpider(spider.Spider):
                     # print '[detail-white]', -(s - int(s)), rule, '<-', url
 
         if score <= -0.25:
+            # log.logger.info('[detail],%s' % url)
             print '[detail]', score, url
             return 'detail'
         elif score >= 0.25:
+            # log.logger.info('[list],%s' % url)
             print '[list]', score, url
             return 'list'
         else:
+            # log.logger.info('[unkown],%s' % url)
             print '[unkown]', score, url
             return 'unkown'
-
 
     def get_todo_urls(self):
         urls = []
@@ -176,6 +183,7 @@ class MySpider(spider.Spider):
                 self.conn.zadd(self.list_urls_zset_key, self.done_flg, url)
                 # print 'get_todo_urls()', urls
         except Exception, e:
+            # log.logger.error('[ERROR]get_todo_urls() %s' % e)
             print "[ERROR] get_todo_urls(): %s" % e
         return urls
 
@@ -231,7 +239,7 @@ class MySpider(spider.Spider):
         return urls
 
     def urls_join_plus(self, org_url, links):
-        print '[INFO]urls_join_plus() start', org_url, links
+        # print '[INFO]urls_join_plus() start', org_url, links
         urls = []
         o_scheme, o_netloc, o_path, o_params, o_query, o_fragment = urlparse.urlparse(org_url.strip())
         for link in links:
@@ -240,7 +248,7 @@ class MySpider(spider.Spider):
             else:
                 l = o_scheme + '://' + o_netloc + '/' + link
                 urls.append(l)
-        print '[INFO]urls_join_plus() end', urls
+        # print '[INFO]urls_join_plus() end', urls
         return urls
 
     def get_page_valid_urls(self, soup, org_url):
@@ -270,6 +278,7 @@ class MySpider(spider.Spider):
                     #             remove_links.append(t['href'])
 
         except Exception, e:
+            # log.logger.error('[ERROR]get_page_valid_urls() %s' % e)
             print '[ERROR]get_page_valid_urls()', e
 
         removed = list(set(all_links) - set(remove_links))
@@ -329,16 +338,19 @@ class MySpider(spider.Spider):
                             self.conn.zadd(self.list_urls_zset_key, self.todo_flg, link)
 
         except Exception, e:
-            print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
+            log.logger.error('[ERROR]parse_detail_page() %s [url] %s' % (e, org_url))
+            # print "[ERROR] parse_detail_page(): %s [url] %s" % (e, org_url)
         return result
 
 
 # ---------- main function-----------------------------
 def main(unit_test):
     if unit_test is False:  # spider simulation
-        print '[spider simulation] now starting ..........'
+        log.logger.info('[spider simulation] now starting')
+        # print '[spider simulation] now starting ..........'
         for cnt in range(10000):
-            print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
+            log.logger.info('[loop] %d' % cnt)
+            # print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
             detail_job_list = []  # equal to run.py detail_job_queue
 
             # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
@@ -353,13 +365,14 @@ def main(unit_test):
                                 for url in list_urls:
                                     detail_job_list.append(url)
                             except Exception, e:
-                                print '[ERROR] main() Exception: %s' % e
+                                log.logger.error('[ERROR]main() %s' % (e))
+                                # print '[ERROR] main() Exception: %s' % e
                                 list_urls, callback, next_page_url = [], None, None
 
                             __detail_page_urls(list_urls, callback)
 
                             if next_page_url is not None:
-                                print 'next_page_url'
+                                # print 'next_page_url'
                                 __detail_page_urls([next_page_url], func)
 
             # --equal to run.py list_page_thread() -------------------------
@@ -368,7 +381,7 @@ def main(unit_test):
             mySpider.init_dedup()
             mySpider.init_downloader()
             start_urls = mySpider.get_start_urls()  # get_start_urls()
-            print '[test]start_urls:', start_urls
+            # print '[test]start_urls:', start_urls
             __detail_page_urls(start_urls, mySpider.parse)  # parse()
 
             # --equal to run.py detail_page_thread() -------------------------
@@ -376,14 +389,14 @@ def main(unit_test):
             for url in detail_job_list:
                 resp = mySpider.download(url)
                 ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
-                for item in ret:
-                    for k, v in item.iteritems():
-                        print k, v
+                # for item in ret:
+                #     for k, v in item.iteritems():
+                # print k, v
     else:  # ---------- unit test -----------------------------
-        print '[unit test] now starting ..........'
+        # print '[unit test] now starting ..........'
         url = 'http://bbs.tianya.cn/hotArticle/index/post-41-1236689-1.shtml'
         # url = 'http://cpt.xtu.edu.cn/a/keyanchengguo/keyanxiangmu/2013/0414/109.html'
-        print 'url:', url
+        # print 'url:', url
         mySpider = MySpider()
         # 预置数据
         # 预置匹配规则
@@ -392,7 +405,7 @@ def main(unit_test):
         # resp = mySpider.download(url)
         # soup = mySpider.get_clean_soup(resp)
         # ----------------------------------------------------------
-        print mySpider.path_is_list(url)
+        # print mySpider.path_is_list(url)
         # ----------------------------------------------------------
         # rule0 = mySpider.convert_path_to_rule0(url)
         # print url, '->', rule0

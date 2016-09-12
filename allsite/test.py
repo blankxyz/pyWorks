@@ -36,7 +36,7 @@ class PageEyes(object):
     def capture(self, url, capture_img):
         # system.setProperty("webdriver.chrome.driver",
         #                    "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome");
-        driver = webdriver.Chrome()
+        driver = webdriver.Firefox()
         driver.set_window_size(self._browse_window_width, self._browse_window_high)
         # driver.maximize_window()
         driver.implicitly_wait(1)

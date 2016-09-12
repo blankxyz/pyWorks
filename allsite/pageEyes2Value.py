@@ -73,7 +73,7 @@ class PageEyes(object):
         return len(_set_in_window)
 
     def capture(self, url, capture_img):
-        driver = webdriver.Firefox()
+        driver = webdriver.Chrome()
         driver.set_window_size(self._browse_window_width, self._browse_window_high)
         # driver.maximize_window()
         driver.implicitly_wait(1)
