@@ -9,8 +9,9 @@ import urlparse
 from bs4 import BeautifulSoup, Comment
 import allsite_clean_url
 
-REDIS_SERVER = 'redis://127.0.0.1/14'
-
+# spider-modify-start
+REDIS_SERVER = '''redis://127.0.0.1/14'''
+# spider-modify-end
 
 #####################################################################################
 class MySpider(spider.Spider):

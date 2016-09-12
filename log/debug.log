@@ -22830,3 +22830,59 @@ ValueError: dictionary update sequence element #0 has length 1; 2 is required
 [2016-09-12 16:48:34,194] [INFO] [allsite_spider_list_urls.py] [349] - [spider simulation] now starting
 [2016-09-12 16:48:34,194] [INFO] [allsite_spider_list_urls.py] [352] - [loop] 0
 [2016-09-12 16:48:35,530] [INFO] [allsite_spider_list_urls.py] [352] - [loop] 1
+[2016-09-12 23:48:06,709] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:06] "POST /setting_advice_try HTTP/1.1" 200 -
+[2016-09-12 23:48:06,844] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:06] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-12 23:48:06,905] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:06] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-12 23:48:10,630] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:10] "GET /setting_advice_window?regex=/list-\d{2,4}-\d{1,1}.shtml HTTP/1.1" 200 -
+[2016-09-12 23:48:10,897] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:10] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-12 23:48:10,976] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:10] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-12 23:48:12,977] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:12] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-12 23:48:13,210] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:13] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-12 23:48:13,261] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:13] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-12 23:48:53,563] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:53] "GET /admin_tools HTTP/1.1" 200 -
+[2016-09-12 23:48:55,675] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:55] "GET /tool_reset_redis HTTP/1.1" 200 -
+[2016-09-12 23:48:56,541] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:56] "GET /list_detail_init HTTP/1.1" 200 -
+[2016-09-12 23:48:56,772] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:56] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-12 23:48:56,834] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:56] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-12 23:48:59,075] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:59] "POST /list_detail_save_and_run HTTP/1.1" 500 -
+[2016-09-12 23:48:59,094] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:59] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+[2016-09-12 23:48:59,098] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:59] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=jquery.js HTTP/1.1" 200 -
+[2016-09-12 23:48:59,102] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:59] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+[2016-09-12 23:48:59,153] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:59] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=ubuntu.ttf HTTP/1.1" 200 -
+[2016-09-12 23:48:59,376] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:48:59] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+[2016-09-12 23:49:26,643] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-09-12 23:49:44,987] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:49:44] "POST /list_detail_save_and_run HTTP/1.1" 500 -
+[2016-09-12 23:49:45,014] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:49:45] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+[2016-09-12 23:49:45,019] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:49:45] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=jquery.js HTTP/1.1" 200 -
+[2016-09-12 23:49:45,023] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:49:45] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+[2016-09-12 23:49:45,066] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:49:45] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=ubuntu.ttf HTTP/1.1" 200 -
+[2016-09-12 23:49:45,086] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:49:45] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+[2016-09-12 23:50:21,936] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-09-12 23:50:50,349] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:50:50] "POST /list_detail_save_and_run HTTP/1.1" 500 -
+[2016-09-12 23:50:50,380] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:50:50] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+[2016-09-12 23:50:50,385] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:50:50] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=jquery.js HTTP/1.1" 200 -
+[2016-09-12 23:50:50,390] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:50:50] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+[2016-09-12 23:50:50,506] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:50:50] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=ubuntu.ttf HTTP/1.1" 200 -
+[2016-09-12 23:50:50,540] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:50:50] "GET /list_detail_save_and_run?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+[2016-09-12 23:51:51,374] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-09-12 23:55:21,188] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:21] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-12 23:55:21,368] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:21] "GET /static/images/sort_both.png HTTP/1.1" 404 -
+[2016-09-12 23:55:21,438] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:21] "GET /static/images/sort_desc.png HTTP/1.1" 404 -
+[2016-09-12 23:55:21,558] [INFO] [allsite_spider_list_urls.py] [356] - [spider simulation] now starting
+[2016-09-12 23:55:21,558] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 0
+[2016-09-12 23:55:23,024] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 1
+[2016-09-12 23:55:24,963] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:24] "GET /show_process HTTP/1.1" 200 -
+[2016-09-12 23:55:24,998] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:24] "GET /static/js/highcharts.js HTTP/1.1" 200 -
+[2016-09-12 23:55:25,011] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:25] "GET /static/js/exporting.js HTTP/1.1" 200 -
+[2016-09-12 23:55:34,024] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 2
+[2016-09-12 23:55:42,935] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 3
+[2016-09-12 23:55:44,590] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:44] "GET /kill_spider HTTP/1.1" 302 -
+[2016-09-12 23:55:44,607] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:55:44] "GET /show_process HTTP/1.1" 200 -
+[2016-09-12 23:55:53,960] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 4
+[2016-09-12 23:56:02,054] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 5
+[2016-09-12 23:56:10,461] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 6
+[2016-09-12 23:56:14,731] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:56:14] "GET /show_process HTTP/1.1" 200 -
+[2016-09-12 23:56:14,753] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:56:14] "GET /static/js/highcharts.js HTTP/1.1" 304 -
+[2016-09-12 23:56:14,756] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:56:14] "GET /static/js/exporting.js HTTP/1.1" 304 -
+[2016-09-12 23:56:17,113] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 7
+[2016-09-12 23:56:24,892] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 8

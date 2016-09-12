@@ -13,45 +13,49 @@ import json
 import allsite_clean_url
 from myreadability import myreadability
 
-####################################################################
-MY_OS = os.getenv('SPIDER_OS')
-if MY_OS is None:
-    print '[ERROR] must be set a MY_OS.'
-    exit(-1)
-else:
-    print '[info]--- The OS is: %s ----' % MY_OS
-    if MY_OS == 'linux':
-        INIT_CONFIG = '/work/spider/allsite_spider.ini'
-    elif MY_OS == 'mac':
-        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite_spider.ini'
-    else:  # windows
-        INIT_CONFIG = './allsite_spider.ini'
-####################################################################
-config = ConfigParser.ConfigParser()
-if len(config.read(INIT_CONFIG)) == 0:
-    print '[ERROR]cannot read the config file.', INIT_CONFIG
-    exit(-1)
-else:
-    print '[INFO] read the config file.', INIT_CONFIG
+# ####################################################################
+# MY_OS = os.getenv('SPIDER_OS')
+# if MY_OS is None:
+#     print '[ERROR] must be set a MY_OS.'
+#     exit(-1)
+# else:
+#     print '[info]--- The OS is: %s ----' % MY_OS
+#     if MY_OS == 'linux':
+#         INIT_CONFIG = '/work/spider/allsite_spider.ini'
+#     elif MY_OS == 'mac':
+#         INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite_spider.ini'
+#     else:  # windows
+#         INIT_CONFIG = './allsite_spider.ini'
+# ####################################################################
+# config = ConfigParser.ConfigParser()
+# if len(config.read(INIT_CONFIG)) == 0:
+#     print '[ERROR]cannot read the config file.', INIT_CONFIG
+#     exit(-1)
+# else:
+#     print '[INFO] read the config file.', INIT_CONFIG
 
-EXPORT_FOLDER = config.get(MY_OS, 'export_folder')
+# EXPORT_FOLDER = config.get(MY_OS, 'export_folder')
 # redis
-REDIS_SERVER = config.get('redis', 'redis_server')
-DEDUP_SETTING = config.get('redis', 'dedup_server')
+# REDIS_SERVER = config.get('redis', 'redis_server')
+# DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-START_URLS = '''http://www.ynsf.ccoo.cn'''
-SITE_DOMAIN = '''ynsf.ccoo.cn'''
+REDIS_SERVER = '''redis://127.0.0.1/14'''
+DEDUP_SERVER = '''redis://127.0.0.1/14'''
+
+START_URLS = '''http://bbs.tianya.cn'''
+SITE_DOMAIN = '''bbs.tianya.cn'''
+BLACK_DOMAIN_STR = ''''''
+
 CONFIG_ID = '''9999'''
 INFO_FLG = '''01'''
+
 CONTENT_MODE = '''auto'''
-BLACK_DOMAIN_STR = ''''''
+
 TITLE_EXP = ''''''
 CONTENT_EXP = ''''''
 AUTHOR_EXP = ''''''
 CTIME_EXP = ''''''
-
-
 # spider-modify-end
 
 # TITLE_EXP = '''.//*[@id='post_head']/h1/span[1]/span'''

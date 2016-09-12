@@ -15,45 +15,51 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-MY_OS = os.getenv('SPIDER_OS')
-if MY_OS is None:
-    print '[ERROR] must be set a MY_OS.'
-    exit(-1)
-else:
-    print '[info]--- The OS is: %s ----' % MY_OS
-    if MY_OS =='liux':
-        INIT_CONFIG = '/work/spider/allsite_spider.ini'
-    elif MY_OS == 'mac':
-        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite_spider.ini'
-    else: # windows
-        INIT_CONFIG = './allsite_spider.ini'
-####################################################################
-config = ConfigParser.ConfigParser()
-if len(config.read(INIT_CONFIG)) == 0:
-    print '[ERROR]cannot read the config file.', INIT_CONFIG
-    exit(-1)
-else:
-    print '[INFO] read the config file.', INIT_CONFIG
+# MY_OS = os.getenv('SPIDER_OS')
+# if MY_OS is None:
+#     print '[ERROR] must be set a MY_OS.'
+#     exit(-1)
+# else:
+#     print '[info]--- The OS is: %s ----' % MY_OS
+#     if MY_OS =='liux':
+#         INIT_CONFIG = '/work/spider/allsite_spider.ini'
+#     elif MY_OS == 'mac':
+#         INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite_spider.ini'
+#     else: # windows
+#         INIT_CONFIG = './allsite_spider.ini'
+# ####################################################################
+# config = ConfigParser.ConfigParser()
+# if len(config.read(INIT_CONFIG)) == 0:
+#     print '[ERROR]cannot read the config file.', INIT_CONFIG
+#     exit(-1)
+# else:
+#     print '[INFO] read the config file.', INIT_CONFIG
 
 # redis
-REDIS_SERVER = config.get('redis', 'redis_server')
-DEDUP_SETTING = config.get('redis', 'dedup_server')
+# REDIS_SERVER = config.get('redis', 'redis_server')
+# DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-# START_URLS = None
-# SITE_DOMAIN = None
-# BLACK_DOMAIN_LIST = None
-# DETAIL_RULE_LIST = None
-# LIST_RULE_LIST = None
+REDIS_SERVER = ''''''
+DEDUP_SERVER = ''''''
+
+MODE = ''''''
+
+START_URLS = ''''''
+SITE_DOMAIN = ''''''
+BLACK_DOMAIN_LIST = ''''''
+
+DETAIL_RULE_LIST = ''''''
+LIST_RULE_LIST = ''''''
 # spider-modify-end
 
 # spider
-MODE = config.get('spider', 'mode')
-START_URLS = config.get('spider', 'start_urls')
-SITE_DOMAIN = config.get('spider', 'site_domain')
-BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
-DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
-LIST_RULE_LIST = config.get('spider', 'list_rule_list')
+# MODE = config.get('spider', 'mode')
+# START_URLS = config.get('spider', 'start_urls')
+# SITE_DOMAIN = config.get('spider', 'site_domain')
+# BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
+# DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
+# LIST_RULE_LIST = config.get('spider', 'list_rule_list')
 
 #############################################################################
 

@@ -41,9 +41,9 @@ else:
     print '[info]--- The OS is: %s ----' % MY_OS
 ####################################################################
 if MY_OS == 'linux':
-    WEB_MAIN_INI = '/work/spider/allsite_web_deploy.ini'
+    WEB_MAIN_INI = '/work/spider/allsite_web_main.ini'
 else:  # mac or windows
-    WEB_MAIN_INI = './allsite_web_dev.ini'
+    WEB_MAIN_INI = './allsite_web_main.ini'
 
 ####################################################################
 config = ConfigParser.ConfigParser()
@@ -54,7 +54,7 @@ else:
     print '[info]read the config file.', WEB_MAIN_INI
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
-DEDUP_SETTING = config.get('redis', 'dedup_server')
+DEDUP_SERVER = config.get('redis', 'dedup_server')
 # mysql
 MYSQLDB_HOST = config.get('mysql', 'mysql_host')
 MYSQLDB_USER = config.get('mysql', 'mysql_user')
@@ -73,11 +73,14 @@ SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
-ALLSITE_SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
+# ALLSITE_SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
+ALLSITE_SPIDER_ADVICE_PY = config.get(MY_OS, 'allsite_spider_advice_py')
+ALLSITE_SPIDER_LIST_PY = config.get(MY_OS, 'allsite_spider_list_py')
+ALLSITE_SPIDER_DETAIL_PY = config.get(MY_OS, 'allsite_spider_detail_py')
 ALLSITE_SPIDER_CONTENT_PY = config.get(MY_OS, 'allsite_spider_content_py')
 # deploy
-DEPLOY_HOST = config.get('deploy', 'deploy_host')
-DEPLOY_PORT = config.get('deploy', 'deploy_port')
+DEPLOY_HOST = config.get(MY_OS, 'deploy_host')
+DEPLOY_PORT = config.getint(MY_OS, 'deploy_port')
 ####################################################################
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'success'
@@ -297,7 +300,7 @@ class MySqlDrive(object):
         try:
             sql_str1 = ("SELECT id FROM result_file WHERE user_id =%s AND start_url=%s AND site_domain=%s")
             parameter1 = (user_id, start_url, site_domain)
-            print '[info]save_all_setting()', sql_str1 % parameter1
+            print '[info]save_all_setting() ', sql_str1 % parameter1
             ret_cnt = self.cur.execute(sql_str1, parameter1)
 
             if ret_cnt > 0:
@@ -577,6 +580,7 @@ class MySqlDrive(object):
         except Exception, e:
             print '[error]set_current_main_setting()', e, sql_str1 % parameter1
             print '[error]set_current_main_setting()', e, sql_str2 % parameter2
+            self.conn.rollback()
 
     def clean_current_main_setting(self, user_id):
         # 提取主页、域名
@@ -587,6 +591,7 @@ class MySqlDrive(object):
             self.conn.commit()
         except Exception, e:
             print '[error]clean_current_main_setting()', e, sql_str % parameter
+            self.conn.rollback()
 
     def get_current_regexs(self, regex_type, user_id, start_url, site_domain, black_domain):
         # 0:detail,1:list
@@ -724,6 +729,7 @@ class MySqlDrive(object):
         except Exception, e:
             # traceback.format_exc()
             print '[error]save_result_file_to_mysql()', e
+            self.conn.rollback()
 
         return True, msg
 
@@ -812,6 +818,7 @@ class MySqlDrive(object):
 
         except Exception, e:
             print '[error]set_preset_partn()', e, sql_str2 % parameter2
+            self.conn.rollback()
 
         return cnt
 
@@ -1207,26 +1214,109 @@ class Util(object):
 
     #####  setting convert end  ##########################################################
 
-    def modify_config(self, start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
-        '''修改spider_ini文件'''
+    # def modify_config(self, start_urls, site_domain, black_domain_str, detail_rule_str, list_rule_str, mode):
+    #     '''修改spider_ini文件'''
+    #     try:
+    #         config = ConfigParser.ConfigParser()
+    #         config.read(ALLSITE_SPIDER_INI)
+    #         if start_urls.strip() != '': config.set('spider', 'start_urls', start_urls)
+    #         if site_domain.strip() != '': config.set('spider', 'site_domain', site_domain)
+    #         if black_domain_str.strip() != '': config.set('spider', 'black_domain_list', black_domain_str)
+    #         if list_rule_str.strip() != '': config.set('spider', 'list_rule_list', list_rule_str)
+    #         if detail_rule_str.strip() != '': config.set('spider', 'detail_rule_list', detail_rule_str)
+    #         if mode.strip() != '': config.set('spider', 'mode', mode)
+    #         fp = open(ALLSITE_SPIDER_INI, "w")
+    #         config.write(fp)
+    #         print '[info]modify_config() success.'
+    #         return True
+    #     except Exception, e:
+    #         print "[error]modify_config(): %s" % e
+    #         return False
+
+    def modify_config_for_advice(self, redis_server):
+        '''直接修改爬虫文件代码'''
         try:
-            config = ConfigParser.ConfigParser()
-            config.read(ALLSITE_SPIDER_INI)
-            if start_urls.strip() != '': config.set('spider', 'start_urls', start_urls)
-            if site_domain.strip() != '': config.set('spider', 'site_domain', site_domain)
-            if black_domain_str.strip() != '': config.set('spider', 'black_domain_list', black_domain_str)
-            if list_rule_str.strip() != '': config.set('spider', 'list_rule_list', list_rule_str)
-            if detail_rule_str.strip() != '': config.set('spider', 'detail_rule_list', detail_rule_str)
-            if mode.strip() != '': config.set('spider', 'mode', mode)
-            fp = open(ALLSITE_SPIDER_INI, "w")
-            config.write(fp)
-            print '[info]modify_config() success.'
+            write_ready = False
+            copy_list = []
+
+            fp = open(ALLSITE_SPIDER_ADVICE_PY, "r")
+            for row in fp.readlines():
+                if row.find('spider-modify-start') >= 0: write_ready = True
+                if row.find('spider-modify-end') >= 0: write_ready = False
+                if write_ready:
+                    if row.find('REDIS_SERVER') >= 0:
+                        row = "REDIS_SERVER = '''" + redis_server + "'''\n"
+
+                copy_list.append(row)
+
+            fp.close()
+
+            fp = open(ALLSITE_SPIDER_ADVICE_PY, "w")
+            for row in copy_list:
+                fp.write(row)
+            fp.close()
+
+            print '[info]modify_config_for_advice() success.'
             return True
         except Exception, e:
-            print "[error]modify_config(): %s" % e
+            print "[error]modify_config_for_advice(): %s" % e
             return False
 
-    def modify_config_for_content(self, start_urls, site_domain, info_flg, config_id, content_mode,
+    def modify_config_for_list_detail(self, list_or_detail, redis_server, dedup_server,
+                                      start_urls, site_domain, black_domain_list,
+                                      mode, list_rule_list, detail_rule_list):
+        '''直接修改爬虫文件代码'''
+        try:
+            write_ready = False
+            copy_list = []
+            if list_or_detail == 'list':
+                file_name = ALLSITE_SPIDER_LIST_PY
+            else:  # 'detail'
+                file_name = ALLSITE_SPIDER_DETAIL_PY
+
+            fp = open(file_name, "r")
+            for row in fp.readlines():
+                if row.find('spider-modify-start') >= 0: write_ready = True
+                if row.find('spider-modify-end') >= 0: write_ready = False
+                if write_ready:
+                    if row.find('REDIS_SERVER') >= 0:
+                        row = "REDIS_SERVER = '''" + redis_server + "'''\n"
+                    if row.find('DEDUP_SERVER') >= 0:
+                        row = "DEDUP_SERVER = '''" + dedup_server + "'''\n"
+
+                    if row.find('START_URLS') >= 0:
+                        row = "START_URLS = '''" + start_urls + "'''\n"
+                    if row.find('SITE_DOMAIN') >= 0:
+                        row = "SITE_DOMAIN = '''" + site_domain + "'''\n"
+                    if row.find('BLACK_DOMAIN_LIST') >= 0:
+                        row = "BLACK_DOMAIN_LIST = '''" + black_domain_list + "'''\n"
+
+                    if row.find('MODE') >= 0:
+                        row = "MODE = '''" + mode + "'''\n"
+
+                    if row.find('LIST_RULE_LIST') >= 0:
+                        row = "LIST_RULE_LIST = '''" + list_rule_list + "'''\n"
+                    if row.find('DETAIL_RULE_LIST') >= 0:
+                        row = "DETAIL_RULE_LIST = '''" + detail_rule_list + "'''\n"
+
+                copy_list.append(row)
+
+            fp.close()
+
+            fp = open(file_name, "w")
+            for row in copy_list:
+                fp.write(row)
+            fp.close()
+
+            print '[info]modify_config_for_list_detail() success.'
+            return True
+        except Exception, e:
+            print "[error]modify_config_for_list_detail(): %s" % e
+            return False
+
+    def modify_config_for_content(self, redis_server, dedup_server,
+                                  start_urls, site_domain, black_domain_list,
+                                  info_flg, config_id, content_mode,
                                   title_regedx_str, content_regex_str, author_regex_str, ctime_regex_str):
         '''直接修改爬虫文件代码'''
         try:
@@ -1237,10 +1327,17 @@ class Util(object):
                 if row.find('spider-modify-start') >= 0: write_ready = True
                 if row.find('spider-modify-end') >= 0: write_ready = False
                 if write_ready:
+                    if row.find('REDIS_SERVER') >= 0:
+                        row = "REDIS_SERVER = '''" + redis_server + "'''\n"
+                    if row.find('DEDUP_SERVER') >= 0:
+                        row = "DEDUP_SERVER = '''" + dedup_server + "'''\n"
+
                     if row.find('START_URLS') >= 0:
                         row = "START_URLS = '''" + start_urls + "'''\n"
                     if row.find('SITE_DOMAIN') >= 0:
                         row = "SITE_DOMAIN = '''" + site_domain + "'''\n"
+                    if row.find('BLACK_DOMAIN_LIST') >= 0:
+                        row = "BLACK_DOMAIN_LIST = '''" + black_domain_list + "'''\n"
 
                     if row.find('CONFIG_ID') >= 0:
                         row = "CONFIG_ID = '''" + config_id + "'''\n"
@@ -1860,6 +1957,13 @@ def setting_advice_try():
     patrn_list, patrn_detail, patrn_rubbish = mysql_db.get_preset_partn_to_str(info_flg=req_info_flg_sel)
     print '[info]setting_advice_try()', 'list:', patrn_list, 'detail:', patrn_detail, 'rubbish:', patrn_rubbish
 
+    ret = util.modify_config_for_advice(REDIS_SERVER)
+    if ret == False:
+        flash(u"修改" + ALLSITE_SPIDER_ADVICE_PY + u"文件失败.", 'error')
+        print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_ADVICE_PY + u' failure.'
+        return render_template('setting_advice.html', inputForm=inputForm,
+                               patrn_rubbish='', patrn_detail='', patrn_list='')
+
     # 修改配置文件的执行入口信息
     import allsite_spider_advice
     g_start_url_list = allsite_spider_advice.main(start_urls=start_url,
@@ -2282,8 +2386,20 @@ def list_detail_save_and_run():
     for item in list_regex_save_list:
         list_rule_str += item['regex'] + '@'
 
-    ret = util.modify_config(start_urls=start_url, site_domain=site_domain, black_domain_str=black_domain_str,
-                             list_rule_str=list_rule_str, detail_rule_str=detail_rule_str, mode=mode)
+    if inputForm.list_or_detail.data == 0:  # 0:'list'
+        list_or_detail = 'list'
+    else:
+        list_or_detail = 'detail'
+
+    ret = util.modify_config_for_list_detail(redis_server=REDIS_SERVER,
+                                             dedup_server=DEDUP_SERVER,
+                                             list_or_detail=list_or_detail,
+                                             start_urls=start_url,
+                                             site_domain=site_domain,
+                                             black_domain_list=black_domain_str,
+                                             mode=mode,
+                                             list_rule_list=list_rule_str,
+                                             detail_rule_list=detail_rule_str)
     if ret == False:
         flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.", 'error')
         print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
@@ -2744,8 +2860,11 @@ def content_save_and_run():
         return redirect(url_for('content_init'), 302)
 
     util = Util()
-    ret = util.modify_config_for_content(start_urls=start_url,
+    ret = util.modify_config_for_content(redis_server=REDIS_SERVER,
+                                         dedup_server=DEDUP_SERVER,
+                                         start_urls=start_url,
                                          site_domain=site_domain,
+                                         black_domain_list=black_domain_str,
                                          info_flg=inputForm.info_flg_sel.data,
                                          config_id='9999',
                                          content_mode=content_mode,
@@ -3010,7 +3129,7 @@ def tool_getenv():
     json_str = {'WEB_MAIN_INI': WEB_MAIN_INI,
 
                 'REDIS_SERVER': REDIS_SERVER,
-                'DEDUP_SETTING': DEDUP_SETTING,
+                'DEDUP_SERVER': DEDUP_SERVER,
 
                 'MYSQLDB_HOST': MYSQLDB_HOST,
                 'MYSQLDB_USER': MYSQLDB_USER,
@@ -3052,7 +3171,7 @@ def tool_session_setting():
 @app.route('/tool_redis_setting', methods=['POST'])
 def tool_redis_setting():
     global REDIS_SERVER
-    global DEDUP_SETTING
+    global DEDUP_SERVER
     redis_server = request.form['redis_server']
     dedup_server = request.form['dedup_server']
 
@@ -3075,7 +3194,7 @@ def tool_redis_setting():
 
         # 修改系统内存中的环境参数
         REDIS_SERVER = 'redis://' + redis_server
-        DEDUP_SETTING = 'redis://' + dedup_server
+        DEDUP_SERVER = 'redis://' + dedup_server
 
         flash(WEB_MAIN_INI + u'和' + ALLSITE_SPIDER_INI + u'已经被更新。', 'info')
     return redirect(url_for('admin_tools'), 302)
@@ -3223,7 +3342,7 @@ api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
-    # if WEB_MAIN_INI.find('deploy') > 0:
-    app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
-    # else:
-    #     app.run(debug=True)
+    if MY_OS == 'linux':
+        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=False)
+    else:
+        app.run(host=DEPLOY_HOST, port=DEPLOY_PORT, debug=True)

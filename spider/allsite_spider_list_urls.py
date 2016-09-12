@@ -15,47 +15,54 @@ import requests
 import allsite_clean_url
 
 ####################################################################
-MY_OS = os.getenv('SPIDER_OS')
-if MY_OS is None:
-    # log.logger.error('[ERROR] must be set a SPIDER_OS env.')
-    print '[ERROR] must be set a MY_OS.'
-    exit(-1)
-else:
-    # log.logger.info('[info]--- The OS is: %s ----' % MY_OS)
-    print '[info]--- allsite_spider_list The OS is: %s ----' % MY_OS
-    if MY_OS == 'linux':
-        INIT_CONFIG = '/work/spider/allsite_spider.ini'
-    elif MY_OS == 'mac':
-        INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite_spider.ini'
-    else:  # windows
-        INIT_CONFIG = './allsite_spider.ini'
-####################################################################
-config = ConfigParser.ConfigParser()
-if len(config.read(INIT_CONFIG)) == 0:
-    # log.logger.error('[ERROR]cannot read the config file. %s' % INIT_CONFIG)
-    print '[ERROR]cannot read the config file.', INIT_CONFIG
-    exit(-1)
-else:
-    # log.logger.info('[INFO] read the config file.%s' % INIT_CONFIG)
-    print '[INFO] read the config file.', INIT_CONFIG
+# MY_OS = os.getenv('SPIDER_OS')
+# if MY_OS is None:
+#     # log.logger.error('[ERROR] must be set a SPIDER_OS env.')
+#     print '[ERROR] must be set a MY_OS.'
+#     exit(-1)
+# else:
+#     # log.logger.info('[info]--- The OS is: %s ----' % MY_OS)
+#     print '[info]--- allsite_spider_list The OS is: %s ----' % MY_OS
+#     if MY_OS == 'linux':
+#         INIT_CONFIG = '/work/spider/allsite_spider.ini'
+#     elif MY_OS == 'mac':
+#         INIT_CONFIG = '/Users/song/workspace/pyWorks/spider/allsite_spider.ini'
+#     else:  # windows
+#         INIT_CONFIG = './allsite_spider.ini'
+# ####################################################################
+# config = ConfigParser.ConfigParser()
+# if len(config.read(INIT_CONFIG)) == 0:
+#     # log.logger.error('[ERROR]cannot read the config file. %s' % INIT_CONFIG)
+#     print '[ERROR]cannot read the config file.', INIT_CONFIG
+#     exit(-1)
+# else:
+#     # log.logger.info('[INFO] read the config file.%s' % INIT_CONFIG)
+#     print '[INFO] read the config file.', INIT_CONFIG
 
 # redis
-REDIS_SERVER = config.get('redis', 'redis_server')
-DEDUP_SETTING = config.get('redis', 'dedup_server')
+# REDIS_SERVER = config.get('redis', 'redis_server')
+# DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-# START_URLS = None
-# SITE_DOMAIN = None
-# BLACK_DOMAIN_LIST = None
-# DETAIL_RULE_LIST = None
-# LIST_RULE_LIST = None
+REDIS_SERVER = '''redis://127.0.0.1/14'''
+DEDUP_SERVER = ''''''
+
+MODE = '''exact'''
+
+START_URLS = '''http://bbs.tianya.cn'''
+SITE_DOMAIN = '''bbs.tianya.cn'''
+BLACK_DOMAIN_LIST = ''''''
+
+LIST_RULE_LIST = '''/list-@/hotArticle@\/$@'''
+DETAIL_RULE_LIST = '''/post-@'''
 # spider-modify-end
-MODE = config.get('spider', 'mode')
-START_URLS = config.get('spider', 'start_urls')
-SITE_DOMAIN = config.get('spider', 'site_domain')
-BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
-DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
-LIST_RULE_LIST = config.get('spider', 'list_rule_list')
+
+# MODE = config.get('spider', 'mode')
+# START_URLS = config.get('spider', 'start_urls')
+# SITE_DOMAIN = config.get('spider', 'site_domain')
+# BLACK_DOMAIN_LIST = config.get('spider', 'black_domain_list')
+# DETAIL_RULE_LIST = config.get('spider', 'detail_rule_list')
+# LIST_RULE_LIST = config.get('spider', 'list_rule_list')
 
 
 ############################################################################
