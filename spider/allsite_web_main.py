@@ -1150,7 +1150,7 @@ class TaskManager(object):
             self.complete_list()
 
             v = self.conn.hget(self.task_manager_key, k)
-            v = {'': eval(v).get('config_content'), 'status': 'killed'}
+            v = {'config_content': eval(v).get('config_content'), 'status': 'killed'}
             self.conn.hdel(self.task_manager_key, k)
             self.conn.hset(self.task_manager_key, k, v)
 
@@ -1188,6 +1188,16 @@ class TaskManager(object):
         else:
             print '[error]set_task_status() not found.'
             return False
+
+    def is_killed(self, user_id, site_domain, spider_type):
+        k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, k):
+                v = self.conn.hget(self.task_manager_key, k)
+                status = eval(v).get('status')
+                if status == 'killed':
+                    return True
+        return False
 
     def run_task_one(self, user_id, site_domain, spider_type):
         # k = user_id + '@' + site_domain + '@' + spider_type
@@ -1373,7 +1383,7 @@ class Util(object):
             print "[error]modify_config_for_advice(): %s" % e
             return False
 
-    def modify_config_for_list_detail(self, list_or_detail, redis_server, dedup_server,
+    def modify_config_for_list_detail(self, user_id, list_or_detail, redis_server, dedup_server,
                                       start_urls, site_domain, black_domain_list,
                                       mode, list_rule_list, detail_rule_list):
         '''直接修改爬虫文件代码'''
@@ -1390,6 +1400,9 @@ class Util(object):
                 if row.find('spider-modify-start') >= 0: write_ready = True
                 if row.find('spider-modify-end') >= 0: write_ready = False
                 if write_ready:
+                    if row.find('USER_ID') >= 0:
+                        row = "USER_ID = '''" + user_id + "'''\n"
+
                     if row.find('REDIS_SERVER') >= 0:
                         row = "REDIS_SERVER = '''" + redis_server + "'''\n"
                     if row.find('DEDUP_SERVER') >= 0:
@@ -1425,7 +1438,7 @@ class Util(object):
             print "[error]modify_config_for_list_detail(): %s" % e
             return False
 
-    def modify_config_for_content(self, redis_server, dedup_server,
+    def modify_config_for_content(self, user_id, redis_server, dedup_server,
                                   start_urls, site_domain, black_domain_list,
                                   info_flg, config_id, content_mode,
                                   title_regedx_str, content_regex_str, author_regex_str, ctime_regex_str):
@@ -1438,6 +1451,9 @@ class Util(object):
                 if row.find('spider-modify-start') >= 0: write_ready = True
                 if row.find('spider-modify-end') >= 0: write_ready = False
                 if write_ready:
+                    if row.find('USER_ID') >= 0:
+                        row = "USER_ID = '''" + user_id + "'''\n"
+
                     if row.find('REDIS_SERVER') >= 0:
                         row = "REDIS_SERVER = '''" + redis_server + "'''\n"
                     if row.find('DEDUP_SERVER') >= 0:
@@ -2502,7 +2518,8 @@ def list_detail_save_and_run():
     else:
         list_or_detail = 'detail'
 
-    ret = util.modify_config_for_list_detail(redis_server=REDIS_SERVER,
+    ret = util.modify_config_for_list_detail(user_id=user_id,
+                                             redis_server=REDIS_SERVER,
                                              dedup_server=DEDUP_SERVER,
                                              list_or_detail=list_or_detail,
                                              start_urls=start_url,
@@ -2528,6 +2545,8 @@ def list_detail_save_and_run():
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     task_mng = TaskManager()
+    if task_mng.is_killed(user_id,site_domain,'list'):
+        print '[info]task is killed.'
     # 执行抓取程序 list
     if inputForm.list_or_detail.data == 0:  # 0:'list'
         task_mng.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'todo')
@@ -2980,7 +2999,8 @@ def content_save_and_run():
         return redirect(url_for('content_init'), 302)
 
     util = Util()
-    ret = util.modify_config_for_content(redis_server=REDIS_SERVER,
+    ret = util.modify_config_for_content(user_id=user_id,
+                                         redis_server=REDIS_SERVER,
                                          dedup_server=DEDUP_SERVER,
                                          start_urls=start_url,
                                          site_domain=site_domain,

@@ -40,6 +40,8 @@ import allsite_clean_url
 # DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
+USER_ID = ''''''
+
 REDIS_SERVER = ''''''
 DEDUP_SERVER = ''''''
 
@@ -80,6 +82,7 @@ class MySpider(spider.Spider):
         self.black_domain_list = BLACK_DOMAIN_LIST
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.task_manager_key = 'task_manager'  # 任务管理
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 输入列表页URL
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输出详情页URL
         self.manual_w_list_rule_zset_key = 'manual_w_list_rule_zset_%s' % self.site_domain  # 手工配置规则（白）
@@ -276,7 +279,19 @@ class MySpider(spider.Spider):
         # print '[INFO]get_page_valid_urls() end'
         return urls
 
+    def is_killed(self):
+        k = USER_ID + '@' + self.site_domain + '@' + 'detail'
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, k):
+                v = self.conn.hget(self.task_manager_key, k)
+                status = eval(v).get('status')
+                if status == 'killed':
+                    return True
+        return False
+
     def get_start_urls(self, data=None):
+        if self.is_killed(): return []
+
         self.detail_rules = [x.strip() for x in DETAIL_RULE_LIST.split('@') if x!='']
         print DETAIL_RULE_LIST, '->',self.detail_rules
 

@@ -127,14 +127,14 @@ def load_module(url, spider_id=None, worker_id=None, name='spider', add_to_sys_m
                     code = compile(config, '', 'exec')
                 except Exception as e:
                     log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
-                    # print '[error]run_task_one() error', e
+                    print '[error]run_task_one() error', e
                     return (None, None)
 
                 module = imp.new_module('allsite_spider')
                 try:
                     exec code in module.__dict__
                 except Exception as e:
-                    # print '[error]run_task_one() error', e
+                    print '[error]run_task_one() error', e
                     log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
                     return (None, None)
 
@@ -146,7 +146,7 @@ def load_module(url, spider_id=None, worker_id=None, name='spider', add_to_sys_m
 
         else:
             log.logger.error("-- task_manager not found: %s" % url)
-            # print '[error]run_task_one() not found task_manager'
+            print '[error]run_task_one() not found task_manager'
             return (None, None)
 
         if add_to_sys_modules:

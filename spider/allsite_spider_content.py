@@ -40,6 +40,8 @@ from myreadability import myreadability
 # DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
+USER_ID = ''''''
+
 REDIS_SERVER = '''redis://127.0.0.1/14'''
 DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
@@ -98,6 +100,7 @@ class MySpider(spider.Spider):
 
         self.encoding = 'utf-8'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.task_manager_key = 'task_manager'  # 任务管理
         # self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 输入详情页URL
         self.detail_urls_set_copy_key = 'detail_urls_set_copy_%s' % self.site_domain  # 输入详情页URL copy
         self.content_list_key = 'content_list_%s' % self.site_domain  # 输出抓取结果
@@ -119,7 +122,19 @@ class MySpider(spider.Spider):
         self.author_sel = setting_dict['author_sel']
         self.author_exp = setting_dict['author_exp']
 
+    def is_killed(self):
+        k = USER_ID + '@' + self.site_domain + '@' + 'content'
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, k):
+                v = self.conn.hget(self.task_manager_key, k)
+                status = eval(v).get('status')
+                if status == 'killed':
+                    return True
+        return False
+
     def get_start_urls(self, data=None):
+        if self.is_killed(): return []
+
         return [self.start_urls]
 
     def parse(self, response):
