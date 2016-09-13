@@ -22886,3 +22886,13 @@ ValueError: dictionary update sequence element #0 has length 1; 2 is required
 [2016-09-12 23:56:14,756] [INFO] [_internal.py] [87] - 127.0.0.1 - - [12/Sep/2016 23:56:14] "GET /static/js/exporting.js HTTP/1.1" 304 -
 [2016-09-12 23:56:17,113] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 7
 [2016-09-12 23:56:24,892] [INFO] [allsite_spider_list_urls.py] [359] - [loop] 8
+[2016-09-13 20:19:32,778] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 20:19:32] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-13 20:22:24,398] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 20:22:24] "GET /history_search HTTP/1.1" 200 -
+[2016-09-13 20:22:38,609] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 20:22:38] "GET /static/images/sort_asc.png HTTP/1.1" 404 -
+[2016-09-13 20:22:49,623] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 20:22:49] "GET /preset_init HTTP/1.1" 200 -
+[2016-09-13 20:22:51,530] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 20:22:51] "GET /admin_tools HTTP/1.1" 200 -
+[2016-09-13 20:25:32,827] [INFO] [_internal.py] [87] -  * Detected change in '/Users/song/workspace/pyWorks/spider/allsite_web_main.py', reloading
+[2016-09-13 21:35:17,966] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 21:35:17] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-13 21:35:36,782] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 21:35:36] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-13 21:35:51,339] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 21:35:51] "POST /list_detail_save_and_run HTTP/1.1" 200 -
+[2016-09-13 21:35:57,032] [INFO] [_internal.py] [87] - 127.0.0.1 - - [13/Sep/2016 21:35:57] "GET /show_task HTTP/1.1" 200 -

@@ -49,11 +49,11 @@ DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
 MODE = '''exact'''
 
-START_URLS = '''http://bbs.tianya.cn'''
-SITE_DOMAIN = '''bbs.tianya.cn'''
+START_URLS = '''http://www.tuniu.com'''
+SITE_DOMAIN = '''tuniu.com'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''
+LIST_RULE_LIST = '''/list-@\/$@'''
 DETAIL_RULE_LIST = '''/post-@thread@'''
 # spider-modify-end
 

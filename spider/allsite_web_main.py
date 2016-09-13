@@ -274,6 +274,22 @@ class PresetListForm(Form):
     save = SubmitField(label=u'保存')
 
 
+######## admin_task_manager.html #############################################################################
+class TaskManagerForm(Form):
+    partn_type_sel = SelectField(label=u'规则类别', choices=[('list', u'列表'), ('detail', u'详情'), ('rubbish', u'无效')])
+    user_id = StringField(label=u'用户ID')
+    site_domain = StringField(label=u'域名')
+    spider_type = SelectField(label=u'类型', choices=[('list', u'列表'), ('detail', u'详情'), ('content', u'内容')])
+    status = SelectField(label=u'状态',
+                         choices=[('todo', u'todo'), ('start', u'start'), ('end', u'end'), ('killed', u'killed')])
+
+
+class TaskManagerListForm(Form):
+    # task_list = FieldList(FormField(TaskManagerForm), label=u'任务管理')
+    task_list = []
+    refresh = SubmitField(label=u'刷新')
+
+
 ########################################################################################################
 class MySqlDrive(object):
     def __init__(self):
@@ -1076,6 +1092,33 @@ class RedisDrive(object):
             print '[unkown]', score, url
             return 'unkown'
 
+
+##################################################################################################
+class TaskManager(object):
+    def __init__(self):
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.task_manager_key = 'task_manager'  # 任务管理
+        self.todo_flg = -1
+        self.done_flg = 0
+        self.detail_flg = 1
+        self.content_flg = 9
+        self.end_flg = 99  # 状态管理flg最大值
+
+    def get_all_task(self):
+        ret = []
+        task_list = self.conn.hgetall(self.task_manager_key)
+        for k, v in task_list.iteritems():
+            status = eval(v).get('status')
+            k_split = k.split('@')
+            item = {'user_id': k_split[0],
+                    'site_domain': k_split[1],
+                    'spider_type': k_split[2],
+                    'status': status
+                    }
+            ret.append(item)
+
+        return ret
+
     def add_task(self, user_id, site_domain, spider_type, spider_config_src, spider_status):
         k = user_id + '@' + site_domain + '@' + spider_type
         fd = open(spider_config_src, 'r')
@@ -1107,7 +1150,7 @@ class RedisDrive(object):
             self.complete_list()
 
             v = self.conn.hget(self.task_manager_key, k)
-            v = {'': eval(v).get('config_content') ,'status': 'killed'}
+            v = {'': eval(v).get('config_content'), 'status': 'killed'}
             self.conn.hdel(self.task_manager_key, k)
             self.conn.hset(self.task_manager_key, k, v)
 
@@ -1148,31 +1191,12 @@ class RedisDrive(object):
 
     def run_task_one(self, user_id, site_domain, spider_type):
         # k = user_id + '@' + site_domain + '@' + spider_type
-        # if self.conn.hexists(self.task_manager_key, k):
-        #     v = self.conn.hget(self.task_manager_key, k)
-        #     # print 'v:', v
-        #     config = eval(v).get('config_content').encode('utf-8')
-        #     print'config_content-------------------\n', config
-        #     print'---------------------------------\n',
-        #     code = compile(config, '', 'exec')
-        #     module = imp.new_module('allsite_spider_list')
-        #     try:
-        #         exec code in module.__dict__
-        #     except Exception as e:
-        #         print "-- exec code in module.__dict__ excepiton: %s" % e
-        #         return False
-        #
-        #     return True
-        # else:
-        #     print '[error]run_task() not found.'
-        #     return False
-
         task_list = self.conn.hgetall(self.task_manager_key)
         for k, v in task_list.iteritems():
             status = eval(v).get('status')
             if status == 'todo':  # 提取状态为待运行：todo
                 # print 'v:', v
-                config = eval(v).get('config_content').encode('utf-8')
+                config = eval(v).get('config_content')
                 try:
                     code = compile(config, '', 'exec')
                 except Exception as e:
@@ -1190,7 +1214,7 @@ class RedisDrive(object):
 
                 # 修改状态为运行中：start
                 self.conn.hdel(self.task_manager_key, k)
-                v = {'config_content':config,'status':'start'}
+                v = {'config_content': config, 'status': 'start'}
                 self.conn.hset(self.task_manager_key, k, v)
                 break
 
@@ -2047,7 +2071,7 @@ def setting_advice_try():
     ret = util.modify_config_for_advice(REDIS_SERVER)
     if ret == False:
         flash(u"修改" + ALLSITE_SPIDER_ADVICE_PY + u"文件失败.", 'error')
-        print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_ADVICE_PY + u' failure.'
+        print u'[error]setting_advice_try() modify ' + ALLSITE_SPIDER_ADVICE_PY + u' failure.'
         return render_template('setting_advice.html', inputForm=inputForm,
                                patrn_rubbish='', patrn_detail='', patrn_list='')
 
@@ -2503,10 +2527,10 @@ def list_detail_save_and_run():
         redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
+    task_mng = TaskManager()
     # 执行抓取程序 list
     if inputForm.list_or_detail.data == 0:  # 0:'list'
-        flash(u'后台列表页爬虫启动。', 'info')
-        redis_db.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'todo')
+        task_mng.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'todo')
         # if os.name == 'nt':
         # DOS "start" command
         # print '[info]--- %s run on windows' % SHELL_LIST_CMD
@@ -2527,22 +2551,22 @@ def list_detail_save_and_run():
 
     # 执行抓取程序 detail
     if inputForm.list_or_detail.data == 1:  # 1:'detail'
-        flash(u"后台详情页爬虫启动.", 'info')
-        if os.name == 'nt':
-            # DOS "start" command
-            print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
-            os.startfile(SHELL_DETAIL_CMD)
-        else:
-            print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
-            # fd = open("/work/spider/1.log", "w")
-            p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            process_id = p.pid
-            # fd.write(p.stdout.read())
-            # fd.close()
-            print '[info]--- process_id:', process_id
+        task_mng.add_task(user_id, site_domain, 'detail', 'allsite_spider_detail_urls.py', 'todo')
+        # if os.name == 'nt':
+        #     # DOS "start" command
+        #     print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
+        #     os.startfile(SHELL_DETAIL_CMD)
+        # else:
+        #     print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
+        #     # fd = open("/work/spider/1.log", "w")
+        #     p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #     process_id = p.pid
+        #     # fd.write(p.stdout.read())
+        #     # fd.close()
+        #     print '[info]--- process_id:', process_id
 
     # redis_db.run_task_one(user_id, site_domain, 'list')
-
+    flash(u'后台爬虫启动。', 'info')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
@@ -3293,6 +3317,22 @@ def tool_redis_setting():
 
         flash(ALLSITE_WEB_MAIN_INI + u'和' + ALLSITE_WEB_MAIN_INI + u'已经被更新。', 'info')
     return redirect(url_for('admin_tools'), 302)
+
+
+@app.route('/show_task', methods=['GET', 'POST'])
+def show_task():
+    user_id = session['user_id']
+    task_mng = TaskManager()
+    outputForm = TaskManagerListForm()
+    if user_id == 'admin':
+        taskFrom = TaskManagerForm()
+        outputForm.task_list = task_mng.get_all_task()
+        # taskFrom.user_id = item['user_id']
+        # taskFrom.site_domain = item['site_domain']
+        # taskFrom.spider_type = item['spider_type']
+        # taskFrom.status = item['status']
+
+    return render_template('show_task.html', outputForm=outputForm)
 
 
 @app.route('/test', methods=['GET', 'POST'])
