@@ -115,29 +115,38 @@ def load_module(url, spider_id=None, worker_id=None, name='spider', add_to_sys_m
 
     else: # for allsite redis task call
         import redis
-        # REDIS_SERVER = 'redis://127.0.0.1/14'
+        # url = 'redis://127.0.0.1/14'
         conn = redis.StrictRedis.from_url(url)
         task_manager_key = 'task_manager'  # 任务管理
-        k = url
-        # k = user_id + '@' + site_domain + '@' + spider_type
-        if conn.hexists(task_manager_key, k):
-            v = conn.hget(task_manager_key, k)
-            # print 'v:', v
-            config = eval(v).get('config_content').encode('utf-8')
-            try:
-                code = compile(config, '', 'exec')
-            except Exception as e:
-                log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
-                return (None, None)
+        task_list = conn.hgetall(task_manager_key)
+        for k, v in task_list.iteritems():
+            status = eval(v).get('status')
+            if status == 'todo':  # 提取状态为待运行：todo
+                config = eval(v).get('config_content')
+                try:
+                    code = compile(config, '', 'exec')
+                except Exception as e:
+                    log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
+                    # print '[error]run_task_one() error', e
+                    return (None, None)
 
-            module = imp.new_module('allsite_spider')
-            try:
-                exec code in module.__dict__
-            except Exception as e:
-                log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
-                return (None, None)
+                module = imp.new_module('allsite_spider')
+                try:
+                    exec code in module.__dict__
+                except Exception as e:
+                    # print '[error]run_task_one() error', e
+                    log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
+                    return (None, None)
+
+                # 修改状态为运行中：start
+                conn.hdel(task_manager_key, k)
+                v = {'config_content':config,'status':'start'}
+                conn.hset(task_manager_key, k, v)
+                break
+
         else:
             log.logger.error("-- task_manager not found: %s" % url)
+            # print '[error]run_task_one() not found task_manager'
             return (None, None)
 
         if add_to_sys_modules:
@@ -468,7 +477,7 @@ def run_spider():
         exit_timeout = getattr(setting, 'EXIT_TIMEOUT', 300)
         timeouter = gevent.Timeout(exit_timeout)
         timeouter.start()
-        #
+
         if crawler_mode == 'threading':
             for thread in list_thread_pool:
                 thread.join()
@@ -480,11 +489,12 @@ def run_spider():
             list_thread_pool.join()
             detail_page_thread_pool.join()
             data_queue_thread_pool.join()
-    #
+
     except gevent.Timeout, e:
         log.logger.debug("internal timeout triggered: %s" % e)
     finally:
         timeouter.cancel()
+
     log.logger.info("---***--- all work finished!!!")
 
 

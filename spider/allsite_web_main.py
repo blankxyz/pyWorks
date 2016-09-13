@@ -41,17 +41,17 @@ else:
     print '[info]--- The OS is: %s ----' % MY_OS
 ####################################################################
 if MY_OS == 'linux':
-    WEB_MAIN_INI = '/work/spider/allsite_web_main.ini'
+    ALLSITE_WEB_MAIN_INI = '/work/spider/allsite_web_main.ini'
 else:  # mac or windows
-    WEB_MAIN_INI = './allsite_web_main.ini'
+    ALLSITE_WEB_MAIN_INI = './allsite_web_main.ini'
 
 ####################################################################
 config = ConfigParser.ConfigParser()
-if len(config.read(WEB_MAIN_INI)) == 0:
-    print '[error]cannot read the config file.', WEB_MAIN_INI
+if len(config.read(ALLSITE_WEB_MAIN_INI)) == 0:
+    print '[error]cannot read the config file.', ALLSITE_WEB_MAIN_INI
     exit(-1)
 else:
-    print '[info]read the config file.', WEB_MAIN_INI
+    print '[info]read the config file.', ALLSITE_WEB_MAIN_INI
 # redis
 REDIS_SERVER = config.get('redis', 'redis_server')
 DEDUP_SERVER = config.get('redis', 'dedup_server')
@@ -73,7 +73,7 @@ SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
-# ALLSITE_SPIDER_INI = config.get(MY_OS, 'allsite_spider_ini')
+# ALLSITE_WEB_MAIN_INI = config.get(MY_OS, 'allsite_spider_ini')
 ALLSITE_SPIDER_ADVICE_PY = config.get(MY_OS, 'allsite_spider_advice_py')
 ALLSITE_SPIDER_LIST_PY = config.get(MY_OS, 'allsite_spider_list_py')
 ALLSITE_SPIDER_DETAIL_PY = config.get(MY_OS, 'allsite_spider_detail_py')
@@ -862,6 +862,7 @@ class RedisDrive(object):
         self.start_url = start_url
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.task_manager_key = 'task_manager'  # 任务管理
+        self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
         self.detail_urls_set_copy_key = 'detail_urls_set_copy_%s' % self.site_domain  # 输入详情页URL
@@ -870,7 +871,6 @@ class RedisDrive(object):
         self.manual_b_list_rule_zset_key = 'manual_b_list_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
         self.manual_w_detail_rule_zset_key = 'manual_w_detail_rule_zset_%s' % self.site_domain  # 手工配置规则(白)
         self.manual_b_detail_rule_zset_key = 'manual_b_detail_rule_zset_%s' % self.site_domain  # 手工配置规则（黑）
-        self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.list_rules = []  # 手工配置规则-内存形式
         self.detail_rules = []  # 手工配置规则-内存形式
         self.todo_flg = -1
@@ -1001,8 +1001,8 @@ class RedisDrive(object):
         fp.write('\n')
         fp.close()
 
-    def hold_result(self, mode, list_rules, detail_rules):
-        print '[info]hold_result() start.'
+    def hold_result(self, mode, site_domain, list_rules, detail_rules):
+        # print '[info]hold_result() start.'
         # 按照新规则，重置上次计算结果（unkown,list,detail）
         self.list_rules = [item['regex'] for item in list_rules]
         self.detail_rules = [item['regex'] for item in detail_rules]
@@ -1019,10 +1019,9 @@ class RedisDrive(object):
 
         self.conn.delete(self.list_urls_zset_key)
         self.conn.delete(self.detail_urls_set_key)
+        self.conn.delete(self.detail_urls_set_copy_key)
         self.conn.delete(self.unkown_urls_set_key)
 
-        # from allsite_spider_list_urls import MySpider
-        # mySpider = MySpider()
         for url in all_urls:
             ret = self.path_is_list(url)
             if ret == 'black':
@@ -1091,26 +1090,114 @@ class RedisDrive(object):
             print '[info]add_task() add ok.'
             return True
 
-    def run_task(self, user_id, site_domain, spider_type):
+    def del_task(self, user_id, site_domain, spider_type):
+        k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.hexists(self.task_manager_key, k):
+            self.conn.hdel(self.task_manager_key, k)
+            print '[info]del_task() ok.'
+            return True
+        else:
+            print '[error]del_task() no found.'
+            return False
+
+    def kill_task(self, user_id, site_domain, spider_type):
+        k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.hexists(self.task_manager_key, k):
+
+            self.complete_list()
+
+            v = self.conn.hget(self.task_manager_key, k)
+            v = {'': eval(v).get('config_content') ,'status': 'killed'}
+            self.conn.hdel(self.task_manager_key, k)
+            self.conn.hset(self.task_manager_key, k, v)
+
+            print '[info]kill_task() ok.'
+            return True
+        else:
+            print '[error]kill_task() not found.'
+            return False
+
+    def complete_list(self):
+        '''修改score（flg）为全部结束，终止list爬虫运行n'''
+        urls = self.get_list_urls()
+        for url in urls:
+            self.conn.zadd(self.list_urls_zset_key, self.end_flg, url)
+
+    def get_task_status(self, user_id, site_domain, spider_type):
         k = user_id + '@' + site_domain + '@' + spider_type
         if self.conn.hexists(self.task_manager_key, k):
             v = self.conn.hget(self.task_manager_key, k)
-            print 'v:', v
-            config = eval(v).get('config_content').encode('utf-8')
-            print'config_content-------------------\n', config
-            print'---------------------------------\n',
-            code = compile(config, '', 'exec')
-            module = imp.new_module('allsite_spider_list')
-            try:
-                exec code in module.__dict__
-            except Exception as e:
-                print "-- exec code in module.__dict__ excepiton: %s" % e
-                return False
+            print '[info]get_task_status() ok.'
+            return v['status']
+        else:
+            print '[error]get_task_status() not found.'
+            return None
 
+    def set_task_status(self, user_id, site_domain, spider_type, spider_status):
+        k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.hexists(self.task_manager_key, k):
+            v = self.conn.hget(self.task_manager_key, k)
+            v['status'] = spider_status
+            self.conn.hdel(self.task_manager_key, k)
+            self.conn.hset(self.task_manager_key, k, v)
+            print '[info]set_task_status() ok.'
             return True
         else:
-            print '[error]run_task() not found.'
+            print '[error]set_task_status() not found.'
             return False
+
+    def run_task_one(self, user_id, site_domain, spider_type):
+        # k = user_id + '@' + site_domain + '@' + spider_type
+        # if self.conn.hexists(self.task_manager_key, k):
+        #     v = self.conn.hget(self.task_manager_key, k)
+        #     # print 'v:', v
+        #     config = eval(v).get('config_content').encode('utf-8')
+        #     print'config_content-------------------\n', config
+        #     print'---------------------------------\n',
+        #     code = compile(config, '', 'exec')
+        #     module = imp.new_module('allsite_spider_list')
+        #     try:
+        #         exec code in module.__dict__
+        #     except Exception as e:
+        #         print "-- exec code in module.__dict__ excepiton: %s" % e
+        #         return False
+        #
+        #     return True
+        # else:
+        #     print '[error]run_task() not found.'
+        #     return False
+
+        task_list = self.conn.hgetall(self.task_manager_key)
+        for k, v in task_list.iteritems():
+            status = eval(v).get('status')
+            if status == 'todo':  # 提取状态为待运行：todo
+                # print 'v:', v
+                config = eval(v).get('config_content').encode('utf-8')
+                try:
+                    code = compile(config, '', 'exec')
+                except Exception as e:
+                    # log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
+                    print '[error]run_task_one() error', e
+                    return (None, None)
+
+                module = imp.new_module('allsite_spider')
+                try:
+                    exec code in module.__dict__
+                except Exception as e:
+                    print '[error]run_task_one() error', e
+                    # log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
+                    return (None, None)
+
+                # 修改状态为运行中：start
+                self.conn.hdel(self.task_manager_key, k)
+                v = {'config_content':config,'status':'start'}
+                self.conn.hset(self.task_manager_key, k, v)
+                break
+
+        else:
+            # log.logger.error("-- task_manager not found: %s" % url)
+            print '[error]run_task_one() not found task'
+            return (None, None)
 
 
 ##################################################################################################
@@ -1218,14 +1305,14 @@ class Util(object):
     #     '''修改spider_ini文件'''
     #     try:
     #         config = ConfigParser.ConfigParser()
-    #         config.read(ALLSITE_SPIDER_INI)
+    #         config.read(ALLSITE_WEB_MAIN_INI)
     #         if start_urls.strip() != '': config.set('spider', 'start_urls', start_urls)
     #         if site_domain.strip() != '': config.set('spider', 'site_domain', site_domain)
     #         if black_domain_str.strip() != '': config.set('spider', 'black_domain_list', black_domain_str)
     #         if list_rule_str.strip() != '': config.set('spider', 'list_rule_list', list_rule_str)
     #         if detail_rule_str.strip() != '': config.set('spider', 'detail_rule_list', detail_rule_str)
     #         if mode.strip() != '': config.set('spider', 'mode', mode)
-    #         fp = open(ALLSITE_SPIDER_INI, "w")
+    #         fp = open(ALLSITE_WEB_MAIN_INI, "w")
     #         config.write(fp)
     #         print '[info]modify_config() success.'
     #         return True
@@ -2401,14 +2488,16 @@ def list_detail_save_and_run():
                                              list_rule_list=list_rule_str,
                                              detail_rule_list=detail_rule_str)
     if ret == False:
-        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.", 'error')
-        print u'[error]list_detail_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
+        flash(u"修改" + ALLSITE_WEB_MAIN_INI + u"文件失败.", 'error')
+        print u'[error]list_detail_save_and_run() modify ' + ALLSITE_WEB_MAIN_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
     #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
     if inputForm.hold.data:
-        redis_db.hold_result(mode=mode, detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
+        redis_db.hold_result(mode=mode, site_domain=site_domain,
+                             detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
     else:  # 非保留模式
+        redis_db.conn.delete(redis_db.process_cnt_hset_key)
         redis_db.conn.delete(redis_db.list_urls_zset_key)
         redis_db.conn.delete(redis_db.detail_urls_set_key)
         redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
@@ -2417,24 +2506,24 @@ def list_detail_save_and_run():
     # 执行抓取程序 list
     if inputForm.list_or_detail.data == 0:  # 0:'list'
         flash(u'后台列表页爬虫启动。', 'info')
-        if os.name == 'nt':
-            # DOS "start" command
-            print '[info]--- %s run on windows' % SHELL_LIST_CMD
-            # os.startfile(SHELL_LIST_CMD)
-            redis_db.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'start')
-            # fd = open("1.log", "a")
-            # p = subprocess.Popen(SHELL_LIST_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            # print '[info]subprocess run.'
-            # process_id = p.pid
-            # fd.write(p.stdout.read())
-            # fd.flush()
-            # fd.close()
-            # print '[info]--- process_id:', process_id
-        else:
-            print '[info]--- %s run on %s' % (SHELL_LIST_CMD, MY_OS)
-            p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
-            process_id = p.pid
-            print '[info]--- process_id:', process_id
+        redis_db.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'todo')
+        # if os.name == 'nt':
+        # DOS "start" command
+        # print '[info]--- %s run on windows' % SHELL_LIST_CMD
+        # os.startfile(SHELL_LIST_CMD)
+        # fd = open("1.log", "a")
+        # p = subprocess.Popen(SHELL_LIST_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # print '[info]subprocess run.'
+        # process_id = p.pid
+        # fd.write(p.stdout.read())
+        # fd.flush()
+        # fd.close()
+        # print '[info]--- process_id:', process_id
+        # else:
+        # print '[info]--- %s run on %s' % (SHELL_LIST_CMD, MY_OS)
+        # p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
+        # process_id = p.pid
+        # print '[info]--- process_id:', process_id
 
     # 执行抓取程序 detail
     if inputForm.list_or_detail.data == 1:  # 1:'detail'
@@ -2445,14 +2534,14 @@ def list_detail_save_and_run():
             os.startfile(SHELL_DETAIL_CMD)
         else:
             print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
-            fd = open("/work/spider/1.log", "w")
+            # fd = open("/work/spider/1.log", "w")
             p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             process_id = p.pid
-            fd.write(p.stdout.read())
-            fd.close()
+            # fd.write(p.stdout.read())
+            # fd.close()
             print '[info]--- process_id:', process_id
 
-    redis_db.run_task(user_id, site_domain, 'list')
+    # redis_db.run_task_one(user_id, site_domain, 'list')
 
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2699,19 +2788,26 @@ def save_finally_result():
 
 @app.route('/kill_spider', methods=['GET', 'POST'])
 def kill_spider():
-    if MY_OS == 'windows':
-        flash(u"请手工关闭windows控制台.", 'info')
-        print '[info]kill_spider() @windows please close the bat cmd.'
-        # os.system("taskkill /PID %s /F" % process_id)
-    else:
-        subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
-        print '[info]kill_spider() @linux or @mac ok.'
-        flash(u"已经结束进程.", 'info')
+    # if MY_OS == 'windows':
+    #     flash(u"请手工关闭windows控制台.", 'info')
+    #     print '[info]kill_spider() @windows please close the bat cmd.'
+    #     # os.system("taskkill /PID %s /F" % process_id)
+    # else:
+    #     subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
+    #     print '[info]kill_spider() @linux or @mac ok.'
+    #     flash(u"已经结束进程.", 'info')
+    user_id = session['user_id']
+    start_url, site_domain, black_domain_str = get_domain_init()
+    redis_db = RedisDrive(start_url, site_domain)
+    redis_db.kill_task(user_id, site_domain, 'list')
+    redis_db.kill_task(user_id, site_domain, 'detail')
+    redis_db.kill_task(user_id, site_domain, 'content')
+
     return redirect(url_for('show_process'), 302)
 
 
-@app.route('/reset_all', methods=['GET', 'POST'])
-def reset_all():
+@app.route('/clean_user_redis_file', methods=['GET', 'POST'])
+def clean_user_redis_file():
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
@@ -2873,8 +2969,8 @@ def content_save_and_run():
                                          author_regex_str=inputForm.author_exp.data,
                                          ctime_regex_str=inputForm.ctime_exp.data)
     if ret == False:
-        flash(u"修改" + ALLSITE_SPIDER_INI + u"文件失败.", 'error')
-        print u'[error]content_save_and_run() modify ' + ALLSITE_SPIDER_INI + u' failure.'
+        flash(u"修改" + ALLSITE_WEB_MAIN_INI + u"文件失败.", 'error')
+        print u'[error]content_save_and_run() modify ' + ALLSITE_WEB_MAIN_INI + u' failure.'
         return redirect(url_for('content_init'), 302)
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
@@ -3114,8 +3210,8 @@ def tool_upload():
         return render_template('admin_tools.html')
 
 
-@app.route('/tool_reset_redis', methods=['GET', 'POST'])
-def tool_reset_redis():
+@app.route('/tool_clean_all_redis', methods=['GET', 'POST'])
+def tool_clean_all_redis():
     redis_db = RedisDrive()
     keys = redis_db.conn.keys()
     for key in keys:
@@ -3126,7 +3222,7 @@ def tool_reset_redis():
 
 @app.route('/tool_getenv', methods=['GET', 'POST'])
 def tool_getenv():
-    json_str = {'WEB_MAIN_INI': WEB_MAIN_INI,
+    json_str = {'ALLSITE_WEB_MAIN_INI': ALLSITE_WEB_MAIN_INI,
 
                 'REDIS_SERVER': REDIS_SERVER,
                 'DEDUP_SERVER': DEDUP_SERVER,
@@ -3147,7 +3243,6 @@ def tool_getenv():
                 'SHELL_ADVICE_CMD': SHELL_ADVICE_CMD,
                 'SHELL_LIST_CMD': SHELL_LIST_CMD,
                 'SHELL_CONTENT_CMD': SHELL_CONTENT_CMD,
-                'ALLSITE_SPIDER_INI': ALLSITE_SPIDER_INI,
 
                 'DEPLOY_HOST': DEPLOY_HOST,
                 'DEPLOY_PORT': DEPLOY_PORT
@@ -3179,24 +3274,24 @@ def tool_redis_setting():
         flash(u'请输入必要信息。', 'error')
     else:
         config = ConfigParser.ConfigParser()
-        config.read(ALLSITE_SPIDER_INI)
+        config.read(ALLSITE_WEB_MAIN_INI)
         config.set('redis', 'redis_server', 'redis://' + redis_server)
         config.set('redis', 'dedup_server', 'redis://' + dedup_server)
-        fp = open(ALLSITE_SPIDER_INI, "w")
+        fp = open(ALLSITE_WEB_MAIN_INI, "w")
         config.write(fp)
 
         config = ConfigParser.ConfigParser()
-        config.read(WEB_MAIN_INI)
+        config.read(ALLSITE_WEB_MAIN_INI)
         config.set('redis', 'redis_server', 'redis://' + redis_server)
         config.set('redis', 'dedup_server', 'redis://' + dedup_server)
-        fp = open(WEB_MAIN_INI, "w")
+        fp = open(ALLSITE_WEB_MAIN_INI, "w")
         config.write(fp)
 
         # 修改系统内存中的环境参数
         REDIS_SERVER = 'redis://' + redis_server
         DEDUP_SERVER = 'redis://' + dedup_server
 
-        flash(WEB_MAIN_INI + u'和' + ALLSITE_SPIDER_INI + u'已经被更新。', 'info')
+        flash(ALLSITE_WEB_MAIN_INI + u'和' + ALLSITE_WEB_MAIN_INI + u'已经被更新。', 'info')
     return redirect(url_for('admin_tools'), 302)
 
 

@@ -2,7 +2,7 @@ import subprocess
 
 SHELL_DETAIL_CMD = 'a.bat'
 
-# fd = open("test.log", "w")
+# fd = open("test.log", "a")
 # returncode = subprocess.call('python a.py')
 p = subprocess.Popen(['python','a.py'],stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = False)
 process_id = p.pid

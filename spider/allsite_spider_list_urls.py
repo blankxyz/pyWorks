@@ -45,7 +45,7 @@ import allsite_clean_url
 
 # spider-modify-start
 REDIS_SERVER = '''redis://127.0.0.1/14'''
-DEDUP_SERVER = ''''''
+DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
 MODE = '''exact'''
 
@@ -53,8 +53,8 @@ START_URLS = '''http://bbs.tianya.cn'''
 SITE_DOMAIN = '''bbs.tianya.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''/list-@/hotArticle@\/$@'''
-DETAIL_RULE_LIST = '''/post-@'''
+LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''
+DETAIL_RULE_LIST = '''/post-@thread@'''
 # spider-modify-end
 
 # MODE = config.get('spider', 'mode')
