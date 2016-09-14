@@ -15,26 +15,32 @@
                 <th>用户ID</th>
                 <th>域名</th>
                 <th>爬虫类型</th>
-                <th>状态</th>
-                <th>关闭</th>
-                <th>启动</th>
+                <th>当前状态</th>
+                <th>重启</th>
+                <th>暂停</th>
+                <th>删除</th>
             </tr>
             </thead>
             <tbody>
             {% for row in outputForm.task_list %}
-                <tr id={{ loop.index }}>
-                    <td>{{ row['user_id'] }}</td>
-                    <td>{{ row['site_domain'] }}</td>
-                    <td>{{ row['spider_type'] }}</td>
-                    <td>{{ row['status'] }}</td>
+                <tr id={{ "tr_" ~ loop.index }}>
+                    <td id={{ "user_id_" ~ loop.index }}>{{ row['user_id'] }}</td>
+                    <td id={{ "site_domain_" ~ loop.index }}>{{ row['site_domain'] }}</td>
+                    <td id={{ "spider_type_" ~ loop.index }}>{{ row['spider_type'] }}</td>
+                    <td id={{ "status_" ~ loop.index }}>{{ row['status'] }}</td>
                     <td>
-                        <a id={{ loop.index }} href="#">
-                            <span class=" glyphicon glyphicon-remove"></span>
+                        <a id={{ "retry_" ~ loop.index }} href="#">
+                            <span class=" glyphicon glyphicon-repeat"></span>
                         </a>
                     </td>
                     <td>
-                        <a id={{ loop.index }} href="#">
-                            <span class="glyphicon glyphicon-play-circle"></span>
+                        <a id={{ "kill_" ~ loop.index }} href="#">
+                            <span class="glyphicon glyphicon-stop"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <a id={{ "delete_" ~ loop.index }} href="#">
+                            <span class="glyphicon glyphicon-remove"></span>
                         </a>
                     </td>
                 </tr>
@@ -67,7 +73,7 @@
                     },
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading.gif'/>",
-                    "sSearch": "用户检索："
+                    "sSearch": "用户ID 检索："
                 },
                 "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
                 "info": true,
@@ -82,6 +88,71 @@
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
             });
+        });
+
+        $('a').click(function () {
+            var id_str = $(this).attr("id");
+            var num = id_str.substr(id_str.indexOf("_") + 1);
+            var user_id = $("#user_id_" + num).text();
+            var site_domain = $("#site_domain_" + num).text();
+            var spider_type = $("#spider_type_" + num).text();
+            var task_key = user_id + "@" + site_domain + "@" + spider_type;
+            {#            alert(task_key);#}
+            {#            alert(num);#}
+
+            <!-- 删除(delete)按钮 -->
+            if (id_str.search("delete_") >= 0) {
+                alert("delete:" + task_key);
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/task_key/' + task_key,
+                    type: 'delete',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.msg);
+                    }
+                });
+            }
+
+            <!-- 重启(retry)按钮 -->
+            if (id_str.search("retry_") >= 0) {
+                {#alert(regex_type + " : " + add_regex);#}
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/task_key/' + task_key,
+                    type: 'put',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({opt: 'retry'}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.msg);
+                    }
+                });
+            }
+
+            <!-- 暂停(kill)按钮 -->
+            if (id_str.search("kill_") >= 0) {
+                {#alert(regex_type + " : " + add_regex);#}
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/task_key/' + task_key,
+                    type: 'put',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({opt: 'kill'}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.msg);
+                    }
+                });
+            }
         });
     </script>
 {% endblock %}

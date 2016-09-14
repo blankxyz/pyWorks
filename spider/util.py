@@ -394,7 +394,7 @@ def save_log(uri, key, data):
         conn.lpush(key, data)
         conn.ltrim(key, 0, 999)
     except Exception, e:
-        print e
+        print 'log sssssss',e
 
 def fromtimestamp(timestamp):
     return datetime.datetime.fromtimestamp(float(timestamp)) - datetime.timedelta(hours=8)

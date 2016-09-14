@@ -877,7 +877,6 @@ class RedisDrive(object):
         self.site_domain = site_domain
         self.start_url = start_url
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.task_manager_key = 'task_manager'  # 任务管理
         self.process_cnt_hset_key = 'process_cnt_hset_%s' % self.site_domain
         self.list_urls_zset_key = 'list_urls_zset_%s' % self.site_domain  # 计算结果(列表)
         self.detail_urls_set_key = 'detail_urls_set_%s' % self.site_domain  # 计算结果(详情)
@@ -1095,6 +1094,8 @@ class RedisDrive(object):
 
 ##################################################################################################
 class TaskManager(object):
+    # todo -> start -> end
+    #         start -> killed->todo
     def __init__(self):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.task_manager_key = 'task_manager'  # 任务管理
@@ -1106,127 +1107,131 @@ class TaskManager(object):
 
     def get_all_task(self):
         ret = []
-        task_list = self.conn.hgetall(self.task_manager_key)
-        for k, v in task_list.iteritems():
-            status = eval(v).get('status')
-            k_split = k.split('@')
-            item = {'user_id': k_split[0],
-                    'site_domain': k_split[1],
-                    'spider_type': k_split[2],
-                    'status': status
-                    }
-            ret.append(item)
+        if self.conn.exists(self.task_manager_key):
+            task_list = self.conn.hgetall(self.task_manager_key)
+            for k, v in task_list.iteritems():
+                status = eval(v).get('status')
+                k_split = k.split('@')
+                item = {'user_id': k_split[0],
+                        'site_domain': k_split[1],
+                        'spider_type': k_split[2],
+                        'status': status
+                        }
+                ret.append(item)
 
         return ret
 
-    def add_task(self, user_id, site_domain, spider_type, spider_config_src, spider_status):
-        k = user_id + '@' + site_domain + '@' + spider_type
+    def add_task(self, task_key, spider_config_src, spider_status):
+        # k = user_id + '@' + site_domain + '@' + spider_type
         fd = open(spider_config_src, 'r')
         src = fd.read()
         fd.close()
         v = {'config_content': src, 'status': spider_status}
-        if self.conn.hexists(self.task_manager_key, k):
-            print '[error]add_task() add error.'
-            return False
+        # if self.conn.hexists(self.task_manager_key, k):
+        #     print '[error]add_task() add error.'
+        #     return False
+        # else:
+        self.conn.hset(self.task_manager_key, task_key, v)
+        print '[info]add_task() add ok.'
+        return True
+
+    def del_task(self, task_key):
+        # k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, task_key):
+                self.conn.hdel(self.task_manager_key, task_key)
+                print '[info]del_task() ok.'
+                return True
         else:
-            self.conn.hset(self.task_manager_key, k, v)
-            print '[info]add_task() add ok.'
-            return True
-
-    def del_task(self, user_id, site_domain, spider_type):
-        k = user_id + '@' + site_domain + '@' + spider_type
-        if self.conn.hexists(self.task_manager_key, k):
-            self.conn.hdel(self.task_manager_key, k)
-            print '[info]del_task() ok.'
-            return True
-        else:
-            print '[error]del_task() no found.'
-            return False
-
-    def kill_task(self, user_id, site_domain, spider_type):
-        k = user_id + '@' + site_domain + '@' + spider_type
-        if self.conn.hexists(self.task_manager_key, k):
-
-            self.complete_list()
-
-            v = self.conn.hget(self.task_manager_key, k)
-            v = {'config_content': eval(v).get('config_content'), 'status': 'killed'}
-            self.conn.hdel(self.task_manager_key, k)
-            self.conn.hset(self.task_manager_key, k, v)
-
-            print '[info]kill_task() ok.'
-            return True
-        else:
-            print '[error]kill_task() not found.'
+            print '[error]del_task() no found.',task_key
             return False
 
-    def complete_list(self):
-        '''修改score（flg）为全部结束，终止list爬虫运行n'''
-        urls = self.get_list_urls()
-        for url in urls:
-            self.conn.zadd(self.list_urls_zset_key, self.end_flg, url)
+    def kill_task(self, task_key):
+        # k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, task_key):
+                # self.complete_list()
+                v = self.conn.hget(self.task_manager_key, task_key)
+                # v = {'config_content': eval(v).get('config_content'), 'status': 'killed'}
+                v = {'config_content': '', 'status': 'killed'}
+                # self.conn.hdel(self.task_manager_key, k)
+                self.conn.hset(self.task_manager_key, task_key, v)
+                print '[info]kill_task() ok.'
+                return True
+        else:
+            print '[error]kill_task() not found.', task_key
+            return False
 
-    def get_task_status(self, user_id, site_domain, spider_type):
-        k = user_id + '@' + site_domain + '@' + spider_type
-        if self.conn.hexists(self.task_manager_key, k):
-            v = self.conn.hget(self.task_manager_key, k)
-            print '[info]get_task_status() ok.'
-            return v['status']
+    # def complete_list(self):
+    #     '''修改score（flg）为全部结束，终止list爬虫运行n'''
+    #     urls = return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False)
+    #     for url in urls:
+    #         self.conn.zadd(self.list_urls_zset_key, self.end_flg, url)
+
+    def get_task_status(self, task_key):
+        # k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, task_key):
+                v = self.conn.hget(self.task_manager_key, task_key)
+                print '[info]get_task_status() ok.'
+                return v['status']
         else:
             print '[error]get_task_status() not found.'
             return None
 
-    def set_task_status(self, user_id, site_domain, spider_type, spider_status):
-        k = user_id + '@' + site_domain + '@' + spider_type
-        if self.conn.hexists(self.task_manager_key, k):
-            v = self.conn.hget(self.task_manager_key, k)
-            v['status'] = spider_status
-            self.conn.hdel(self.task_manager_key, k)
-            self.conn.hset(self.task_manager_key, k, v)
-            print '[info]set_task_status() ok.'
-            return True
+    def set_task_status(self, task_key, spider_status):
+        # k = user_id + '@' + site_domain + '@' + spider_type
+        if self.conn.exists(self.task_manager_key):
+            if self.conn.hexists(self.task_manager_key, task_key):
+                v = self.conn.hget(self.task_manager_key, task_key)
+                v = {'config_content': eval(v).get('config_content'), 'status': spider_status}
+                self.conn.hset(self.task_manager_key, task_key, v)
+                print '[info]set_task_status() ok.'
+                return True
         else:
             print '[error]set_task_status() not found.'
             return False
 
-    def is_killed(self, user_id, site_domain, spider_type):
-        k = user_id + '@' + site_domain + '@' + spider_type
+    def is_killed(self, task_key):
+        # k = user_id + '@' + site_domain + '@' + spider_type
         if self.conn.exists(self.task_manager_key):
-            if self.conn.hexists(self.task_manager_key, k):
-                v = self.conn.hget(self.task_manager_key, k)
-                status = eval(v).get('status')
-                if status == 'killed':
-                    return True
+            if self.conn.exists(self.task_manager_key):
+                if self.conn.hexists(self.task_manager_key, task_key):
+                    v = self.conn.hget(self.task_manager_key, task_key)
+                    status = eval(v).get('status')
+                    if status == 'killed':
+                        return True
         return False
 
-    def run_task_one(self, user_id, site_domain, spider_type):
+    def run_task_one(self):
         # k = user_id + '@' + site_domain + '@' + spider_type
-        task_list = self.conn.hgetall(self.task_manager_key)
-        for k, v in task_list.iteritems():
-            status = eval(v).get('status')
-            if status == 'todo':  # 提取状态为待运行：todo
-                # print 'v:', v
-                config = eval(v).get('config_content')
-                try:
-                    code = compile(config, '', 'exec')
-                except Exception as e:
-                    # log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
-                    print '[error]run_task_one() error', e
-                    return (None, None)
+        if self.conn.exists(self.task_manager_key):
+            task_list = self.conn.hgetall(self.task_manager_key)
+            for k, v in task_list.iteritems():
+                status = eval(v).get('status')
+                if status == 'todo':  # 提取状态为待运行：todo
+                    # print 'v:', v
+                    config = eval(v).get('config_content')
+                    try:
+                        code = compile(config, '', 'exec')
+                    except Exception as e:
+                        # log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
+                        print '[error]run_task_one() error', e
+                        return (None, None)
 
-                module = imp.new_module('allsite_spider')
-                try:
-                    exec code in module.__dict__
-                except Exception as e:
-                    print '[error]run_task_one() error', e
-                    # log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
-                    return (None, None)
+                    module = imp.new_module('allsite_spider')
+                    try:
+                        exec code in module.__dict__
+                    except Exception as e:
+                        print '[error]run_task_one() error', e
+                        # log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
+                        return (None, None)
 
-                # 修改状态为运行中：start
-                self.conn.hdel(self.task_manager_key, k)
-                v = {'config_content': config, 'status': 'start'}
-                self.conn.hset(self.task_manager_key, k, v)
-                break
+                    # 修改状态为运行中：start
+                    self.conn.hdel(self.task_manager_key, k)
+                    v = {'config_content': config, 'status': 'start'}
+                    self.conn.hset(self.task_manager_key, k, v)
+                    break
 
         else:
             # log.logger.error("-- task_manager not found: %s" % url)
@@ -2545,11 +2550,10 @@ def list_detail_save_and_run():
         redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     task_mng = TaskManager()
-    if task_mng.is_killed(user_id,site_domain,'list'):
-        print '[info]task is killed.'
     # 执行抓取程序 list
     if inputForm.list_or_detail.data == 0:  # 0:'list'
-        task_mng.add_task(user_id, site_domain, 'list', 'allsite_spider_list_urls.py', 'todo')
+        task_key = user_id + '@' + site_domain + '@' + 'list'
+        task_mng.add_task(task_key, 'allsite_spider_list_urls.py', 'todo')
         # if os.name == 'nt':
         # DOS "start" command
         # print '[info]--- %s run on windows' % SHELL_LIST_CMD
@@ -2570,7 +2574,8 @@ def list_detail_save_and_run():
 
     # 执行抓取程序 detail
     if inputForm.list_or_detail.data == 1:  # 1:'detail'
-        task_mng.add_task(user_id, site_domain, 'detail', 'allsite_spider_detail_urls.py', 'todo')
+        task_key = user_id + '@' + site_domain + '@' + 'detail'
+        task_mng.add_task(task_key, 'allsite_spider_detail_urls.py', 'todo')
         # if os.name == 'nt':
         #     # DOS "start" command
         #     print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
@@ -2841,10 +2846,16 @@ def kill_spider():
     #     flash(u"已经结束进程.", 'info')
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
-    redis_db = RedisDrive(start_url, site_domain)
-    redis_db.kill_task(user_id, site_domain, 'list')
-    redis_db.kill_task(user_id, site_domain, 'detail')
-    redis_db.kill_task(user_id, site_domain, 'content')
+    task_mng = TaskManager()
+
+    task_key = user_id + '@' + site_domain + '@' + 'list'
+    task_mng.kill_task(task_key)
+
+    task_key = user_id + '@' + site_domain + '@' + 'detail'
+    task_mng.kill_task(task_key)
+
+    task_key = user_id + '@' + site_domain + '@' + 'content'
+    task_mng.kill_task(task_key)
 
     return redirect(url_for('show_process'), 302)
 
@@ -3363,9 +3374,8 @@ def test():
 ##########################################################################################
 ####  restful api    #####
 parser = reqparse.RequestParser()
+##########################################################################################
 parser.add_argument('regex')
-
-
 def is_regex_exist(regex, regex_type):
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
@@ -3463,11 +3473,53 @@ class DetailRegexMaintenance(Resource):
         return {'msg': u'添加完成。'}, 201
 
 
+#############################################################################################
+parser.add_argument('opt')
+# TaskManagerRestAPI
+class TaskManagerRestAPI(Resource):
+    # todo -> start -> end
+    #         start -> killed ->todo
+    def get(self, task_key):
+        msg = ''
+        # args = parser.parse_args()
+        # regex = args['regex']
+        if is_regex_exist(task_key):
+            msg = u"{} 不存在。".format(task_key)
+        return {'msg': msg}
+
+    def delete(self, task_key):
+        print '[info]TaskManagerRestAPI() delete start.', task_key
+
+        task_mng = TaskManager()
+        task_mng.del_task(task_key)
+
+        print '[info]TaskManagerRestAPI() delete end.'
+        return {'msg': u'删除完成。'}, 204
+
+    def put(self, task_key):
+        # opt: "kill","retry"
+        args = parser.parse_args()
+        opt = args['opt']
+        # spider_status = args['spider_status']
+
+        task_mng = TaskManager()
+        if opt == 'kill':
+            task_mng.kill_task(task_key)
+
+        if opt == 'retry':
+            task_mng.set_task_status(task_key, 'todo')
+
+        print '[info]TaskManagerRestAPI() put() end.'
+        return {'msg': u'设定完成。'}, 201
+
+
+#############################################################################################
 ##
 ## Actually setup the Api resource routing here
 ##
 api.add_resource(DetailRegexMaintenance, '/regexs/<regex_type>')
-
+api.add_resource(TaskManagerRestAPI, '/task_key/<task_key>')
+#############################################################################################
 REGEXS = {
     'regex1': {'regex': '\/$'},
     'regex2': {'regex': '/list-'},

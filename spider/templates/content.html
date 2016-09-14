@@ -127,7 +127,7 @@
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
         $(document).ready(function () {
-            {#            $("#result").load("/admin_tools");#}
+            {# $("#result").load("/admin_tools");#}
             $('#detail_url_tab').DataTable({
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
@@ -155,6 +155,7 @@
         });
         <!-- 删除按钮 -->
         $('#minus_a').click(function () {
+            var id_str = $(this).attr("id");
             if (id_str == "minus_a") {
                 var del_regex = $('#detail_regex_sel').val();
                 if (del_regex.length == 0) {

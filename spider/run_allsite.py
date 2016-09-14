@@ -33,6 +33,10 @@ import traceback
 import log
 import util
 import setting
+import redis
+
+conn = redis.StrictRedis.from_url('redis://127.0.0.1/14')
+task_manager_key = 'task_manager'  # 任务管理
 
 # 全局Event变量，用于退出时线程间同步
 eventExit = None
@@ -114,44 +118,42 @@ def load_module(url, spider_id=None, worker_id=None, name='spider', add_to_sys_m
         return ({}, module)
 
     else: # for allsite redis task call
-        import redis
-        # url = 'redis://127.0.0.1/14'
-        conn = redis.StrictRedis.from_url(url)
-        task_manager_key = 'task_manager'  # 任务管理
-        task_list = conn.hgetall(task_manager_key)
-        for k, v in task_list.iteritems():
-            status = eval(v).get('status')
-            if status == 'todo':  # 提取状态为待运行：todo
-                config = eval(v).get('config_content')
-                try:
-                    code = compile(config, '', 'exec')
-                except Exception as e:
-                    log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
-                    print '[error]run_task_one() error', e
-                    return (None, None)
+        if conn.exists(task_manager_key):
+            task_list = conn.hgetall(task_manager_key)
+            if len(task_list) == 0:
+                log.logger.error("-- task_manager not found: %s" % url)
+                print '[error]load_module() not found task'
+                return (None, None)
 
-                module = imp.new_module('allsite_spider')
-                try:
-                    exec code in module.__dict__
-                except Exception as e:
-                    print '[error]run_task_one() error', e
-                    log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
-                    return (None, None)
+            for k, v in task_list.iteritems():
+                status = eval(v).get('status')
+                if status == 'todo':  # 提取状态为待运行：todo
+                    config = eval(v).get('config_content')
+                    try:
+                        code = compile(config, '', 'exec')
+                    except Exception as e:
+                        log.logger.error("-- compile failed --; config_id:%s; excepiton: %s" % e)
+                        print '[error]load_module() compile error', e
+                        return (None, None)
 
-                # 修改状态为运行中：start
-                conn.hdel(task_manager_key, k)
-                v = {'config_content':config,'status':'start'}
-                conn.hset(task_manager_key, k, v)
-                break
+                    module = imp.new_module('allsite_spider')
+                    try:
+                        exec code in module.__dict__
+                    except Exception as e:
+                        print '[error]load_module() new_module error', e
+                        log.logger.error("-- exec code in module.__dict__ excepiton: %s" % e)
+                        return (None, None)
 
-        else:
-            log.logger.error("-- task_manager not found: %s" % url)
-            print '[error]run_task_one() not found task_manager'
-            return (None, None)
+                    # 修改状态为运行中：start
+                    conn.hdel(task_manager_key, k)
+                    v = {'config_content':config,'status':'start'}
+                    conn.hset(task_manager_key, k, v)
 
-        if add_to_sys_modules:
-            sys.modules[name] = module
-        return ({}, module)
+                    if add_to_sys_modules:
+                        sys.modules[name] = module
+                    return ({}, module)
+
+        return (None, None)
 
 
 def get_detail_page_urls(spider, urls, func, detail_job_queue):
@@ -212,7 +214,7 @@ def get_detail_page_urls(spider, urls, func, detail_job_queue):
                             else:
                                 print " *** new detail url is:", url
                 except Exception as e:
-                    print e
+                    print 'eeeeeeeeeeeeeeeeee', e
             else:
                 detail_job_queue.put((spider, request))
                 spider.increase_new_data_num()

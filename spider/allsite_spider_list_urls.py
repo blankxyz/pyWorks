@@ -13,6 +13,7 @@ import ConfigParser
 from bs4 import BeautifulSoup, Comment
 import requests
 import allsite_clean_url
+import traceback
 
 ####################################################################
 # MY_OS = os.getenv('SPIDER_OS')
@@ -44,18 +45,18 @@ import allsite_clean_url
 # DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-USER_ID = ''''''
+USER_ID = '''admin'''
 
 REDIS_SERVER = '''redis://127.0.0.1/14'''
 DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
 MODE = '''exact'''
 
-START_URLS = '''http://www.tuniu.com'''
-SITE_DOMAIN = '''tuniu.com'''
+START_URLS = '''http://www.cnblogs.com'''
+SITE_DOMAIN = '''cnblogs.com'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''/list-@\/$@'''
+LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''
 DETAIL_RULE_LIST = '''/post-@thread@'''
 
 
@@ -306,12 +307,17 @@ class MySpider(spider.Spider):
 
     def is_killed(self):
         k = USER_ID + '@' + self.site_domain + '@' + 'list'
-        if self.conn.exists(self.task_manager_key):
-            if self.conn.hexists(self.task_manager_key, k):
-                v = self.conn.hget(self.task_manager_key, k)
-                status = eval(v).get('status')
-                if status == 'killed':
-                    return True
+        try:
+            if self.conn.exists(self.task_manager_key):
+                if self.conn.hexists(self.task_manager_key, k):
+                    v = self.conn.hget(self.task_manager_key, k)
+                    status = eval(v).get('status')
+                    if status == 'killed':
+                        return True
+        except Exception, e:
+            print '[ERROR]is_killed()', e
+            print traceback.format_exc()
+
         return False
 
     def get_start_urls(self, data=None):
