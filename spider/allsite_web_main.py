@@ -16,7 +16,7 @@ import traceback
 import imp
 from functools import wraps
 from flask import make_response
-from flask.ext.cors import CORS
+from flask_cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 from flask import Flask, render_template, request, session, url_for, flash, redirect, g
 from flask import send_from_directory
