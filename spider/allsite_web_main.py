@@ -3362,7 +3362,7 @@ def show_task():
         # taskFrom.site_domain = item['site_domain']
         # taskFrom.spider_type = item['spider_type']
         # taskFrom.status = item['status']
-
+    flash(u'状态转移： ① todo -> start -> end   ② start -> killed->todo','info')
     return render_template('show_task.html', outputForm=outputForm)
 
 

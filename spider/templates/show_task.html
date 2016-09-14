@@ -80,7 +80,7 @@
                 "searching": true,
                 "processing": true,
                 "search": {"regex": true},//开启正则支持
-                {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+                "bStateSave": true, //状态保存,与正则检索矛盾
                 "bFilter": true,
                 "bLengthChange": true,
                 "aLengthMenu": [15, 30],
@@ -97,9 +97,7 @@
             var site_domain = $("#site_domain_" + num).text();
             var spider_type = $("#spider_type_" + num).text();
             var task_key = user_id + "@" + site_domain + "@" + spider_type;
-            {#            alert(task_key);#}
-            {#            alert(num);#}
-
+            {# alert(task_key+num);#}
             <!-- 删除(delete)按钮 -->
             if (id_str.search("delete_") >= 0) {
                 alert("delete:" + task_key);
@@ -120,7 +118,6 @@
 
             <!-- 重启(retry)按钮 -->
             if (id_str.search("retry_") >= 0) {
-                {#alert(regex_type + " : " + add_regex);#}
                 $.ajax({
                     url: $SCRIPT_ROOT + '/task_key/' + task_key,
                     type: 'put',
@@ -132,13 +129,13 @@
                     },
                     success: function (data, textStatus) {
                         alert(data.msg);
+                        $("#status_" + num).text('todo');
                     }
                 });
             }
 
             <!-- 暂停(kill)按钮 -->
             if (id_str.search("kill_") >= 0) {
-                {#alert(regex_type + " : " + add_regex);#}
                 $.ajax({
                     url: $SCRIPT_ROOT + '/task_key/' + task_key,
                     type: 'put',
@@ -150,6 +147,7 @@
                     },
                     success: function (data, textStatus) {
                         alert(data.msg);
+                        $("#status_" + num).text('killed');
                     }
                 });
             }
