@@ -36,11 +36,13 @@ class PageEyes(object):
     def capture(self, url, capture_img):
         # system.setProperty("webdriver.chrome.driver",
         #                    "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome");
+        # driver = webdriver.Chrome('/usr/local/bin/chromedriver')
         driver = webdriver.Firefox()
         driver.set_window_size(self._browse_window_width, self._browse_window_high)
-        # driver.maximize_window()
+        driver.maximize_window()
         driver.implicitly_wait(1)
-        driver.get(url)
+        driver.get('http://www.ysuer.com/forum.php')
+        driver.implicitly_wait(5)
         # driver.execute_script("""
         #     (function () {
         #       var y = 0;
@@ -68,19 +70,8 @@ class PageEyes(object):
             driver.execute_script(self._loadJsFmt.format(self._jquery_cdn))
 
         js = '''
-            var patrn_rubbish = /uid|username|space|search|blog|group/;
-            var patrn_detail = /post|thread|detail/;
-            var patrn_list = /list|index|forum|fid/;
-            $("embed").removeAttr("src")
             $(document).ready(function(){
-                $("a").css({"borderColor":"blue","color":"red"});
-                $("a").each(function(){
-                    $(this).children("img").removeAttr("src").css("background","black");
-                    if($(this).siblings("a").length>3){
-                        // alert($(this).siblings("a").length);
-                        $(this).parent("div").css({"background":"black","color":"black"});
-                    }
-                });
+                $("a").css({"background":"black","color":"black"});
             });
             '''
         driver.execute_script(js)

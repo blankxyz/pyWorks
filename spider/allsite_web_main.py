@@ -3520,32 +3520,12 @@ class TaskManagerRestAPI(Resource):
 api.add_resource(DetailRegexMaintenance, '/regexs/<regex_type>')
 api.add_resource(TaskManagerRestAPI, '/task_key/<task_key>')
 #############################################################################################
-REGEXS = {
-    'regex1': {'regex': '\/$'},
-    'regex2': {'regex': '/list-'},
-    'regex3': {'regex': '/index'},
-    'regex4': {'regex': 'unkown'},
-}
+def match_page(url):
+    cmd = 'phantomjs ./test.js "%s"' % url
+    stdout,stderr =subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()
+    print stdout
+    print stderr
 
-
-# TodoList
-# shows a list of all todos, and lets you POST to add new tasks
-class TodoList(Resource):
-    def get(self):
-        return REGEXS
-
-    def post(self):
-        args = parser.parse_args()
-        todo_id = int(max(REGEXS.keys()).lstrip('regex')) + 1
-        todo_id = 'regex%i' % todo_id
-        REGEXS[todo_id] = {'regex': args['regex']}
-        return REGEXS[todo_id], 201
-
-
-##
-## Actually setup the Api resource routing here
-##
-api.add_resource(TodoList, '/todos')
 
 ##########################################################################################
 if __name__ == '__main__':
