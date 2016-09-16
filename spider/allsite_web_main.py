@@ -30,6 +30,7 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 from flask_restful import Resource, Api
 from myreadability import myreadability
+from allsite_web_verify_regex import VerifyRegex
 
 ####################################################################
 # windows or linux or mac
@@ -68,12 +69,13 @@ SHOW_MAX = config.getint('show', 'show_max')
 # export path
 EXPORT_FOLDER = config.get('export', 'export_folder')
 CONFIG_JSON = config.get('export', 'config_json')
+# spider
+SPIDER_RUN_MODE = config.get('spider', 'spider_run_mode')
 # run
 SHELL_ADVICE_CMD = config.get(MY_OS, 'shell_advice_cmd')
 SHELL_LIST_CMD = config.get(MY_OS, 'shell_list_cmd')
 SHELL_DETAIL_CMD = config.get(MY_OS, 'shell_detail_cmd')
 SHELL_CONTENT_CMD = config.get(MY_OS, 'shell_content_cmd')
-# ALLSITE_WEB_MAIN_INI = config.get(MY_OS, 'allsite_spider_ini')
 ALLSITE_SPIDER_ADVICE_PY = config.get(MY_OS, 'allsite_spider_advice_py')
 ALLSITE_SPIDER_LIST_PY = config.get(MY_OS, 'allsite_spider_list_py')
 ALLSITE_SPIDER_DETAIL_PY = config.get(MY_OS, 'allsite_spider_detail_py')
@@ -247,7 +249,6 @@ class SearchResultForm(Form):  # user search
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
     score = IntegerField(label=u'匹配数', default=0)
-
     search_result_list = []
 
 
@@ -275,14 +276,14 @@ class PresetListForm(Form):
 
 
 ######## admin_task_manager.html #############################################################################
-class TaskManagerForm(Form):
-    partn_type_sel = SelectField(label=u'规则类别', choices=[('list', u'列表'), ('detail', u'详情'), ('rubbish', u'无效')])
-    user_id = StringField(label=u'用户ID')
-    site_domain = StringField(label=u'域名')
-    spider_type = SelectField(label=u'类型', choices=[('list', u'列表'), ('detail', u'详情'), ('content', u'内容')])
-    status = SelectField(label=u'状态',
-                         choices=[('todo', u'todo'), ('start', u'start'), ('end', u'end'), ('killed', u'killed')])
-
+# class TaskManagerForm(Form):
+#     partn_type_sel = SelectField(label=u'规则类别', choices=[('list', u'列表'), ('detail', u'详情'), ('rubbish', u'无效')])
+#     user_id = StringField(label=u'用户ID')
+#     site_domain = StringField(label=u'域名')
+#     spider_type = SelectField(label=u'类型', choices=[('list', u'列表'), ('detail', u'详情'), ('content', u'内容')])
+#     status = SelectField(label=u'状态',
+#                          choices=[('todo', u'todo'), ('start', u'start'), ('end', u'end'), ('killed', u'killed')])
+#
 
 class TaskManagerListForm(Form):
     # task_list = FieldList(FormField(TaskManagerForm), label=u'任务管理')
@@ -1143,7 +1144,7 @@ class TaskManager(object):
                 print '[info]del_task() ok.'
                 return True
         else:
-            print '[error]del_task() no found.',task_key
+            print '[error]del_task() no found.', task_key
             return False
 
     def kill_task(self, task_key):
@@ -1163,7 +1164,7 @@ class TaskManager(object):
             return False
 
     # def complete_list(self):
-    #     '''修改score（flg）为全部结束，终止list爬虫运行n'''
+    #     '''修改score（flg）为全部结束，终止list爬虫运行'''
     #     urls = return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.end_flg, withscores=False)
     #     for url in urls:
     #         self.conn.zadd(self.list_urls_zset_key, self.end_flg, url)
@@ -1886,7 +1887,6 @@ class Util(object):
 
 
 #####  推荐算法  end  ################################################################
-
 def get_domain_init(inputForm=None):
     start_url = ''
     site_domain = ''
@@ -1953,20 +1953,6 @@ def login():
     return render_template('login.html')
 
 
-# @app.route('/menu', methods=['GET', 'POST'])
-# def menu():
-#     # 初始化session
-#     # session['user_id'] = 'admin'  # login页面设置
-#     # session['start_url'] = ''
-#     # session['site_domain'] = ''
-#     # session['black_domain_str'] = ''
-#     # session['advice_regex_list'] = json.dumps([])
-#     # session['advice_keyword_list'] = json.dumps([])
-#
-#
-#     return render_template('menu.html')
-
-
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', err=e), 404
@@ -1977,8 +1963,8 @@ def internal_server_error(e):
     return render_template('500.html', err=e), 500
 
 
-@app.route('/convert', methods=["GET", "POST"])
-def convert_to_regex():
+@app.route('/convert_url_to_regex', methods=["GET", "POST"])
+def convert_url_to_regex():
     ret = {}
     convert_url = request.args.get('convert_url')
     util = Util()
@@ -2552,44 +2538,40 @@ def list_detail_save_and_run():
     task_mng = TaskManager()
     # 执行抓取程序 list
     if inputForm.list_or_detail.data == 0:  # 0:'list'
-        task_key = user_id + '@' + site_domain + '@' + 'list'
-        task_mng.add_task(task_key, 'allsite_spider_list_urls.py', 'todo')
-        # if os.name == 'nt':
-        # DOS "start" command
-        # print '[info]--- %s run on windows' % SHELL_LIST_CMD
-        # os.startfile(SHELL_LIST_CMD)
-        # fd = open("1.log", "a")
-        # p = subprocess.Popen(SHELL_LIST_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # print '[info]subprocess run.'
-        # process_id = p.pid
-        # fd.write(p.stdout.read())
-        # fd.flush()
-        # fd.close()
-        # print '[info]--- process_id:', process_id
-        # else:
-        # print '[info]--- %s run on %s' % (SHELL_LIST_CMD, MY_OS)
-        # p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
-        # process_id = p.pid
-        # print '[info]--- process_id:', process_id
+        if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
+            task_key = user_id + '@' + site_domain + '@' + 'list'
+            task_mng.add_task(task_key, 'allsite_spider_list_urls.py', 'todo')
+        else:  # subprocess 子进程（调试）方式
+            if os.name == 'nt':
+                # DOS "start" command
+                print '[info]--- %s run on windows' % SHELL_LIST_CMD
+                os.startfile(SHELL_LIST_CMD)
+            else:
+                print '[info]--- %s run on %s' % (SHELL_LIST_CMD, MY_OS)
+                p = subprocess.Popen(SHELL_LIST_CMD, shell=True)
+                process_id = p.pid
+                print '[info]--- process_id:', process_id
 
     # 执行抓取程序 detail
     if inputForm.list_or_detail.data == 1:  # 1:'detail'
-        task_key = user_id + '@' + site_domain + '@' + 'detail'
-        task_mng.add_task(task_key, 'allsite_spider_detail_urls.py', 'todo')
-        # if os.name == 'nt':
-        #     # DOS "start" command
-        #     print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
-        #     os.startfile(SHELL_DETAIL_CMD)
-        # else:
-        #     print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
-        #     # fd = open("/work/spider/1.log", "w")
-        #     p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #     process_id = p.pid
-        #     # fd.write(p.stdout.read())
-        #     # fd.close()
-        #     print '[info]--- process_id:', process_id
+        if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
+            task_key = user_id + '@' + site_domain + '@' + 'detail'
+            task_mng.add_task(task_key, 'allsite_spider_detail_urls.py', 'todo')
+        else:  # subprocess 子进程（调试）方式
+            if os.name == 'nt':
+                # DOS "start" command
+                print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
+                os.startfile(SHELL_DETAIL_CMD)
+            else:
+                print '[info]--- %s run on %s.', SHELL_DETAIL_CMD
+                p = subprocess.Popen(SHELL_DETAIL_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process_id = p.pid
+                print '[info]--- process_id:', process_id
 
     # redis_db.run_task_one(user_id, site_domain, 'list')
+    v = VerifyRegex()
+    v.verify(start_url, 'allsite_web_verify_regex.png')
+
     flash(u'后台爬虫启动。', 'info')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
@@ -2836,26 +2818,28 @@ def save_finally_result():
 
 @app.route('/kill_spider', methods=['GET', 'POST'])
 def kill_spider():
-    # if MY_OS == 'windows':
-    #     flash(u"请手工关闭windows控制台.", 'info')
-    #     print '[info]kill_spider() @windows please close the bat cmd.'
-    #     # os.system("taskkill /PID %s /F" % process_id)
-    # else:
-    #     subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
-    #     print '[info]kill_spider() @linux or @mac ok.'
-    #     flash(u"已经结束进程.", 'info')
-    user_id = session['user_id']
-    start_url, site_domain, black_domain_str = get_domain_init()
-    task_mng = TaskManager()
+    if SPIDER_RUN_MODE == 'redis':
+        user_id = session['user_id']
+        start_url, site_domain, black_domain_str = get_domain_init()
+        task_mng = TaskManager()
 
-    task_key = user_id + '@' + site_domain + '@' + 'list'
-    task_mng.kill_task(task_key)
+        task_key = user_id + '@' + site_domain + '@' + 'list'
+        task_mng.kill_task(task_key)
 
-    task_key = user_id + '@' + site_domain + '@' + 'detail'
-    task_mng.kill_task(task_key)
+        task_key = user_id + '@' + site_domain + '@' + 'detail'
+        task_mng.kill_task(task_key)
 
-    task_key = user_id + '@' + site_domain + '@' + 'content'
-    task_mng.kill_task(task_key)
+        task_key = user_id + '@' + site_domain + '@' + 'content'
+        task_mng.kill_task(task_key)
+    else:
+        if MY_OS == 'windows':
+            flash(u"请手工关闭windows控制台.", 'info')
+            print '[info]kill_spider() @windows please close the bat cmd.'
+            # os.system("taskkill /PID %s /F" % process_id)
+        else:
+            subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
+            print '[info]kill_spider() @linux or @mac ok.'
+            flash(u"已经结束进程.", 'info')
 
     return redirect(url_for('show_process'), 302)
 
@@ -3356,13 +3340,13 @@ def show_task():
     task_mng = TaskManager()
     outputForm = TaskManagerListForm()
     if user_id == 'admin':
-        taskFrom = TaskManagerForm()
+        # taskFrom = TaskManagerForm()
         outputForm.task_list = task_mng.get_all_task()
         # taskFrom.user_id = item['user_id']
         # taskFrom.site_domain = item['site_domain']
         # taskFrom.spider_type = item['spider_type']
         # taskFrom.status = item['status']
-    flash(u'状态转移： ① todo -> start -> end   ② start -> killed->todo','info')
+    flash(u'状态转移： ① todo -> start -> end   ② start -> killed->todo', 'info')
     return render_template('show_task.html', outputForm=outputForm)
 
 
@@ -3376,6 +3360,8 @@ def test():
 parser = reqparse.RequestParser()
 ##########################################################################################
 parser.add_argument('regex')
+
+
 def is_regex_exist(regex, regex_type):
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
@@ -3387,8 +3373,8 @@ def is_regex_exist(regex, regex_type):
     return (regex in current_regexs)
 
 
-# DetailRegexMaintenance
-class DetailRegexMaintenance(Resource):
+# RegexCorrectRestAPI
+class RegexCorrectRestAPI(Resource):
     def get(self, regex_type):
         msg = ''
         args = parser.parse_args()
@@ -3399,18 +3385,18 @@ class DetailRegexMaintenance(Resource):
 
     def delete(self, regex_type):
         # regex_type: "detail","list"
-        print '[info]DetailRegexMaintenance() delete start.', regex_type
+        print '[info]RegexCorrectRestAPI() delete start.', regex_type
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
         if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-            print '[error]DetailRegexMaintenance() delete() not found start_url.'
+            print '[error]RegexCorrectRestAPI() delete() not found start_url.'
             return {'msg': u'请设定主页，域名信息。'}, 201
 
         args = parser.parse_args()
         regex = args['regex']
 
         if is_regex_exist(regex, regex_type) is not True:
-            print '[error]DetailRegexMaintenance() delete() regex not exist.'
+            print '[error]RegexCorrectRestAPI() delete() regex not exist.'
             msg = u"{} 不存在，无法删除。".format(regex)
             return {'msg': msg}, 404
 
@@ -3429,7 +3415,7 @@ class DetailRegexMaintenance(Resource):
             else:  # 黑名单
                 redis_db.conn.zrem(redis_db.manual_b_list_rule_zset_key, regex)
 
-        print '[info]DetailRegexMaintenance() delete end.'
+        print '[info]RegexCorrectRestAPI() delete end.'
         return {'regex': u'删除完成。'}, 204
 
     def put(self, regex_type):
@@ -3437,15 +3423,15 @@ class DetailRegexMaintenance(Resource):
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
         if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
-            print '[error]DetailRegexMaintenance() put() not found start_url.'
+            print '[error]RegexCorrectRestAPI() put() not found start_url.'
             return {'msg': u'请设定主页，域名信息。'}, 201
 
         args = parser.parse_args()
         regex = args['regex']
-        print '[info]DetailRegexMaintenance() put() start. ', regex_type, regex
+        print '[info]RegexCorrectRestAPI() put() start. ', regex_type, regex
 
         if is_regex_exist(regex, regex_type) is True:
-            print '[error]DetailRegexMaintenance() put() regex exist.'
+            print '[error]RegexCorrectRestAPI() put() regex exist.'
             msg = u"{} 已存在，无法添加。".format(regex)
             return {'msg': msg}, 404
 
@@ -3469,12 +3455,14 @@ class DetailRegexMaintenance(Resource):
                 if redis_db.conn.zrank(redis_db.manual_b_list_rule_zset_key, regex) is None:
                     redis_db.conn.zadd(redis_db.manual_b_list_rule_zset_key, 0, regex)
 
-        print '[info]DetailRegexMaintenance() put() end.'
+        print '[info]RegexCorrectRestAPIRestAPI() put() end.'
         return {'msg': u'添加完成。'}, 201
 
 
 #############################################################################################
 parser.add_argument('opt')
+
+
 # TaskManagerRestAPI
 class TaskManagerRestAPI(Resource):
     # todo -> start -> end
@@ -3517,12 +3505,14 @@ class TaskManagerRestAPI(Resource):
 ##
 ## Actually setup the Api resource routing here
 ##
-api.add_resource(DetailRegexMaintenance, '/regexs/<regex_type>')
+api.add_resource(RegexCorrectRestAPI, '/regexs/<regex_type>')
 api.add_resource(TaskManagerRestAPI, '/task_key/<task_key>')
+
+
 #############################################################################################
 def match_page(url):
     cmd = 'phantomjs ./test.js "%s"' % url
-    stdout,stderr =subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()
+    stdout, stderr = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     print stdout
     print stderr
 

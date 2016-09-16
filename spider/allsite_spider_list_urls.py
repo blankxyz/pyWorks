@@ -52,12 +52,12 @@ DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
 MODE = '''exact'''
 
-START_URLS = '''http://www.cnblogs.com'''
-SITE_DOMAIN = '''cnblogs.com'''
+START_URLS = '''http://bbs.tianya.cn'''
+SITE_DOMAIN = '''bbs.tianya.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''
-DETAIL_RULE_LIST = '''/post-@thread@'''
+LIST_RULE_LIST = '''/list-@\/$@'''
+DETAIL_RULE_LIST = '''/thread@/post@'''
 
 
 # spider-modify-end
