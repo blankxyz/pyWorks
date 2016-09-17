@@ -1,7 +1,8 @@
 var page = require('webpage').create();
 // var system = require('system');
-page.open('http://bbs.tianya.cn', function () {
+page.open('http://www.baidu.com', function () {
     page.includeJs("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js", function () {
+        console.log("start.....");
         page.evaluate(function () {
             var patrn_rubbish = /uid|username|space|search|blog|group/;
             var patrn_detail = /post|thread|detail/;
@@ -19,8 +20,10 @@ page.open('http://bbs.tianya.cn', function () {
                 }
             });
         });
-        page.render('test.png');
-        // console.log(page.innerHTML());
-        phantom.exit()
+        console.log("HTML:");
+        // page.render('test.png');
+        console.log(document.toSource());
+        console.log("end.");
+        phantom.exit();
     });
 });

@@ -7,3 +7,4 @@ def match_page(url):
 
 if __name__ == '__main__':
     match_page('http://bbs.tianya.cn')
+    # match_page('http://www.baidu.com')
