@@ -79,7 +79,7 @@ class VerifyRegex(object):
                 jQuery("a").each(function () {
                     var link = jQuery(this).attr("href");
                     if (patrn_rubbish.exec(link)) {
-                        jQuery(this).css({"border-style": "solid", "border-color": "red", "color": "red"});
+                        jQuery(this).css({"border-style": "solid", "border-color": "orange", "color": "orange"});
                     }
                     if (patrn_detail.exec(link)) {
                         jQuery(this).css({"border-style": "solid", "border-color": "green", "color": "green"});
@@ -98,7 +98,7 @@ class VerifyRegex(object):
                 jQuery("a").each(function () {
                     var link = jQuery(this).attr("href");
                     if (patrn_rubbish.exec(link)) {
-                        jQuery(this).css({"border-style": "solid", "border-color": "red", "color": "red"});
+                        jQuery(this).css({"border-style": "solid", "border-color": "orange", "color": "orange"});
                     }
                     if (patrn_detail.exec(link)) {
                         jQuery(this).css({"border-style": "solid", "border-color": "green", "color": "green"});

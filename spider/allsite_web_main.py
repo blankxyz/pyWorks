@@ -2598,7 +2598,7 @@ def verify_regex():
         resp = requests.head(verify_url)
         if resp.status_code == 200:
             print '[info]verify_regex() connect success.', verify_url
-            flash(u'请在启动浏览器窗口中确认。', 'info')
+            flash(u'请在自动启动的浏览器窗口中确认单页验证结果（黄框：无效，绿框：列表，蓝框：详情），浏览器1分钟后会自动关闭，请不要手工关闭浏览器。', 'info')
 
             v = VerifyRegex(patrn_rubbish, patrn_list, patrn_detail)
             v.verify(verify_url, 'allsite_web_verify_regex.png')
@@ -2607,7 +2607,7 @@ def verify_regex():
             flash(u'请确认输入URL是否正确。', 'info')
     else:
         print '[error]verify_regex() verify_url is empty'
-        flash(u'请输入URL。', 'error')
+        flash(u'请输入单页验证的URL。', 'error')
 
     jsonStr = json.dumps(ret)
     return jsonStr
