@@ -1,0 +1,163 @@
+{% extends "bootstrap/base.html" %}
+{% import 'marco.html' as t %}
+
+{% block content %}
+    <h3 align="center">任务管理</h3>
+    <hr>
+    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+        {{ t.top_massage() }}
+    </div>
+    <hr>
+    <div id="spider_server_div" class="form-group" style="width:98%; margin-left:20px">
+    <form id="spider_server" method="POST" action="/task_manager_run_spider_server">
+        {{ outputForm.start_spider_server(class="btn btn-primary btn-default") }}&nbsp;
+        {{ outputForm.stop_spider_server(class="btn btn-primary btn-default") }}
+    </form>
+    </div>
+    <hr>
+    <div id="task_list_div" class="form-group" style="width:98%; margin-left:20px">
+        <table id="task_list_tab" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>用户ID</th>
+                <th>域名</th>
+                <th>爬虫类型</th>
+                <th>当前状态</th>
+                <th>重启</th>
+                <th>暂停</th>
+                <th>删除</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in outputForm.task_list %}
+                <tr id={{ "tr_" ~ loop.index }}>
+                    <td id={{ "user_id_" ~ loop.index }}>{{ row['user_id'] }}</td>
+                    <td id={{ "site_domain_" ~ loop.index }}>{{ row['site_domain'] }}</td>
+                    <td id={{ "spider_type_" ~ loop.index }}>{{ row['spider_type'] }}</td>
+                    <td id={{ "status_" ~ loop.index }}>{{ row['status'] }}</td>
+                    <td>
+                        <a id={{ "retry_" ~ loop.index }} href="#">
+                            <span class=" glyphicon glyphicon-repeat"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <a id={{ "kill_" ~ loop.index }} href="#">
+                            <span class="glyphicon glyphicon-stop"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <a id={{ "delete_" ~ loop.index }} href="#">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+    <!-- DataTables Javascript-->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        $(document).ready(function () {
+            $('#task_list_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    },
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='/static/images/loading.gif'/>",
+                    "sSearch": "用户ID 检索："
+                },
+                "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+                "info": true,
+                "searching": true,
+                "processing": true,
+                "search": {"regex": true},//开启正则支持
+                "bStateSave": true, //状态保存,与正则检索矛盾
+                "bFilter": true,
+                "bLengthChange": true,
+                "aLengthMenu": [15, 30],
+                "scrollY": "600px",
+                "bScrollCollapse": true,
+                "aaSorting": [[0, "desc"]]
+            });
+        });
+
+        $('a').click(function () {
+            var id_str = $(this).attr("id");
+            var num = id_str.substr(id_str.indexOf("_") + 1);
+            var user_id = $("#user_id_" + num).text();
+            var site_domain = $("#site_domain_" + num).text();
+            var spider_type = $("#spider_type_" + num).text();
+            var task_key = user_id + "@" + site_domain + "@" + spider_type;
+            {# alert(task_key+num);#}
+            <!-- 删除(delete)按钮 -->
+            if (id_str.search("delete_") >= 0) {
+                alert("delete:" + task_key);
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/task_key/' + task_key,
+                    type: 'delete',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.msg);
+                    }
+                });
+            }
+
+            <!-- 重启(retry)按钮 -->
+            if (id_str.search("retry_") >= 0) {
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/task_key/' + task_key,
+                    type: 'put',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({opt: 'retry'}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.msg);
+                        $("#status_" + num).text('todo');
+                    }
+                });
+            }
+
+            <!-- 暂停(kill)按钮 -->
+            if (id_str.search("kill_") >= 0) {
+                $.ajax({
+                    url: $SCRIPT_ROOT + '/task_key/' + task_key,
+                    type: 'put',
+                    contentType: "application/json; charset=UTF-8",
+                    dataType: 'json',
+                    data: JSON.stringify({opt: 'kill'}),
+                    error: function (xhr, err) {
+                        alert(err);
+                    },
+                    success: function (data, textStatus) {
+                        alert(data.msg);
+                        $("#status_" + num).text('killed');
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

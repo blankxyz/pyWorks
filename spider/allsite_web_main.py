@@ -65,7 +65,8 @@ MYSQLDB_SELECT_DB = config.get('mysql', 'mysql_select_db')
 MYSQLDB_CHARSET = config.get('mysql', 'mysql_charset')
 # show json
 PROCESS_SHOW_JSON = config.get('show', 'process_show_json')
-SHOW_MAX = config.getint('show', 'show_max')
+SHOW_MAX_ONE_PAGE = config.getint('show', 'show_max_one_page')
+SHOW_MAX_RESULT = config.getint('show', 'show_max_result')
 # export path
 EXPORT_FOLDER = config.get('export', 'export_folder')
 CONFIG_JSON = config.get('export', 'config_json')
@@ -160,8 +161,9 @@ class ListDetailRegexSettingForm(Form):  # setting
     white_list = StringField(label=u'白名单')
     black_domain_str = StringField(label=u'域名黑名单')
     info_flg_sel = SelectField(label=u'分类', coerce=str,
-                               choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
-                                        ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'), ('99', u'搜索引擎')],
+                               choices=[('00', u'不使用预置规则'), ('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'),
+                                        ('04', u'微博'), ('05', u'平媒'), ('06', u'微信'), ('07', u'视频'),
+                                        ('99', u'搜索引擎')],
                                default=('00', u'不使用预置规则'))
 
     result = StringField(label=u'转换结果')
@@ -173,6 +175,9 @@ class ListDetailRegexSettingForm(Form):  # setting
 
     mode = BooleanField(label=u'精确匹配', default=True)
     hold = BooleanField(label=u'保留上次结果', default=True)
+    show_max_result = SelectField(label=u'显示结果页数', coerce=int,
+                                  choices=[(1000, u'1000页'), (5000, u'5000页'), (10000, u'10000页'), (-1, u'全部')],
+                                  default=(1000, u'1000页'))
     list_or_detail = RadioField(label=u'列表或详情', coerce=int, choices=[(0, u'列表'), (1, u'详情')], default=0,
                                 widget=BSListWidget())
     # save_run_list = SubmitField(label=u'保存-执行(列表页)')
@@ -287,6 +292,8 @@ class PresetListForm(Form):
 
 class TaskManagerListForm(Form):
     # task_list = FieldList(FormField(TaskManagerForm), label=u'任务管理')
+    start_spider_server = SubmitField(label=u'启动后台爬虫服务')
+    stop_spider_server = SubmitField(label=u'停止后台爬虫服务')
     task_list = []
     refresh = SubmitField(label=u'刷新')
 
@@ -944,11 +951,11 @@ class RedisDrive(object):
 
     def get_list_urls_limit(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.todo_flg, max=self.done_flg, start=0,
-                                       num=SHOW_MAX)
+                                       num=SHOW_MAX_ONE_PAGE)
 
     def get_done_list_urls(self):
         return self.conn.zrangebyscore(self.list_urls_zset_key, min=self.done_flg, max=self.done_flg, start=0,
-                                       num=SHOW_MAX)
+                                       num=SHOW_MAX_ONE_PAGE)
 
     def get_matched_rate(self):
         cnt = 0
@@ -1963,17 +1970,6 @@ def internal_server_error(e):
     return render_template('500.html', err=e), 500
 
 
-@app.route('/convert_url_to_regex', methods=["GET", "POST"])
-def convert_url_to_regex():
-    ret = {}
-    convert_url = request.args.get('convert_url')
-    util = Util()
-    ret['regex'] = util.convert_path_to_rule(convert_url)
-    jsonStr = json.dumps(ret, sort_keys=True)
-    print 'convert_to_regex()', convert_url, '->', jsonStr
-    return jsonStr
-
-
 ######### setting_advice.html ###########################################################################
 @app.route('/setting_advice_init', methods=["GET", "POST"])
 def setting_advice_init():
@@ -1992,10 +1988,10 @@ def setting_advice_init():
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。', category='warning')
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.regex_list.append_entry()
 
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.keyword_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm)
@@ -2008,7 +2004,7 @@ def setting_advice_init():
         regexForm.select = select
         inputForm.regex_list.append_entry(regexForm)
 
-    for j in range(SHOW_MAX - len(g_advice_regex_list)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(g_advice_regex_list)):
         inputForm.regex_list.append_entry()
 
     ####  页面(keyword)
@@ -2019,7 +2015,7 @@ def setting_advice_init():
         regexForm.select = select
         inputForm.keyword_list.append_entry(regexForm)
 
-    for j in range(SHOW_MAX - len(g_advice_keyword_list)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(g_advice_keyword_list)):
         inputForm.keyword_list.append_entry()
 
     # 初始化预置规则
@@ -2050,10 +2046,10 @@ def setting_advice_try():
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。', 'warning')
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.regex_list.append_entry()
 
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.keyword_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm,
@@ -2101,7 +2097,7 @@ def setting_advice_try():
         inputForm.regex_list.append_entry(regexForm)
         advice_regex_list.append({'regex': regex, 'score': score, 'select': '0'})
 
-    for j in range(SHOW_MAX - len(advice_regex_dic)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(advice_regex_dic)):
         inputForm.regex_list.append_entry()
         advice_regex_list.append({'regex': '', 'score': '0', 'select': '0'})
 
@@ -2115,7 +2111,7 @@ def setting_advice_try():
         inputForm.keyword_list.append_entry(regexForm)
         advice_keyword_list.append({'keyword': keyword, 'score': score, 'select': '0'})
 
-    for j in range(SHOW_MAX - len(advice_keyword_dic)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(advice_keyword_dic)):
         inputForm.keyword_list.append_entry()
         advice_keyword_list.append({'keyword': '', 'score': '0', 'select': '0'})
 
@@ -2143,10 +2139,10 @@ def setting_advice_use():
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。', 'warning')
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.regex_list.append_entry()
 
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.keyword_list.append_entry()
 
         return render_template('setting_advice.html', inputForm=inputForm)
@@ -2218,7 +2214,7 @@ def setting_advice_window():
         regexForm.url = url
         inputForm.url_list.append_entry(regexForm)
 
-    for j in range(SHOW_MAX - len(matched_url_list)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(matched_url_list)):
         inputForm.url_list.append_entry()
 
     return render_template('setting_advice_window.html', inputForm=inputForm)
@@ -2259,12 +2255,12 @@ def list_detail_init_preset():
             inputForm.list_regex_list.append_entry(regexForm)
             list_cnt += 1
 
-    if SHOW_MAX > list_cnt:
-        for j in range(SHOW_MAX - list_cnt):
+    if SHOW_MAX_ONE_PAGE > list_cnt:
+        for j in range(SHOW_MAX_ONE_PAGE - list_cnt):
             inputForm.list_regex_list.append_entry()
 
-    if SHOW_MAX > detail_cnt:
-        for j in range(SHOW_MAX - detail_cnt):
+    if SHOW_MAX_ONE_PAGE > detail_cnt:
+        for j in range(SHOW_MAX_ONE_PAGE - detail_cnt):
             inputForm.detail_regex_list.append_entry()
 
     flash(u'预置规则设定完成', 'info')
@@ -2287,10 +2283,10 @@ def list_detail_init():
     if start_url is None or start_url.strip() == '' or \
                     site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、域名信息。', 'warning')
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.detail_regex_list.append_entry()
 
-        for j in range(SHOW_MAX):
+        for j in range(SHOW_MAX_ONE_PAGE):
             inputForm.list_regex_list.append_entry()
 
         return render_template('setting_list_detail.html', inputForm=inputForm)
@@ -2334,7 +2330,7 @@ def list_detail_init():
         inputForm.detail_regex_list.append_entry(regexForm)
         cnt += 1
 
-    for j in range(SHOW_MAX - cnt):
+    for j in range(SHOW_MAX_ONE_PAGE - cnt):
         inputForm.detail_regex_list.append_entry()
 
     ####  从MySql 设置/还原 redis 和 页面(列表页)
@@ -2370,7 +2366,7 @@ def list_detail_init():
         inputForm.list_regex_list.append_entry(regexForm)
         cnt += 1
 
-    for j in range(SHOW_MAX - cnt):
+    for j in range(SHOW_MAX_ONE_PAGE - cnt):
         inputForm.list_regex_list.append_entry()
 
     flash(u'初始化配置完成', 'info')
@@ -2399,6 +2395,8 @@ def list_detail_save_and_run():
     if util.is_connect_success(start_url) is False:
         flash(u'主页访问超时或无法访问。', 'error')
         return render_template('setting_list_detail.html', inputForm=inputForm)
+
+    SHOW_MAX_RESULT = inputForm.show_max_result.data
 
     #### 保存详情页配置
     detail_regex_save_list = []
@@ -2524,6 +2522,11 @@ def list_detail_save_and_run():
         print u'[error]list_detail_save_and_run() modify ' + ALLSITE_WEB_MAIN_INI + u' failure.'
         return render_template('setting_list_detail.html', inputForm=inputForm)
 
+    # 绘图文件清零
+    fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
+    fp.write('')
+    fp.close()
+
     #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
     if inputForm.hold.data:
         redis_db.hold_result(mode=mode, site_domain=site_domain,
@@ -2541,7 +2544,7 @@ def list_detail_save_and_run():
         if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
             task_key = user_id + '@' + site_domain + '@' + 'list'
             task_mng.add_task(task_key, 'allsite_spider_list_urls.py', 'todo')
-        else:  # subprocess 子进程（调试）方式
+        else:  # debug模式 子进程（调试）方式
             if os.name == 'nt':
                 # DOS "start" command
                 print '[info]--- %s run on windows' % SHELL_LIST_CMD
@@ -2557,7 +2560,7 @@ def list_detail_save_and_run():
         if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
             task_key = user_id + '@' + site_domain + '@' + 'detail'
             task_mng.add_task(task_key, 'allsite_spider_detail_urls.py', 'todo')
-        else:  # subprocess 子进程（调试）方式
+        else:  # debug模式 子进程（调试）方式
             if os.name == 'nt':
                 # DOS "start" command
                 print '[info]--- %s run on windows' % SHELL_DETAIL_CMD
@@ -2568,13 +2571,46 @@ def list_detail_save_and_run():
                 process_id = p.pid
                 print '[info]--- process_id:', process_id
 
-    # redis_db.run_task_one(user_id, site_domain, 'list')
-    v = VerifyRegex()
-    v.verify(start_url, 'allsite_web_verify_regex.png')
-
     flash(u'后台爬虫启动。', 'info')
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
+
+@app.route('/convert_url_to_regex', methods=["GET", "POST"])
+def convert_url_to_regex():
+    ret = {}
+    convert_url = request.args.get('convert_url')
+    util = Util()
+    ret['regex'] = util.convert_path_to_rule(convert_url)
+    jsonStr = json.dumps(ret, sort_keys=True)
+    print '[info]convert_to_regex()', convert_url, '->', jsonStr
+    flash(u'转换完成', 'info')
+    return jsonStr
+
+
+@app.route('/verify_regex', methods=["GET", "POST"])
+def verify_regex():
+    ret = {}
+    verify_url = request.args.get('verify_url')
+    patrn_rubbish = request.args.get('patrn_rubbish')
+    patrn_detail = request.args.get('patrn_detail')
+    patrn_list = request.args.get('patrn_list')
+    if verify_url.strip() != '':
+        resp = requests.head(verify_url)
+        if resp.status_code == 200:
+            print '[info]verify_regex() connect success.', verify_url
+            flash(u'请在启动浏览器窗口中确认。', 'info')
+
+            v = VerifyRegex(patrn_rubbish, patrn_list, patrn_detail)
+            v.verify(verify_url, 'allsite_web_verify_regex.png')
+        else:
+            print '[error]verify_regex() connect failure.', resp.status_code, verify_url
+            flash(u'请确认输入URL是否正确。', 'info')
+    else:
+        print '[error]verify_regex() verify_url is empty'
+        flash(u'请输入URL。', 'error')
+
+    jsonStr = json.dumps(ret)
+    return jsonStr
 
 ######### show_result.html   #############################################################################
 @app.route('/show_result_init', methods=['GET', 'POST'])
@@ -2597,7 +2633,7 @@ def show_result_init():
     select_items.sort()
     inputForm.list_regex_sel.choices = select_items
     regex_sel = inputForm.list_regex_sel.data
-    inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)
+    inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)[:SHOW_MAX_RESULT]
 
     # 详情页正则
     select_items = [(i, i) for i in mysql_db.get_detail_regex(user_id, start_url, site_domain)]
@@ -2605,7 +2641,7 @@ def show_result_init():
     select_items.sort()
     inputForm.detail_regex_sel.choices = select_items
     regex_sel = inputForm.detail_regex_sel.data
-    inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
+    inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)[:SHOW_MAX_RESULT]
 
     flash(u'抓取结果数据较多时，请等待数据显示完成后，再做其他操作。', 'info')
     return render_template('show_result.html', inputForm=inputForm)
@@ -2635,7 +2671,7 @@ def show_result():
         select_items.sort()
         inputForm.detail_regex_sel.choices = select_items
         regex_sel = inputForm.detail_regex_sel.data
-        inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)
+        inputForm.detail_result = redis_db.get_detail_urls_by_regex(regex_sel)[:SHOW_MAX_RESULT]
 
     # 详情页正则
     if inputForm.detail_match.data:
@@ -2647,7 +2683,7 @@ def show_result():
         select_items.sort()
         inputForm.list_regex_sel.choices = select_items
         regex_sel = inputForm.list_regex_sel.data
-        inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)
+        inputForm.list_result = redis_db.get_list_urls_by_regex(regex_sel)[:SHOW_MAX_RESULT]
 
     return render_template('show_result.html', inputForm=inputForm)
 
@@ -2680,6 +2716,7 @@ def show_unkown_urls():
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     inputForm.unkown_url_list = redis_db.get_unkown_urls()
+    # inputForm.unkown_url_list = inputForm.unkown_url_list[:SHOW_MAX_RESULT]
     if len(inputForm.unkown_url_list) == 0:
         flash(u'没有未匹配URL信息。', 'info')
         return render_template('show_unkown_urls.html', inputForm=inputForm)
@@ -2729,8 +2766,8 @@ def diff_time(date1, date2):
 
 
 ######### show_process.html  #############################################################################
-@app.route('/show_process', methods=['GET', 'POST'])
-def show_process():
+@app.route('/show_process_init', methods=['GET', 'POST'])
+def show_process_init():
     user_id = session['user_id']
     inputForm = ListDetailRegexSettingForm()
     # 提取主页、域名
@@ -2791,8 +2828,8 @@ def show_process():
                            velocity_list=velocity_list)
 
 
-@app.route('/save_finally_result', methods=['GET', 'POST'])
-def save_finally_result():
+@app.route('/show_process_save_finally_result', methods=['GET', 'POST'])
+def show_process_save_finally_result():
     user_id = session['user_id']
     start_url, site_domain, black_domain = get_domain_init()
 
@@ -2816,8 +2853,8 @@ def save_finally_result():
     return redirect(url_for('show_process'), 302)
 
 
-@app.route('/kill_spider', methods=['GET', 'POST'])
-def kill_spider():
+@app.route('/show_process_kill_spider', methods=['GET', 'POST'])
+def show_process_kill_spider():
     if SPIDER_RUN_MODE == 'redis':
         user_id = session['user_id']
         start_url, site_domain, black_domain_str = get_domain_init()
@@ -2844,8 +2881,8 @@ def kill_spider():
     return redirect(url_for('show_process'), 302)
 
 
-@app.route('/clean_user_redis_file', methods=['GET', 'POST'])
-def clean_user_redis_file():
+@app.route('/show_process_clean_user_temp_data', methods=['GET', 'POST'])
+def show_process_clean_user_temp_data():
     user_id = session['user_id']
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
@@ -2909,7 +2946,7 @@ def content_init():
     regex_sel = inputForm.detail_regex_sel.data
     # inputForm.detail_regex_list = inputForm.detail_regex_sel.data
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
-    inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)
+    inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)[:SHOW_MAX_RESULT]
     # print '[info]content_init()', inputForm.detail_url_list
 
     flash(u'点击下面链接，获取链接内容需要一些时间。', 'warning')
@@ -3126,7 +3163,7 @@ def preset_init():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX - len(partn_list)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     flash(u'每一类规则最多可设置30条。', 'warning')
@@ -3151,7 +3188,7 @@ def preset_change():
         presetForm.weight_sel = weight
         inputForm.partn_list.append_entry(presetForm)
 
-    for j in range(SHOW_MAX - len(partn_list)):
+    for j in range(SHOW_MAX_ONE_PAGE - len(partn_list)):
         inputForm.partn_list.append_entry()
 
     return render_template('admin_preset.html', inputForm=inputForm, user_id=user_id)
@@ -3274,7 +3311,8 @@ def tool_getenv():
                 'MYSQLDB_CHARSET': MYSQLDB_CHARSET,
 
                 'PROCESS_SHOW_JSON': PROCESS_SHOW_JSON,
-                'SHOW_MAX': SHOW_MAX,
+                'SHOW_MAX_ONE_PAGE': SHOW_MAX_ONE_PAGE,
+                'SHOW_MAX_RESULT': SHOW_MAX_RESULT,
                 'EXPORT_FOLDER': EXPORT_FOLDER,
                 'CONFIG_JSON': CONFIG_JSON,
 
@@ -3334,8 +3372,25 @@ def tool_redis_setting():
     return redirect(url_for('admin_tools'), 302)
 
 
-@app.route('/show_task', methods=['GET', 'POST'])
-def show_task():
+@app.route('/tool_spider_run_mode_setting', methods=['POST'])
+def tool_spider_run_mode_setting():
+    spider_run_mode = request.form['spider_run_mode']
+
+    config = ConfigParser.ConfigParser()
+    config.read(ALLSITE_WEB_MAIN_INI)
+    config.set('spider', 'spider_run_mode', spider_run_mode)
+    fp = open(ALLSITE_WEB_MAIN_INI, "w")
+    config.write(fp)
+
+    # 修改系统内存中的环境参数
+    SPIDER_RUN_MODE = spider_run_mode
+
+    flash(ALLSITE_WEB_MAIN_INI + u'已经被更新。', 'info')
+    return redirect(url_for('admin_tools'), 302)
+
+
+@app.route('/task_manager_init', methods=['GET', 'POST'])
+def task_manager_init():
     user_id = session['user_id']
     task_mng = TaskManager()
     outputForm = TaskManagerListForm()
@@ -3347,7 +3402,28 @@ def show_task():
         # taskFrom.spider_type = item['spider_type']
         # taskFrom.status = item['status']
     flash(u'状态转移： ① todo -> start -> end   ② start -> killed->todo', 'info')
-    return render_template('show_task.html', outputForm=outputForm)
+    return render_template('task_manager.html', outputForm=outputForm)
+
+
+@app.route('/task_manager_run_spider_server', methods=['GET', 'POST'])
+def task_manager_run_spider_server():
+    user_id = session['user_id']
+    inputForm = TaskManagerListForm(request.form)
+    if user_id == 'admin' and MY_OS == 'linux':
+        if inputForm.start_spider_server.data:
+            p = subprocess.Popen('python run_spider.py --start', shell=True)
+            process_id = p.pid
+            print '[info]task_manager_run_spider_server() start.', process_id
+            flash(u'后台spider服务已启动。', 'info')
+
+        if inputForm.stop_spider_server.data:
+            p = subprocess.Popen('python run_spider.py --stop', shell=True)
+            print '[info]task_manager_run_spider_server() stop.'
+            flash(u'后台spider服务已停止。', 'info')
+    else:
+        flash(u'后台spider服务需要admin权限，在linux环境启动。', 'error')
+
+    return redirect(url_for('task_manager_init'), 302)
 
 
 @app.route('/test', methods=['GET', 'POST'])

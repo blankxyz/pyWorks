@@ -24,11 +24,15 @@
             {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;
         </div>
         <hr>
-        <div id="convert-ajax" class="form-group" style="width:100%; margin-left:20px">
-            <input id="convert_url" type=text size=120
-                   placeholder="[例]http://cpt.xtu.edu.cn/a/gao/2013/1125/225.html >>> /[a-zA-Z]{1}/[a-zA-Z]{3}/\d{4}/\d{4}/\d{3}.html">&nbsp;
+        <div id="convert" class="form-group" style="float:left;width:48%; margin-left:20px">
+            <input id="convert_url" type=text size=80
+                   placeholder="[例]http://cpt.xtu.edu.cn/a/gao/2013/1125/225.html 转换为 /[a-zA-Z]{1}/[a-zA-Z]{3}/\d{4}/\d{4}/\d{3}.html">&nbsp;
             <input id="convert_btn" type="button" class="btn btn-primary btn-sm" value="转换为正则">&nbsp;
             <label id="convert_result"></label>
+        </div>
+        <div id="verify" class="form-group" style="float:right;width:48%; margin-right:20px">
+            <input id="verify_url" type=text size=80 placeholder="请输入待验证的URL： [例]http://cpt.xtu.edu.cn/">&nbsp;
+            <input id="verify_btn" type="button" class="btn btn-primary btn-sm" value="单页验证">&nbsp;
         </div>
         <hr>
         <div id="list-regex" class="form-group" style="float:left;width:48%; margin-left:20px">
@@ -51,8 +55,10 @@
                 </tbody>
             </table>
             <hr>
+            {{ inputForm.show_max_result.label(style="float:left") }}
+            {{ inputForm.show_max_result(style="float:left") }}
             {{ inputForm.list_or_detail(style="float:left") }}
-            <button id="save_run_list" name="save_run_list" type="submit" href="#" style="float:right"
+            <button id="save_run" name="save_run" type="submit" href="#" style="float:right"
                     data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-default">保存-执行
             </button>
             {#{{ inputForm.save_run_detail(class="btn btn-info") }}#}
@@ -105,7 +111,7 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.js') }}"></script>
     <script type="text/javascript">
         var $SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
-        <!-- 转化工具 -->
+        <!-- URL转化为正则 -->
         $('#convert_btn').click(function () {
             $.ajax({
                 url: $SCRIPT_ROOT + '/convert_url_to_regex',
@@ -116,21 +122,49 @@
                     now: new Date().getTime()
                 },
                 error: function (xhr, err) {
-                    $('#convert_result').text(err);
+                    {#                    $('#convert_result').text(err);#}
                 },
                 success: function (data, textStatus) {
-                    $('#convert_result').text(data.regex);
+                    {#                    $('#convert_result').text(data.regex);#}
                 }
             });
         });
-        <!-- 转化工具 -->
+        <!-- 单页验证 -->
         $('#verify_btn').click(function () {
+            var patrn_rubbish = "";
+            var patrn_list = "";
+            var patrn_detail = "";
+
+            for (var i = 0; i < 30; i++) {
+                var l = $("#list_regex_list-" + i.toString() + "-regex").val();
+                if (l != "") {
+                    if (l.indexOf('/') == 0) {
+                        patrn_list += "\\" + l + "|";
+                    } else {
+                        patrn_list += l + "|";
+                    }
+                }
+                var d = $("#detail_regex_list-" + i.toString() + "-regex").val();
+                if (d != "") {
+
+                    if (d.indexOf('/') == 0) {
+                        patrn_detail += "\\" + d + "|";
+                    } else {
+                        patrn_detail += d + "|";
+                    }
+                }
+            }
+            alert(patrn_list);
+            alert(patrn_detail);
             $.ajax({
                 url: $SCRIPT_ROOT + '/verify_regex',
                 contentType: "application/json; charset=UTF-8",
                 dataType: 'json',
                 data: {
                     verify_url: $('#verify_url').val(),
+                    patrn_rubbish: patrn_rubbish,
+                    patrn_detail: patrn_detail,
+                    patrn_list: patrn_list,
                     now: new Date().getTime()
                 },
                 error: function (xhr, err) {
@@ -185,7 +219,7 @@
                 "bFilter": false,
                 "bLengthChange": false,
                 "aLengthMenu": [30],
-                "scrollY": "200px",
+                "scrollY": "500px",
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
             });
@@ -215,7 +249,7 @@
                 "bFilter": false,
                 "bLengthChange": false,
                 "aLengthMenu": [30],
-                "scrollY": "200px",
+                "scrollY": "500px",
                 "bScrollCollapse": true,
                 "aaSorting": [[0, "desc"]]
             });

@@ -1,10 +1,10 @@
 # coding=utf-8
-import time
+import os, time
 from selenium import webdriver
 
 
 class VerifyRegex(object):
-    def __init__(self):
+    def __init__(self, patrn_rubbish, patrn_list, patrn_detail):
         # self._loadJsFmt = """
         #     var script = document.createElement('script');
         #     script.src = "{0}";
@@ -18,6 +18,9 @@ class VerifyRegex(object):
             document.getElementsByTagName('head')[0].appendChild(jq);
             jQuery.noConflict();
         """
+        self.patrn_rubbish = patrn_rubbish
+        self.patrn_detail = patrn_detail
+        self.patrn_list = patrn_list
         # self._browse_window_width = 800
         # self._browse_window_high = 600
 
@@ -31,7 +34,11 @@ class VerifyRegex(object):
     def verify(self, url, capture_img=None):
         # system.setProperty("webdriver.chrome.driver",
         #                    "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome");
-        driver = webdriver.Chrome('/usr/local/bin/chromedriver')
+        if os.name == 'nt':  # windows
+            driver = webdriver.Chrome('d:\\chromedriver.exe')
+        else:  # linux
+            driver = webdriver.Chrome('/usr/local/bin/chromedriver')
+
         # driver = webdriver.Firefox()
         # driver.set_window_size(self._browse_window_width, self._browse_window_high)
         driver.maximize_window()
@@ -64,7 +71,7 @@ class VerifyRegex(object):
             # ret=driver.execute_script(self._loadJsFmt.format(self._jquery_cdn))
         ret = driver.execute_script(self.inject_jquery)  # inject jquery
         print ret
-        js = '''
+        js1 = '''
             jQuery(document).ready(function(){
                 var patrn_rubbish = /uid|username|space|search|blog|group/;
                 var patrn_detail = /post|thread|detail/;
@@ -83,11 +90,30 @@ class VerifyRegex(object):
                 });
             });
             '''
+        js = '''
+            jQuery(document).ready(function(){
+                var patrn_rubbish = /uid|username|space|search|blog|group/;
+                var patrn_detail = /''' + self.patrn_detail + '''/;
+                var patrn_list = /''' + self.patrn_list + '''/;
+                jQuery("a").each(function () {
+                    var link = jQuery(this).attr("href");
+                    if (patrn_rubbish.exec(link)) {
+                        jQuery(this).css({"border-style": "solid", "border-color": "red", "color": "red"});
+                    }
+                    if (patrn_detail.exec(link)) {
+                        jQuery(this).css({"border-style": "solid", "border-color": "green", "color": "green"});
+                    }
+                    if (patrn_list.exec(link)) {
+                        jQuery(this).css({"border-style": "solid", "border-color": "blue", "color": "blue"});
+                    }
+                });
+            });
+            '''
+        print '[info]VerifyRegex() javascript:', js
         driver.execute_script(js)
-        time.sleep(30)
-        if capture_img:
-            driver.get_screenshot_as_file(capture_img)
-
+        time.sleep(60)
+        # if capture_img:
+        #     driver.get_screenshot_as_file(capture_img)
         driver.quit()
 
 

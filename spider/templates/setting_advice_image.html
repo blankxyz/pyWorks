@@ -1,0 +1,14 @@
+{% extends "bootstrap/base.html" %}
+{% block title %} 匹配效果 {% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        $(document).ready(function () {
+        });
+    </script>
+{% endblock %}
+{% block content %}
+    <div id="regex_div" class="form-group" style="width:90%; margin-left:20px">
+        <img src="{{ url_for('static', filename='export/advice.png') }}">
+    </div>
+{% endblock %}
