@@ -1160,8 +1160,8 @@ class TaskManager(object):
             if self.conn.hexists(self.task_manager_key, task_key):
                 # self.complete_list()
                 v = self.conn.hget(self.task_manager_key, task_key)
-                # v = {'config_content': eval(v).get('config_content'), 'status': 'killed'}
-                v = {'config_content': '', 'status': 'killed'}
+                v = {'config_content': eval(v).get('config_content'), 'status': 'killed'}
+                # v = {'config_content': '', 'status': 'killed'}
                 # self.conn.hdel(self.task_manager_key, k)
                 self.conn.hset(self.task_manager_key, task_key, v)
                 print '[info]kill_task() ok.'
@@ -1710,7 +1710,7 @@ class Util(object):
         return ret_dict
 
     def get_hot_regexs_with_score(self, merge_digit_list, urls):
-        # print '[INFO]get_hot_regexs_with_score() start.', len(urls), urls
+        print '[info]get_hot_regexs_with_score() start.', len(urls), urls
         ret_dict = {}
         for regex in merge_digit_list:
             r_cnt = 0
@@ -1725,7 +1725,9 @@ class Util(object):
             found = False
             for r in merge_digit_list:
                 path = urlparse.urlparse(url).path
-                if re.search(r, path):
+                if path == '' and r == '\/$':
+                        found = True
+                if re.search(r, path) :
                     found = True
 
             if found == False:
@@ -1736,7 +1738,7 @@ class Util(object):
             (k, v) = i
             sum += v
 
-        # print '[INFO]get_hot_regexs_with_score() end.', len(ret_dict), 'sum=', sum, ret_dict
+        print '[INFO]get_hot_regexs_with_score() end.', len(ret_dict), 'sum=', sum, ret_dict
         return ret_dict
 
     def get_hot_regexs(self, regexs_dic):
@@ -1785,7 +1787,7 @@ class Util(object):
         return ret_merged_list
 
     def advice_regex_keyword(self, links):
-        # print '[info]advice_regex_keyword() start.'
+        print '[info]advice_regex_keyword() start.',links
         regexs = []
         for link in links:
             if link != '' and link[-1] != '/':
@@ -1797,17 +1799,18 @@ class Util(object):
         regexs.sort()
 
         merge_digit_list = self.merge_digit(regexs)
-        merge_digit_list.append('\/$')
+        if '/' in merge_digit_list: merge_digit_list.remove('/')
+        merge_digit_list.append('\/$') # 替换 / 为 \/$
         merge_digit_list.sort()
-
+        print '[info]merge_digit() end',len(merge_digit_list),merge_digit_list
         regex_dic = self.get_hot_regexs_with_score(merge_digit_list, links)
         advice_regex_dic = self.get_hot_regexs(regex_dic)
 
         word_dic = self.get_regexs_words_with_score(merge_digit_list, links)
         advice_words_dic = self.get_hot_words(word_dic)
 
-        # print '[info]advice_regex_keyword() end.', len(advice_regex_dic), advice_regex_dic
-        # print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
+        print '[info]advice_regex_keyword() end.', len(advice_regex_dic), advice_regex_dic
+        print '[info]advice_regex_keyword() end.', len(advice_words_dic), advice_words_dic
         return advice_regex_dic, advice_words_dic
 
     # 未匹配URL归类算法
@@ -1977,7 +1980,7 @@ def setting_advice_init():
     user_id = session['user_id']
     global g_advice_regex_list
     global g_advice_keyword_list
-
+    global g_start_url_list
     inputForm = AdviceRegexListInputForm(request.form)
 
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -2203,9 +2206,10 @@ def setting_advice_window():
     print '[info]setting_advice_window() regex or keyword is: ', regex
 
     matched_url_list = []
-    for url in g_start_url_list:
-        if re.search(regex, url):
-            matched_url_list.append(url)
+    if g_start_url_list:
+        for url in g_start_url_list:
+            if re.search(regex, url):
+                matched_url_list.append(url)
 
     # print '[info]setting_advice_window()',regex, '->', matched_url_list
     ####  页面(url)
@@ -2214,8 +2218,8 @@ def setting_advice_window():
         regexForm.url = url
         inputForm.url_list.append_entry(regexForm)
 
-    for j in range(SHOW_MAX_ONE_PAGE - len(matched_url_list)):
-        inputForm.url_list.append_entry()
+    # for j in range(SHOW_MAX_ONE_PAGE - len(matched_url_list)):
+    #     inputForm.url_list.append_entry()
 
     return render_template('setting_advice_window.html', inputForm=inputForm)
 
@@ -2544,6 +2548,7 @@ def list_detail_save_and_run():
         if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
             task_key = user_id + '@' + site_domain + '@' + 'list'
             task_mng.add_task(task_key, 'allsite_spider_list_urls.py', 'todo')
+            flash(u'当前模式为：redis。已经添加后台爬虫任务。', 'info')
         else:  # debug模式 子进程（调试）方式
             if os.name == 'nt':
                 # DOS "start" command
@@ -2555,11 +2560,14 @@ def list_detail_save_and_run():
                 process_id = p.pid
                 print '[info]--- process_id:', process_id
 
+            flash(u'当前模式为：debug。未添加后台爬虫任务。', 'info')
+
     # 执行抓取程序 detail
     if inputForm.list_or_detail.data == 1:  # 1:'detail'
         if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
             task_key = user_id + '@' + site_domain + '@' + 'detail'
             task_mng.add_task(task_key, 'allsite_spider_detail_urls.py', 'todo')
+            flash(u'当前模式为：redis。已经添加后台爬虫任务。', 'info')
         else:  # debug模式 子进程（调试）方式
             if os.name == 'nt':
                 # DOS "start" command
@@ -2571,7 +2579,8 @@ def list_detail_save_and_run():
                 process_id = p.pid
                 print '[info]--- process_id:', process_id
 
-    flash(u'后台爬虫启动。', 'info')
+            flash(u'当前模式为：debug。未添加后台爬虫任务。', 'info')
+
     return render_template('setting_list_detail.html', inputForm=inputForm)
 
 
@@ -2598,7 +2607,8 @@ def verify_regex():
         resp = requests.head(verify_url)
         if resp.status_code == 200:
             print '[info]verify_regex() connect success.', verify_url
-            flash(u'请在自动启动的浏览器窗口中确认单页验证结果（黄框：无效，绿框：列表，蓝框：详情），浏览器1分钟后会自动关闭，请不要手工关闭浏览器。', 'info')
+            flash(u'请在自动启动的浏览器窗口中确认单页验证结果（黄框：无效，绿框：列表，蓝框：详情），'
+                  u'浏览器1分钟后会自动关闭，请不要手工关闭浏览器。', 'info')
 
             v = VerifyRegex(patrn_rubbish, patrn_list, patrn_detail)
             v.verify(verify_url, 'allsite_web_verify_regex.png')
@@ -2716,7 +2726,7 @@ def show_unkown_urls():
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     inputForm.unkown_url_list = redis_db.get_unkown_urls()
-    # inputForm.unkown_url_list = inputForm.unkown_url_list[:SHOW_MAX_RESULT]
+    inputForm.unkown_url_list = list(inputForm.unkown_url_list)[:SHOW_MAX_RESULT]
     if len(inputForm.unkown_url_list) == 0:
         flash(u'没有未匹配URL信息。', 'info')
         return render_template('show_unkown_urls.html', inputForm=inputForm)
@@ -2913,6 +2923,17 @@ def show_process_clean_user_temp_data():
 
     return redirect(url_for('show_process'), 302)
 
+@app.route('/change_session', methods=['POST'])
+def change_session():
+    start_url = request.form['start_url']
+    site_domain = request.form['site_domain']
+    if start_url.strip() == '' or site_domain.strip() == '':
+        flash(u'请输入必要信息。', 'error')
+    else:
+        session['start_url'] = request.form['start_url']
+        session['site_domain'] = request.form['site_domain']
+        flash(u'session已经被更新。', 'info')
+    return redirect(url_for('show_process_init'), 302)
 
 ######### content.html  #############################################################################
 def allow_cross_domain(fun):
@@ -3317,6 +3338,7 @@ def tool_getenv():
                 'CONFIG_JSON': CONFIG_JSON,
 
                 'MY_OS': MY_OS,
+                'SPIDER_RUN_MODE': SPIDER_RUN_MODE,
                 'SHELL_ADVICE_CMD': SHELL_ADVICE_CMD,
                 'SHELL_LIST_CMD': SHELL_LIST_CMD,
                 'SHELL_CONTENT_CMD': SHELL_CONTENT_CMD,
@@ -3357,13 +3379,6 @@ def tool_redis_setting():
         fp = open(ALLSITE_WEB_MAIN_INI, "w")
         config.write(fp)
 
-        config = ConfigParser.ConfigParser()
-        config.read(ALLSITE_WEB_MAIN_INI)
-        config.set('redis', 'redis_server', 'redis://' + redis_server)
-        config.set('redis', 'dedup_server', 'redis://' + dedup_server)
-        fp = open(ALLSITE_WEB_MAIN_INI, "w")
-        config.write(fp)
-
         # 修改系统内存中的环境参数
         REDIS_SERVER = 'redis://' + redis_server
         DEDUP_SERVER = 'redis://' + dedup_server
@@ -3386,6 +3401,7 @@ def tool_spider_run_mode_setting():
     SPIDER_RUN_MODE = spider_run_mode
 
     flash(ALLSITE_WEB_MAIN_INI + u'已经被更新。', 'info')
+    print '[info]tool_spider_run_mode_setting() current mode:',SPIDER_RUN_MODE
     return redirect(url_for('admin_tools'), 302)
 
 
@@ -3411,13 +3427,13 @@ def task_manager_run_spider_server():
     inputForm = TaskManagerListForm(request.form)
     if user_id == 'admin' and MY_OS == 'linux':
         if inputForm.start_spider_server.data:
-            p = subprocess.Popen('python run_spider.py --start', shell=True)
+            p = subprocess.Popen('python allsite_run.py --start', shell=True)
             process_id = p.pid
             print '[info]task_manager_run_spider_server() start.', process_id
             flash(u'后台spider服务已启动。', 'info')
 
         if inputForm.stop_spider_server.data:
-            p = subprocess.Popen('python run_spider.py --stop', shell=True)
+            p = subprocess.Popen('python allsite_run.py --stop', shell=True)
             print '[info]task_manager_run_spider_server() stop.'
             flash(u'后台spider服务已停止。', 'info')
     else:

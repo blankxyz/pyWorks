@@ -9,10 +9,10 @@
     </div>
     <hr>
     <div id="spider_server_div" class="form-group" style="width:98%; margin-left:20px">
-    <form id="spider_server" method="POST" action="/task_manager_run_spider_server">
-        {{ outputForm.start_spider_server(class="btn btn-primary btn-default") }}&nbsp;
-        {{ outputForm.stop_spider_server(class="btn btn-primary btn-default") }}
-    </form>
+        <form id="spider_server" method="POST" action="/task_manager_run_spider_server">
+            {{ outputForm.start_spider_server(class="btn btn-primary btn-default") }}&nbsp;
+            {{ outputForm.stop_spider_server(class="btn btn-primary btn-default") }}
+        </form>
     </div>
     <hr>
     <div id="task_list_div" class="form-group" style="width:98%; margin-left:20px">
@@ -118,7 +118,9 @@
                         alert(err);
                     },
                     success: function (data, textStatus) {
-                        alert(data.msg);
+                        {#alert(data.msg);#}
+{#                        alert($("tr_" + num));#}
+{#                        $(table).remove($("tr_" + num));#}
                     }
                 });
             }
@@ -135,7 +137,7 @@
                         alert(err);
                     },
                     success: function (data, textStatus) {
-                        alert(data.msg);
+                        {#                        alert(data.msg);#}
                         $("#status_" + num).text('todo');
                     }
                 });
@@ -153,7 +155,7 @@
                         alert(err);
                     },
                     success: function (data, textStatus) {
-                        alert(data.msg);
+                        {#                        alert(data.msg);#}
                         $("#status_" + num).text('killed');
                     }
                 });

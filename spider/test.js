@@ -21,8 +21,8 @@ page.open('http://www.baidu.com', function () {
             });
         });
         console.log("HTML:");
-        // page.render('test.png');
-        console.log(document.toSource());
+        page.render('test.png');
+        // console.log(document.toSource());
         console.log("end.");
         phantom.exit();
     });
