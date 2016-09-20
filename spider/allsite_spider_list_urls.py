@@ -52,12 +52,12 @@ DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
 MODE = '''exact'''
 
-START_URLS = '''http://www.cnblogs.com'''
-SITE_DOMAIN = '''cnblogs.com'''
+START_URLS = '''http://www.ynsf.ccoo.cn'''
+SITE_DOMAIN = '''ynsf.ccoo.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''
-DETAIL_RULE_LIST = '''/post-@thread@'''
+LIST_RULE_LIST = '''\/$@/list-@-1.html@/^user/@/^username/@'''
+DETAIL_RULE_LIST = '''/post/.*?\d+x.html@/\d+.html@'''
 
 
 # spider-modify-end

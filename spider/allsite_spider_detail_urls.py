@@ -40,19 +40,19 @@ import allsite_clean_url
 # DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-USER_ID = ''''''
+USER_ID = '''admin'''
 
-REDIS_SERVER = ''''''
-DEDUP_SERVER = ''''''
+REDIS_SERVER = '''redis://127.0.0.1/14'''
+DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
-MODE = ''''''
+MODE = '''exact'''
 
-START_URLS = ''''''
-SITE_DOMAIN = ''''''
+START_URLS = '''http://www.ynsf.ccoo.cn'''
+SITE_DOMAIN = '''ynsf.ccoo.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
-DETAIL_RULE_LIST = ''''''
-LIST_RULE_LIST = ''''''
+DETAIL_RULE_LIST = '''/post/.*?\d+x.html@/\d+.html@'''
+LIST_RULE_LIST = '''\/$@/list-@-1.html@/^user/@/^username/@'''
 # spider-modify-end
 
 # spider

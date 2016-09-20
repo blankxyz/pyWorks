@@ -40,13 +40,13 @@ from myreadability import myreadability
 # DEDUP_SERVER = config.get('redis', 'dedup_server')
 
 # spider-modify-start
-USER_ID = ''''''
+USER_ID = '''admin'''
 
 REDIS_SERVER = '''redis://127.0.0.1/14'''
 DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
-START_URLS = '''http://bbs.tianya.cn'''
-SITE_DOMAIN = '''bbs.tianya.cn'''
+START_URLS = '''http://www.ynsf.ccoo.cn'''
+SITE_DOMAIN = '''ynsf.ccoo.cn'''
 BLACK_DOMAIN_STR = ''''''
 
 CONFIG_ID = '''9999'''

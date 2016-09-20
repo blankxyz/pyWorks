@@ -757,7 +757,7 @@ class MySqlDrive(object):
 
         return True, msg
 
-    def get_result_file(self, start_url):
+    def get_result_file(self, user_id, start_url):
         '''
         Args:
             start_url: is not empty string.
@@ -770,7 +770,6 @@ class MySqlDrive(object):
             print '[error]get_result_file() start_url is None.'
             return None, None, 0
 
-        user_id = session['user_id']
         cnt = 0
 
         try:
@@ -785,7 +784,6 @@ class MySqlDrive(object):
                 return None, None, 0
             else:
                 (site_domain, list_txt, detail_txt) = self.cur.fetchone()
-
                 list_copy_file = 'result-list_(' + site_domain + ').log'
                 f = open(EXPORT_FOLDER + list_copy_file, "wb")
                 f.write(list_txt)
@@ -1726,8 +1724,8 @@ class Util(object):
             for r in merge_digit_list:
                 path = urlparse.urlparse(url).path
                 if path == '' and r == '\/$':
-                        found = True
-                if re.search(r, path) :
+                    found = True
+                if re.search(r, path):
                     found = True
 
             if found == False:
@@ -1787,7 +1785,7 @@ class Util(object):
         return ret_merged_list
 
     def advice_regex_keyword(self, links):
-        print '[info]advice_regex_keyword() start.',links
+        print '[info]advice_regex_keyword() start.', links
         regexs = []
         for link in links:
             if link != '' and link[-1] != '/':
@@ -1800,9 +1798,9 @@ class Util(object):
 
         merge_digit_list = self.merge_digit(regexs)
         if '/' in merge_digit_list: merge_digit_list.remove('/')
-        merge_digit_list.append('\/$') # 替换 / 为 \/$
+        merge_digit_list.append('\/$')  # 替换 / 为 \/$
         merge_digit_list.sort()
-        print '[info]merge_digit() end',len(merge_digit_list),merge_digit_list
+        print '[info]merge_digit() end', len(merge_digit_list), merge_digit_list
         regex_dic = self.get_hot_regexs_with_score(merge_digit_list, links)
         advice_regex_dic = self.get_hot_regexs(regex_dic)
 
@@ -2532,15 +2530,16 @@ def list_detail_save_and_run():
     fp.close()
 
     #### 保留模式：按照新规则，重置上次计算结果（unkown,list,detail）
-    if inputForm.hold.data:
-        redis_db.hold_result(mode=mode, site_domain=site_domain,
-                             detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
-    else:  # 非保留模式
-        redis_db.conn.delete(redis_db.process_cnt_hset_key)
-        redis_db.conn.delete(redis_db.list_urls_zset_key)
-        redis_db.conn.delete(redis_db.detail_urls_set_key)
-        redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
-        redis_db.conn.delete(redis_db.unkown_urls_set_key)
+    # if inputForm.hold.data:
+    #     redis_db.hold_result(mode=mode, site_domain=site_domain,
+    #                          detail_rules=detail_regex_save_list, list_rules=list_regex_save_list)
+    # else:  # 非保留模式
+    # 清除上一次结果
+    redis_db.conn.delete(redis_db.process_cnt_hset_key)
+    redis_db.conn.delete(redis_db.list_urls_zset_key)
+    redis_db.conn.delete(redis_db.detail_urls_set_key)
+    redis_db.conn.delete(redis_db.detail_urls_set_copy_key)
+    redis_db.conn.delete(redis_db.unkown_urls_set_key)
 
     task_mng = TaskManager()
     # 执行抓取程序 list
@@ -2549,6 +2548,7 @@ def list_detail_save_and_run():
             task_key = user_id + '@' + site_domain + '@' + 'list'
             task_mng.add_task(task_key, 'allsite_spider_list_urls.py', 'todo')
             flash(u'当前模式为：redis。已经添加后台爬虫任务。', 'info')
+
         else:  # debug模式 子进程（调试）方式
             if os.name == 'nt':
                 # DOS "start" command
@@ -2564,6 +2564,20 @@ def list_detail_save_and_run():
 
     # 执行抓取程序 detail
     if inputForm.list_or_detail.data == 1:  # 1:'detail'
+        # 从Mysql的保存结果中恢复到redis
+        mysql_db = MySqlDrive()
+        list_copy_file, _, cnt = mysql_db.get_result_file(user_id, start_url)
+        if cnt != 0:
+            fd = open(EXPORT_FOLDER + list_copy_file, 'r')
+            copy_file = fd.readlines()
+            fd.close()
+            redis_db.conn.delete(redis_db.list_urls_zset_key)
+            for i in copy_file:
+                redis_db.conn.zadd(redis_db.list_urls_zset_key, redis_db.todo_flg, i)
+        else:
+            print '[info]list_detail_save_and_run() list result file not found.', start_url
+            flash(u'没有找到列表爬取结果的历史记录。', 'info')
+
         if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
             task_key = user_id + '@' + site_domain + '@' + 'detail'
             task_mng.add_task(task_key, 'allsite_spider_detail_urls.py', 'todo')
@@ -2621,6 +2635,7 @@ def verify_regex():
 
     jsonStr = json.dumps(ret)
     return jsonStr
+
 
 ######### show_result.html   #############################################################################
 @app.route('/show_result_init', methods=['GET', 'POST'])
@@ -2783,7 +2798,7 @@ def show_process_init():
     # 提取主页、域名
     mysql_db = MySqlDrive()
     start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print '[info]show_process()', user_id, start_url, site_domain, black_domain
+    print '[info]show_process_init()', user_id, start_url, site_domain, black_domain
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('show_process.html',
@@ -2860,7 +2875,7 @@ def show_process_save_finally_result():
     mysql_db.save_result_file_to_mysql(start_url, site_domain)
     flash(u'列表页结果保存DB成功。', 'info')
     print '[info]save finally result to DB OK.'
-    return redirect(url_for('show_process'), 302)
+    return redirect(url_for('show_process_init'), 302)
 
 
 @app.route('/show_process_kill_spider', methods=['GET', 'POST'])
@@ -2884,11 +2899,13 @@ def show_process_kill_spider():
             print '[info]kill_spider() @windows please close the bat cmd.'
             # os.system("taskkill /PID %s /F" % process_id)
         else:
-            subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
+            # subprocess.Popen(['/bin/sh', '-c', '/work/spider/allsite_spider_stop.sh'])
+            subprocess.Popen(
+                ['/bin/sh', '-c', "ps -ef| grep allsite_spider_ | grep -v grep |awk '{print $2}'|xargs kill -9"])
             print '[info]kill_spider() @linux or @mac ok.'
             flash(u"已经结束进程.", 'info')
 
-    return redirect(url_for('show_process'), 302)
+    return redirect(url_for('show_process_init'), 302)
 
 
 @app.route('/show_process_clean_user_temp_data', methods=['GET', 'POST'])
@@ -2897,7 +2914,7 @@ def show_process_clean_user_temp_data():
     start_url, site_domain, black_domain_str = get_domain_init()
     if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
         flash(u'请设置主页、限定的域名信息。', 'warning')
-        return redirect(url_for('show_process'), 302)
+        return redirect(url_for('show_process_init'), 302)
 
     # 绘图文件清零
     fp = open(EXPORT_FOLDER + '/' + PROCESS_SHOW_JSON + '(' + site_domain + ').json', 'w')
@@ -2921,7 +2938,8 @@ def show_process_clean_user_temp_data():
         if key.find(site_domain):
             redis_db.conn.delete(key)
 
-    return redirect(url_for('show_process'), 302)
+    return redirect(url_for('show_process_init'), 302)
+
 
 @app.route('/change_session', methods=['POST'])
 def change_session():
@@ -2934,6 +2952,7 @@ def change_session():
         session['site_domain'] = request.form['site_domain']
         flash(u'session已经被更新。', 'info')
     return redirect(url_for('show_process_init'), 302)
+
 
 ######### content.html  #############################################################################
 def allow_cross_domain(fun):
@@ -2966,7 +2985,16 @@ def content_init():
     inputForm.detail_regex_sel.choices = select_items
     regex_sel = inputForm.detail_regex_sel.data
     # inputForm.detail_regex_list = inputForm.detail_regex_sel.data
+    # 从Mysql的保存结果中恢复到redis
+    _, detail_copy_file, cnt = mysql_db.get_result_file(user_id, start_url)
+    fd = open(EXPORT_FOLDER + detail_copy_file, 'r')
+    detail_copy = fd.readlines()
+    fd.close()
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    redis_db.conn.delete(redis_db.detail_urls_set_key)
+    for i in detail_copy:
+        redis_db.conn.sadd(redis_db.detail_urls_set_key, i)
+
     inputForm.detail_url_list = redis_db.get_detail_urls_by_regex(regex_sel)[:SHOW_MAX_RESULT]
     # print '[info]content_init()', inputForm.detail_url_list
 
@@ -3125,7 +3153,7 @@ def history_search():
         if start_url_sel == '':
             flash(u'请从历史记录中选择主页。', 'info')
         else:
-            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(user_id, start_url_sel)
             if list_copy_file is not None and cnt != 0:
                 flash(u'列表页历史记录下载成功。', 'info')
                 return send_from_directory(app.config['EXPORT_FOLDER'], list_copy_file, as_attachment=True)
@@ -3139,7 +3167,7 @@ def history_search():
         if start_url_sel == '':
             flash(u'请从历史记录中选择主页。', 'warning')
         else:
-            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(start_url_sel)
+            list_copy_file, detail_copy_file, cnt = mysql_db.get_result_file(user_id, start_url_sel)
             if detail_copy_file is not None and cnt != 0:
                 flash(u'详情页历史记录下载成功。', 'info')
                 return send_from_directory(app.config['EXPORT_FOLDER'], detail_copy_file, as_attachment=True)
@@ -3401,7 +3429,7 @@ def tool_spider_run_mode_setting():
     SPIDER_RUN_MODE = spider_run_mode
 
     flash(ALLSITE_WEB_MAIN_INI + u'已经被更新。', 'info')
-    print '[info]tool_spider_run_mode_setting() current mode:',SPIDER_RUN_MODE
+    print '[info]tool_spider_run_mode_setting() current mode:', SPIDER_RUN_MODE
     return redirect(url_for('admin_tools'), 302)
 
 

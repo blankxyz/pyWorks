@@ -118,9 +118,11 @@
                         alert(err);
                     },
                     success: function (data, textStatus) {
-                        {#alert(data.msg);#}
-{#                        alert($("tr_" + num));#}
-{#                        $(table).remove($("tr_" + num));#}
+                        {#                        alert(data.msg);#}
+                        {#                        var tr = $("#tr_" + num);#}
+                        {#                        alert("tr_" + num);#}
+                        {#                        tr.parentNode.removeChild(tr);#}
+                        $("#tr_" + num).remove();
                     }
                 });
             }
