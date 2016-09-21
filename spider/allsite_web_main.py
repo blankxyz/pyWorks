@@ -1141,15 +1141,15 @@ class TaskManager(object):
         print '[info]add_task() add ok.'
         return True
 
-    def del_task(self, task_key):
+    def delete_task(self, task_key):
         # k = user_id + '@' + site_domain + '@' + spider_type
         if self.conn.exists(self.task_manager_key):
             if self.conn.hexists(self.task_manager_key, task_key):
                 self.conn.hdel(self.task_manager_key, task_key)
-                print '[info]del_task() ok.'
+                print '[info]delete_task() ok.'
                 return True
         else:
-            print '[error]del_task() no found.', task_key
+            print '[error]delete_task() no found.', task_key
             return False
 
     def reset_task(self, task_key):
@@ -2279,8 +2279,11 @@ def list_detail_init():
     '''
     user_id = session['user_id']
     mysql_db = MySqlDrive()
-
     inputForm = ListDetailRegexSettingForm(request.form)
+    if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
+        inputForm.spider_run_mode = u'统一任务管理'
+    else:
+        inputForm.spider_run_mode = u'debug'
 
     start_url, site_domain, black_domain_str = get_domain_init()
     # print start_url, site_domain, black_domain_str
@@ -2298,6 +2301,7 @@ def list_detail_init():
         inputForm.start_url.data = start_url
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
+
 
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     #### 从MySql 设置/还原 redis 和 页面(详情页)
@@ -2381,12 +2385,13 @@ def list_detail_init():
 def list_detail_save_and_run():
     user_id = session['user_id']
     global process_id
+    global SPIDER_RUN_MODE
     util = Util()
     inputForm = ListDetailRegexSettingForm(request.form)
     if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
-        inputForm.spider_run_mode = '任务管理'
+        inputForm.spider_run_mode = u'统一任务管理'
     else:
-        inputForm.spider_run_mode = 'debug'
+        inputForm.spider_run_mode = u'debug'
 
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
@@ -2628,9 +2633,6 @@ def verify_regex():
         resp = requests.head(verify_url)
         if resp.status_code == 200:
             print '[info]verify_regex() connect success.', verify_url
-            flash(u'请在自动启动的浏览器窗口中确认单页验证结果（黄框：无效，绿框：列表，蓝框：详情），'
-                  u'浏览器1分钟后会自动关闭，请不要手工关闭浏览器。', 'info')
-
             v = VerifyRegex(patrn_rubbish, patrn_list, patrn_detail)
             v.verify(verify_url, 'allsite_web_verify_regex.png')
         else:
@@ -3424,6 +3426,7 @@ def tool_redis_setting():
 
 @app.route('/tool_spider_run_mode_setting', methods=['POST'])
 def tool_spider_run_mode_setting():
+    global SPIDER_RUN_MODE
     spider_run_mode = request.form['spider_run_mode']
 
     config = ConfigParser.ConfigParser()
@@ -3452,7 +3455,7 @@ def task_manager_init():
         # taskFrom.site_domain = item['site_domain']
         # taskFrom.spider_type = item['spider_type']
         # taskFrom.status = item['status']
-    flash(u'状态转移： ① todo -> start -> end   ② start -> killed->todo', 'info')
+    flash(u'状态说明：待执行（todo） 后台爬虫执行中（start） 执行结束（end） ', 'info')
     return render_template('task_manager.html', outputForm=outputForm)
 
 
@@ -3606,7 +3609,7 @@ class TaskManagerRestAPI(Resource):
         print '[info]TaskManagerRestAPI() delete start.', task_key
 
         task_mng = TaskManager()
-        task_mng.del_task(task_key)
+        task_mng.delete_task(task_key)
 
         print '[info]TaskManagerRestAPI() delete end.'
         return {'msg': u'删除完成。'}, 204

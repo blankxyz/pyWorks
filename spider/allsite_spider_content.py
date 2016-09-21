@@ -7,7 +7,7 @@ import htmlparser
 import redis
 import spider
 import setting
-import ConfigParser
+import traceback
 from bs4 import BeautifulSoup, Comment
 import json
 import allsite_clean_url
@@ -122,18 +122,25 @@ class MySpider(spider.Spider):
         self.author_sel = setting_dict['author_sel']
         self.author_exp = setting_dict['author_exp']
 
-    def is_killed(self):
-        k = USER_ID + '@' + self.site_domain + '@' + 'content'
-        if self.conn.exists(self.task_manager_key):
-            if self.conn.hexists(self.task_manager_key, k):
-                v = self.conn.hget(self.task_manager_key, k)
-                status = eval(v).get('status')
-                if status == 'killed':
-                    return True
+    def is_task_run(self):
+        k = USER_ID + '@' + self.site_domain + '@' + 'list'
+        # task_manager 存在，并且task_manager中相应任务的状态为start。
+        try:
+            if self.conn.exists(self.task_manager_key):
+                if self.conn.hexists(self.task_manager_key, k):
+                    v = self.conn.hget(self.task_manager_key, k)
+                    status = eval(v).get('status')
+                    if status == 'start':
+                        return True
+        except Exception, e:
+            print '[ERROR]is_killed()', e
+            print traceback.format_exc()
+
         return False
 
     def get_start_urls(self, data=None):
-        if self.is_killed(): return []
+        if self.is_task_run() == False:
+            return []
 
         return [self.start_urls]
 

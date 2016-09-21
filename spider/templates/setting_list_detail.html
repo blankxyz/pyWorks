@@ -54,10 +54,10 @@
                 </tbody>
             </table>
             <hr>
-            {{ inputForm.spider_run_mode }}
             {{ inputForm.show_max_result.label(style="float:left") }}
             {{ inputForm.show_max_result(style="float:left") }}
             {{ inputForm.list_or_detail(style="float:left") }}
+            <label>爬虫运行模式：{{ inputForm.spider_run_mode }}</label>
             <button id="save_run" name="save_run" type="submit" href="#" style="float:right"
                     data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-default">添加爬虫任务（debug）
             </button>
@@ -134,6 +134,14 @@
             var patrn_rubbish = "";
             var patrn_list = "";
             var patrn_detail = "";
+            var verify_url = $('#verify_url').val();
+
+            if (verify_url == "") {
+                alert("请输入URL");
+            }else{
+                alert("请在自动启动的浏览器窗口中确认单页验证结果（黄框：无效，绿框：列表，蓝框：详情），" +
+                        "浏览器1分钟后会自动关闭，请不要手工关闭浏览器");
+            }
 
             for (var i = 0; i < 30; i++) {
                 var l = $("#list_regex_list-" + i.toString() + "-regex").val();
@@ -161,8 +169,8 @@
                 patrn_detail = patrn_detail.substr(0, patrn_detail.length - 1);
             }
 
-            alert(patrn_list);
-            alert(patrn_detail);
+            {#            alert(patrn_list);#}
+            {#            alert(patrn_detail);#}
 
             $.ajax({
                 url: $SCRIPT_ROOT + '/verify_regex',
@@ -176,7 +184,7 @@
                     now: new Date().getTime()
                 },
                 error: function (xhr, err) {
-                    $('#verify_result').text(err);
+                    alert(err);
                 },
                 success: function (data, textStatus) {
                     $('#verify_result').text(data.regex);

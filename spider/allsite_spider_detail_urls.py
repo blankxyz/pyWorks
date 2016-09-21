@@ -8,7 +8,7 @@ import urlparse
 import redis
 import spider
 import setting
-import urllib
+import traceback
 import ConfigParser
 from bs4 import BeautifulSoup, Comment
 import requests
@@ -279,18 +279,25 @@ class MySpider(spider.Spider):
         # print '[INFO]get_page_valid_urls() end'
         return urls
 
-    def is_killed(self):
-        k = USER_ID + '@' + self.site_domain + '@' + 'detail'
-        if self.conn.exists(self.task_manager_key):
-            if self.conn.hexists(self.task_manager_key, k):
-                v = self.conn.hget(self.task_manager_key, k)
-                status = eval(v).get('status')
-                if status == 'killed':
-                    return True
+    def is_task_run(self):
+        k = USER_ID + '@' + self.site_domain + '@' + 'list'
+        # task_manager 存在，并且task_manager中相应任务的状态为start。
+        try:
+            if self.conn.exists(self.task_manager_key):
+                if self.conn.hexists(self.task_manager_key, k):
+                    v = self.conn.hget(self.task_manager_key, k)
+                    status = eval(v).get('status')
+                    if status == 'start':
+                        return True
+        except Exception, e:
+            print '[ERROR]is_killed()', e
+            print traceback.format_exc()
+
         return False
 
     def get_start_urls(self, data=None):
-        if self.is_killed(): return []
+        if self.is_task_run() == False:
+            return []
 
         self.detail_rules = [x.strip() for x in DETAIL_RULE_LIST.split('@') if x!='']
         print DETAIL_RULE_LIST, '->',self.detail_rules

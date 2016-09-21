@@ -25,8 +25,8 @@
                 <th>域名</th>
                 <th>爬虫类型</th>
                 <th>当前状态</th>
-                <th>重启</th>
-                <th>暂停</th>
+{#                <th>重启</th>#}
+{#                <th>暂停</th>#}
                 <th>删除</th>
             </tr>
             </thead>
@@ -37,16 +37,16 @@
                     <td id={{ "site_domain_" ~ loop.index }}>{{ row['site_domain'] }}</td>
                     <td id={{ "spider_type_" ~ loop.index }}>{{ row['spider_type'] }}</td>
                     <td id={{ "status_" ~ loop.index }}>{{ row['status'] }}</td>
-                    <td>
-                        <a id={{ "retry_" ~ loop.index }} href="#">
-                            <span class=" glyphicon glyphicon-repeat"></span>
-                        </a>
-                    </td>
-                    <td>
-                        <a id={{ "kill_" ~ loop.index }} href="#">
-                            <span class="glyphicon glyphicon-stop"></span>
-                        </a>
-                    </td>
+{#                    <td>#}
+{#                        <a id={{ "retry_" ~ loop.index }} href="#">#}
+{#                            <span class=" glyphicon glyphicon-repeat"></span>#}
+{#                        </a>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        <a id={{ "kill_" ~ loop.index }} href="#">#}
+{#                            <span class="glyphicon glyphicon-stop"></span>#}
+{#                        </a>#}
+{#                    </td>#}
                     <td>
                         <a id={{ "delete_" ~ loop.index }} href="#">
                             <span class="glyphicon glyphicon-remove"></span>

@@ -1,6 +1,6 @@
 var page = require('webpage').create();
 // var system = require('system');
-page.open('http://www.baidu.com', function () {
+page.open('http://bbs.tianya.cn', function () {
     page.includeJs("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js", function () {
         console.log("start.....");
         page.evaluate(function () {
@@ -20,9 +20,10 @@ page.open('http://www.baidu.com', function () {
                 }
             });
         });
-        console.log("HTML:");
         page.render('test.png');
-        // console.log(document.toSource());
+        console.log("title:");
+        console.log(document.title);
+        console.log(document.toSource());
         console.log("end.");
         phantom.exit();
     });
