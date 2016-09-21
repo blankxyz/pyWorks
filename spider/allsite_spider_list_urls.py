@@ -56,8 +56,8 @@ START_URLS = '''http://www.ynsf.ccoo.cn'''
 SITE_DOMAIN = '''ynsf.ccoo.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''\/$@/list-@-1.html@/^user/@/^username/@'''
-DETAIL_RULE_LIST = '''/post/.*?\d+x.html@/\d+.html@'''
+LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''
+DETAIL_RULE_LIST = '''/post-@thread@'''
 
 
 # spider-modify-end

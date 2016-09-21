@@ -10,8 +10,10 @@
     <hr>
     <div id="spider_server_div" class="form-group" style="width:98%; margin-left:20px">
         <form id="spider_server" method="POST" action="/task_manager_run_spider_server">
-            {{ outputForm.start_spider_server(class="btn btn-primary btn-default") }}&nbsp;
+            {{ outputForm.start_spider_server(class="btn btn-primary btn-default") }}
+            &nbsp;&nbsp;&nbsp;
             {{ outputForm.stop_spider_server(class="btn btn-primary btn-default") }}
+            <a href="list_detail_init" class="btn btn-primary btn-default" style="float:right">添加爬虫任务</a>
         </form>
     </div>
     <hr>

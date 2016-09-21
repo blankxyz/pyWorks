@@ -20,7 +20,7 @@
             {{ inputForm.black_domain_str.label }}&nbsp;
             {{ inputForm.black_domain_str(size=40,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
             {{ inputForm.mode() }}&nbsp;{{ inputForm.mode.label(for="mode",style="color:blue") }}&nbsp;&nbsp;&nbsp;
-{#            {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}&nbsp;&nbsp;&nbsp;#}
+            {#            {{ inputForm.hold() }}&nbsp;{{ inputForm.hold.label(for="hold") }}&nbsp;&nbsp;&nbsp;#}
             {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;
         </div>
         <hr>
@@ -54,11 +54,12 @@
                 </tbody>
             </table>
             <hr>
+            {{ inputForm.spider_run_mode }}
             {{ inputForm.show_max_result.label(style="float:left") }}
             {{ inputForm.show_max_result(style="float:left") }}
             {{ inputForm.list_or_detail(style="float:left") }}
             <button id="save_run" name="save_run" type="submit" href="#" style="float:right"
-                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-default">保存-执行
+                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-default">添加爬虫任务（debug）
             </button>
             {#{{ inputForm.save_run_detail(class="btn btn-info") }}#}
             {# {{ inputForm.save_run_list(class="btn btn-info") }}#}
@@ -154,10 +155,10 @@
             }
 
             if (patrn_list != "") {
-                patrn_list=patrn_list.substr(0, patrn_list.length - 1);
+                patrn_list = patrn_list.substr(0, patrn_list.length - 1);
             }
             if (patrn_detail != "") {
-                patrn_detail=patrn_detail.substr(0, patrn_detail.length - 1);
+                patrn_detail = patrn_detail.substr(0, patrn_detail.length - 1);
             }
 
             alert(patrn_list);

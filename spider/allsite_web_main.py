@@ -92,10 +92,9 @@ bootstrap = Bootstrap(app)
 api = Api(app)  # restful
 # CORS(app) #跨域请求
 
-global g_advice_regex_list  # 推荐所使用的 正则
+global g_advice_regex_list    # 推荐所使用的 正则
 global g_advice_keyword_list  # 推荐所使用的 关键字
-global g_start_url_list  # 推荐所使用的首页所有的url
-
+global g_start_url_list       # 推荐所使用的首页所有的url
 
 ######## setting_advice.html ##############################################################################
 class AdviceRegexForm(Form):  # advice_setting
@@ -180,6 +179,7 @@ class ListDetailRegexSettingForm(Form):  # setting
                                   default=(1000, u'1000页'))
     list_or_detail = RadioField(label=u'列表或详情', coerce=int, choices=[(0, u'列表'), (1, u'详情')], default=0,
                                 widget=BSListWidget())
+    spider_run_mode = ''  # 爬虫运行模式
     # save_run_list = SubmitField(label=u'保存-执行(列表页)')
     # save_run_detail = SubmitField(label=u'保存-执行(详情页)')
 
@@ -1152,7 +1152,7 @@ class TaskManager(object):
             print '[error]del_task() no found.', task_key
             return False
 
-    def kill_task(self, task_key):
+    def reset_task(self, task_key):
         # k = user_id + '@' + site_domain + '@' + spider_type
         if self.conn.exists(self.task_manager_key):
             if self.conn.hexists(self.task_manager_key, task_key):
@@ -1162,10 +1162,10 @@ class TaskManager(object):
                 # v = {'config_content': '', 'status': 'killed'}
                 # self.conn.hdel(self.task_manager_key, k)
                 self.conn.hset(self.task_manager_key, task_key, v)
-                print '[info]kill_task() ok.'
+                print '[info]reset_task() ok.'
                 return True
         else:
-            print '[error]kill_task() not found.', task_key
+            print '[error]reset_task() not found.', task_key
             return False
 
     # def complete_list(self):
@@ -1920,10 +1920,12 @@ def set_domain_init(inputForm, start_url, site_domain, black_domain_str):
     if start_url != '':
         if start_url[-1] == '/': start_url = start_url[:-1]
         session['start_url'] = start_url
+        session['start_url_draw'] = start_url
         inputForm.start_url.data = start_url
     if site_domain != '':
         if site_domain[-1] == '/': site_domain = site_domain[:-1]
         session['site_domain'] = site_domain
+        session['site_domain_draw'] = site_domain
         inputForm.site_domain.data = site_domain
     if black_domain_str != '':
         session['black_domain_str'] = black_domain_str
@@ -2381,6 +2383,11 @@ def list_detail_save_and_run():
     global process_id
     util = Util()
     inputForm = ListDetailRegexSettingForm(request.form)
+    if SPIDER_RUN_MODE == 'redis':  # redis 任务管理,后台启动run_allsite.py
+        inputForm.spider_run_mode = '任务管理'
+    else:
+        inputForm.spider_run_mode = 'debug'
+
     # if inputForm.validate_on_submit():
     # if request.method == 'POST' and inputForm.validate():
     start_url, site_domain, black_domain_str = get_domain_init(inputForm)
@@ -2793,13 +2800,12 @@ def diff_time(date1, date2):
 ######### show_process.html  #############################################################################
 @app.route('/show_process_init', methods=['GET', 'POST'])
 def show_process_init():
-    user_id = session['user_id']
     inputForm = ListDetailRegexSettingForm()
+    start_url_draw = session['start_url_draw']
+    site_domain_draw = session['site_domain_draw']
     # 提取主页、域名
-    mysql_db = MySqlDrive()
-    start_url, site_domain, black_domain = mysql_db.get_current_main_setting(user_id)
-    print '[info]show_process_init()', user_id, start_url, site_domain, black_domain
-    if start_url is None or start_url.strip() == '' or site_domain is None or site_domain.strip() == '':
+    if start_url_draw  is None or start_url_draw.strip() == '' or \
+                    site_domain_draw  is None or site_domain_draw.strip() == '':
         flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('show_process.html',
                                times=[],
@@ -2815,10 +2821,10 @@ def show_process_init():
                                velocity_list=[])
 
     # 从redis提取实时信息，转换成json文件
-    redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
+    redis_db = RedisDrive(start_url=start_url_draw, site_domain=site_domain_draw)
     redis_db.covert_redis_cnt_to_json()
 
-    collage = CollageProcessInfo(site_domain)
+    collage = CollageProcessInfo(site_domain_draw)
     times_list, unkown_cnt_list, detail_cnt_list, detail_done_cnt_list, list_cnt_list, list_done_cnt_list = \
         collage.convert_file_to_list()
 
@@ -2838,7 +2844,7 @@ def show_process_init():
 
     times = range(len(times_list))  # 转换成序列[1,2,3...], high-chart不识别时间
     # 将json映射到html
-    flash(u'每隔30秒刷新 ' + start_url + u' 的实时采集信息。', 'info')
+    flash(u'每隔30秒刷新 ' + start_url_draw + u' 的实时采集信息。', 'info')
     return render_template('show_process.html',
                            times=times,
                            total_cnt_list=total_cnt_list,
@@ -2941,15 +2947,16 @@ def show_process_clean_user_temp_data():
     return redirect(url_for('show_process_init'), 302)
 
 
-@app.route('/change_session', methods=['POST'])
-def change_session():
-    start_url = request.form['start_url']
-    site_domain = request.form['site_domain']
-    if start_url.strip() == '' or site_domain.strip() == '':
+@app.route('/change_for_draw', methods=['POST'])
+def change_for_draw():
+    start_url_draw = request.form['start_url']
+    site_domain_draw = request.form['site_domain']
+    if start_url_draw.strip() == '' or site_domain_draw.strip() == '':
         flash(u'请输入必要信息。', 'error')
     else:
-        session['start_url'] = request.form['start_url']
-        session['site_domain'] = request.form['site_domain']
+        session['start_url_draw'] = start_url_draw
+        session['site_domain_draw'] = site_domain_draw
+        print '[info]change_for_draw(). change to :', start_url_draw, site_domain_draw
         flash(u'session已经被更新。', 'info')
     return redirect(url_for('show_process_init'), 302)
 
@@ -3611,8 +3618,8 @@ class TaskManagerRestAPI(Resource):
         # spider_status = args['spider_status']
 
         task_mng = TaskManager()
-        if opt == 'kill':
-            task_mng.kill_task(task_key)
+        if opt == 'reset':
+            task_mng.reset_task(task_key)
 
         if opt == 'retry':
             task_mng.set_task_status(task_key, 'todo')
