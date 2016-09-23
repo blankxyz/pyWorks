@@ -2,7 +2,6 @@ var page = require('webpage').create();
 // var system = require('system');
 page.open('http://bbs.tianya.cn', function () {
     page.includeJs("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js", function () {
-        console.log("start.....");
         page.evaluate(function () {
             var patrn_rubbish = /uid|username|space|search|blog|group/;
             var patrn_detail = /post|thread|detail/;
@@ -20,11 +19,11 @@ page.open('http://bbs.tianya.cn', function () {
                 }
             });
         });
-        page.render('test.png');
-        console.log("title:");
-        console.log(document.title);
-        console.log(document.toSource());
-        console.log("end.");
+        var content = page.content;
+        // page.render('test.png');
+        // console.log("title:");
+        console.log(content);
+        // console.log("end.");
         phantom.exit();
     });
 });

@@ -2629,7 +2629,7 @@ def verify_regex():
     patrn_rubbish = request.args.get('patrn_rubbish')
     patrn_detail = request.args.get('patrn_detail')
     patrn_list = request.args.get('patrn_list')
-    if verify_url.strip() != '':
+    if verify_url.strip() != '': 
         resp = requests.head(verify_url)
         if resp.status_code == 200:
             print '[info]verify_regex() connect success.', verify_url

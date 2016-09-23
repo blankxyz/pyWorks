@@ -6,8 +6,12 @@ def match_page(url):
     else:
         cmd = '/Users/song/workspace/phantomjs/bin/phantomjs ./test.js "%s"' % url
     stdout, stderr = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    # fd = open('1.html','w')
+    # fd.write(stdout)
+    # fd.close()
     print stdout
-    print stderr
+    # print stderr
+    print 'end'
 
 if __name__ == '__main__':
     match_page('http://bbs.tianya.cn')
