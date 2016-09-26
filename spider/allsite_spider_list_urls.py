@@ -52,8 +52,8 @@ DEDUP_SERVER = '''redis://127.0.0.1/14'''
 
 MODE = '''exact'''
 
-START_URLS = '''http://www.ynsf.ccoo.cn'''
-SITE_DOMAIN = '''ynsf.ccoo.cn'''
+START_URLS = '''http://bbs.tianya.cn'''
+SITE_DOMAIN = '''bbs.tianya.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
 LIST_RULE_LIST = '''/list-@/hotArticle@\/$@forum@'''

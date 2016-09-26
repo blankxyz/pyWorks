@@ -1,23 +1,34 @@
 {
-  "manifest_version": 2,
-  "name": "allsite-debug",
-  "version": "1.0",
-  "description": "allsite-debug",
-  "icons": {
-    "16": "images/icon16.png",
-    "48": "images/icon48.png",
-    "128": "images/icon128.png"
-  },
-  "browser_action": {
-    "default_icon": {
-      "19": "images/icon19.png",
-      "38": "images/icon38.png"
+    "manifest_version": 2,
+    "name": "allsite-debug",
+    "version": "1.0",
+    "description": "allsite-debug",
+    "icons": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
     },
-    "default_title": "debug",
-    "default_popup": "popup.html"
-  },
-  "options_page": "options.html",
-  "permissions": [
-    "http://172.16.5.152:5000/getallregex"
-  ]
+    "browser_action": {
+        "default_icon": {
+            "19": "images/icon19.png",
+            "38": "images/icon38.png"
+        },
+        "default_title": "debug",
+        "default_popup": "popup.html"
+    },
+    "background": {
+        "scripts": [
+            "js/back.js"
+        ]
+    },
+    "content_scripts": [{
+        "matches": ["http://*/*", "https://*/*"],
+        "js": ["js/jquery.min.js","js/content.js"],
+        "run_at": "document_end",
+        "exclude_matches": ["http://172.16.5.152:5000/*"]
+    }],
+    "options_page": "options.html",
+    "permissions": [
+        "http://172.16.5.152:5000/regexs"
+    ]
 }

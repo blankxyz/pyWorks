@@ -92,9 +92,10 @@ bootstrap = Bootstrap(app)
 api = Api(app)  # restful
 # CORS(app) #跨域请求
 
-global g_advice_regex_list    # 推荐所使用的 正则
+global g_advice_regex_list  # 推荐所使用的 正则
 global g_advice_keyword_list  # 推荐所使用的 关键字
-global g_start_url_list       # 推荐所使用的首页所有的url
+global g_start_url_list  # 推荐所使用的首页所有的url
+
 
 ######## setting_advice.html ##############################################################################
 class AdviceRegexForm(Form):  # advice_setting
@@ -568,6 +569,7 @@ class MySqlDrive(object):
         start_url = ''
         site_domain = ''
         black_domain_str = ''
+        setting_json = ''
 
         sql_str = "SELECT start_url, site_domain, black_domain_str, setting_json FROM current_domain_setting WHERE user_id=%s"
         parameter = (user_id,)
@@ -581,7 +583,7 @@ class MySqlDrive(object):
         except Exception, e:
             print 'get_current_main_setting()', e
 
-        return start_url, site_domain, black_domain_str
+        return start_url, site_domain, black_domain_str, setting_json
 
     def set_current_main_setting(self, user_id='', start_url='', site_domain='', black_domain_str='', setting_json=''):
         # print 'set_current_main_setting() start'
@@ -2302,7 +2304,6 @@ def list_detail_init():
         inputForm.site_domain.data = site_domain
         inputForm.black_domain_str.data = black_domain_str
 
-
     redis_db = RedisDrive(start_url=start_url, site_domain=site_domain)
     #### 从MySql 设置/还原 redis 和 页面(详情页)
     detail_regexs = mysql_db.get_current_regexs('detail', user_id, start_url, site_domain, black_domain_str)
@@ -2490,7 +2491,8 @@ def list_detail_save_and_run():
             redis_db.conn.zadd(redis_db.manual_b_detail_rule_zset_key, w, item['regex'])
 
     #### 保存所有手工配置信息到MySql
-    setting_json = ''
+    # chrome extensions 使用的数据 setting_json
+    setting_json = json.dumps({'list_regexs': list_regex_save_list, 'detail_regexs': detail_regex_save_list})
     mysql_db = MySqlDrive()
     mysql_db.set_current_main_setting(user_id=user_id, start_url=start_url, site_domain=site_domain,
                                       black_domain_str=black_domain_str, setting_json=setting_json)
@@ -2806,8 +2808,8 @@ def show_process_init():
     start_url_draw = session['start_url_draw']
     site_domain_draw = session['site_domain_draw']
     # 提取主页、域名
-    if start_url_draw  is None or start_url_draw.strip() == '' or \
-                    site_domain_draw  is None or site_domain_draw.strip() == '':
+    if start_url_draw is None or start_url_draw.strip() == '' or \
+                    site_domain_draw is None or site_domain_draw.strip() == '':
         flash(u'请设置主页、限定的域名信息。', 'warning')
         return render_template('show_process.html',
                                times=[],
@@ -3507,11 +3509,14 @@ def is_regex_exist(regex, regex_type):
 class RegexCorrectRestAPI(Resource):
     def get(self, regex_type):
         msg = ''
-        args = parser.parse_args()
-        regex = args['regex']
-        if is_regex_exist(regex_type):
-            msg = u"{} 不存在。".format(regex)
-        return {'msg': msg}
+        # args = parser.parse_args()
+        # regex = args['regex']
+        user_id = session['user_id']
+        mysql_db = MySqlDrive()
+        ret = mysql_db.get_current_main_setting(user_id)
+        print '[info]RegexCorrectRestAPI() get()', ret
+        # return json.dumps(ret[3]) #setting_json
+        return ret[3]
 
     def delete(self, regex_type):
         # regex_type: "detail","list"
