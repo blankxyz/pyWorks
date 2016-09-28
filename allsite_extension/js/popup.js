@@ -4,7 +4,7 @@ var detail_regexs;
 function httpRequest(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             callback(xhr.responseText);
         }
@@ -43,21 +43,23 @@ function showRegexs(result) {
     // console.log(detail_regexs);
 }
 
-function getChangedRegexs(){
-
+function getChangedRegexs() {
+    var rows = document.getElementById('regexs_tab').rows;
+    console.log(rows.item(0));
 }
 
 function onlineRegexsChange(e) {
     console.log('onlineRegexsChange');
-    var message = { opt: "change", list_regexs: list_regexs, detail_regexs: detail_regexs };
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    var message = {opt: "change", list_regexs: list_regexs, detail_regexs: detail_regexs};
+    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
         for (var i = tabs.length - 1; i >= 0; i--) {
             chrome.tabs.sendMessage(tabs[0].id, message);
         }
     });
 }
 
-var url = 'http://172.16.5.152:5000/regexs/list';
+// var url = 'http://172.16.5.152:5000/regexs/list';
+var url = 'http://127.0.0.1:5000/regexs/list';
 httpRequest(url, showRegexs);
 
 document.body.onchange = onlineRegexsChange;
