@@ -2,20 +2,32 @@ var patrn_rubbish = /uid|username|space|search|blog|group/;
 var patrn_detail = /post|thread|detail/;
 var patrn_list = /list|index|forum|fid/;
 
+function is_list(url, rubbish_regexs, list_regexs, detail_regexs) {
+
+}
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    var list_regexs = request.list_regexs;
-    var detail_regexs = request.detail_regexs;
+    var regexs_list = new Array();
+    var regexs_detail = new Array();
 
-    console.log("recv:" + request.status);
+    console.log("request.opt:" + request.opt);
 
-    for (var i in list_regexs) {
-        console.log(list_regexs[i]);
+    for (var i in request.list_regexs) {
+        regexs_list.push(request.list_regexs[i].regex)
+            // console.log(request.list_regexs[i].regex);
     }
-    for (var i in detail_regexs) {
-        console.log(detail_regexs[i]);
+    for (var i in request.detail_regexs) {
+        regexs_detail.push(request.detail_regexs[i].regex)
+            // console.log(request.detail_regexs[i].regex);
     }
-    
-    if (request.status == "change") {
+
+    var patrn_rubbish = /uid|username|space|search|blog|group/;
+    var patrn_list = new RegExp("/" + regexs_list.join("|") + "/");
+    var patrn_detail = new RegExp("/" + regexs_detail.join("|") + "/");
+    console.log(patrn_list);
+    console.log(patrn_detail);
+
+    if (request.opt == "change") {
         $("a").each(function() {
             var link = $(this).attr("href");
             if (patrn_rubbish.exec(link)) {

@@ -17,7 +17,7 @@ function showRegexs(result) {
     list_regexs = JSON.parse(result).list_regexs;
     detail_regexs = JSON.parse(result).detail_regexs;
     // list_regexs= [{"regex":"list-","weight":"1"},{"regex":"index","weight":"1"},{"regex":"aaaa","weight":"1"}];
-    var table = '<table><tr><th>分类(列表/详情)</th><th>正则表达式</th><th>权重</th><th>采用</th></tr>';
+    var table = '<table id=regexs_tab><tr><th>分类(列表/详情)</th><th>正则表达式</th><th>权重</th><th>采用</th></tr>';
     for (var i in list_regexs) {
         table += '<tr>';
         table += '<td>列表</td>';
@@ -37,15 +37,19 @@ function showRegexs(result) {
     table += '</table>';
     document.getElementById('regexs').innerHTML = table;
 
-    localStorage.list_regexs = list_regexs;
-    localStorage.detail_regexs = detail_regexs;
-    console.log(list_regexs);
-    console.log(detail_regexs);
+    // localStorage.list_regexs = list_regexs;
+    // localStorage.detail_regexs = detail_regexs;
+    // console.log(list_regexs);
+    // console.log(detail_regexs);
 }
 
-function useFlgChange(e) {
-    console.log('send...');
-    var message = { status: "change", list_regexs: list_regexs, detail_regexs: detail_regexs };
+function getChangedRegexs(){
+
+}
+
+function onlineRegexsChange(e) {
+    console.log('onlineRegexsChange');
+    var message = { opt: "change", list_regexs: list_regexs, detail_regexs: detail_regexs };
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         for (var i = tabs.length - 1; i >= 0; i--) {
             chrome.tabs.sendMessage(tabs[0].id, message);
@@ -56,4 +60,4 @@ function useFlgChange(e) {
 var url = 'http://172.16.5.152:5000/regexs/list';
 httpRequest(url, showRegexs);
 
-document.body.onchange = useFlgChange;
+document.body.onchange = onlineRegexsChange;
