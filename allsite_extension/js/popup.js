@@ -4,7 +4,7 @@ var detail_regexs;
 function httpRequest(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             callback(xhr.responseText);
         }
@@ -20,7 +20,7 @@ function showRegexs(result) {
     var table = '<table id=regexs_tab><tr><th>分类(列表/详情)</th><th>正则表达式</th><th>权重</th><th>采用</th></tr>';
     for (var i in list_regexs) {
         table += '<tr>';
-        table += '<td>列表</td>';
+        table += '<td><input type=text size=2 value=list></td>';
         table += '<td><input type=text size=15 value=' + list_regexs[i].regex + '></td>';
         table += '<td><input type=text size=2 value=' + list_regexs[i].weight + '></td>';
         table += '<td>use</td>';
@@ -28,7 +28,7 @@ function showRegexs(result) {
     }
     for (var i in detail_regexs) {
         table += '<tr>';
-        table += '<td>详情</td>';
+        table += '<td><input type=text size=2 value=detail></td>';
         table += '<td><input type=text size=15 value=' + detail_regexs[i].regex + '></td>';
         table += '<td><input type=text size=2 value=' + detail_regexs[i].weight + '></td>';
         table += '<td>use</td>';
@@ -43,18 +43,53 @@ function showRegexs(result) {
     // console.log(detail_regexs);
 }
 
-function getChangedRegexs(){
+function getChangedRegexs() {
+    console.log('getChangedRegexs() start');
 
+    var regex_type = [];
+    $("#regexs_tab tr td:nth-child(1) input").each(function () {
+        regex_type.push($(this).val());
+    });
+    //console.log(regex_type);
+
+    var regexs = [];
+    $("#regexs_tab tr td:nth-child(2) input").each(function () {
+        regexs.push($(this).val());
+    });
+    var regexs_parten = regexs.join('|');
+    //console.log(regexs_parten);
+
+    var weight = [];
+    $("#regexs_tab tr td:nth-child(3) input").each(function () {
+        weight.push($(this).val());
+    });
+    //console.log(weight);
+
+    list_regexs = [];
+    detail_regexs = [];
+    for(var i=0; i<regex_type.length;i++){
+        if(regex_type[i]=='list'){
+            list_regexs.push({regex:regexs[i],weight:weight[i]});
+        }else{
+            detail_regexs.push({regex:regexs[i],weight:weight[i]});
+        }
+    }
+    console.log(list_regexs);
+    console.log(detail_regexs);
+    console.log('getChangedRegexs() end');
 }
 
 function onlineRegexsChange(e) {
     console.log('onlineRegexsChange');
-    var message = { opt: "change", list_regexs: list_regexs, detail_regexs: detail_regexs };
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    getChangedRegexs();
+    var message = {opt: "change", list_regexs: list_regexs, detail_regexs: detail_regexs};
+    console.log(message);
+    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
         for (var i = tabs.length - 1; i >= 0; i--) {
             chrome.tabs.sendMessage(tabs[0].id, message);
         }
     });
+
 }
 
 var url = 'http://172.16.5.152:5000/regexs/list';

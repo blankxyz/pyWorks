@@ -28,16 +28,21 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     console.log(patrn_detail);
 
     if (request.opt == "change") {
+        //window.location.reload();
         $("a").each(function() {
             var link = $(this).attr("href");
+            $(this).css({ "border-style": "solid", "border-color": "black" });
             if (patrn_rubbish.exec(link)) {
-                $(this).css({ "border-style": "solid", "border-color": "orange", "color": "orange" });
+                $(this).css({ "border-style": "solid", "border-color": "orange" });
+                //$(this).css({ "border-style": "solid", "border-color": "orange", "color": "orange" });
             }
             if (patrn_detail.exec(link)) {
-                $(this).css({ "border-style": "solid", "border-color": "green", "color": "green" });
+                $(this).css({ "border-style": "solid", "border-color": "green" });
+                //$(this).css({ "border-style": "solid", "border-color": "green", "color": "green" });
             }
             if (patrn_list.exec(link)) {
-                $(this).css({ "border-style": "solid", "border-color": "blue", "color": "blue" });
+                $(this).css({ "border-style": "solid", "border-color": "blue" });
+                //$(this).css({ "border-style": "solid", "border-color": "blue", "color": "blue" });
             }
         });
     }
