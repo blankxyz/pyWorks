@@ -36,34 +36,25 @@ function showRegexs(result) {
     }
     table += '</table>';
     document.getElementById('regexs').innerHTML = table;
-
-    // localStorage.list_regexs = list_regexs;
-    // localStorage.detail_regexs = detail_regexs;
-    // console.log(list_regexs);
-    // console.log(detail_regexs);
 }
 
 function getChangedRegexs() {
     console.log('getChangedRegexs() start');
-
     var regex_type = [];
     $("#regexs_tab tr td:nth-child(1) input").each(function () {
         regex_type.push($(this).val());
     });
-    //console.log(regex_type);
 
     var regexs = [];
     $("#regexs_tab tr td:nth-child(2) input").each(function () {
         regexs.push($(this).val());
     });
     var regexs_parten = regexs.join('|');
-    //console.log(regexs_parten);
 
     var weight = [];
     $("#regexs_tab tr td:nth-child(3) input").each(function () {
         weight.push($(this).val());
     });
-    //console.log(weight);
 
     list_regexs = [];
     detail_regexs = [];
@@ -89,7 +80,6 @@ function onlineRegexsChange(e) {
             chrome.tabs.sendMessage(tabs[0].id, message);
         }
     });
-
 }
 
 var url = 'http://172.16.5.152:5000/regexs/list';
