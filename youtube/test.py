@@ -8,8 +8,6 @@ import time
 import re
 
 try:
-    # you should read these from a config file
-    # conn = MySQLdb.connect(host='localhost', database='youtube', user='root', password='root')
     conn = MySQLdb.connect(host='localhost', user='root', passwd='root', port=3306, charset='utf8')
     conn.select_db('youtube')
     conn.autocommit = True
