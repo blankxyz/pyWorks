@@ -1,0 +1,275 @@
+D:\workspace\pyWorks\youtube>youtube-dl.exe "https://www.youtube.com/user/TEDtalksDirector/playlists" --get-title
+
+Architecture that's built to heal | Michael Murphy
+How Syria's architecture laid the foundation for brutal war | Marwa Al-Sabouni
+How architecture helped music evolve | David Byrne
+Alejandro Aravena: My architectural philosophy? Bring the community into the process
+David Rockwell: Building the Ground Zero viewing platform
+Alison Killing: There¡¯s a better way to die, and architecture can help
+Thomas Heatherwick: Building the Seed Cathedral
+How trees talk to each other | Suzanne Simard
+What are animals thinking and feeling? | Carl Safina
+Glow-in-the-dark sharks and other stunning sea creatures | David Gruber
+Nature is everywhere -- we just need to learn to see it | Emma Marris
+Tales of ice-bound wonderlands | Paul Nicklen
+The coolest animal you know nothing about ... and how we can save it | Patr¨ªcia Medici
+Dive into an ocean photographer's world | Thomas Peschak
+Hidden miracles of the natural world | Louie Schwartzberg
+The first 21 days of a bee¡¯s life | Anand Varma
+The secrets I find on the mysterious ocean floor | Laura Robinson
+What separates us from chimpanzees? | Jane Goodall
+Photos that give voice to the animal kingdom | Frans Lanting
+How yarn bombing grew into a worldwide movement | Magda Sayeg
+Steve Jurvetson: The joy of rockets
+Hunting for Peru's lost civilizations -- with satellites | Sarah Parcak
+Close-up card magic with a twist | Lennart Green
+My love letter to cosplay | Adam Savage
+The art of bow-making | Dong Woo Jang
+Jay Silver: Hack a banana, make a keyboard!
+My journey to yo-yo mastery | BLACK
+Michael Moschen: Juggling rhythm and motion
+The case for optimism on climate change | Al Gore
+What's wrong with what we eat | Mark Bittman
+How we can make crops survive without water | Jill Farrant
+A small country with big ideas to get rid of fossil fuels | Monica Araya
+How to grow fresh air | Kamal Meattle
+Greening the ghetto | Majora Carter
+New York -- before the City | Eric Sanderson
+Averting the climate crisis | Al Gore
+Stewart Brand: The dawn of de-extinction. Are you ready?
+Michael Archer: How we'll resurrect the gastric brooding frog, the Tasmanian tiger
+George Monbiot: For more wonder, rewild the world
+Hendrik Poinar: Bring back the woolly mammoth!
+The deadly genius of drug cartels | Rodrigo Canales
+The surprising way groups like ISIS stay in power | Benedetta Berti
+Misha Glenny investigates global crime networks
+Loretta Napoleoni: The intricate economics of terrorism
+Charmian Gooch: Meet global corruption's hidden players
+Colin Camerer: Neuroscience, game theory, monkeys
+The walk from "no" to "yes" | William Ury
+Sheena Iyengar: The art of choosing
+Jonas Gahr St?re: In defense of dialogue
+Why the Best Hire Might Not Have the Perfect Resume | Regina Hartley | TED Talks
+Why you should know how much your coworkers get paid | David Burkus
+The unexpected benefit of celebrating failure | Astro Teller
+Success, failure and the drive to keep creating | Elizabeth Gilbert
+Why you will fail to have a great career - Larry Smith
+Sarah Lewis: Embrace the near win
+Kathryn Schulz: Don't regret regret
+Tim Harford: Trial, error and the God complex
+Nathalie Cabrol: How Mars might hold the secret to the origin of life
+Charles Elachi: The story of the Mars Rovers
+Your kids might live on Mars. Here's how they'll survive | Stephen Petranek
+Let's not use Mars as a backup planet | Lucianne Walkowicz
+Joel Levine: Why we need to go back to Mars
+Why you should talk to strangers | Kio Stark
+How Airbnb designs for trust | Joe Gebbia
+The beauty of human skin in every color | Ang¨¦lica Dass
+A project of peace, painted across 50 buildings | eL Seed
+Hannah Brencher: Love letters to strangers
+Dave Isay: Everyone around you has a story the world needs to hear
+Maria Bezaitis: The surprising need for strangeness
+The art of asking | Amanda Palmer
+The secret US prisons you've never heard of before | Will Potter
+James Lyne: Everyday cybercrime -- and what you can do about it
+How reliable is your memory? | Elizabeth Loftus
+Hackers: the internet's immune system | Keren Elazari
+Exploring the mind of a killer | Jim Fallon
+How to rob a bank (from the inside, that is) | William Black
+How I named, shamed and jailed | Anas Aremeyaw Anas
+The reporting system that sexual assault survivors want | Jessica Ladd
+We need to talk about an injustice | Bryan Stevenson
+How I defend the rule of law | Kimberley Motley
+Ursus Wehrli: Tidying up art
+Chris Jordan: Turning powerful stats into art
+Every piece of art you've ever wanted to see -- up close and searchable | Amit Sood
+What I discovered in New York City trash | Robin Nagle
+Why city flags may be the worst-designed thing you've never noticed | Roman Mars
+The three ways that good design makes you happy | Don Norman
+How frustration can make us more creative | Tim Harford
+Why the universe seems so strange | Richard Dawkins
+Marcus du Sautoy: Symmetry, reality's riddle
+Sean Carroll: Distant time and the hint of a multiverse
+Emily Levine: A trickster's theory of everything
+Rives: The Museum of Four in the Morning
+What a planet needs to sustain life | Dave Brain
+Helder Guimar?es: A magical search for a coincidence
+The most mysterious star in the universe | Tabetha Boyajian
+How Quantum Biology Might Explain Life¡¯s Biggest Questions | Jim Al-Khalili | TED Talks
+Sheena Iyengar: The art of choosing
+What's so sexy about math? | C¨¦dric Villani
+How trees talk to each other | Suzanne Simard
+Every kid needs a champion | Rita Pierson
+Hunting for dinosaurs showed me our place in the universe | Kenneth Lacovara
+"To This Day" ... for the bullied and beautiful | Shane Koyczan
+Drawings that show the beauty and fragility of Earth | Zaria Forman
+Sarah Parcak: Archeology from space
+Will Potter: The shocking move to criminalize nonviolent protest
+The secret US prisons you've never heard of before | Will Potter
+Pirates, nurses and other rebel designers | Alice Rawsthorn
+How Quantum Biology Might Explain Life¡¯s Biggest Questions | Jim Al-Khalili | TED Talks
+Why some of us don't have one true calling | Emilie Wapnick
+Do schools kill creativity? | Sir Ken Robinson
+Why some of us don't have one true calling | Emilie Wapnick
+Teach girls bravery, not perfection | Reshma Saujani
+Our failing schools. Enough is enough! | Geoffrey Canada
+Every kid needs a champion | Rita Pierson
+Grit: the power of passion and perseverance | Angela Lee Duckworth
+How to escape education's death valley | Sir Ken Robinson
+Teach every child about food | Jamie Oliver
+Learn to read Chinese ... with ease! | ShaoLan
+Stuart Firestein: The pursuit of ignorance
+Naomi Oreskes: Why we should trust scientists
+Uri Alon: Why truly innovative science demands a leap into the unknown
+The spellbinding art of human anatomy | Vanessa Ruiz
+This scientist makes ears out of apples | Andrew Pelling
+Laura Snyder: The Philosophical Breakfast Club
+E.O. Wilson: Advice to young scientists
+Kary Mullis: Celebrating the scientific experiment
+Why some of us don't have one true calling | Emilie Wapnick
+How to find work you love | Scott Dinsmore
+The beauty of being a misfit | Lidia Yuknavitch
+Wisdom from great writers on every year of life | Joshua Prager
+Why we do what we do | Tony Robbins
+Cheryl Hayashi: The magnificence of spider silk
+Regina Dugan: From mach-20 glider to hummingbird drone
+Carl Schoonover: How to look inside the brain
+Emma Teeling: The secret of the bat genome
+Hadyn Parry: Re-engineering mosquitos to fight disease
+Deborah Gordon: What ants teach us about the brain, cancer and the Internet
+Robert Full: The secrets of nature's grossest creatures, channeled into robots
+Jaap de Roode: How butterflies self-medicate
+Design at the Intersection of Technology and Biology | Neri Oxman | TED Talks
+Robots that fly ... and cooperate | Vijay Kumar
+How great leaders inspire action | Simon Sinek
+Your body language shapes who you are | Amy Cuddy
+The puzzle of motivation | Dan Pink
+The happy secret to better work | Shawn Achor
+Secrets of success in 8 words, 3 minutes | Richard St. John
+The paradox of choice | Barry Schwartz
+Why we have too few women leaders | Sheryl Sandberg
+What makes us feel good about our work? | Dan Ariely
+Why work doesn't happen at work | Jason Fried
+Innovating to zero! | Bill Gates
+Susan Colantuono: The career advice you probably didn¡¯t get
+The mathematics of love | Hannah Fry
+Jean-Baptiste Michel: The mathematics of history
+How algorithms shape our world | Kevin Slavin
+The magic of Fibonacci numbers | Arthur Benjamin
+Sean Gourley on the mathematics of war
+Margaret Wertheim: The beautiful math of coral (and crochet)
+Ron Eglash: The fractals at the heart of African designs
+The math and magic of origami | Robert Lang
+Pico Iyer: The art of stillness
+Don't Ask Where I'm From, Ask Where I'm a Local | Taiye Selasi | TED Talks
+A Black Man in America's Whitest Towns | Rich Benjamin | TED Talks
+Dame Ellen MacArthur: The surprising thing I learned sailing solo around the world
+Aziz Abu Sarah: For more tolerance, we need more ... tourism?
+The danger of a single story | Chimamanda Ngozi Adichie
+Kitra Cahana: A glimpse of life on the road
+John Francis: I walk the Earth
+What does it mean to be a citizen of the world? | Hugh Evans
+How Airbnb designs for trust | Joe Gebbia
+My Year Reading a Book from Every Country in the World | Ann Morgan | TED Talks
+How young blood might help reverse aging. Yes, really | Tony Wyss-Coray
+How CRISPR lets us edit our DNA | Jennifer Doudna
+The moral dangers of non-lethal weapons | Stephen Coleman
+Should you be able to patent a human gene? | Tania Simoncelli
+The wonderful and terrifying implications of computers that can learn | Jeremy Howard
+Military robots and the future of war | P.W. Singer
+All your devices can be hacked - Avi Rubin
+What happens when our computers get smarter than we are? | Nick Bostrom
+How to read the genome and build a human being | Riccardo Sabatini
+James Watson: How we discovered DNA
+How CRISPR lets us edit our DNA | Jennifer Doudna
+Drew Berry: Animations of unseeable biology
+Barry Schuler: An introduction to genomics
+Spencer Wells: Building a family tree for all humanity
+We can reprogram life. How to do it wisely | Juan Enriquez
+The danger of silence | Clint Smith
+Teach girls bravery, not perfection | Reshma Saujani
+We need to talk about an injustice | Bryan Stevenson
+The danger of hiding who you are | Morgana Bailey
+The price of shame | Monica Lewinsky
+Color blind or color brave? | Mellody Hobson
+The laws that sex workers really want | Toni Mac
+LZ Granderson: The myth of the gay agenda
+Why we need gender-neutral bathrooms | Ivan Coyote
+The world needs all kinds of minds | Temple Grandin
+The most mysterious star in the universe | Tabetha Boyajian
+What the discovery of gravitational waves means | Allan Adams
+Janna Levin: The sound the universe makes
+What we can learn from galaxies far, far away - Henry Lin
+Lucianne Walkowicz: Finding planets around other stars
+How to control someone else's arm with your brain | Greg Gage
+Miguel Nicolelis: Brain-to-brain communication has arrived. How we did it
+A headset that reads your brainwaves | Tan Le
+Can we create new senses for humans? | David Eagleman
+Andres Lozano: Parkinson's, depression and the switch that might turn them off
+Todd Kuiken: A prosthetic arm that "feels"
+Why Brexit happened -- and what to do next | Alexander Betts
+A boat carrying 500 refugees sunk at sea. The story of two survivors | Melissa Fleming
+The surprising way groups like ISIS stay in power | Benedetta Berti
+Capitalism will eat democracy -- unless we speak up | Yanis Varoufakis
+How fear drives American politics | David Rothkopf | TED Talks
+We need to talk about an injustice | Bryan Stevenson
+How we'll fight the next deadly virus | Pardis Sabeti
+How young Africans found a voice on Twitter | Siyanda Mohutsiwa
+The real harm of the global arms trade | Samantha Nutt
+A Warrior¡¯s Cry Against Child Marriage | Memory Banda | TED Talks
+My Daughter, Malala | Ziauddin Yousafzai | TED Talks
+This is what it's like to go undercover in North Korea | Suki Kim
+Hidden Cameras Film Injustice in Dangerous Places | Oren Yakobovich | TED Talks
+How not to be ignorant about the world | Hans and Ola Rosling
+The deadly genius of drug cartels | Rodrigo Canales
+Dare to Educate Afghan Girls | Shabana Basij-Rasikh | TED Talks
+My escape from North Korea | Hyeonseo Lee
+I survived a terrorist attack. Here's what I learned | Gill Hicks
+Magical houses, made of bamboo | Elora Hardy
+How Syria's architecture laid the foundation for brutal war | Marwa Al-Sabouni
+What can we learn from shortcuts? | Tom Hulme
+Why great architecture should tell a story | Ole Scheeren
+Julian Treasure: Why architects need to use their ears
+Alejandro Aravena: My architectural philosophy? Bring the community into the process
+The best kindergarten you¡¯ve ever seen | Takaharu Tezuka
+Why the buildings of the future will be shaped by ... you | Marc Kushner
+Margaret Heffernan: Why it's time to forget the pecking order at work
+Dame Stephanie Shirley: Why do ambitious women have flat heads?
+Verna Myers: How to overcome our biases? Walk boldly toward them
+Why good leaders make you feel safe | Simon Sinek
+Why the Best Hire Might Not Have the Perfect Resume | Regina Hartley | TED Talks
+Susan Colantuono: The career advice you probably didn¡¯t get
+Jeff Smith: Lessons in business ... from prison
+Why we have too few women leaders | Sheryl Sandberg
+A brief history of melancholy - Courtney Stephens
+A-rhythm-etic. The math behind the beats - Clayton Cameron
+What we can learn from galaxies far, far away - Henry Lin
+What is the universe made of? - Dennis Wildfogel
+An athlete uses physics to shatter world records - Asaf Bar-Yosef
+Want to be an activist? Start with your toys - McKenna Pope
+My glacier cave discoveries - Eddy Cartaya
+Vampires: Folklore, fantasy and fact - Michael Molina
+Are Elvish, Klingon, Dothraki and Na'vi real languages? - John McWhorter
+Human sperm vs. the sperm whale - Aatish Bhatia
+Exploring other dimensions - Alex Rosenthal and George Zaidan
+How big is the ocean? - Scott Gass
+If superpowers were real: Immortality - Joy Lin
+Exciting news from TED-Ed...
+Dear Subscribers...
+Distorting Madonna in Medieval art - James Earle
+Why do competitors open their stores next to one another? - Jac de Haan
+Life of an astronaut - Jerry Carr
+What makes a hero? - Matthew Winkler
+A needle in countless haystacks: Finding habitable worlds - Ariel Anbar
+A glimpse of teenage life in ancient Rome - Ray Laurence
+What's invisible? More than you think - John Lloyd
+A clever way to estimate enormous numbers - Michael Mitchell
+Calculating The Odds of Intelligent Alien Life - Jill Tarter
+Deep ocean mysteries and wonders - David Gallo
+How big is infinity? - Dennis Wildfogel
+Music as a language - Victor Wooten
+We need to talk about an injustice | Bryan Stevenson
+ERROR: RhD_w7_7SWw: YouTube said: This video is no longer available because the YouTube account associated with this vid
+eo has been terminated.
+
+D:\workspace\pyWorks\youtube>

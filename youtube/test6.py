@@ -109,6 +109,7 @@ if __name__ == '__main__':
     api = YoutubeApi(api_key)
 
     print('Resolving user "{}" as a channel id...'.format(user))
+
     channel_id = api.get_channel_id(user)
     print('Got channel id {}'.format(channel_id))
 
@@ -118,8 +119,20 @@ if __name__ == '__main__':
 
     for playlist in playlists:
         playlist_dest = os.path.join(destination, playlist['name'])
-        print(playlist_dest)
+        print(playlist_dest) #.\Talks for when you want to start a new hobby
         call(['youtube-dl',
               '-o',
-              os.path.join(playlist_dest, '%(playlist_index)s - %(title)s-%(id)s.%(ext)s'),
+              os.path.join(playlist_dest, '%(playlist_index)s - %(title)s-%(view_count)s-%(id)s.%(ext)s'),
               playlist['id']])
+
+        call(['youtube-dl',
+              '--flat - playlist',
+              os.path.join(playlist_dest, '%(playlist_index)s - %(title)s-%(view_count)s-%(id)s.%(ext)s'),
+              playlist['id']])
+
+
+
+        #cmd:  python3 test6.py TEDtalksDirector
+# https://www.youtube.com/user/TEDtalksDirector/playlists
+# youtube-dl -- -wNyEUrxzFU
+# youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
