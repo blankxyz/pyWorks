@@ -20,3 +20,5 @@ http://jingyan.baidu.com/article/046a7b3eeccd6af9c37fa94a.html
 https://github.com/rg3/youtube-dl/#output-template
 
 https://github.com/jdupl/youtube-dl-channel
+
+https://zhimingwang.org/blog/2014-11-05-list-youtube-playlist-with-youtube-dl.html

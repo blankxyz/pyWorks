@@ -120,10 +120,10 @@ if __name__ == '__main__':
     for playlist in playlists:
         playlist_dest = os.path.join(destination, playlist['name'])
         print(playlist_dest) #.\Talks for when you want to start a new hobby
-        call(['youtube-dl',
-              '-o',
-              os.path.join(playlist_dest, '%(playlist_index)s - %(title)s-%(view_count)s-%(id)s.%(ext)s'),
-              playlist['id']])
+        # call(['youtube-dl',
+        #       '-o',
+        #       os.path.join(playlist_dest, '%(playlist_index)s - %(title)s-%(view_count)s-%(id)s.%(ext)s'),
+        #       playlist['id']])
 
         call(['youtube-dl',
               '--flat - playlist',
@@ -132,7 +132,10 @@ if __name__ == '__main__':
 
 
 
-        #cmd:  python3 test6.py TEDtalksDirector
+##################################################################
+#cmd:  python3 test6.py TEDtalksDirector
 # https://www.youtube.com/user/TEDtalksDirector/playlists
+# https://www.youtube.com/user/TEDtalksDirector
 # youtube-dl -- -wNyEUrxzFU
 # youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
+
