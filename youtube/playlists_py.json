@@ -1,38 +1,18 @@
-{
-  'name': 'Talks for when you want to start a new hobby', 'id': 'PLOGi5-fAu8bFdECryWVYxFiGZEQMLq3qb'
-},
+{'name': 'Talks for when you want to start a new hobby', 'id': 'PLOGi5-fAu8bFdECryWVYxFiGZEQMLq3qb'},
 {'name': 'The emotional impact of architecture ', 'id ': 'PLOGi5 - fAu8bGdg9T2ky9bz1KKcTwTmfZD '},
 {'name ': 'Is it time for de - extinction ? ', 'id ': 'PLOGi5 - fAu8bH84Xm_zLSKH98 - sSBJe9PH '},
 {'name ': 'The deadly genius of organized crime ', 'id ': 'PLOGi5 - fAu8bHLqZVMc5PRRfEcFjU2yh6V '},
 {'name ': 'Talks to help you negotiate ', 'id ': 'PLOGi5 - fAu8bH48RCyhcPiqC7e0WIREUEh '},
-{'name': 'The benefits of failure','id': 'PLOGi5-fAu8bGAlCPfcZb1tUFGymOeY9m1'},
+{'name': 'The benefits of failure', 'id': 'PLOGi5-fAu8bGAlCPfcZb1tUFGymOeY9m1'},
 {'name': "What's the big deal about Mars ? ", 'id': 'PLOGi5-fAu8bFPWgJG39RF_xshv2cVJ8j7'},
 {'name': 'The beauty of strangers', 'id': 'PLOGi5-fAu8bF22nt4QY4 p1PbuPxujMYGX '},
-{'name ': 'Talks
-for neat freaks ', '
-id ': '
-PLOGi5 - fAu8bFzqR8LRIjLe9ehUup5CApb '}, {'
-name ': '
-The stran
-geness of everyday life ', '
-id ': '
-PLOGi5 - fAu8bEZdgNl1TYssjmXrrbU3kIv '}, {'
-name ': '
-Talks to help you pick your major ',
-'id': 'PLOGi5-fAu8bFV-Tn5ykwBv3OZsai7VaZp'
-}, {
-'name': 'How scientists learn',
-'id': 'PLOGi5-fAu8bE48jFVwEYMu0zLDoeb
-TlGg '}, {'
-name ': '
-Understanding your inner potential ', '
-id ': '
-PLOGi5 - fAu8bFkzTIDgxljLEbCAyvzpyhB '}, {'
-name ': '
-Techno
-logy designed by nature ', '
-id ': '
-PLOGi5 - fAu8bFghCCtuQ_bn2RACflZJztx '}, {'
+{'name ': 'Talks for neat freaks ', 'id ': 'PLOGi5 - fAu8bFzqR8LRIjLe9ehUup5CApb '},
+{'name ': 'The stran geness of everyday life ', 'id ': 'PLOGi5 - fAu8bEZdgNl1TYssjmXrrbU3kIv '},
+{'name ': 'Talks to help you pick your major ','id': 'PLOGi5-fAu8bFV-Tn5ykwBv3OZsai7VaZp'},
+{'name': 'How scientists learn','id': 'PLOGi5-fAu8bE48jFVwEYMu0zLDoebTlGg '},
+{'name ': 'Understanding your inner potential ', 'id ': 'PLOGi5 - fAu8bFkzTIDgxljLEbCAyvzpyhB '},
+{'name ': 'Techno logy designed by nature ', 'id ': 'PLOGi5 - fAu8bFghCCtuQ_bn2RACflZJztx '},
+{'
 name ': '
 Math in unexpected places ', '
 id ': '
@@ -131,7 +111,8 @@ name ': '
 Business ', '
 id ':
 'PLOGi5-fAu8bFvyS3XtmQb2B-Mg4N_Eq4U'
-}, { 'name': 'Education', 'id': 'PLOGi5-fAu8bGiEvsxHyAvT8oIwkV8aOVk'}, {
+}, {'name': 'Education', 'id': 'PLOGi5-fAu8bGiEvsxHyAvT8oIwkV8aOVk'
+}, {
 'name': '
 Crime and punishment ', '
 id ': '
@@ -595,18 +576,7 @@ Gpo29_WQwMYKrljg7ECAl1 '}, {'
 name ': '
 TED - ED ', '
 id ': '
-PL2E1F56682B39C20E '}, {'
-name ': '
-Best of TEDxTalks ', '
-id ': '
-PL454
-A0274C1223C90 '}, {'
-name ': '
-The 20 Most - Watched TEDTalks ', '
-id ': '
-PL70DEC2B0568B5469 '}, {'
-name ': '
-Comedic Relief ', '
-i
-d ': '
-PLA593A7C45BDAD670 '}
+PL2E1F56682B39C20E '},
+{'name ': 'Best of TEDxTalks ', 'id ': 'PL454A0274C1223C90 '},
+{'name ': 'The 20 Most - Watched TEDTalks ', 'id ': 'PL70DEC2B0568B5469 '},
+{'name ': 'Comedic Relief ', 'id ': 'PLA593A7C45BDAD670 '}
