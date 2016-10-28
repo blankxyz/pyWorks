@@ -17,7 +17,7 @@ import os
 
 from subprocess import call
 
-
+# run python3
 class YoutubeApi:
     def __init__(self, api_key):
         self.api_key = api_key

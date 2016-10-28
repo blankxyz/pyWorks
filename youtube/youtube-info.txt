@@ -22,3 +22,7 @@ https://github.com/rg3/youtube-dl/#output-template
 https://github.com/jdupl/youtube-dl-channel
 
 https://zhimingwang.org/blog/2014-11-05-list-youtube-playlist-with-youtube-dl.html
+
+http://stackoverflow.com/questions/18054500/how-to-use-youtube-dl-from-a-python-program
+
+http://stackoverflow.com/questions/27473526/download-only-audio-from-youtube-video-using-youtube-dl-in-python-script
