@@ -220,6 +220,7 @@ def main2():
     keyword = 'china+beijing'
     for i in range(1, pages):
         # china+beijing&lclk=short&filters=short
+        # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
         print(i)
         html = keySearch.get_html("https://www.youtube.com/results?search_query=%s&page=%s" % (keyword, i))
         keySearch.get_video_id(html)

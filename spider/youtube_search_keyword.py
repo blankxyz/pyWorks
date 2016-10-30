@@ -23,7 +23,7 @@ class MySpider(spider.Spider):
         self.info_flag = "07"
 
         # 入口地址列表
-        self.start_urls = ['https://www.youtube.com/']
+        self.start_urls = ['https://www.youtube.com/results?search_query=lion&page=1']
         self.encoding = 'utf-8'
         # self.max_interval = None
 
@@ -31,7 +31,6 @@ class MySpider(spider.Spider):
         return self.start_urls
 
     def parse(self, response):
-
         url_list = []
         if response is not None:
             try:
@@ -42,18 +41,38 @@ class MySpider(spider.Spider):
                 print "parse(): %s" % e
                 return (url_list, None, None)
             purl = response.request.url
-            urls = data.xpathall('''//a[@id="pageLink"]''')
-            for url in urls:
-                p_url = url.xpath("//@href").text()
-                url = urljoin(purl, p_url)
-                url_list.append(url)
+            print purl
+
+            result_count_str = data.xpath(
+                '''//div[2]/div[4]/div/div[5]/div/div/div/div[1]/div/div[2]/div[1]/ol/li[1]/div/div[1]/div/p''')
+            cnt_str = result_count_str.text()
+            cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sfiltered results)"), cnt_str).group(2)
+            cnt_str = re.sub(r",", "", cnt_str)
+            cnt = int(cnt_str)
+            print cnt, cnt / 20
+
+            divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
+            for div in divs:
+                # print div.text(),'\n'
+                title = div.xpath('''//h3''').text()
+                video_href = div.xpath('''//h3/a/@href''').text()
+                video_id = re.match(re.compile(r"(/watch\?v\=)(.*)"), video_href).group(2)
+                channel = div.xpath('''//div[@class="yt-lockup-byline"]''').text()
+                views_cnt_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[last()]''').text()
+                views_cnt = re.match(re.compile(r"(.*)(\sview+)"), views_cnt_str).group(1)
+                views_cnt = re.sub(r",", "", views_cnt)
+                if views_cnt == 'No': views_cnt = 0
+                description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''').text()
+
+                print '[video_id]', video_id
+                print '[title]', title
+                print '[channel]', channel
+                print '[views_cnt]', views_cnt
+                print '[description]', description, '\n'
 
         return (url_list, None, None)
 
     def parse_detail_page(self, response=None, url=None):
-        '''''
-        详细页解析
-        '''
         try:
             response.encoding = self.encoding
             unicode_html_body = response.text
@@ -98,16 +117,21 @@ if __name__ == '__main__':
     #     print url
 
     # ------------ parse() ----------
-    # url = 'http://tieba.baidu.com/f?kw=%C4%CF%D1%F4'
-    # resp = spider.download(url)
-    # urls, fun, next_url = spider.parse(resp)
-    # for url in urls:
-    #     print url
-
-    # ------------ parse_detail_page() ----------
-    url = 'https://www.youtube.com/watch?v=smkyorC5qwc'
+    # china+beijing&lclk=short&filters=short
+    # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
+    # https://www.youtube.com/results?filters=video,today,short,4k&search_query=lion
+    # url = 'https://www.youtube.com/results?search_query=lion&page=1'
+    url = 'https://www.youtube.com/results?sp=CAISCAgBEAEYASAB&q=china'
     resp = spider.download(url)
-    res = spider.parse_detail_page(resp, url)
-    for item in res:
-        for k, v in item.iteritems():
-            print k, v
+    urls, fun, next_url = spider.parse(resp)
+    print len(urls)
+    for url in urls:
+        print url
+
+        # ------------ parse_detail_page() ----------
+        # url = 'https://www.youtube.com/results?search_query=lion'
+        # resp = spider.download(url)
+        # res = spider.parse_detail_page(resp, url)
+        # for item in res:
+        #     for k, v in item.iteritems():
+        #         print k, v
