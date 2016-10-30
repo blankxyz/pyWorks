@@ -30,6 +30,25 @@ class MySpider(spider.Spider):
     def get_start_urls(self, data=None):
         return self.start_urls
 
+    def time_convert(self, ago):
+        print ago
+        x = 3
+        ago_time = datetime.datetime.now()
+        if 'seconds' in ago:
+            ago_time = (datetime.datetime.now() - datetime.timedelta(seconds=x))
+        if 'minutes' in ago:
+            ago_time = (datetime.datetime.now() - datetime.timedelta(minutes=x))
+        if 'hours' in ago:
+            ago_time = (datetime.datetime.now() - datetime.timedelta(hours=x))
+        if 'days' in ago:
+            ago_time = (datetime.datetime.now() - datetime.timedelta(days=x))
+        # if 'months' in ago:
+        #     ago_time = (datetime.datetime.now() - datetime.timedelta(months=x))
+        # if 'years' in ago:
+        #     ago_time = (datetime.datetime.now() - datetime.timedelta(years=x))
+
+        return ago_time.strftime("%Y-%m-%d %H:%M:%S")
+
     def parse(self, response):
         url_list = []
         if response is not None:
@@ -56,8 +75,13 @@ class MySpider(spider.Spider):
                 # print div.text(),'\n'
                 title = div.xpath('''//h3''').text()
                 video_href = div.xpath('''//h3/a/@href''').text()
+                url_list.append('https://www.youtube.com' + video_href)
                 video_id = re.match(re.compile(r"(/watch\?v\=)(.*)"), video_href).group(2)
                 channel = div.xpath('''//div[@class="yt-lockup-byline"]''').text()
+
+                upload_time_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[1]''').text()
+                upload_time = self.time_convert(upload_time_str)
+
                 views_cnt_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[last()]''').text()
                 views_cnt = re.match(re.compile(r"(.*)(\sview+)"), views_cnt_str).group(1)
                 views_cnt = re.sub(r",", "", views_cnt)
@@ -67,6 +91,7 @@ class MySpider(spider.Spider):
                 print '[video_id]', video_id
                 print '[title]', title
                 print '[channel]', channel
+                print '[upload_time]', upload_time
                 print '[views_cnt]', views_cnt
                 print '[description]', description, '\n'
 
@@ -84,11 +109,11 @@ class MySpider(spider.Spider):
             url = response.request.url
 
         result = []
-        title = data.xpath('''//*[@id="eow-title"]''').text().strip()
+        div = data.xpath('''//div[#watch-header]''')
         source = self.siteName
 
-        views = data.xpath('''//*[@id="watch7-views-info"]/div[1]''').text().strip()
-        content = data.xpath('''//*[@id="watch-description-text"]''').text().strip()
+        views = div.xpath('''//div[@id="watch-view-count"]''').text().strip()
+        content = div.xpath('''//*[@id="watch-description-text"]''').text().strip()
         watch_time = '''//*[@id="watch-uploader-info"]/strong'''
 
         post = {'title': title,
