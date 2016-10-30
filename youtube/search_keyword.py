@@ -141,7 +141,8 @@ class KeywordSearch(object):
 
 class Channels(object):
     def __init__(self):
-        self.start_url = 'https://www.youtube.com/channels'
+        # self.start_url = 'https://www.youtube.com/channels'
+        self.start_url = 'https://www.youtube.com/results?search_query=lion'
 
     def header_maker(self):
         header = {'Proxy-Connection': 'keep-alive',
@@ -163,6 +164,8 @@ class Channels(object):
             return None
 
         soup = BeautifulSoup(data.content, 'lxml')
+        # print soup.prettify()
+
         # soup = BeautifulSoup(data, 'lxml')
         comments = soup.findAll(text=lambda text: isinstance(text, Comment))
         [comment.extract() for comment in comments]
@@ -174,12 +177,10 @@ class Channels(object):
         [foot.extract() for foot in soup(attrs={'class': 'bottom'})]
         [s.extract() for s in soup('style')]
 
-        # print soup.prettify()
-
         return soup
 
-    def get_channels(self):
-        channels_list = []
+    def get_video_info(self):
+        video_info_list = []
         soup = self.get_clean_soup(self.start_url)
         # page_data = urllib.urlopen(self.start_url).read()
         # soup = BeautifulSoup(page_data, 'lxml')
@@ -187,24 +188,21 @@ class Channels(object):
         if soup is None: return False
 
         # print soup.prettify()
-        # a_tags = soup.findAll('a')
-        # print 'a_tags:', a_tags
-        #
-        # for a_tag in a_tags:
-        #     channels_url = a_tag.get('href')
-        #     # print 'find:', channels_url
-        #
-        #     if '/channels/' in channels_url:
-        #         # print 'ok:', channels_url
-        #         channels_list.append(channels_url)
+        a_tags = soup.findAll('a', class_="yt-uix-tile-link")
+        print 'a_tags:', len(a_tags), a_tags
 
-        html = open('channels.html','r')
-        urllist = re.findall(re.compile(r"(href=\"/channels/).+?(?=\")"), html)
-        html.close()
-        print urllist
+        for a_tag in a_tags:
+            href = a_tag.get('href')
+            # print 'find:', channels_url
+            # < a href = "video_id=Y3JiCOzawYg&amp;"
+            # class ="yt-uix-sessionlink yt-uix-tile-link yt-ui-ellipsis yt-ui-ellipsis-2" data-url="video_id=Y3JiCOzawYg&amp;" title="Top 10 Creepy Creatures Fisherma..."> Top 10 Creepy Creatures Fisherma...< / a >
 
-        print channels_list
-        return list(set(channels_list))
+            if '/channels/' in href:
+                # print 'ok:', channels_url
+                video_info_list.append(href)
+
+        print video_info_list
+        return list(set(video_info_list))
 
     def get_channels2(self):
         html = urllib.urlopen(self.start_url).read()
@@ -232,7 +230,7 @@ def main2():
 
 def main():
     channels = Channels()
-    channels.get_channels()
+    channels.get_video_info()
 
 
 ##########################################################################################
