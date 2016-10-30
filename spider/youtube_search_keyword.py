@@ -55,6 +55,7 @@ class MySpider(spider.Spider):
             try:
                 response.encoding = self.encoding
                 unicode_html_body = response.text
+                print unicode_html_body
                 data = htmlparser.Parser(unicode_html_body)
             except Exception, e:
                 print "parse(): %s" % e
@@ -74,9 +75,11 @@ class MySpider(spider.Spider):
             for div in divs:
                 # print div.text(),'\n'
                 title = div.xpath('''//h3''').text()
+
                 video_href = div.xpath('''//h3/a/@href''').text()
                 url_list.append('https://www.youtube.com' + video_href)
                 video_id = re.match(re.compile(r"(/watch\?v\=)(.*)"), video_href).group(2)
+
                 channel = div.xpath('''//div[@class="yt-lockup-byline"]''').text()
 
                 upload_time_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[1]''').text()
@@ -86,6 +89,7 @@ class MySpider(spider.Spider):
                 views_cnt = re.match(re.compile(r"(.*)(\sview+)"), views_cnt_str).group(1)
                 views_cnt = re.sub(r",", "", views_cnt)
                 if views_cnt == 'No': views_cnt = 0
+
                 description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''').text()
 
                 print '[video_id]', video_id
@@ -146,17 +150,22 @@ if __name__ == '__main__':
     # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
     # https://www.youtube.com/results?filters=video,today,short,4k&search_query=lion
     # url = 'https://www.youtube.com/results?search_query=lion&page=1'
+    #urk= 'https://www.youtube.com/results?q=china&sp=CAMSAhAC' channel search
     url = 'https://www.youtube.com/results?sp=CAISCAgBEAEYASAB&q=china'
+    url = 'https://www.youtube.com/user/thefoodranger/videos'
+    more_url = 'https://www.youtube.com/browse_ajax?action_continuation=1&continuation=4qmFsgI8EhhVQ2lBcV9TVTBFRDFDNnZXRk1udzhFa2caIEVnWjJhV1JsYjNNZ0FEQUNPQUZnQVdvQWVnRXl1QUVB'
     resp = spider.download(url)
     urls, fun, next_url = spider.parse(resp)
     print len(urls)
     for url in urls:
         print url
 
-        # ------------ parse_detail_page() ----------
-        # url = 'https://www.youtube.com/results?search_query=lion'
-        # resp = spider.download(url)
-        # res = spider.parse_detail_page(resp, url)
-        # for item in res:
-        #     for k, v in item.iteritems():
-        #         print k, v
+
+    # ------------ parse_detail_page() ----------
+    # url = 'https://www.youtube.com/results?search_query=lion'
+    # resp = spider.download(url)
+    # res = spider.parse_detail_page(resp, url)
+    # for item in res:
+    #     for k, v in item.iteritems():
+    #         print k, v
+
