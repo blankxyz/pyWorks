@@ -55,7 +55,7 @@ class MySpider(spider.Spider):
             try:
                 response.encoding = self.encoding
                 unicode_html_body = response.text
-                print unicode_html_body
+                #print unicode_html_body
                 data = htmlparser.Parser(unicode_html_body)
             except Exception, e:
                 print "parse(): %s" % e
@@ -152,8 +152,8 @@ if __name__ == '__main__':
     # url = 'https://www.youtube.com/results?search_query=lion&page=1'
     #urk= 'https://www.youtube.com/results?q=china&sp=CAMSAhAC' channel search
     url = 'https://www.youtube.com/results?sp=CAISCAgBEAEYASAB&q=china'
-    url = 'https://www.youtube.com/user/thefoodranger/videos'
-    more_url = 'https://www.youtube.com/browse_ajax?action_continuation=1&continuation=4qmFsgI8EhhVQ2lBcV9TVTBFRDFDNnZXRk1udzhFa2caIEVnWjJhV1JsYjNNZ0FEQUNPQUZnQVdvQWVnRXl1QUVB'
+    #surl = 'https://www.youtube.com/user/thefoodranger/videos'
+    #more_url = 'https://www.youtube.com/browse_ajax?action_continuation=1&continuation=4qmFsgI8EhhVQ2lBcV9TVTBFRDFDNnZXRk1udzhFa2caIEVnWjJhV1JsYjNNZ0FEQUNPQUZnQVdvQWVnRXl1QUVB'
     resp = spider.download(url)
     urls, fun, next_url = spider.parse(resp)
     print len(urls)
