@@ -10,8 +10,6 @@ import json
 import urllib2
 from pprint import pprint
 
-channel = ''
-
 
 class MySpider(spider.Spider):
     def __init__(self,
@@ -21,14 +19,27 @@ class MySpider(spider.Spider):
                  cmd_args=None):
         spider.Spider.__init__(self, proxy_enable, proxy_max_num, timeout=timeout, cmd_args=cmd_args)
 
+        self.request_headers = {'headers':
+                                    {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                     'Accept-Encoding': 'gzip, deflate, br',
+                                     'Accept-Language': 'q=0.6,en-US;q=0.4,en;q=0.2',
+                                     'Connection': 'keep-alive',
+                                     'Cookie': 'PREF=f1=1&cvdm=list',
+                                     'Host': 'www.youtube.com',
+                                     'Upgrade-Insecure-Requests': '1',
+                                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
+                                     }
+                                }
+
         # 网站名称
         self.siteName = "youtube"
         self.site_domain = 'youtube.com'
+        self.channel = None
+        self.img_download = False
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "07"
-
         # 入口地址列表
-        self.start_urls = ['https://www.youtube.com/results?search_query=china&page=1']
+        self.start_urls = ['https://www.youtube.com']
         self.encoding = 'utf-8'
         # self.max_interval = None
 
@@ -38,65 +49,49 @@ class MySpider(spider.Spider):
     def get_videos_info(self, data):
         global channel
         post_list = []
-        # try:
-        #     imgs = data.xpathall('''//div[@class="yt-lockup-thumbnail"]/*/a/span/span/span/img/@src''')
-        #     for img in imgs:
-        #         # img_href = img.xpath('''/img/@src''').text()
-        #         img_href = img.text().strip()
-        #         print img_href
-        #         # img_id = img_href[len('https://i.ytimg.com/vi/'):len('https://i.ytimg.com/vi/') + len('aPmh2meR9vQ')]
-        #         # print img_id
-        #
-        #         # img_file = urllib2.urlopen(img_href)
-        #         # fd = open(img_id + '.jpg', 'wb')
-        #         # fd.write(img_file.read())
-        #         # fd.flush()
-        #         # fd.close()
-        # except Exception, e:
-        #     print "get_videos_info() imgs: %s" % e
 
         try:
-            divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
+            divs = data.xpathall('''//div[@class="feed-item-main-content"]''')
             for div in divs:
-                print div.text().strip(),'\n'
+                # print div.data,'\n'
                 title = div.xpath('''//h3''').text().strip()
 
                 video_href = div.xpath('''//h3/a/@href''').text().strip()
-                # print video_href
-                # video_id = re.match(re.compile(r"(/watch\?v\=)(.*)"), video_href).group(2)
+                video_id = re.match(re.compile(r"(/watch\?v\=)(.*)"), video_href).group(2)
 
-                # channel = div.xpath('''//div[@class="yt-lockup-byline"]''').text().strip()
+                img_href = data.xpath(
+                    '''//div[@class="yt-lockup-thumbnail"]/span[1]/a[1]/span[1]/span[1]/span[1]/img[1]/@data-thumb''').text().strip()
+                # print img_href
+                if self.img_download:
+                    img_file = urllib2.urlopen(img_href)
+                    fd = open('./youtube/img/' + video_id + '.jpg', 'wb')
+                    fd.write(img_file.read())
+                    fd.flush()
+                    fd.close()
 
-                # li[2]: upload_time
-                upload_time_str = div.xpath('''//div[@class="yt-lockup-meta"]/ul/li[2]''').text().strip()
-                # print upload_time_str
+                channel = self.channel
+
+                # upload_time
+                upload_time_str = div.xpath('''//div[@class="yt-lockup-meta"]/ul/li[1]''').text().strip()
                 # upload_time = self.time_convert(upload_time_str)
 
-                # li[1]:views
-                views_cnt = None
-                views_cnt_str = div.xpath('''//div[@class="yt-lockup-meta"]/ul/li[1]''').text().strip()
-                views_cnt = re.match(re.compile(r"(.+?)(\sview+)"), views_cnt_str).group(1)
-                views_cnt = re.sub(r",", "", views_cnt)
+                # views
+                views_cnt_str = div.xpath('''//div[@class="yt-lockup-meta"]/ul/li[last()]''').text().strip()
+                views_cnt = re.match(re.compile(r"(.+?)(\sview+)"), views_cnt_str)
+                views_cnt = re.sub(r",", "", views_cnt.group(1))
                 if views_cnt == 'No':
                     views_cnt = 0
 
                 # description
-                print div.xpath('''//div[2]''').text().strip()
-                description = div.xpath('''..//div[contains(@class,"yt-lockup-description")]''')
+                description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''')
                 if description._root is not None:
                     description = description.text().strip()
                 else:
-                    description = '-------------------'
+                    description = None
 
-                # print '[video_id]', video_id
-                # print '[title]', title
-                # print '[channel]', channel
-                # print '[upload_time]', upload_time_str
-                # print '[views_cnt]', views_cnt
-                # print '[description]', description, '\n'
-
-                post = {'video_id': url,
+                post = {'video_id': video_id,
                         'title': title,
+                        'img_href': img_href,
                         'description': description,
                         'views': views_cnt,
                         'gtime': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -104,7 +99,7 @@ class MySpider(spider.Spider):
                         'channel': channel,
                         'siteName': self.siteName
                         }
-                # print 'get_ajax_video_info():', post
+
                 post_list.append(post)
 
         except Exception, e:
@@ -119,7 +114,6 @@ class MySpider(spider.Spider):
             more_load_href = data.xpath('''//button[contains(@class,"load-more-button")]/@data-uix-load-more-href''')
             if more_load_href is not None:
                 next_url = more_load_href.text().strip()
-                # print 'get_ajax_next_href():', next_url
 
         except Exception, e:
             print "get_more_load_href(): %s" % e
@@ -127,48 +121,27 @@ class MySpider(spider.Spider):
         return next_url
 
     # # 解析静态html内容，获取各个video信息
-    # def parse_json_info(self, roll_more_href):
-    #     post_list = []
-    #     next_url = ''
-    #
-    #     resp = self.download('https://www.youtube.com' + roll_more_href)
-    #     json_load = json.loads(resp.text)
-    #     pprint(json_load)
-    #     # content_html
-    #     content_html = json_load['content_html']
-    #     if content_html != '':
-    #         data = htmlparser.Parser(content_html)
-    #         post_list = self.get_videos_info(data)
-    #
-    #     # load_more_widget_html
-    #     load_more_widget_html = json_load['load_more_widget_html']
-    #     if load_more_widget_html != '':
-    #         data = htmlparser.Parser(load_more_widget_html)
-    #         next_url = self.get_more_load_href(data)
-    #
-    #     return post_list, next_url
+    def parse_json_info(self, roll_more_href):
+        post_list = []
+        next_url = ''
 
-    # # 解析静态html内容，获取各个video信息
-    # def parse_user_videos_html(self, response):
-    #     post_list = []
-    #     next_url = ''
-    #
-    #     if response is not None:
-    #         try:
-    #             response.encoding = self.encoding
-    #             unicode_html_body = response.text
-    #             # print unicode_html_body
-    #             data = htmlparser.Parser(unicode_html_body)
-    #
-    #             post_list = self.get_videos_info(data)
-    #             next_url = self.get_more_load_href(data)
-    #
-    #         except Exception, e:
-    #             print "parse(): %s" % e
-    #
-    #     return post_list, next_url
+        resp = self.download('https://www.youtube.com' + roll_more_href)
+        json_load = json.loads(resp.text)
 
-    #
+        # content_html
+        content_html = json_load['content_html']
+        if content_html != '':
+            data = htmlparser.Parser(content_html)
+            post_list = self.get_videos_info(data)
+
+        # load_more_widget_html
+        load_more_widget_html = json_load['load_more_widget_html']
+        if load_more_widget_html != '':
+            data = htmlparser.Parser(load_more_widget_html)
+            next_url = self.get_more_load_href(data)
+
+        return post_list, next_url
+
     def parse(self, response):
         url_list = []
         post_list = []
@@ -182,38 +155,34 @@ class MySpider(spider.Spider):
                 unicode_html_body = response.text
                 # print unicode_html_body
                 data = htmlparser.Parser(unicode_html_body)
-                post_list = self.get_videos_info(data)
+                info_list = self.get_videos_info(data)
                 next_url = self.get_more_load_href(data)
-                print next_url
-                print len(post_list)
-                pprint(post_list)
+                post_list.extend(info_list)
+
+                if next_url != '':
+                    info_list, next_url = self.parse_json_info(next_url)
+                    post_list.extend(info_list)
+
+                    if next_url != '':
+                        info_list, next_url = self.parse_json_info(next_url)
+                        post_list.extend(info_list)
+                        #
+                        #         if next_url != '':
+                        #             info_list, next_url = self.parse_json_info(next_url)
+                        #             post_list.extend(info_list)
+                        #             # print len(post_list), next_url
 
             except Exception, e:
                 print "parse(): %s" % e
-
-        url_list.extend(post_list)
-
-        # if next_url != '':
-        #     post_list, next_url = self.parse_json_info(next_url)
-        #     url_list.extend(post_list)
-        #
-        #     print len(post_list), next_url
-        #
-        #     if next_url != '':
-        #         post_list, next_url = self.parse_json_info(next_url)
-        #         url_list.extend(post_list)
-        #         print len(post_list), next_url
-        #
-        #         if next_url != '':
-        #             post_list, next_url = self.parse_json_info(next_url)
-        #             url_list.extend(post_list)
-        #             print len(post_list), next_url
 
         # same both
         # roll_more_url = '/browse_ajax?action_continuation=1&continuation=4qmFsgJCEhhVQ3l6Ni10YW92bGFPa1BzUHRLNEtORWcaJkVnWjJhV1JsYjNNWUF5QUFNQUk0QVdBQmFnQjZBVEs0QVFBJTNE'
         # print roll_more_url
 
-        print 'url_list:', len(url_list), url_list
+        # print 'url_list:', len(url_list), url_list
+
+        pprint(post_list)
+        print len(post_list)
         return (url_list, None, None)
 
     # https://www.youtube.com/watch?v=D4VBS4OXsi0
@@ -255,6 +224,8 @@ if __name__ == '__main__':
     spider.proxy_enable = False
     spider.init_dedup()
     spider.init_downloader()
+    spider.channel = 'Goldman Sachs'
+    spider.img_download = True
 
     # ------------ get_start_urls() ----------
     # urls = spider.get_start_urls()
@@ -267,12 +238,8 @@ if __name__ == '__main__':
     click_more_url = '/browse_ajax?action_continuation=1&continuation=4qmFsgJCEhhVQ3l6Ni10YW92bGFPa1BzUHRLNEtORWcaJkVnWjJhV1JsYjNNWUF5QUFNQUk0QVdBQmFnQjZBVE80QVFBJTNE"'
     # url = 'https://www.youtube.com/user/GoldmanSachs/videos?view=0&sort=dd&live_view=500&flow=list'
     url = 'https://www.youtube.com/user/KPMGChinaHK/videos'  # 82个视频
-    channel = 'Goldman Sachs'
     resp = spider.download(url)
     urls, fun, next_url = spider.parse(resp)
-    # print len(urls)
-    # for url in urls:
-    # print url
 
 
     # ------------ parse_detail_page() ----------

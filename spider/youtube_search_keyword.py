@@ -75,10 +75,10 @@ class MySpider(spider.Spider):
             cnt_str = re.sub(r",", "", cnt_str)
             cnt = int(cnt_str)
             pages = (cnt / 20) + 1
-            print 'results and pages:', cnt, pages
+            # print 'results and pages:', cnt, pages
 
-            # divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
-            divs = data.xpathall('''//div[@class="yt-lockup-dismissable yt-uix-tile"]''')
+            divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
+            # divs = data.xpathall('''//div[@class="yt-lockup-dismissable yt-uix-tile"]''')
             # divs = data.xpathall('''//div[@id="results"]''')
             for div in divs:
                 # title
@@ -93,15 +93,17 @@ class MySpider(spider.Spider):
 
                 # thumb_img
                 # src="//i2.ytimg.com/vi/MXO7K76RRqg/mqdefault.jpg"
-                thumb_img_src = div.xpath('''//span[@class="yt-thumb-simple"]/img/@src''').text().strip()
+                thumb_img_src = None
+                # thumb_img_src = div.xpath('''//span[@class="yt-thumb-simple"]/img/@src''').text().strip()
                 #video_id
                 video_id = None
-                print thumb_img_src
-                (video_id, _, img_ext) = re.search(r'\/(.+?)\/(.+?)\.(.+?)$', thumb_img_src).groups()
-                print (video_id, _, img_ext)
+                # print thumb_img_src
+                # (video_id, _, img_ext) = re.search(r'\/(.+?)\/(.+?)\.(.+?)$', thumb_img_src).groups()
+                # print (video_id, _, img_ext)
                 # img_file_name = video_id + '.' + img_ext
 
-                thumb_img_url = 'https:' + thumb_img_src
+                thumb_img_url = None
+                # thumb_img_url = 'https:' + thumb_img_src
 
                 # fp = open('./youtube/img/' + img_file_name, 'wb')
                 # fp.write(urllib2.urlopen(thumb_img_url).read())
@@ -135,15 +137,9 @@ class MySpider(spider.Spider):
                         'siteName': self.siteName,
                         }
                 post_list.append(post)
-                # # print '[video_id]', video_id
-                # print '[title]', title
-                # print '[channel]', channel
-                # print '[upload_time]', upload_time
-                # print '[views_cnt]', views_cnt
-                # print '[description]', description, '\n'
 
-        # print len(post_list)
-        # pprint(post_list)
+        print len(post_list)
+        pprint(post_list)
 
         return (url_list, None, None)
 
