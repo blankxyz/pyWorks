@@ -64,7 +64,7 @@ class MySpider(spider.Spider):
                 print "parse(): %s" % e
                 return (url_list, None, None)
             purl = response.request.url
-            print purl
+            # print purl
 
             result_count_str = data.xpath(
                 '''//div[2]/div[4]/div/div[5]/div/div/div/div[1]/div/div[2]/div[1]/ol/li[1]/div/div[1]/div/p''')
@@ -77,15 +77,21 @@ class MySpider(spider.Spider):
             pages = (cnt / 20) + 1
             # print 'results and pages:', cnt, pages
 
-            divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
             # divs = data.xpathall('''//div[@class="yt-lockup-dismissable yt-uix-tile"]''')
             # divs = data.xpathall('''//div[@id="results"]''')
+            divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
             for div in divs:
-                # title
-                title = div.xpath('''//h3''').text().strip()
 
                 # channel
-                channel = div.xpath('''//div[@class="yt-lockup-byline"]''').text().strip()
+                xp = div.xpath('''//div[@class="yt-lockup-byline"]''')
+                s = xp.xpath('''//span''').text().strip()
+                if s == 'Ad':  # 去除广告
+                    continue
+                else:
+                    channel = xp.text().strip()
+
+                # title
+                title = div.xpath('''//h3''').text().strip()
 
                 # upload_time
                 upload_time_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[1]''').text().strip()
@@ -95,7 +101,7 @@ class MySpider(spider.Spider):
                 # src="//i2.ytimg.com/vi/MXO7K76RRqg/mqdefault.jpg"
                 thumb_img_src = None
                 # thumb_img_src = div.xpath('''//span[@class="yt-thumb-simple"]/img/@src''').text().strip()
-                #video_id
+                # video_id
                 video_id = None
                 # print thumb_img_src
                 # (video_id, _, img_ext) = re.search(r'\/(.+?)\/(.+?)\.(.+?)$', thumb_img_src).groups()
@@ -196,7 +202,7 @@ if __name__ == '__main__':
     # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
     # https://www.youtube.com/results?filters=video,today,short,4k&search_query=lion
     # url = 'https://www.youtube.com/results?search_query=lion&page=1'
-    url = 'https://www.youtube.com/results?sp=CAISAggC&q=china'  # ok
+    url = 'https://www.youtube.com/results?q=china&sp=CAMSAhAC'  # ok
     resp = spider.download(url)
     urls, fun, next_url = spider.parse(resp)
     # print len(urls)

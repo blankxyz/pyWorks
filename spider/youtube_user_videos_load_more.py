@@ -5,12 +5,48 @@ import setting
 import htmlparser
 import datetime
 import time, re
-from urlparse import urljoin
+import redis
 import json
 import urllib2
 from pprint import pprint
 
+REDIS_SERVER = 'redis://127.0.0.1/13'
 
+
+##################################################################################################
+class RedisDrive(object):
+    def __init__(self):
+        self.site_domain = 'youtube.com'
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.channel_zset_key = 'channel_zset_%s' % self.site_domain
+        self.video_info_hset_key = 'video_info_hset_%s' % self.site_domain
+        self.todo_flg = -1
+        self.start_flg = 0
+        self.done_video_info_flg = 1
+        self.done_subtitle_flg = 9
+
+    def get_todo_channels(self):
+        return self.conn.zrangebyscore(self.channel_zset_key, self.todo_flg, self.todo_flg, withscores=False)
+
+    def set_channel_start(self, channel):
+        return self.conn.zadd(self.channel_zset_key, self.start_flg, channel)
+
+    # def add_todo_keyword(self, keyword):
+    #     return self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword)
+
+    def add_channel(self, post):
+        return self.conn.zadd(self.channel_zset_key, self.todo_flg, post['channel_href'])
+
+    def set_video_info(self, channel_info, video_info):
+        self.conn.hset(self.video_info_hset_key, video_info['video_id'], video_info)
+        self.conn.zincrby(self.channel_zset_key, value=channel_info['channel_href'], amount=1)
+
+        # def set_info_done(self, video_id, post):
+        #     self.conn.hset(self.video_info_hset_key, video_id, post)
+        #     return self.conn.zadd(self.video_info_hset_key, self.done_video_info_flg, video_id)
+
+
+##################################################################################################
 class MySpider(spider.Spider):
     def __init__(self,
                  proxy_enable=setting.PROXY_ENABLE,
@@ -44,9 +80,14 @@ class MySpider(spider.Spider):
         # self.max_interval = None
 
     def get_start_urls(self, data=None):
+        redis_db = RedisDrive()
+        urls = redis_db.get_todo_channels()
+        for channel_href in urls:
+            url = 'https://www.youtube.com' + channel_href + '/videos'
+
         return self.start_urls
 
-    def get_videos_info(self, data):
+    def parse_content_html(self, data):
         global channel
         post_list = []
 
@@ -107,7 +148,7 @@ class MySpider(spider.Spider):
 
         return post_list
 
-    def get_more_load_href(self, data):
+    def parse_load_more_widget_html(self, data):
         next_url = ''
         try:
             # load more button
@@ -132,13 +173,13 @@ class MySpider(spider.Spider):
         content_html = json_load['content_html']
         if content_html != '':
             data = htmlparser.Parser(content_html)
-            post_list = self.get_videos_info(data)
+            post_list = self.parse_content_html(data)
 
         # load_more_widget_html
         load_more_widget_html = json_load['load_more_widget_html']
         if load_more_widget_html != '':
             data = htmlparser.Parser(load_more_widget_html)
-            next_url = self.get_more_load_href(data)
+            next_url = self.parse_load_more_widget_html(data)
 
         return post_list, next_url
 
@@ -155,8 +196,8 @@ class MySpider(spider.Spider):
                 unicode_html_body = response.text
                 # print unicode_html_body
                 data = htmlparser.Parser(unicode_html_body)
-                info_list = self.get_videos_info(data)
-                next_url = self.get_more_load_href(data)
+                info_list = self.parse_content_html(data)
+                next_url = self.parse_load_more_widget_html(data)
                 post_list.extend(info_list)
 
                 if next_url != '':
@@ -188,8 +229,8 @@ class MySpider(spider.Spider):
     # https://www.youtube.com/watch?v=D4VBS4OXsi0
     def parse_detail_page(self, response=None, url=None):
         try:
-            # response.encoding = self.encoding
-            # unicode_html_body = response.text
+            response.encoding = self.encoding
+            unicode_html_body = response.text
             data = htmlparser.Parser(unicode_html_body)
         except Exception, e:
             print "parse_detail_page(): %s" % e
@@ -210,7 +251,6 @@ class MySpider(spider.Spider):
                 'views': views,
                 'watch_time': watch_time,
                 'source': source,
-
                 'siteName': self.siteName,
                 'url': url,
                 }
@@ -219,33 +259,83 @@ class MySpider(spider.Spider):
         return result
 
 
+# ---------- test run function-----------------------------
+def test(unit_test):
+    if unit_test is False:  # spider simulation
+        print '[spider simulation] now starting ..........'
+        for cnt in range(1000):
+            print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
+            detail_job_list = []  # equal to run.py detail_job_queue
+
+            # ---equal to run.py get_detail_page_urls(spider, urls, func, detail_jo
+            def __detail_page_urls(urls, func):
+                next_page_url = None
+                if func is not None:
+                    if urls:
+                        for url in urls:
+                            try:
+                                response = mySpider.download(url)
+                                list_urls, callback, next_page_url = func(response)  # parse()
+                                for url in list_urls:
+                                    detail_job_list.append(url)
+                            except Exception, e:
+                                print '[ERROR] main() Exception: %s' % e
+                                list_urls, callback, next_page_url = [], None, None
+
+                            __detail_page_urls(list_urls, callback)
+
+                            if next_page_url is not None:
+                                print 'next_page_url'
+                                __detail_page_urls([next_page_url], func)
+
+            # --equal to run.py list_page_thread() -------------------------
+            mySpider = MySpider()
+            mySpider.proxy_enable = False
+            mySpider.init_dedup()
+            mySpider.init_downloader()
+            start_urls = mySpider.get_start_urls()  # get_start_urls()
+            __detail_page_urls(start_urls, mySpider.parse)  # parse()
+
+            # --equal to run.py detail_page_thread() -------------------------
+            for url in detail_job_list:
+                resp = mySpider.download(url)
+                ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
+                pprint(ret)
+                # for item in ret:
+                #     for k, v in item.iteritems():
+                #         print k, v
+
+    else:  # ---------- unit test -----------------------------
+        spider = MySpider()
+        spider.proxy_enable = False
+        spider.init_dedup()
+        spider.init_downloader()
+        spider.channel = 'Goldman Sachs'
+        spider.img_download = True
+
+        # ------------ get_start_urls() ----------
+        # urls = spider.get_start_urls()
+        # for url in urls:
+        #     print url
+
+        # ------------ parse() ----------
+        # <button class="yt-uix-button yt-uix-button-size-default yt-uix-button-default load-more-button yt-uix-load-more browse-items-load-more-button" data-uix-load-more-href =
+        roll_more_url = '/browse_ajax?action_continuation=1&continuation=4qmFsgJCEhhVQ3l6Ni10YW92bGFPa1BzUHRLNEtORWcaJkVnWjJhV1JsYjNNWUF5QUFNQUk0QVdBQmFnQjZBVEs0QVFBJTNE'
+        click_more_url = '/browse_ajax?action_continuation=1&continuation=4qmFsgJCEhhVQ3l6Ni10YW92bGFPa1BzUHRLNEtORWcaJkVnWjJhV1JsYjNNWUF5QUFNQUk0QVdBQmFnQjZBVE80QVFBJTNE"'
+        # url = 'https://www.youtube.com/user/GoldmanSachs/videos?view=0&sort=dd&live_view=500&flow=list'
+        url = 'https://www.youtube.com/user/KPMGChinaHK/videos'  # 82个视频
+        resp = spider.download(url)
+        urls, fun, next_url = spider.parse(resp)
+
+
+        # ------------ parse_detail_page() ----------
+        # url = 'https://www.youtube.com/results?search_query=lion'
+        # resp = spider.download(url)
+        # res = spider.parse_detail_page(resp, url)
+        # for item in res:
+        #     for k, v in item.iteritems():
+        #         print k, v
+
+
 if __name__ == '__main__':
-    spider = MySpider()
-    spider.proxy_enable = False
-    spider.init_dedup()
-    spider.init_downloader()
-    spider.channel = 'Goldman Sachs'
-    spider.img_download = True
-
-    # ------------ get_start_urls() ----------
-    # urls = spider.get_start_urls()
-    # for url in urls:
-    #     print url
-
-    # ------------ parse() ----------
-    # <button class="yt-uix-button yt-uix-button-size-default yt-uix-button-default load-more-button yt-uix-load-more browse-items-load-more-button" data-uix-load-more-href =
-    roll_more_url = '/browse_ajax?action_continuation=1&continuation=4qmFsgJCEhhVQ3l6Ni10YW92bGFPa1BzUHRLNEtORWcaJkVnWjJhV1JsYjNNWUF5QUFNQUk0QVdBQmFnQjZBVEs0QVFBJTNE'
-    click_more_url = '/browse_ajax?action_continuation=1&continuation=4qmFsgJCEhhVQ3l6Ni10YW92bGFPa1BzUHRLNEtORWcaJkVnWjJhV1JsYjNNWUF5QUFNQUk0QVdBQmFnQjZBVE80QVFBJTNE"'
-    # url = 'https://www.youtube.com/user/GoldmanSachs/videos?view=0&sort=dd&live_view=500&flow=list'
-    url = 'https://www.youtube.com/user/KPMGChinaHK/videos'  # 82个视频
-    resp = spider.download(url)
-    urls, fun, next_url = spider.parse(resp)
-
-
-    # ------------ parse_detail_page() ----------
-    # url = 'https://www.youtube.com/results?search_query=lion'
-    # resp = spider.download(url)
-    # res = spider.parse_detail_page(resp, url)
-    # for item in res:
-    #     for k, v in item.iteritems():
-    #         print k, v
+    test(unit_test=False)
