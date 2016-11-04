@@ -202,7 +202,7 @@ if __name__ == '__main__':
     # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
     # https://www.youtube.com/results?filters=video,today,short,4k&search_query=lion
     # url = 'https://www.youtube.com/results?search_query=lion&page=1'
-    url = 'https://www.youtube.com/results?q=china&sp=CAMSAhAC'  # ok
+    url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E4%B8%AD%E5%9B%BD%E9%93%B6%E8%A1%8C%E6%8A%95%E8%B5%84'  # ok
     resp = spider.download(url)
     urls, fun, next_url = spider.parse(resp)
     # print len(urls)
