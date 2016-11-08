@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 labels = []
 quants = []
 # Read data
-for line in file('E:\major_country_gdp'):
+for line in file('D:\\workspace\\pyWorks\\bugzilly\\mayalib\\major_country_gdp'):
     info = line.split()
     labels.append(info[0])
     quants.append(float(info[1]))
