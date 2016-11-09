@@ -57,7 +57,7 @@ class MySpider(spider.Spider):
     def get_start_urls(self, data=None):
         redis_db = RedisDrive()
         keywords = redis_db.get_todo_keywords_today()
-        for keyword in keywords[:100]:
+        for keyword in keywords:
             keyword = urllib2.quote(keyword)  # 达赖喇嘛
             url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=' + keyword
             self.start_urls.append(url)
@@ -83,6 +83,8 @@ class MySpider(spider.Spider):
 
         return ago_time.strftime("%Y-%m-%d %H:%M:%S")
 
+
+    # 根据检索结果，计算请求多少页合适。
     def parse(self, response):
         url_list = []
         if response is not None:
