@@ -92,8 +92,11 @@ class MySpider(spider.Spider):
 
         return ret_time.strftime("%Y-%m-%d %H:%M:%S")
 
-    # 不管检索结果，直接生成请求url（含页数）。
+
     def parse(self, response):
+        '''
+        不管检索结果，直接生成请求url（含页数）。
+        '''
         url_list = []
         redis_db = RedisDrive()
         todo_urls = redis_db.get_todo_url_today()
@@ -106,7 +109,6 @@ class MySpider(spider.Spider):
         return (url_list, None, None)
 
     # （例）https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E5%8D%81%E5%85%AB%E5%A4%A7%E5%85%AD%E4%B8%AD&page=11
-    # 解析
     def parse_detail_page(self, response=None, url=None):
         redis_db = RedisDrive()
         result = []
@@ -147,29 +149,23 @@ class MySpider(spider.Spider):
             if ad == 'Ad':  # 去除广告
                 continue
 
-            # channel
             # contains()：class中会有空格
             channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()
 
-            # title
             title = div.xpath('''//h3''').text().strip()
 
-            # upload_time
             upload_time_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[1]''').text().strip()
             upload_time = self.time_convert(upload_time_str)
 
-            # thumb_img
             thumb_img_src = div.xpath('''//span[contains(@class,"yt-thumb-simple")]/img/@src''').text().strip()
             # thumb_img_url = 'https:' + thumb_img_src
             # fp = open('./youtube/img/' + img_file_name, 'wb')
             # fp.write(urllib2.urlopen(thumb_img_url).read())
             # fp.close()
 
-            # video_id
             video_href = div.xpath('''//h3/a/@href''').text().strip()
             video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
 
-            # views
             views = None
             views_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[last()]''').text().strip()
             if views_str:
@@ -180,7 +176,6 @@ class MySpider(spider.Spider):
                     if views == 'No':
                         views = 0
 
-            # description
             description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''')
             if description._root is not None:
                 description = description.text().strip()
@@ -210,7 +205,7 @@ class MySpider(spider.Spider):
 
 # ---------- test run function-----------------------------
 def test(unit_test):
-    if unit_test is False:  # spider simulation
+    if not unit_test:  # spider simulation
         print '[spider simulation] now starting ..........'
         for cnt in range(1000):
             print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
