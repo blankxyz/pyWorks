@@ -81,6 +81,7 @@ class MySpider(spider.Spider):
         else:
             url_list.extend(todo_urls)
 
+        print 'parse()', len(url_list), url_list
         return (url_list, None, None)
 
     # （例）https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E5%8D%81%E5%85%AB%E5%A4%A7%E5%85%AD%E4%B8%AD&page=11
@@ -106,7 +107,7 @@ class MySpider(spider.Spider):
         # 查询结果无（0件）
         result_count_str = data.xpath(
             '''//div[2]/div[4]/div/div[5]/div/div/div/div[1]/div/div[2]/div[1]/ol/li[1]/div/div[1]/div/p''')
-        cnt_str = result_count_str.text()
+        cnt_str = result_count_str.text().strip()
         # print cnt_str
         cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sfiltered results)"), cnt_str).group(2)
         # cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sresults)"), cnt_str).group(2)
@@ -121,13 +122,13 @@ class MySpider(spider.Spider):
         # divs = data.xpathall('''//div[@id="results"]''')
         divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
         for div in divs:
-            # channel
-            xp = div.xpath('''//div[@class="yt-lockup-byline"]''')
-            ad = xp.xpath('''//span''').text().strip()
+            ad = div.xpath('''//div[@class="yt-lockup-byline"]/span[contains(@class,"yt-badge-ad")]''').text().strip()
             if ad == 'Ad':  # 去除广告
+                print 'ad:', ad
                 continue
-            else:
-                channel = xp.text().strip()
+
+            # channel
+            channel = div.xpath('''//div[@class="yt-lockup-byline"]/a''').text().strip()
 
             # title
             title = div.xpath('''//h3''').text().strip()
@@ -173,11 +174,11 @@ class MySpider(spider.Spider):
                 description = None
 
             video_info = {'info_flag': self.info_flag,
-                          'url': 'https:/www.youtube.com' + video_href,
+                          'url': 'https://www.youtube.com' + video_href,
                           'video_id': video_id,
                           'title': title,
                           'pic_urls': thumb_img_url,
-                          'video_urls': 'https:/www.youtube.com' + video_href,
+                          'video_urls': 'https://www.youtube.com' + video_href,
                           'content': description,
                           'visitCount': views,
                           'channel': channel,
@@ -245,9 +246,9 @@ def test(unit_test):
         spider.init_downloader()
 
         # ------------ get_start_urls() ----------
-        urls = spider.get_start_urls()
-        pprint(urls)
-        print(len(urls))
+        # urls = spider.get_start_urls()
+        # pprint(urls)
+        # print(len(urls))
 
         # ------------ parse() ----------
         # china+beijing&lclk=short&filters=short
@@ -264,14 +265,13 @@ def test(unit_test):
         # pprint(urls)
 
         # ------------ parse_detail_page() ----------
-        # url = 'https://www.youtube.com/watch?v=MXO7K76RRqg'
-        # url  ='https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E8%BE%BE%E8%B5%96%E5%96%87%E5%98%9B&page=1'
-        # resp = spider.download(url)
-        # res = spider.parse_detail_page(resp, url)
+        url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E5%8C%97%E4%BA%AC&page=1'
+        resp = spider.download(url)
+        res = spider.parse_detail_page(resp, url)
         # pprint(res)
-        # print len(res)
+        print len(res)
 
 
 if __name__ == '__main__':
-    # test(unit_test=True)
-    test(unit_test=False)
+    test(unit_test=True)
+    # test(unit_test=False)
