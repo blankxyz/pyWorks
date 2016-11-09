@@ -52,17 +52,17 @@ class MySpider(spider.Spider):
         self.start_urls = ['http://www.youtube.com']
         self.encoding = 'utf-8'
         # self.max_interval = None
-        # self.request_headers = {'headers':
-        #                             {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        #                              'Accept-Encoding': 'gzip, deflate, br',
-        #                              'Accept-Language': 'q=0.6,en-US;q=0.4,en;q=0.2',
-        #                              'Connection': 'keep-alive',
-        #                              'Cookie': 'PREF=f1=1&cvdm=list',
-        #                              'Host': 'www.youtube.com',
-        #                              'Upgrade-Insecure-Requests': '1',
-        #                              'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
-        #                              }
-        #                         }
+        self.request_headers = {'headers':
+                                    {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                     'Accept-Encoding': 'gzip, deflate, br',
+                                     'Accept-Language': 'q=0.6,en-US;q=0.4,en;q=0.2',
+                                     'Connection': 'keep-alive',
+                                     'Cookie': 'PREF=f1=1222&cvdm=list',
+                                     'Host': 'www.youtube.com',
+                                     'Upgrade-Insecure-Requests': '1',
+                                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
+                                     }
+                                }
 
     def get_start_urls(self, data=None):
         return self.start_urls
@@ -134,13 +134,13 @@ class MySpider(spider.Spider):
         divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
         for div in divs:
             # ad = div.xpath('''//div[@class="yt-lockup-byline"]/span[contains(@class,"yt-badge-ad")]''').text().strip()
-            ad = div.xpath('''//div[@class="yt-lockup-byline"]''').text().strip()
-            print 'ad:', ad
+            ad = div.xpath('''//span[contains(@class,"yt-badge-ad")]''').text().strip()
+            # print 'ad:', ad
             if ad == 'Ad':  # 去除广告
                 continue
 
             # channel
-            channel = div.xpath('''//div[@class="yt-lockup-byline"]/a''').text().strip()
+            channel = div.xpath('''//div[@class="yt-lockup-byline"]/a''').text()
 
             # title
             title = div.xpath('''//h3''').text().strip()
@@ -152,7 +152,7 @@ class MySpider(spider.Spider):
             # thumb_img
             # src="//i2.ytimg.com/vi/MXO7K76RRqg/mqdefault.jpg"
             thumb_img_src = None
-            # thumb_img_src = div.xpath('''//span[@class="yt-thumb-simple"]/img/@src''').text().strip()
+            thumb_img_src = div.xpath('''//span[@class="yt-thumb-simple"]/img/@src''').text().strip()
             # video_id
             video_href = div.xpath('''//h3/a/@href''').text().strip()
             video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
@@ -161,7 +161,7 @@ class MySpider(spider.Spider):
             # print (video_id, _, img_ext)
             # img_file_name = video_id + '.' + img_ext
 
-            thumb_img_url = None
+            # thumb_img_url = None
             # thumb_img_url = 'https:' + thumb_img_src
             # fp = open('./youtube/img/' + img_file_name, 'wb')
             # fp.write(urllib2.urlopen(thumb_img_url).read())
@@ -189,7 +189,7 @@ class MySpider(spider.Spider):
                           'url': 'https://www.youtube.com' + video_href,
                           'video_id': video_id,
                           'title': title,
-                          'pic_urls': thumb_img_url,
+                          'pic_urls': thumb_img_src,
                           'video_urls': 'https://www.youtube.com' + video_href,
                           'content': description,
                           'visitCount': views,
@@ -277,7 +277,8 @@ def test(unit_test):
         # pprint(urls)
 
         # ------------ parse_detail_page() ----------
-        url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=beijing&page=6'
+        # url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=beijing&page=6'
+        url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=beijing'
         resp = spider.download(url)
         res = spider.parse_detail_page(resp, url)
         pprint(res)
