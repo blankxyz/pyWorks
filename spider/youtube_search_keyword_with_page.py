@@ -67,20 +67,30 @@ class MySpider(spider.Spider):
     def get_start_urls(self, data=None):
         return self.start_urls
 
-    def time_convert(self, ago):
-        print ago
-        x = 1  # TODO
-        ago_time = datetime.datetime.now()
-        if 'seconds' in ago:
-            ago_time = (datetime.datetime.now() - datetime.timedelta(seconds=x))
-        if 'minutes' in ago:
-            ago_time = (datetime.datetime.now() - datetime.timedelta(minutes=x))
-        if 'hours' in ago:
-            ago_time = (datetime.datetime.now() - datetime.timedelta(hours=x))
-        if 'days' in ago:
-            ago_time = (datetime.datetime.now() - datetime.timedelta(days=x))
+    def time_convert(self, ago_time_str):
+        '''
+        Args:
+            ago_time_str: 例如：'1 hour ago' or '2 minutes ago'
+        Returns:
+            计算XX时间之前的结果
+            注意：英文中的复数形式匹配：结尾加s
+        '''
+        ret_time = datetime.datetime.now()
+        num_str = re.match(re.compile(r"(\d+)\s[a-zA-Z]+"), ago_time_str).group(1)
+        if ago_time_str is None:
+            return ret_time
 
-        return ago_time.strftime("%Y-%m-%d %H:%M:%S")
+        num = int(num_str)
+        if 'second' in ago_time_str:
+            ret_time = (ret_time - datetime.timedelta(seconds=num))
+        if 'minute' in ago_time_str:
+            ret_time = (ret_time - datetime.timedelta(minutes=num))
+        if 'hour' in ago_time_str:
+            ret_time = (ret_time - datetime.timedelta(hours=num))
+        if 'day' in ago_time_str:
+            ret_time = (ret_time - datetime.timedelta(days=num))
+
+        return ret_time.strftime("%Y-%m-%d %H:%M:%S")
 
     # 不管检索结果，直接生成请求url（含页数）。
     def parse(self, response):
@@ -138,31 +148,26 @@ class MySpider(spider.Spider):
                 continue
 
             # channel
-            # contains()：中会有时候会有空格
+            # contains()：class中会有空格
             channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()
 
             # title
             title = div.xpath('''//h3''').text().strip()
 
             # upload_time
-            upload_time_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[1]''').text().strip()
+            upload_time_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[1]''').text().strip()
             upload_time = self.time_convert(upload_time_str)
 
             # thumb_img
             thumb_img_src = div.xpath('''//span[contains(@class,"yt-thumb-simple")]/img/@src''').text().strip()
-
-            # video_id
-            video_href = div.xpath('''//h3/a/@href''').text().strip()
-            video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
-            # (video_id, _, img_ext) = re.search(r'\/(.+?)\/(.+?)\.(.+?)$', thumb_img_src).groups()
-            # print (video_id, _, img_ext)
-            # img_file_name = video_id + '.' + img_ext
-
-            # thumb_img_url = None
             # thumb_img_url = 'https:' + thumb_img_src
             # fp = open('./youtube/img/' + img_file_name, 'wb')
             # fp.write(urllib2.urlopen(thumb_img_url).read())
             # fp.close()
+
+            # video_id
+            video_href = div.xpath('''//h3/a/@href''').text().strip()
+            video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
 
             # views
             views = None
@@ -177,7 +182,7 @@ class MySpider(spider.Spider):
 
             # description
             description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''')
-            if description._root:
+            if description._root is not None:
                 description = description.text().strip()
             else:
                 description = ''
