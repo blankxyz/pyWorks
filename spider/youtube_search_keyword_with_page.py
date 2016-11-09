@@ -68,7 +68,7 @@ class MySpider(spider.Spider):
         return self.start_urls
 
     def time_convert(self, ago):
-        # print ago
+        print ago
         x = 1  # TODO
         ago_time = datetime.datetime.now()
         if 'seconds' in ago:
@@ -130,17 +130,16 @@ class MySpider(spider.Spider):
             return result
 
         # 查询结果有
-        # divs = data.xpathall('''//div[@id="results"]''')
-        divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
+        # divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
+        divs = data.xpathall('''//div[contains(@class,"yt-lockup-video")]''')
         for div in divs:
-            # ad = div.xpath('''//div[@class="yt-lockup-byline"]/span[contains(@class,"yt-badge-ad")]''').text().strip()
             ad = div.xpath('''//span[contains(@class,"yt-badge-ad")]''').text().strip()
-            # print 'ad:', ad
             if ad == 'Ad':  # 去除广告
                 continue
 
             # channel
-            channel = div.xpath('''//div[@class="yt-lockup-byline"]/a''').text()
+            # contains()：中会有时候会有空格
+            channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()
 
             # title
             title = div.xpath('''//h3''').text().strip()
@@ -150,13 +149,11 @@ class MySpider(spider.Spider):
             upload_time = self.time_convert(upload_time_str)
 
             # thumb_img
-            # src="//i2.ytimg.com/vi/MXO7K76RRqg/mqdefault.jpg"
-            thumb_img_src = None
-            thumb_img_src = div.xpath('''//span[@class="yt-thumb-simple"]/img/@src''').text().strip()
+            thumb_img_src = div.xpath('''//span[contains(@class,"yt-thumb-simple")]/img/@src''').text().strip()
+
             # video_id
             video_href = div.xpath('''//h3/a/@href''').text().strip()
             video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
-            # print thumb_img_src
             # (video_id, _, img_ext) = re.search(r'\/(.+?)\/(.+?)\.(.+?)$', thumb_img_src).groups()
             # print (video_id, _, img_ext)
             # img_file_name = video_id + '.' + img_ext
@@ -169,7 +166,7 @@ class MySpider(spider.Spider):
 
             # views
             views = None
-            views_str = div.xpath('''//div[@class="yt-lockup-meta"]/*/li[last()]''').text().strip()
+            views_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[last()]''').text().strip()
             if views_str:
                 views = re.match(re.compile(r"(.*)(\sview+)"), views_str)
                 if views:
@@ -180,10 +177,10 @@ class MySpider(spider.Spider):
 
             # description
             description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''')
-            if description._root is not None:
+            if description._root:
                 description = description.text().strip()
             else:
-                description = None
+                description = ''
 
             video_info = {'info_flag': self.info_flag,
                           'url': 'https://www.youtube.com' + video_href,
