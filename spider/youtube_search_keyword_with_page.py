@@ -52,6 +52,17 @@ class MySpider(spider.Spider):
         self.start_urls = ['http://www.youtube.com']
         self.encoding = 'utf-8'
         # self.max_interval = None
+        # self.request_headers = {'headers':
+        #                             {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        #                              'Accept-Encoding': 'gzip, deflate, br',
+        #                              'Accept-Language': 'q=0.6,en-US;q=0.4,en;q=0.2',
+        #                              'Connection': 'keep-alive',
+        #                              'Cookie': 'PREF=f1=1&cvdm=list',
+        #                              'Host': 'www.youtube.com',
+        #                              'Upgrade-Insecure-Requests': '1',
+        #                              'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
+        #                              }
+        #                         }
 
     def get_start_urls(self, data=None):
         return self.start_urls
@@ -122,9 +133,10 @@ class MySpider(spider.Spider):
         # divs = data.xpathall('''//div[@id="results"]''')
         divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
         for div in divs:
-            ad = div.xpath('''//div[@class="yt-lockup-byline"]/span[contains(@class,"yt-badge-ad")]''').text().strip()
+            # ad = div.xpath('''//div[@class="yt-lockup-byline"]/span[contains(@class,"yt-badge-ad")]''').text().strip()
+            ad = div.xpath('''//div[@class="yt-lockup-byline"]''').text().strip()
+            print 'ad:', ad
             if ad == 'Ad':  # 去除广告
-                print 'ad:', ad
                 continue
 
             # channel
@@ -265,10 +277,10 @@ def test(unit_test):
         # pprint(urls)
 
         # ------------ parse_detail_page() ----------
-        url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E5%8C%97%E4%BA%AC&page=1'
+        url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=beijing&page=6'
         resp = spider.download(url)
         res = spider.parse_detail_page(resp, url)
-        # pprint(res)
+        pprint(res)
         print len(res)
 
 
