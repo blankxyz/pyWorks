@@ -311,7 +311,7 @@ def test(unit_test):
         spider.init_dedup()
         spider.init_downloader()
         spider.channel = 'Goldman Sachs'
-        spider.img_download = True
+        spider.img_download = False
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()
@@ -338,4 +338,4 @@ def test(unit_test):
 
 
 if __name__ == '__main__':
-    test(unit_test=False)
+    test(unit_test=True)

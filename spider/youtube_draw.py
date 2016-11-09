@@ -44,25 +44,26 @@ def draw():
     y = []
     redis_db = RedisDrive()
     keywords = redis_db.conn.zrangebyscore(
-        redis_db.keyword_today_zset_key, min=-1, max=9999999999999999, withscores=True)
+        redis_db.keyword_today_zset_key, min=1, max=9999999999999999, withscores=True)
 
-    sorted(keywords, key=lambda w: w[1])
-    print keywords[54000:]
+    # sorted(keywords, key=lambda w: w[1])
+    # print keywords[54000:]
 
     for keyword, cnt in dict(keywords).iteritems():
         y.append(cnt)
 
-    # y.sort()
-    # print y[54000:]
+    y.sort()
+    print len(y)
+    print y[54000:]
 
     z = []
     for i in y:
         z.append(int(i))
 
-    print z[54000:]
+    # print z[54000:]
 
-    plt.plot(x, z)
-    plt.show()
+    # plt.plot(x, y)
+    # plt.show()
 
     # print(redis_db.conn.zrevrangebyscore(redis_db.keyword_today_zset_key, min=40000, max=9999999999999999, withscores=True))
 
