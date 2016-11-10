@@ -76,19 +76,20 @@ class MySpider(spider.Spider):
             注意：英文中的复数形式匹配：结尾加s
         '''
         ret_time = datetime.datetime.now()
-        num_str = re.match(re.compile(r"(\d+)\s[a-zA-Z]+"), ago_time_str).group(1)
         if ago_time_str is None:
             return ret_time
 
-        num = int(num_str)
-        if 'second' in ago_time_str:
-            ret_time = (ret_time - datetime.timedelta(seconds=num))
-        if 'minute' in ago_time_str:
-            ret_time = (ret_time - datetime.timedelta(minutes=num))
-        if 'hour' in ago_time_str:
-            ret_time = (ret_time - datetime.timedelta(hours=num))
-        if 'day' in ago_time_str:
-            ret_time = (ret_time - datetime.timedelta(days=num))
+        num_str = re.match(re.compile(r"(\d+)\s[a-zA-Z]+"), ago_time_str)
+        if num_str:
+            num = int(num_str.group(1))
+            if 'second' in ago_time_str:
+                ret_time = (ret_time - datetime.timedelta(seconds=num))
+            if 'minute' in ago_time_str:
+                ret_time = (ret_time - datetime.timedelta(minutes=num))
+            if 'hour' in ago_time_str:
+                ret_time = (ret_time - datetime.timedelta(hours=num))
+            if 'day' in ago_time_str:
+                ret_time = (ret_time - datetime.timedelta(days=num))
 
         return ret_time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -161,7 +162,7 @@ class MySpider(spider.Spider):
             # thumb_img_url = 'https:' + thumb_img_src
             # fp = open('./youtube/img/' + img_file_name, 'wb')
             # fp.write(urllib2.urlopen(thumb_img_url).read())
-            # fp.close()
+            # fp.close() 
 
             video_href = div.xpath('''//h3/a/@href''').text().strip()
             video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
