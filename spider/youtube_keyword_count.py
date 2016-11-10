@@ -21,8 +21,6 @@ class RedisDrive(object):
         self.keyword_today_zset_key = 'keyword_today_zset_%s' % self.site_domain
         self.keyword_hour_zset_key = 'keyword_hour_zset_%s' % self.site_domain
         self.keyword_zset_key = 'keyword_zset_%s' % self.site_domain
-        self.search_today_url_zset_key = 'search_today_url_zset_%s' % self.site_domain
-        self.search_hour_url_zset_key = 'search_hour_url_zset_%s' % self.site_domain
         self.channel_zset_key = 'channel_zset_%s' % self.site_domain
         self.channel_info_hset_key = 'channel_info_hset_%s' % self.site_domain
         self.todo_flg = -1
@@ -30,20 +28,16 @@ class RedisDrive(object):
         self.done_video_info_flg = 1
         self.done_sbutitle_flg = 9
 
-    def copy_keywords(self, keyword):
-        # self.conn.zadd(self.keyword_today_zset_key, self.todo_flg, keyword)
+    def copy_keywords_to_redis(self, keyword):
+        self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword)
         # self.conn.zadd(self.keyword_hour_zset_key, self.todo_flg, keyword)
-        # self.conn.zadd('test', self.todo_flg, keyword)
-        for i in range(1, 51): # page:1-50
-            search_today_url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=' + urllib2.quote(keyword) + '&page=%d' % i
-            self.conn.zadd(self.search_today_url_zset_key, self.todo_flg, search_today_url)
 
     def create_redis_keywords(self):
         fd = open('./youtube/keyword_news.txt', 'r')
         keywords = fd.readlines()
         fd.close()
         for keyword in keywords:
-            self.copy_keywords(keyword)
+            self.copy_keywords_to_redis(keyword)
 
     def set_keyword_today_cnt(self, keyword, cnt):
         return self.conn.zadd(self.keyword_today_zset_key, cnt, keyword)

@@ -1,37 +1,18 @@
 #!/usr/bin/python
 # coding=utf-8
-import spider
-import setting
-import htmlparser
 import datetime
-import time, re
-from urlparse import urljoin
+import re
 import urllib2
 from pprint import pprint
 import redis
+import setting
+import htmlparser
+import spider
 
 REDIS_SERVER = 'redis://127.0.0.1/13'
 
-
-##################################################################################################
-class RedisDrive(object):
-    def __init__(self):
-        self.site_domain = 'youtube.com'
-        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.search_today_url_zset_key = 'search_today_url_zset_%s' % self.site_domain
-        # self.search_hour_url_zset_key = 'search_hour_url_zset_%s' % self.site_domain
-        self.video_info_hset_key = 'video_info_hset_%s' % self.site_domain
-        self.todo_flg = -1
-        self.start_flg = 0
-
-    def get_todo_url_today(self):
-        return self.conn.zrangebyscore(self.search_today_url_zset_key, self.todo_flg, self.todo_flg, withscores=False)
-
-    def set_url_today_result_cnt(self, url, result_cnt):
-        self.conn.zadd(self.search_today_url_zset_key, result_cnt, url)
-
-    def set_video_info(self, video_info):
-        self.conn.hset(self.video_info_hset_key, video_info['video_id'], video_info)
+# Filters: 1)Upload date: today  2)Sort by: Upload date
+PRE_SEARCH_URL = 'https://www.youtube.com/results?sp=CAISAggC&q='
 
 
 class MySpider(spider.Spider):
@@ -45,6 +26,7 @@ class MySpider(spider.Spider):
         # 网站名称
         self.siteName = "youtube"
         self.site_domain = 'youtube.com'
+
         # 类别码，01新闻、02论坛、03博客、04微博 05平媒 06微信  07 视频、99搜索引擎
         self.info_flag = "07"
 
@@ -63,6 +45,12 @@ class MySpider(spider.Spider):
                                      'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
                                      }
                                 }
+        # redis配置
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.keyword_zset_key = 'keyword_zset_%s' % self.site_domain
+        self.video_info_hset_key = 'video_info_hset_%s' % self.site_domain
+        self.todo_flg = -1
+        self.start_flg = 0
 
     def get_start_urls(self, data=None):
         return self.start_urls
@@ -70,7 +58,7 @@ class MySpider(spider.Spider):
     def time_convert(self, ago_time_str):
         '''
         Args:
-            ago_time_str: 例如：'1 hour ago' or '2 minutes ago'
+            ago_time_str: 例：'1 hour ago' or '2 minutes ago'
         Returns:
             计算XX时间之前的结果
             注意：英文中的复数形式匹配：结尾加s
@@ -93,25 +81,28 @@ class MySpider(spider.Spider):
 
         return ret_time.strftime("%Y-%m-%d %H:%M:%S")
 
-
     def parse(self, response):
         '''
         不管检索结果，直接生成请求url（含页数）。
         '''
-        url_list = []
-        redis_db = RedisDrive()
-        todo_urls = redis_db.get_todo_url_today()
-        if len(todo_urls) > 100:
-            url_list.extend(todo_urls[:100])
-        else:
-            url_list.extend(todo_urls)
+        urls = []
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, self.todo_flg, self.todo_flg,
+                                           withscores=False)
+        if keywords:
+            keyword = keywords[0]
+            for i in range(1, 51):
+                url = PRE_SEARCH_URL + keyword + '&page=%d' % i
+                urls.append(url)
 
-        print 'parse()', len(url_list), url_list
-        return (url_list, None, None)
+            self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
 
-    # （例）https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E5%8D%81%E5%85%AB%E5%A4%A7%E5%85%AD%E4%B8%AD&page=11
+        # print 'parse()', len(urls), urls
+        return (urls, None, None)
+
     def parse_detail_page(self, response=None, url=None):
-        redis_db = RedisDrive()
+        '''
+        单页（page=xx）请求结果为：'No more results'时，设置keyword标示为0
+        '''
         result = []
         if response is None:
             print "parse_detail_page(): response is None"
@@ -123,35 +114,22 @@ class MySpider(spider.Spider):
             # print unicode_html_body
             data = htmlparser.Parser(unicode_html_body)
         except Exception, e:
-            print "parse_detail_page(): %s" % e
+            print "parse_detail_page(): error: %s" % e
             return (result, None, None)
 
         req_url = response.request.url
+        keyword = req_url[len(PRE_SEARCH_URL):]
+        keyword = re.match(re.compile(r"(.*)(&page=\d+)"), keyword).group(1)
+        keyword = urllib2.unquote(keyword)
 
-        # 查询结果无（0件）
-        result_count_str = data.xpath(
-            '''//div[2]/div[4]/div/div[5]/div/div/div/div[1]/div/div[2]/div[1]/ol/li[1]/div/div[1]/div/p''')
-        cnt_str = result_count_str.text().strip()
-        # print cnt_str
-        cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sfiltered results)"), cnt_str).group(2)
-        # cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sresults)"), cnt_str).group(2)
-        cnt_str = re.sub(r",", "", cnt_str)
-        cnt = int(cnt_str)
-        if cnt == 0:
-            print "parse_detail_page(): not found"
-            redis_db.set_url_today_result_cnt(req_url, cnt)
-            return result
-
-        # 查询结果有
-        # divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
+        # 需要包含各个视频信息左侧的图片div
         divs = data.xpathall('''//div[contains(@class,"yt-lockup-video")]''')
         for div in divs:
             ad = div.xpath('''//span[contains(@class,"yt-badge-ad")]''').text().strip()
             if ad == 'Ad':  # 去除广告
                 continue
 
-            # contains()：class中会有空格
-            channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()
+            channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()  # class中会有空格
 
             title = div.xpath('''//h3''').text().strip()
 
@@ -159,10 +137,6 @@ class MySpider(spider.Spider):
             upload_time = self.time_convert(upload_time_str)
 
             thumb_img_src = div.xpath('''//span[contains(@class,"yt-thumb-simple")]/img/@src''').text().strip()
-            # thumb_img_url = 'https:' + thumb_img_src
-            # fp = open('./youtube/img/' + img_file_name, 'wb')
-            # fp.write(urllib2.urlopen(thumb_img_url).read())
-            # fp.close() 
 
             video_href = div.xpath('''//h3/a/@href''').text().strip()
             video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
@@ -197,14 +171,14 @@ class MySpider(spider.Spider):
                           'siteName': self.siteName,
                           }
 
-            redis_db.set_video_info(video_info)
+            self.conn.hset(self.video_info_hset_key, video_info['video_id'], video_info)
             result.append(video_info)
 
-        redis_db.set_url_today_result_cnt(req_url, len(result))
+        self.conn.zincrby(self.keyword_zset_key, value=keyword, amount=len(result))
         return result
 
 
-# ---------- test run function-----------------------------
+# ----------函数调用或模拟spider测试-----------------------------
 def test(unit_test):
     if not unit_test:  # spider simulation
         print '[spider simulation] now starting ..........'
@@ -255,6 +229,8 @@ def test(unit_test):
         spider.init_dedup()
         spider.init_downloader()
 
+        spider.conn.zadd(spider.keyword_zset_key, spider.todo_flg, u'北京')
+
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()
         # pprint(urls)
@@ -264,7 +240,6 @@ def test(unit_test):
         # china+beijing&lclk=short&filters=short
         # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
         # https://www.youtube.com/results?filters=video,today,short,4k&search_query=lion
-        # url = 'https://www.youtube.com/results?search_query=lion&page=1'
         # url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E4%B8%AD%E5%9B%BD%E9%93%B6%E8%A1%8C%E6%8A%95%E8%B5%84'  # today: sp=EgIIAg%253D%253D
         # keyword = urllib2.quote('达赖喇嘛')  # 达赖喇嘛
         # url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=' + keyword
@@ -276,13 +251,13 @@ def test(unit_test):
 
         # ------------ parse_detail_page() ----------
         # url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=beijing&page=6'
-        url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=beijing'
-        resp = spider.download(url)
-        res = spider.parse_detail_page(resp, url)
-        pprint(res)
-        print len(res)
+        # url = PRE_SEARCH_URL + '北京' + '&page=6'
+        # resp = spider.download(url)
+        # res = spider.parse_detail_page(resp, url)
+        # pprint(res)
+        # print len(res)
 
 
 if __name__ == '__main__':
-    test(unit_test=True)
-    # test(unit_test=False)
+    # test(unit_test=True)
+    test(unit_test=False)
