@@ -9,8 +9,6 @@ import setting
 import htmlparser
 import spider
 
-REDIS_SERVER = 'redis://127.0.0.1/13'
-
 # Filters: 1)Upload date: today  2)Sort by: Upload date
 PRE_SEARCH_URL = 'https://www.youtube.com/results?sp=CAISAggC&q='
 
@@ -46,9 +44,10 @@ class MySpider(spider.Spider):
                                      }
                                 }
         # redis配置
-        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.keyword_zset_key = 'keyword_zset_%s' % self.site_domain
-        self.video_info_hset_key = 'video_info_hset_%s' % self.site_domain
+        # self.conn = redis.StrictRedis.from_url('redis://127.0.0.1/13')
+        self.conn = redis.StrictRedis(host='47.88.34.218', port='6378', password='Zhxg-2016', db=0)
+        self.keyword_zset_key = '%s_keyword_zset' % self.siteName
+        self.video_info_hset_key = '%s_video_info_hset' % self.siteName
         self.todo_flg = -1
         self.start_flg = 0
 
@@ -160,12 +159,12 @@ class MySpider(spider.Spider):
             video_info = {'info_flag': self.info_flag,
                           'url': 'https://www.youtube.com' + video_href,
                           'video_id': video_id,
-                          'title': title,
+                          'title': title.decode('utf8'),
                           'pic_urls': thumb_img_src,
                           'video_urls': 'https://www.youtube.com' + video_href,
-                          'content': description,
+                          'content': description.decode('utf8'),
                           'visitCount': views,
-                          'channel': channel,
+                          'channel': channel.decode('utf8'),
                           'ctime': upload_time,
                           'site_domain': self.site_domain,
                           'siteName': self.siteName,
@@ -173,6 +172,7 @@ class MySpider(spider.Spider):
 
             self.conn.hset(self.video_info_hset_key, video_info['video_id'], video_info)
             result.append(video_info)
+            pprint(result)
 
         self.conn.zincrby(self.keyword_zset_key, value=keyword, amount=len(result))
         return result
@@ -229,7 +229,7 @@ def test(unit_test):
         spider.init_dedup()
         spider.init_downloader()
 
-        spider.conn.zadd(spider.keyword_zset_key, spider.todo_flg, u'北京')
+        # spider.conn.zadd(spider.keyword_zset_key, spider.todo_flg, u'北京')
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()
