@@ -1,44 +1,31 @@
-import tornado.httpserver
+import tornado
 import tornado.ioloop
-import tornado.options
-import tornado.web
+import tornado.gen
+import tornado.httpclient
+import pycurl
 
-import pymongo
 
-from tornado.options import define, options
-define("port", default=8000, help="run on the given port", type=int)
+def prepare_curl_socks5(curl):
+    curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
 
-class Application(tornado.web.Application):
-    def __init__(self):
-        handlers = [(r"/(\w+)", WordHandler)]
-        conn = pymongo.MongoClient("localhost", 27017)
-        self.db = conn["definitions"]
-        tornado.web.Application.__init__(self, handlers, debug=True)
 
-class WordHandler(tornado.web.RequestHandler):
-    def get(self, word):
-        coll = self.application.db.words
-        word_doc = coll.find_one({"word": word})
-        if word_doc:
-            del word_doc["_id"]
-            self.write(word_doc)
-        else:
-            self.set_status(404)
-    def post(self, word):
-        definition = self.get_argument("definition")
-        coll = self.application.db.words
-        word_doc = coll.find_one({"word": word})
-        if word_doc:
-            word_doc['definition'] = definition
-            coll.save(word_doc)
-        else:
-            word_doc = {'word': word, 'definition': definition}
-            coll.insert(word_doc)
-        del word_doc["_id"]
-        self.write(word_doc)
+@tornado.gen.coroutine
+def main():
+    # set CurlAsyncHTTPClient the default AsyncHTTPClient
+    tornado.httpclient.AsyncHTTPClient.configure(
+        "tornado.curl_httpclient.CurlAsyncHTTPClient")
 
-if __name__ == "__main__":
-    tornado.options.parse_command_line()
-    http_server = tornado.httpserver.HTTPServer(Application())
-    http_server.listen(options.port)
-    tornado.ioloop.IOLoop.instance().start()
+    http_client = tornado.httpclient.AsyncHTTPClient()
+    http_request = tornado.httpclient.HTTPRequest(
+        "http://www.youtube.com",
+        prepare_curl_callback=prepare_curl_socks5,
+        proxy_host="localhost",
+        proxy_port=1080
+    )
+    response = yield http_client.fetch(http_request)
+
+    print response.body
+
+
+if __name__ == '__main__':
+    tornado.ioloop.IOLoop.instance().run_sync(main)
