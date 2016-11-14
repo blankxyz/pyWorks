@@ -1,3 +1,5 @@
+--debug 20
+
 now: 2016-11-14 23:13:33
 done/total: 40 / 54445
 videos cnt / score summy: 1418 / 1432
@@ -13,3 +15,11 @@ videos cnt / score summy: 28260 / 36484
 now: 2016-11-14 23:52:26
 done/total: 11628 / 54445
 videos cnt / score summy: 35459 / 49688
+
+now: 2016-11-15 00:03:02
+done/total: 16159 / 54445
+videos cnt / score summy: 39529 / 56485
+
+now: 2016-11-15 00:12:46
+done/total: 20190 / 54445
+videos cnt / score summy: 44160 / 63349

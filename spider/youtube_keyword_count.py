@@ -153,16 +153,18 @@ def test(unit_test):
 
 
     else:  # ---------- unit test -----------------------------
-        print 'now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         spider = MySpider()
         spider.proxy_enable = False
         spider.init_dedup()
         spider.init_downloader()
 
         # spider.create_redis_keywords()
-
-        print 'done/total:', (spider.get_all_keywords_cnt() - len(spider.get_todo_keywords())), '/', spider.get_all_keywords_cnt()
-        print 'videos cnt / score summy:', spider.get_videos_cnt(), '/', spider.get_keywords_score_summy()
+        for i in range(100):
+            print 'now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print 'done/total:', (spider.get_all_keywords_cnt() - len(spider.get_todo_keywords())), '/', spider.get_all_keywords_cnt()
+            print 'videos cnt / score summy:', spider.get_videos_cnt(), '/', spider.get_keywords_score_summy()
+            print '---------------------------------------------'
+            time.sleep(5*60)
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()
