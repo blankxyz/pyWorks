@@ -25,10 +25,13 @@ def get_encoding(page):
     # Try any declared encodings
     if len(declared_encodings) > 0:
         for declared_encoding in declared_encodings:
+            #pangwei add on 2015-12-16 begin
+            return custom_decode(declared_encoding)
+            #pangwei add on 2015-12-16 end
             try:
                 page.decode(custom_decode(declared_encoding))
                 return custom_decode(declared_encoding)
-            except UnicodeDecodeError:
+            except UnicodeDecodeError, e:
                 pass
 
     # Fallback to chardet if declared encodings fail
@@ -66,6 +69,9 @@ if __name__ == '__main__':
     
     url = 'http://hkstock.cnfol.com/gangguzixun/20131230/16609624.shtml'
     url = 'http://tieba.baidu.com/p/3446306916'
+    url = 'http://news.chinabyte.com/188/13642188.shtml'
+    url = 'http://www.smxdaily.com.cn/html/show/cc948806-769c-4109-874f-9c189343c2cf.html'
+
     resp = requests.get(url)
     encoding = get_encoding(resp.content)
     print "--encoding: ", encoding

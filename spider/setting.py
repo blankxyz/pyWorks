@@ -88,7 +88,7 @@ CRAWLER_LIST_DATA = config.get('data_db', 'crawler_list_data')
 try:
     CONFIG_MONITOR_DATA_DB = config.get('data_db', 'config_monitor_data_db')
 except:
-    CONFIG_MONITOR_DATA_DB = 'mongodb://192.168.85.36:27019/config_run_status.config_status'
+    CONFIG_MONITOR_DATA_DB = 'mongodb://mongo-weibo-1.istarshine.net.cn:37017/config_run_status.config_status'
 #duanyifei add end on 2016-05-26
 
 #pangwei add begin on 2016-03-14

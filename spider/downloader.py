@@ -285,11 +285,11 @@ class Downloader(object):
                 r = self.session.request(default_method, url, **kwargs)
 
                 if r.status_code not in (200, 404, 410):
-                    log.logger.warning(u"调试信息 下载返回码 %s  请注意"%util.BB(r.status_code))
+                    log.logger.warning(u"调试信息 下载返回码 %s  请注意 url: %s"%(util.BB(r.status_code), url))
                     if not keep_status_code:
                         r.raise_for_status()
                 elif r.status_code in (404, 410):
-                    log.logger.warning(u"调试信息 下载返回码 %s  请注意"%util.BB(r.status_code))
+                    log.logger.warning(u"调试信息 下载返回码 %s  请注意 url: %s"%(util.BB(r.status_code), url))
                 
                 #
                 response = r
@@ -405,14 +405,13 @@ if __name__ == '__main__':
 #     pool.join()
 #     print "thread: ", time.time() - t1
 #    url = 'http://bbs.jztele.com/thread-3575106123-1-1.html'
-    url = 'http://bbs.tianya.cn'
+    url = 'http://tieba.baidu.com/p/3231819545'
 #     header = {'Accept':'*/*',
 #               'User-Agent':'python-requests/2.2.1 CPython/2.7.6 Windows/7'}
-    d = Downloader(False,  timeout=20)
+    d = Downloader(True, 3,3, timeout=20)
     response = d.download(url)
-    print type(response.status_code)
     print response.status_code
-    # print response.text
+    print response.text
 #     print response.request.headers
     
 #     import requests

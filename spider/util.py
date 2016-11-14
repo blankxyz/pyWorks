@@ -17,6 +17,7 @@ import os
 import re
 import sys
 import time
+import copy
 import datetime
 import urlparse
 
@@ -26,6 +27,8 @@ except ImportError:
     import json
 import requests
 import redis
+
+from lxml.html.clean import Cleaner
 
 try:
     from termcolor import colored
@@ -93,6 +96,27 @@ def TimeDeltaYears(years, from_date=None):
         return from_date.replace(month=2, day=28,
                                  year=from_date.year+years)
 
+def filter_style_script(text):
+    '''去除注释 style script'''
+    html_cleaner = Cleaner(scripts=True, javascript=True, comments=True, style=True,
+                    links=False, meta=False, page_structure=False, processing_instructions=False,
+                    embedded=False, frames=False, forms=False, annoying_tags=False, remove_tags=None,
+                    remove_unknown_tags=False, safe_attrs_only=False)
+    text = html_cleaner.clean_html(text)
+    return text
+
+def clear_special_xpath(data, xp):
+    '''
+    删除指定 xpath 数据
+    仅作用于 htmlparser.Parser 对象
+    '''
+    data = copy.deepcopy(data)
+    result = data._root.xpath(xp)
+    for i in result:
+        i.getparent().remove(i)
+    return data
+
+
 class MysqlPipeline(object):
     """
     """
@@ -137,7 +161,8 @@ class MysqlPipeline(object):
             try:
                 self.cursor.execute("""INSERT INTO %s(%s) VALUES (%s) """%(self.table, ','.join(fields), values))
                 self.conn.commit()
-            except Exception, e:
+            except Exception as e:
+                log.logger.exception(e)
                 return False
             else:
                 return True
@@ -181,8 +206,8 @@ class MongoPipeline(object):
             if self.collection:
 #                self.collection.save(data)
                 self.collection.insert(data)
-        except Exception:
-            #print e
+        except Exception as e:
+            log.logger.exception(e)
             return False
         return True
     
@@ -211,13 +236,13 @@ class RedisPipeline(object):
         if isinstance(data, dict):
             try:
                 self.db.push(data)
-            except Exception, e:
+            except Exception as e:
                 return False
             return True
         elif isinstance(data, list):
             try:
                 self.db.pushall(data)
-            except Exception, e:
+            except Exception as e:
                 return False
             return True
     
@@ -252,7 +277,7 @@ class DataQueuePipeline(object):
         try:
             self.data_queue_sender =  data_queue.Deliver(data_queue.opt.PUSH)
             self.data_queue_sender.connect(host, port)
-        except Exception, e:
+        except Exception as e:
             log.logger.error("init data_queue_sender failed: %s"%e)
             raise e
         #print host, port
@@ -296,10 +321,15 @@ def from_url(uri):
 
     return None
 
+def get_type_str(instance):
+    '''获取实例的类型名字'''
+    m = re.search("\'([^\']+)", repr(type(instance)))
+    return m.group(1).split('.')[-1] if m else ''
+
 
 def utc_datetime(data):
     '''
-    把data转换为日期时间，时区为东八区北京时间，能够识别：今天、昨天、5分钟前等等，如果不能成功识别，则返回None
+    把data转换为日期时间，时区为东八区北京时间，能够识别：今天、昨天、5分钟前等等，如果不能成功识别，则返回datetime.datetime.utcnow()
     '''
     dt = None
     utc_dt = None
@@ -330,34 +360,59 @@ def utc_datetime(data):
         dt = datetime.datetime.now() - datetime.timedelta(days=days)
         str_dt = dt.strftime("%Y-%m-%d %H:%M:%S")
         dt = datetime.datetime.strptime(str_dt, "%Y-%m-%d %H:%M:%S")
+
     #01月03日 11:16
     elif re.match("\s*(\d+)月(\d+)日\s+(\d+)[:：]+(\d+)\s*", data):
         dt = TimeDeltaYears(datetime.date.today().year - 1900, datetime.datetime.strptime(data, "%m月%d日 %H:%M"))
-    #今天 15:42
-    elif re.match("今天\s*(\d+):(\d+)", data):
+
+    #2014年5月11日
+    elif re.search("\s*(\d+)年(\d+)月(\d+)日", data):
+        m = re.search("\s*(\d+)年(\d+)月(\d+)日", data)
+        try:
+            dt = datetime.datetime.strptime("{}-{}-{}".format(m.group(1), m.group(2), m.group(3)), "%Y-%m-%d")
+        except:
+            dt = datetime.datetime.strptime("{}-{}-{}".format(m.group(1), m.group(2), m.group(3)), "%y-%m-%d")
+
+    #5月11日
+    elif re.search("\s*(\d+)月(\d+)日", data):
+        m = re.search("\s*(\d+)月(\d+)日", data)
+        dt = TimeDeltaYears(datetime.date.today().year - 1900, datetime.datetime.strptime("{}-{}".format(m.group(1), m.group(2)), "%m-%d"))
+    #今天 15:42  今天15:42 
+    elif re.search("今天\s*(\d+):(\d+)", data):
         days = datetime.date.today() - datetime.date(1900, 1, 1)
-        dt = datetime.datetime.strptime(data, "今天 %H:%M")  + datetime.timedelta(days=days.days)
+        m = re.search("今天\s*(\d+):(\d+)", data)
+        dt = datetime.datetime.strptime('{}:{}'.format(m.group(1), m.group(2)), "%H:%M")  + datetime.timedelta(days=days.days)
+
     #昨天 15:42
-    elif re.match("昨天\s*(\d+):(\d+)", data):
+    elif re.search("昨天\s*(\d+):(\d+)", data):
         days = datetime.date.today()- datetime.timedelta(days=1) - datetime.date(1900, 1, 1)
-        dt = datetime.datetime.strptime(data, "昨天 %H:%M")  + datetime.timedelta(days=days.days)
+        m = re.search("昨天\s*(\d+):(\d+)", data)
+        dt = datetime.datetime.strptime('{}:{}'.format(m.group(1), m.group(2)), "%H:%M")  + datetime.timedelta(days=days.days)
+
     #前天  10:41
-    elif re.match("前天\s*(\d+):(\d+)", data):
+    elif re.search("前天\s*(\d+):(\d+)", data):
         days = datetime.date.today()- datetime.timedelta(days=2) - datetime.date(1900, 1, 1)
-        dt = datetime.datetime.strptime(data, "前天 %H:%M")  + datetime.timedelta(days=days.days)
-        
-    elif re.match("\s*(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)\s*",  data): #2013-11-11 13:52:35
-        dt = datetime.datetime.strptime(data, "%Y-%m-%d %H:%M:%S")
+        m = re.search("前天\s*(\d+):(\d+)", data)
+        dt = datetime.datetime.strptime('{}:{}'.format(m.group(1), m.group(2)), "%H:%M")  + datetime.timedelta(days=days.days)
+
+    elif re.match("\s*(\d+)[-/](\d+)[-/](\d+)\s+(\d+):(\d+):(\d+)\s*",  data): #2013-11-11 13:52:35 #2013/11/11 13:52:35
+        data = re.sub('/', '-', data)
+        try:
+            dt = datetime.datetime.strptime(data, "%Y-%m-%d %H:%M:%S")
+        except:
+            dt = datetime.datetime.strptime(data, "%y-%m-%d %H:%M:%S")
     
-    elif re.match("\s*(\d+)-(\d+)-(\d+)\s+(\d+):(\d+)\s*",  data): #2013-11-11 13:52
-        dt = datetime.datetime.strptime(data, "%Y-%m-%d %H:%M")
+    elif re.match("\s*(\d+)[-/](\d+)[-/](\d+)\s+(\d+):(\d+)\s*",  data): #2013-11-11 13:52 #2013/11/11 13:52
+        data = re.sub('/', '-', data)
+        try:
+            dt = datetime.datetime.strptime(data, "%Y-%m-%d %H:%M")
+        except:
+            dt = datetime.datetime.strptime(data, "%y-%m-%d %H:%M")
     
-    elif re.match("\s*(\d+)/(\d+)/(\d+)\s+(\d+):(\d+)\s*",  data): #2013/11/11 13:52
-        dt = datetime.datetime.strptime(data, "%Y/%m/%d %H:%M")
     #7/3
-    elif re.match("\s*(\d+/\d+)", data):
+    elif re.match("\s*(\d+[/-]\d+)", data):
         year = datetime.datetime.now().year
-        m = re.compile("(\d+)/(\d+)").search(data)
+        m = re.compile("(\d+)[/-](\d+)").search(data)
         month = int(m.group(1))
         day = int(m.group(2))
         dt = datetime.datetime(year,month, day)
@@ -393,8 +448,23 @@ def save_log(uri, key, data):
         data = json.dumps(data)
         conn.lpush(key, data)
         conn.ltrim(key, 0, 999)
-    except Exception, e:
-        print 'log sssssss',e
+    except Exception as e:
+        log.logger.exception(e)
+    return 
+
+def save_monitor_log(uri, data):
+    #duanyifei 2016-5-23
+    try:
+        data = copy.deepcopy(data)
+        data.update({"config_id":int(data['config_id'])})
+        mongo_client = from_url(uri)
+        mongo_client.send(data)
+    except Exception as e:
+        log.logger.exception(e)
+        log.logger.error(data)
+        log.logger.error(u"保存模版监测信息失败")
+    #duanyifei 2016-5-23
+    return
 
 def fromtimestamp(timestamp):
     return datetime.datetime.fromtimestamp(float(timestamp)) - datetime.timedelta(hours=8)
@@ -548,7 +618,7 @@ def get_verify_code(img_name, type, url='http://192.168.100.108/vcode/test.php')
                 resp = requests.post(url, data)
                 verify_code = resp.content
                 print "---resp:", verify_code
-            except Exception, e:
+            except Exception as e:
                 log.logger.error("--get_verify_code() : %s"%e)
         #if verify_code and verify_code != 'EEEF':
         # try:
@@ -596,7 +666,7 @@ def _get_proxy_by_adsl(adsl_id=None, config_id=None):
         try:
             resp = requests.get(proxy_url, timeout=15)
             proxy = resp.content
-        except Exception, e:
+        except Exception as e:
             #print "--get_proxy_by_mid(mid=%s, sid=%s) failed: %s"%(mid, sid, e)
             raise e
         if not proxy:
@@ -608,7 +678,7 @@ def get_proxy_by_adsl(adsl_id, config_id):
     '''
     try:
         resp = _get_proxy_by_adsl(adsl_id, config_id)
-    except Exception, e:
+    except Exception as e:
         log.logger.error("--get_proxy_by_adsl(adsl_id=%s, config_id=%s) failed: %s"%(adsl_id, config_id, e))
         resp = ''
     return resp
@@ -647,7 +717,7 @@ def scp_img(src='', name='', dest='http://192.168.70.60/img.php', retries=3):
                 resp = json.loads(resp.content)
                 if resp.get('path', ''):
                     return resp
-            except Exception, e:
+            except Exception as e:
                 log.logger.error("--scp_img failed: src:%s, Exception:%s"%(src, e))
                 print "--scp_img() failed: %s"%e
     return {}
@@ -690,7 +760,7 @@ if __name__ == "__main__":
 #     try:
 #         sender = from_uri(uri)
 #         res = sender.send({'url':'pangwei', 'ctime':datetime.datetime.utcnow()})
-#     except Exception, e:
+#     except Exception as e:
 #         print e
 #     else:
 #         sender.close()
@@ -700,7 +770,7 @@ if __name__ == "__main__":
 #     try:
 #         sender = from_uri(uri)
 #         res = sender.send({'config_id':'pangwei', 'job_id':1})
-#     except Exception, e:
+#     except Exception as e:
 #         print e
 #     else:
 #         sender.close()
@@ -719,7 +789,7 @@ if __name__ == "__main__":
 #         sender = from_url(uri)
 #         res = sender.send(data)
 #         print res
-#     except Exception, e:
+#     except Exception as e:
 #         print e
 #     else:
 #         sender.close()

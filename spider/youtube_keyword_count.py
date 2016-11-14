@@ -16,11 +16,11 @@ REDIS_SERVER = 'redis://127.0.0.1/13'
 ##################################################################################################
 class RedisDrive(object):
     def __init__(self):
+        self.siteName = "youtube"
         self.site_domain = 'youtube.com'
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.keyword_today_zset_key = 'keyword_today_zset_%s' % self.site_domain
-        self.keyword_hour_zset_key = 'keyword_hour_zset_%s' % self.site_domain
-        self.keyword_zset_key = 'keyword_zset_%s' % self.site_domain
+        self.keyword_zset_key = '%s_keyword_zset' % self.siteName
+        self.video_info_hset_key = '%s_video_info_hset' % self.siteName
         self.channel_zset_key = 'channel_zset_%s' % self.site_domain
         self.channel_info_hset_key = 'channel_info_hset_%s' % self.site_domain
         self.todo_flg = -1
@@ -39,23 +39,24 @@ class RedisDrive(object):
         for keyword in keywords:
             self.copy_keywords_to_redis(keyword)
 
-    def set_keyword_today_cnt(self, keyword, cnt):
-        return self.conn.zadd(self.keyword_today_zset_key, cnt, keyword)
+    def get_todo_keywords_cnt(self):
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.todo_flg, max=self.todo_flg,
+                                           withscores=False)
+        return len(keywords)
 
-    def set_keyword_hour_cnt(self, keyword, cnt):
-        return self.conn.zadd(self.keyword_hour_zset_key, cnt, keyword)
+    def get_keywords_cnt(self):
+        return self.conn.zcard(self.keyword_zset_key)
 
-    def get_todo_keywords_today(self):
-        return self.conn.zrangebyscore(self.keyword_today_zset_key, self.todo_flg, self.todo_flg, withscores=False)
+    def get_videos_cnt(self):
+        return self.conn.hlen(self.video_info_hset_key)
 
-    def set_keyword_start_today(self, keyword):
-        return self.conn.zadd(self.keyword_today_zset_key, self.start_flg, keyword)
+    def get_keywords_score_summy(self):
+        summy = 0
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.start_flg, max=999999999, withscores=True)
+        for (k, v) in dict(keywords).iteritems():
+            summy = summy + int(v)
 
-    def get_todo_keywords_hour(self):
-        return self.conn.zrangebyscore(self.keyword_hour_zset_key, self.todo_flg, self.todo_flg, withscores=False)
-
-    def set_keyword_start_hour(self, keyword):
-        return self.conn.zadd(self.keyword_hour_zset_key, self.start_flg, keyword)
+        return summy
 
 
 class MySpider(spider.Spider):
@@ -81,6 +82,7 @@ class MySpider(spider.Spider):
         return self.start_urls
 
     def parse(self, response):
+
         url_list = []
         redis_db = RedisDrive()
         keywords = redis_db.get_todo_keywords_today()
@@ -164,6 +166,7 @@ def test(unit_test):
 
 
     else:  # ---------- unit test -----------------------------
+        print 'now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         spider = MySpider()
         spider.proxy_enable = False
         spider.init_dedup()
@@ -171,6 +174,9 @@ def test(unit_test):
 
         redis_db = RedisDrive()
         redis_db.create_redis_keywords()
+
+        print 'todo/total:', (redis_db.get_keywords_cnt() - redis_db.get_todo_keywords_cnt()), '/', redis_db.get_keywords_cnt()
+        print 'video cnt/score summy:', redis_db.get_videos_cnt(), '/', redis_db.get_keywords_score_summy()
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()

@@ -37,6 +37,8 @@ import downloader
 #import htmlparser
 from dedup import dedup
 
+import myreadability
+
 INIT_PROXY_FAILED = 0
 INVALID_URL = 1
 DOWNLOAD_FAILED = 1
@@ -362,7 +364,7 @@ class Spider(object):
                     for k,v in self.failed_info.iteritems():
                         num = len(v)
                         per = num * 1.0 / self.new_data_num
-                        if per > 0.4 and self.new_data_num > 10:
+                        if per > 0.8 and self.new_data_num > 10:
                             error_level = serious_level
                             error_reason['1'].update({k:"{}/{}/{}".format(num, self.new_data_num, self.total_data_num)})
                     # 总数连续为0 增加总数不为0标志判断
@@ -442,7 +444,7 @@ class Spider(object):
                         else:
                             if k in ('detail_page_record_list', ):
                                 limits = 10
-                                print "%s :" % ( k ), u"total {} max {}".format(len(v), limits)
+                                print "%s :" % ( k ), u"总数 {} 最大显示条数 {}".format(len(v), limits)
                                 v = v[:limits]
                                 print " %s" % ( pprint.pformat(v) )
                             else:
@@ -499,7 +501,8 @@ class Spider(object):
             dic = {'url':url}
 
             ctime, gtime = post.get('ctime'), post.get('gtime')
-            if gtime - ctime < g_c:
+            # duanyifei 2016/10/26 add  判断 ctime 是否存在
+            if not ctime or ctime.microsecond != 0:
                 dic.update({'ctime':str(ctime)})
                 self.failed_info['ctime'].append("%s : %s"%('ctime', url))
 
@@ -572,6 +575,32 @@ class Spider(object):
         return flag
     # duanyifei 2016-5-23
 
+    # duanyifei 2016/10/24 add
+    def add_retweeted_source(self, response, result=[]):
+        if response is None:
+            return result
+        
+        retweeted_source = ''
+        try:
+            doc = myreadability.Document(response.content)
+            if hasattr(doc, 'source'):
+                retweeted_source = doc.source
+        except Exception as e:
+            log.logger.error(u"add_retweeted_source() error: %s"%e)
+            log.logger.exception(e)
+        # 没有抽到 直接返回
+        if not retweeted_source:
+            return result
+
+        if isinstance(result, dict):
+            result = [result]
+        result = copy.deepcopy(result)
+        
+        for post in result:
+            if 'retweeted_source' not in post:
+                post.update({'retweeted_source':retweeted_source})
+        return result
+    #
 
     def parse_detail_by_url(self, request=None):
         '''
@@ -581,8 +610,6 @@ class Spider(object):
         request = copy.deepcopy(request)
         url = request.get('url') if isinstance(request, dict) else request
         next_urls = []
-        if not url:
-            return False, next_urls
         
         result = {}
         parse_success = True
@@ -652,9 +679,24 @@ class Spider(object):
             result = [result]
         if isinstance(result, list):
             new_result = []
+            info_flag = 0
+            try:
+                info_flag = int(getattr(self, 'info_flag', 0))
+            except Exception as e:
+                log.logger.error(u"获取 info_flag error: %s, config_id: %s"%(e, self.config_id))
+            if info_flag == 1 and result:
+                # 2016/10/24 duanyifei add_retweeted_source
+                try:
+                    _result = self.add_retweeted_source(response, result)
+                    if _result:
+                        result = _result
+                except Exception as e:
+                    log.logger.error(u"add_retweeted_source() error: %s"%e)
+                    log.logger.exception(e)
+                # 2016/10/24 duanyifei add_retweeted_source
             for item in result:
                 if isinstance(item, dict):
-                    next_urls = item.pop('next_urls', [])
+                    next_urls += item.pop('next_urls', [])
                     if item.get('title', ''):
                         res1 = res.copy()
                         res1.update(item)
@@ -673,6 +715,7 @@ class Spider(object):
                                     print util.R('{:>10.10}'.format(k))+ ': ' + util.RR('{}'.format(v))
                                 else:
                                     print '{:>10.10} : {}'.format(k,v)
+            
             if new_result:
                 self.crawler_data_queue.put(new_result)
 

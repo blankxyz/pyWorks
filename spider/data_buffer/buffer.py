@@ -28,8 +28,10 @@ class RedisBuffer(Buffer):
     def __init__(self, uri):
         self.host = uri.hostname
         self.port = uri.port or 6379
+        self.password = uri.password
+        self.username = uri.username
         self.db, self.key_name = filter(lambda x: x != '', uri.path.split('/'))[:2]
-        self.conn = redis.StrictRedis(host=self.host, port=self.port, db=self.db)
+        self.conn = redis.StrictRedis(host=self.host, port=self.port, db=self.db, password=self.password)
 
     def push(self, data, dest_json = False):
         if dest_json:

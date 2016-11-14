@@ -99,7 +99,7 @@ class Parser():
             self.data = util.filter_style_script(self.data)
         
         #去除xml声明
-        self.data = re.sub("^<\?(XML|xml)\s+[^>]+>\s*", "", self.data)
+        self.data = re.sub("^<\?(XML|xml)[^>]+>\s*", "", self.data)
 
         self.encoding = encoding
         
@@ -112,6 +112,10 @@ class Parser():
                     pass
         else:
             self._root = None
+
+    def __nonzero__(self):
+        '''重载 bool 值 使用 self.data 判断'''
+        return bool(self.data)
         
     def xpath(self, xp, default=""):
         '''

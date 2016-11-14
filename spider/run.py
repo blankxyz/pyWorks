@@ -73,11 +73,12 @@ def load_module(url, spider_id=None, worker_id=None, name='spider', add_to_sys_m
         except Exception as e:
             log.logger.error("-- compile failed --; config_id:%s; excepiton: %s"%(data.get('config_id', '-1'),e))
             return (None, None)
-
+        
         module = imp.new_module(name)
         try:
             exec code in module.__dict__
         except Exception as e:
+            log.logger.exception(e)
             log.logger.error("-- exec code in module.__dict__ failed --; config_id:%s; excepiton: %s"%(data.get('config_id', '-1'),e))
             return (None, None)
         if add_to_sys_modules:
@@ -98,11 +99,12 @@ def load_module(url, spider_id=None, worker_id=None, name='spider', add_to_sys_m
         except Exception as e:
             log.logger.error("-- compile failed --; config_id:%s; excepiton: %s"%(data.get('config_id', '-1'),e))
             return (None, None)
-
+        
         module = imp.new_module(name)
         try:
             exec code in module.__dict__
         except Exception as e:
+            log.logger.exception(e)
             log.logger.error("-- exec code in module.__dict__ failed --; config_id:%s; excepiton: %s"%(data.get('config_id', '-1'),e))
             return (None, None)
         if add_to_sys_modules:
@@ -122,14 +124,9 @@ def get_detail_page_urls(spider, urls, func, detail_job_queue):
         if urls:
             for request in urls:
                 url = request.get('url') if isinstance(request, dict) else request
-                print 'downloading  list page ...', url
+                log.logger.debug('downloading  list page ...%s'%url)
                 response = spider.download(request, func_name='get_start_urls')
-#                if response is None:
-#                    log.logger.error("download page failed; url is:%s"%url)
-#                    continue
-                #data = getattr(response, 'unicode_body', '')
-                #data = htmlparser.Parser(data, response=response)
-                #list_urls, callback, next_page_url = func(data)
+
                 try:
                     list_urls, callback, next_page_url = func(response)
                 except Exception as e:
@@ -183,7 +180,7 @@ def list_page_thread(eventExit, detail_job_queue, name, crawler_data_queue):
     '''
     while 1:
         if eventExit.isSet():
-            print "---***--- list threads finished !!!"
+            log.logger.debug("---***--- list threads finished !!!")
             break
         else:
             data, mod = load_module(setting.GET_SPIDER_CONFIG_FROM,
@@ -193,7 +190,7 @@ def list_page_thread(eventExit, detail_job_queue, name, crawler_data_queue):
                 while repeat_times > 0:
                     if eventExit.isSet():
                         break
-
+                    
                     global cmd_args
                     try:
                         spider = mod.MySpider(cmd_args=cmd_args)
@@ -205,11 +202,11 @@ def list_page_thread(eventExit, detail_job_queue, name, crawler_data_queue):
                         log.logger.error("-- init spider failed; config_id: %s , %s"%(data.get("config_id", ''), e))
                         repeat_times -= 1
                         continue
-
+                        
                     if data is not None:
-                        job_id = str(data.get("job_id", '-1')).encode('utf-8')
-                        config_id = str(data.get("config_id", '')).encode('utf-8') or "%s"%setting.SPIDER_ID
-                        config_name = str(data.get("savename", '')).encode('utf-8')
+                        job_id = str(data.get("job_id", '-1'))
+                        config_id = str(data.get("config_id", '')) or "%s"%setting.SPIDER_ID
+                        config_name = str(data.get("savename", ''))
                         spider.set_job_id(job_id)
                         spider.set_config_id(config_id)
                         spider.set_config_name(config_name)
@@ -230,7 +227,7 @@ def list_page_thread(eventExit, detail_job_queue, name, crawler_data_queue):
                         log.logger.error("-- get_start_urls failed; config_id: %s , %s"%(config_id, e))
                     #根据start_urls中的入口url获取下一列表页url及详情页url
                     #将得到的详情页url放到detail_job_queue中
-                    get_detail_page_urls(spider, start_urls, spider.parse,
+                    get_detail_page_urls(spider, start_urls, spider.parse, 
                                          detail_job_queue)
                     #设置列表页解析结束标志
                     spider.set()
@@ -243,9 +240,9 @@ def list_page_thread(eventExit, detail_job_queue, name, crawler_data_queue):
                     #print " ---*** list end *** "
                     if res:
                         del spider
-
+                    
                     repeat_times -= 1
-
+                
                 if getattr(cmd_args, 'debug', None):
                     eventExit.set()
                 #eventExit.set()
@@ -300,10 +297,10 @@ def data_queue_thread(eventExit, crawler_data_queue):
                 break
             #print "--- crawler_data_queue  empty *** "
             continue
-
+        
         if not data:
             continue
-
+        
         if isinstance(data, dict):
             if 'data_db' not in data:
                 try:
@@ -327,7 +324,7 @@ def data_queue_thread(eventExit, crawler_data_queue):
                     except Exception as e:
                         log.logger.error("init other_sender failed: %s, %s"%(e,data_db))
                         continue
-
+        
         elif isinstance(data, list):
             from collections import defaultdict
             data_list = defaultdict(list)
@@ -335,7 +332,7 @@ def data_queue_thread(eventExit, crawler_data_queue):
                 data_db = item.pop('data_db', None)
                 if data_db is not None:
                     data_list[data_db].append(item)
-
+            
             for data_db, data in data_list.iteritems():
                 if data_db in other_data_queue_sender:
                     try:
@@ -351,21 +348,21 @@ def data_queue_thread(eventExit, crawler_data_queue):
                     except Exception as e:
                         log.logger.error("init other_sender failed: %s, %s"%(e,data_db))
                         continue
-
+            
         crawler_data_queue.task_done()
-
+    
 def run_spider():
     """
     爬虫多线程执行主体函数
     """
     monkey.patch_all()
-
+    
     global eventExit
-
+    
 #    eventExit = gevent.event.Event()
-
+    
     signal.signal(signal.SIGTERM, stop_spider)
-
+    
     crawler_mode = setting.CRAWLER_MODE
     counter = 0
     if crawler_mode == 'threading':
@@ -375,7 +372,7 @@ def run_spider():
         eventExit = threading.Event()
         detail_job_queue = Queue.Queue()
         crawler_data_queue = Queue.Queue()
-
+         
         list_thread_pool = []
         counter = 0
         for _ in range(setting.LIST_PAGE_THREAD_NUM):
@@ -384,16 +381,16 @@ def run_spider():
             list_thread = threading.Thread(target=list_page_thread, args=(eventExit, detail_job_queue, counter, crawler_data_queue))
             list_thread.start()
             list_thread_pool.append(list_thread)
-
+        
         interval = getattr(setting, 'LIST_DETAIL_INTERVAL', 60)
         time.sleep(interval)
-
+        
         detail_page_thread_pool = []
         for _ in range(setting.DETAIL_PAGE_THREAD_NUM):
             detail_thread = threading.Thread(target=detail_page_thread, args=(eventExit, detail_job_queue))
             detail_thread.start()
             detail_page_thread_pool.append(detail_thread)
-
+        
         data_queue_thread_pool = []
         for _ in range(setting.DATA_QUEUE_THREAD_NUM):
             data_thread = threading.Thread(target=data_queue_thread, args=(eventExit, crawler_data_queue))
@@ -413,16 +410,16 @@ def run_spider():
             time.sleep(random.random())
             counter += 1
             list_thread_pool.spawn(list_page_thread, eventExit, detail_job_queue, counter, crawler_data_queue)
-
+        
         interval = getattr(setting, 'LIST_DETAIL_INTERVAL', 60)
         time.sleep(interval)
-
+        
         for _ in range(setting.DETAIL_PAGE_THREAD_NUM):
             detail_page_thread_pool.spawn(detail_page_thread, eventExit, detail_job_queue)
-
+        
         for _ in range(setting.DATA_QUEUE_THREAD_NUM):
             data_queue_thread_pool.spawn(data_queue_thread, eventExit, crawler_data_queue)
-
+    
     eventExit.wait()
 #    signal.pause()
     try:
@@ -443,7 +440,7 @@ def run_spider():
             data_queue_thread_pool.join()
     #
     except gevent.Timeout, e:
-        log.logger.debug("internal timeout triggered: %s"%e)
+        log.logger.debug("internal timeout triggered: %s"%e) 
     finally:
         timeouter.cancel()
     log.logger.info("---***--- all work finished!!!")
@@ -457,7 +454,7 @@ def stop_spider(signum, frame):
     """
     global eventExit
     eventExit.set()
-    print " ---***--- stop_spider() called !!! "
+    log.logger.debug(" ---***--- stop_spider() called !!! ")
 
 
 def web_interface():
@@ -465,40 +462,40 @@ def web_interface():
     '''
     import bottle
     from bottle import route, run, error
-
+    
     @error(404)
     def error404(error):
         return '404'
     @route('/status')
     def status():
         return '1'
-
+    
     run(host='')
-
+    
 
 def multi_process_runner():
     """
     多进程模式
     """
     import multiprocessing
-
+    
     process_pool = []
-
+    
     def stop_process(signum, frame):
         for p in process_pool:
             p.terminate()
-
+    
     signal.signal(signal.SIGTERM, stop_process)
-
+    
     for _ in xrange(getattr(setting,'PROCESS_NUM',2)):
         p = multiprocessing.Process(target=run_spider)
         p.start()
         process_pool.append(p)
-
+    
     for p in process_pool:
         p.join()
-    print "---***--- All work finished!!!"
-
+    log.logger.debug("---***--- All work finished!!!")
+   
 class App(object):
     """
     该类定义了守护进程中的执行对象
@@ -509,14 +506,14 @@ class App(object):
         self.stderr_path = setting.STDERR_PATH
         self.pidfile_path = setting.PIDFILE_PATH
         self.pidfile_timeout = setting.PIDFILE_TIMEOUT
-
+    
     def run(self):
         """
         守护进程中执行体
         """
 #        run_spider()
         multi_process_runner()
-
+       
     def stop(self):
         """
         守护进程结束前执行动作；
@@ -543,12 +540,12 @@ def reset_setting_config(args):
                     print "before: ", key, setting.__dict__[key]
                     setting.__dict__[key] = value
                     print "after: %s: %s"%(key, value)
-
+    
 def main():
     """
     """
     import argsparser
-
+    
     global cmd_args
     cmd_args = argsparser.cmd_parse()
 #    print "cmd_args: ", cmd_args
