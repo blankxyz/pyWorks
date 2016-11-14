@@ -51,17 +51,6 @@ class MySpider(spider.Spider):
         self.todo_flg = -1
         self.start_flg = 0
 
-    def get_start_urls(self, data=None):
-        urls = []
-        keywords = self.conn.zrangebyscore(self.keyword_zset_key, self.todo_flg, self.todo_flg, withscores=False)
-        for keyword in keywords[:20]:
-            url = PRE_SEARCH_URL + urllib2.quote(keyword)
-            urls.append(url)
-            self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
-
-        # print urls
-        return urls
-
     def time_convert(self, ago_time_str):
         '''
         Args:
@@ -87,6 +76,20 @@ class MySpider(spider.Spider):
                 ret_time = (ret_time - datetime.timedelta(days=num))
 
         return ret_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    def get_start_urls(self, data=None):
+        urls = []
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, self.todo_flg, self.todo_flg, withscores=False)
+        # print keywords[:20]
+        for keyword in keywords[:20]:
+            # url = PRE_SEARCH_URL + urllib2.quote(keyword)
+            url = PRE_SEARCH_URL + keyword
+            urls.append(url)
+            print 'get_start_urls()', keyword, url
+            self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
+
+        # print urls
+        return urls
 
     def parse(self, response):
         '''
@@ -148,9 +151,7 @@ class MySpider(spider.Spider):
         print 'parse_detail_page():', req_url
         keyword = req_url[len(PRE_SEARCH_URL):]
         keyword = re.match(re.compile(r"(.*)(&page=\d+)"), keyword).group(1)
-        # print 'parse_detail_page()',keyword
-        # keyword = urllib2.unquote(keyword)
-        print 'parse_detail_page()', keyword
+        keyword = urllib2.unquote(keyword)
 
         # 需要包含各个视频信息左侧的图片div
         divs = data.xpathall('''//div[contains(@class,"yt-lockup-video")]''')
@@ -214,7 +215,7 @@ class MySpider(spider.Spider):
 def test(unit_test):
     if unit_test is False:  # spider simulation
         print '[spider simulation] now starting ..........'
-        for cnt in range(1000):
+        for cnt in range(1):
             print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
             detail_job_list = []  # equal to run.py detail_job_queue
 
@@ -252,9 +253,10 @@ def test(unit_test):
             for url in detail_job_list:
                 resp = mySpider.download(url)
                 ret = mySpider.parse_detail_page(resp, url)  # parse_detail_page()
-                for item in ret:
-                    for k, v in item.iteritems():
-                        print k, v
+                # pprint(ret)
+                # for item in ret:
+                #     for k, v in item.iteritems():
+                #         print k, v
 
     else:  # ---------- unit test -----------------------------
         spider = MySpider()
@@ -264,20 +266,21 @@ def test(unit_test):
 
         # ------------ get_start_urls() ----------
         urls = spider.get_start_urls()
-        pprint(urls)
-        print(len(urls))
+        # pprint(urls)
+        # print(len(urls))
 
         # ------------ parse() ----------
         # china+beijing&lclk=short&filters=short
         # "https://www.youtube.com/results?search_query=how+to+get+stun+gun+in+gta+5+online&amp;lclk=week&amp;filters=week" rel="nofollow"
         # https://www.youtube.com/results?filters=video,today,short,4k&search_query=lion
         # url = 'https://www.youtube.com/results?search_query=lion&page=1'
-        url = 'https://www.youtube.com/results?sp=CAISAggC&q=49%E6%B4%BE%E5%87%BA%E6%89%80%0A'
-        print url
-        resp = spider.download(url)
-        urls, fun, next_url = spider.parse(resp)
-        print len(urls)
-        pprint(urls)
+
+        # url = 'https://www.youtube.com/results?sp=CAISAggC&q=49%E6%B4%BE%E5%87%BA%E6%89%80%0A'
+        # print url
+        # resp = spider.download(url)
+        # urls, fun, next_url = spider.parse(resp)
+        # print len(urls)
+        # pprint(urls)
 
         # ------------ parse_detail_page() ----------
         # url = 'https://www.youtube.com/watch?v=MXO7K76RRqg'

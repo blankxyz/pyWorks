@@ -13,52 +13,6 @@ import redis
 REDIS_SERVER = 'redis://127.0.0.1/13'
 
 
-##################################################################################################
-class RedisDrive(object):
-    def __init__(self):
-        self.siteName = "youtube"
-        self.site_domain = 'youtube.com'
-        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.keyword_zset_key = '%s_keyword_zset' % self.siteName
-        self.video_info_hset_key = '%s_video_info_hset' % self.siteName
-        self.channel_zset_key = 'channel_zset_%s' % self.site_domain
-        self.channel_info_hset_key = 'channel_info_hset_%s' % self.site_domain
-        self.todo_flg = -1
-        self.start_flg = 0
-        self.done_video_info_flg = 1
-        self.done_sbutitle_flg = 9
-
-    def copy_keywords_to_redis(self, keyword):
-        self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword)
-        # self.conn.zadd(self.keyword_hour_zset_key, self.todo_flg, keyword)
-
-    def create_redis_keywords(self):
-        fd = open('./youtube/keyword_news.txt', 'r')
-        keywords = fd.readlines()
-        fd.close()
-        for keyword in keywords:
-            self.copy_keywords_to_redis(keyword)
-
-    def get_todo_keywords_cnt(self):
-        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.todo_flg, max=self.todo_flg,
-                                           withscores=False)
-        return len(keywords)
-
-    def get_keywords_cnt(self):
-        return self.conn.zcard(self.keyword_zset_key)
-
-    def get_videos_cnt(self):
-        return self.conn.hlen(self.video_info_hset_key)
-
-    def get_keywords_score_summy(self):
-        summy = 0
-        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.start_flg, max=999999999, withscores=True)
-        for (k, v) in dict(keywords).iteritems():
-            summy = summy + int(v)
-
-        return summy
-
-
 class MySpider(spider.Spider):
     def __init__(self,
                  proxy_enable=setting.PROXY_ENABLE,
@@ -78,14 +32,49 @@ class MySpider(spider.Spider):
         self.encoding = 'utf-8'
         # self.max_interval = None
 
+        #redis
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.keyword_zset_key = '%s_keyword_zset' % self.siteName
+        self.video_info_hset_key = '%s_video_info_hset' % self.siteName
+        # self.channel_zset_key = '%s_channel_zset' % self.siteName
+        # self.channel_info_hset_key = '%s_channel_info_hset' % self.siteName
+        self.todo_flg = -1
+        self.start_flg = 0
+
+
+    def get_todo_keywords(self):
+        return self.conn.zrangebyscore(self.keyword_zset_key, min=self.todo_flg, max=self.todo_flg,
+                                           withscores=False)
+
+    def get_all_keywords_cnt(self):
+        return self.conn.zcard(self.keyword_zset_key)
+
+    def get_videos_cnt(self):
+        return self.conn.hlen(self.video_info_hset_key)
+
+    def get_keywords_score_summy(self):
+        summy = 0
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.start_flg, max=999999999, withscores=True)
+        for (k, v) in dict(keywords).iteritems():
+            summy = summy + int(v)
+
+        return summy
+
+    def create_redis_keywords(self):
+        fd = open('./youtube/keyword_news.txt', 'r')
+        keywords = fd.readlines()
+        for keyword in keywords:
+            self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword.strip('\n'))
+        fd.close()
+
     def get_start_urls(self, data=None):
         return self.start_urls
 
     def parse(self, response):
 
         url_list = []
-        redis_db = RedisDrive()
-        keywords = redis_db.get_todo_keywords_today()
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.todo_flg, max=self.todo_flg,
+                                           withscores=False)
         for keyword in keywords:
             q = urllib2.quote(keyword)  # （例）达赖喇嘛
             url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=' + q
@@ -94,7 +83,6 @@ class MySpider(spider.Spider):
         return (url_list, None, None)
 
     def parse_detail_page(self, response=None, url=None):
-        redis_db = RedisDrive()
         url_list = []
 
         if response is not None:
@@ -122,7 +110,7 @@ class MySpider(spider.Spider):
             cnt_str = re.sub(r",", "", cnt_str)
             cnt = int(cnt_str)
             print keyword, cnt
-            redis_db.set_keyword_today_cnt(keyword, cnt)
+            self.set_keyword_today_cnt(keyword, cnt)
 
         return (url_list, None, None)
 
@@ -136,8 +124,7 @@ def test(unit_test):
         mySpider.init_downloader()
 
         print '[spider simulation] now starting ..........'
-        redis_db = RedisDrive()
-        keywords = redis_db.get_todo_keywords_today()
+        keywords = mySpider.get_todo_keywords()
         i = 0
         for keyword in keywords:
             i = i + 1
@@ -162,7 +149,7 @@ def test(unit_test):
             cnt = int(cnt_str)
 
             print '%d / %d' % (i, len(keywords)), keyword, cnt
-            redis_db.set_keyword_today_cnt(keyword, cnt)
+            mySpider.set_keyword_today_cnt(keyword, cnt)
 
 
     else:  # ---------- unit test -----------------------------
@@ -172,11 +159,10 @@ def test(unit_test):
         spider.init_dedup()
         spider.init_downloader()
 
-        redis_db = RedisDrive()
-        redis_db.create_redis_keywords()
+        # spider.create_redis_keywords()
 
-        print 'todo/total:', (redis_db.get_keywords_cnt() - redis_db.get_todo_keywords_cnt()), '/', redis_db.get_keywords_cnt()
-        print 'video cnt/score summy:', redis_db.get_videos_cnt(), '/', redis_db.get_keywords_score_summy()
+        print 'done/total:', (spider.get_all_keywords_cnt() - len(spider.get_todo_keywords())), '/', spider.get_all_keywords_cnt()
+        print 'videos cnt / score summy:', spider.get_videos_cnt(), '/', spider.get_keywords_score_summy()
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()

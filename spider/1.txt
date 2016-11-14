@@ -1,0 +1,15 @@
+now: 2016-11-14 23:13:33
+done/total: 40 / 54445
+videos cnt / score summy: 1418 / 1432
+
+now: 2016-11-14 23:33:23
+done/total: 3748 / 54445
+videos cnt / score summy: 28046 / 36212
+
+now: 2016-11-14 23:36:15
+done/total: 4668 / 54445
+videos cnt / score summy: 28260 / 36484
+
+now: 2016-11-14 23:52:26
+done/total: 11628 / 54445
+videos cnt / score summy: 35459 / 49688
