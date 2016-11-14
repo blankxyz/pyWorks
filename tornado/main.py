@@ -6,6 +6,7 @@ import pycurl
 
 
 def prepare_curl_socks5(curl):
+    # pycurl.PROXYTYPE_HTTP
     curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
 
 
