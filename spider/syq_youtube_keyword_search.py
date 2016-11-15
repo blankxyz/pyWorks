@@ -128,6 +128,7 @@ class MySpider(spider.Spider):
                 continue
 
             channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()  # class中会有空格
+            channel_url = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a/@href''').text().strip()
 
             title = div.xpath('''//h3''').text().strip()
 
@@ -164,6 +165,7 @@ class MySpider(spider.Spider):
                           'content': description.decode('utf8'),
                           'visitCount': views,
                           'channel': channel.decode('utf8'),
+                          'channel_url': channel_url,
                           'ctime': upload_time,
                           'site_domain': self.site_domain,
                           'siteName': self.siteName,

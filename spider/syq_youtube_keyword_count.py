@@ -9,6 +9,7 @@ from urlparse import urljoin
 import urllib2
 from pprint import pprint
 import redis
+import guess_language
 
 REDIS_SERVER = 'redis://127.0.0.1/13'
 
@@ -71,7 +72,6 @@ class MySpider(spider.Spider):
         return self.start_urls
 
     def parse(self, response):
-
         url_list = []
         keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.todo_flg, max=self.todo_flg,
                                            withscores=False)
@@ -84,7 +84,6 @@ class MySpider(spider.Spider):
 
     def parse_detail_page(self, response=None, url=None):
         url_list = []
-
         if response is not None:
             try:
                 response.encoding = self.encoding
@@ -159,12 +158,13 @@ def test(unit_test):
         spider.init_downloader()
 
         # spider.create_redis_keywords()
-        for i in range(100):
-            print 'now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print 'done/total:', (spider.get_all_keywords_cnt() - len(spider.get_todo_keywords())), '/', spider.get_all_keywords_cnt()
-            print 'videos cnt / score summy:', spider.get_videos_cnt(), '/', spider.get_keywords_score_summy()
-            print '---------------------------------------------'
-            time.sleep(5*60)
+
+        # for i in range(1):
+        print '---------------------------------------------'
+        print 'now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print 'done/total:', (spider.get_all_keywords_cnt() - len(spider.get_todo_keywords())), '/', spider.get_all_keywords_cnt()
+        print 'videos cnt / score summy:', spider.get_videos_cnt(), '/', spider.get_keywords_score_summy()
+        # time.sleep(5*60)
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()

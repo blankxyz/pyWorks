@@ -4,46 +4,11 @@ import spider
 import setting
 import htmlparser
 import datetime
-import time, re
+import re
 import redis
-import urllib2
 from pprint import pprint
 
 REDIS_SERVER = 'redis://127.0.0.1/13'
-
-
-##################################################################################################
-class RedisDrive(object):
-    def __init__(self):
-        self.site_domain = 'youtube.com'
-        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.keyword_zset_key = 'keyword_zset_%s' % self.site_domain
-        self.channel_zset_key = 'channel_zset_%s' % self.site_domain
-        self.channel_info_hset_key = 'channel_info_hset_%s' % self.site_domain
-        self.todo_flg = -1
-        self.start_flg = 0
-        self.done_video_info_flg = 1
-        self.done_sbutitle_flg = 9
-
-    def get_todo_channels(self):
-        return self.conn.zrangebyscore(self.channel_zset_key, self.start_flg, self.start_flg, withscores=False)
-
-    def set_keyword_start(self,keyword):
-        return self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
-
-    def add_todo_keyword(self, keyword):
-        return self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword)
-
-    def add_channel(self, post):
-        return self.conn.zadd(self.channel_zset_key, self.todo_flg, post['channel_href'])
-
-    def set_channel_info(self, channel_info):
-        self.conn.hset(self.channel_info_hset_key, channel_info['channel_href'], channel_info)
-        self.conn.zincrby(self.channel_zset_key, value=channel_info['channel_href'], amount=1)
-
-        # def set_info_done(self, video_id, post):
-        #     self.conn.hset(self.video_info_hset_key, video_id, post)
-        #     return self.conn.zadd(self.video_info_hset_key, self.done_video_info_flg, video_id)
 
 
 ##################################################################################################
@@ -65,14 +30,37 @@ class MySpider(spider.Spider):
         self.encoding = 'utf-8'
         # self.max_interval = None
 
+        # redis
+        self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
+        self.keyword_zset_key = '%s_keyword_zset' % self.siteName
+        self.channel_zset_key = '%s_channel_zset' % self.siteName
+        self.channel_info_hset_key = '%s_channel_info_hset' % self.siteName
+        self.todo_flg = -1
+        self.start_flg = 0
+
+    def get_todo_channels(self):
+        return self.conn.zrangebyscore(self.channel_zset_key, self.start_flg, self.start_flg, withscores=False)
+
+    def set_keyword_start(self, keyword):
+        self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
+
+    def add_todo_keyword(self, keyword):
+        self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword)
+
+    def add_channel(self, post):
+        self.conn.zadd(self.channel_zset_key, self.todo_flg, post['channel_href'])
+
+    def set_channel_info(self, channel_info):
+        self.conn.hset(self.channel_info_hset_key, channel_info['channel_href'], channel_info)
+        # self.conn.zincrby(self.channel_zset_key, value=channel_info['channel_href'], amount=1)
+
     def get_start_urls(self, data=None):
         self.start_urls = []
-        redis_db = RedisDrive()
-        keywords = redis_db.get_todo_keywords()
+        keywords = self.get_todo_channels()
         for word in keywords:
             url = 'https://www.youtube.com/results?q=%s&sp=CAMSAhAC' % word
             self.start_urls.append(url)
-            redis_db.set_keyword_start(word)
+            self.set_keyword_start(word)
 
         return self.start_urls  # must be a list type
 
@@ -83,7 +71,6 @@ class MySpider(spider.Spider):
             try:
                 response.encoding = self.encoding
                 unicode_html_body = response.text
-                # print unicode_html_body
                 data = htmlparser.Parser(unicode_html_body)
             except Exception, e:
                 print "parse(): %s" % e
@@ -114,7 +101,6 @@ class MySpider(spider.Spider):
             try:
                 response.encoding = self.encoding
                 unicode_html_body = response.text
-                # print unicode_html_body
                 data = htmlparser.Parser(unicode_html_body)
                 if data.xpath('''//div[@class="display-message"]''').text().strip() == 'No more results':
                     print response.url, ': No more results!'
@@ -124,7 +110,6 @@ class MySpider(spider.Spider):
                 print "parse_detail_page(): %s" % e
                 return (result, None, None)
 
-            redis_db = RedisDrive()
             divs = data.xpathall('''//div[@class="yt-lockup-content"]''')
             for div in divs:
 
@@ -159,7 +144,7 @@ class MySpider(spider.Spider):
                 if description._root is not None:
                     description = description.text().strip()
                 else:
-                    description = '-------------------'
+                    description = ''
 
                 channel_info = {'channel_name': channel_name,
                                 'channel_href': channel_href,
@@ -168,8 +153,8 @@ class MySpider(spider.Spider):
                                 'subscribe': subscribe,
                                 }
 
-                redis_db.add_channel(channel_info)
-                redis_db.set_channel_info(channel_info)
+                self.add_channel(channel_info)
+                self.set_channel_info(channel_info)
                 result.append(channel_info)
 
         pprint(result)
@@ -182,8 +167,6 @@ class MySpider(spider.Spider):
 def test(unit_test):
     if unit_test is False:  # spider simulation
         print '[spider simulation] now starting ..........'
-        redis_db = RedisDrive()
-        redis_db.conn.zadd(redis_db.keyword_zset_key, redis_db.todo_flg, 'china')
 
         for cnt in range(1000):
             print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
@@ -228,13 +211,12 @@ def test(unit_test):
                 #         print k, v
 
     else:  # ---------- unit test -----------------------------
-        spider = MySpider()
-        spider.proxy_enable = False
-        spider.init_dedup()
-        spider.init_downloader()
+        mySpider = MySpider()
+        mySpider.proxy_enable = False
+        mySpider.init_dedup()
+        mySpider.init_downloader()
 
-        redis_db = RedisDrive()
-        redis_db.conn.zadd(redis_db.keyword_zset_key, redis_db.todo_flg, 'china')
+        mySpider.conn.zadd(mySpider.keyword_zset_key, mySpider.todo_flg, 'china')
 
         # ------------ get_start_urls() ----------
         # urls = spider.get_start_urls()
@@ -255,8 +237,8 @@ def test(unit_test):
 
         # ------------ parse_detail_page() ----------
         url = 'https://www.youtube.com/results?q=china&sp=CAMSAhAC&page=29'
-        resp = spider.download(url)
-        res = spider.parse_detail_page(resp, url)
+        resp = mySpider.download(url)
+        res = mySpider.parse_detail_page(resp, url)
         pprint(res)
         # for item in res:
         #     for k, v in item.iteritems():
