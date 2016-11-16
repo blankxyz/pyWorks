@@ -2,8 +2,7 @@
 # coding=utf-8
 
 import redis
-from pprint import pprint
-import json
+import datetime
 
 REDIS_SERVER = 'redis://127.0.0.1/13'
 
@@ -27,6 +26,9 @@ class Monitor(object):
     def get_todo_keywords(self):
         return self.conn.zrangebyscore(self.keyword_zset_key, self.todo_flg, self.todo_flg, withscores=False)
 
+    def get_all_keywords_cnt(self):
+        return self.conn.zcard(self.keyword_zset_key)
+
     def set_keyword_start(self, keyword):
         return self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
 
@@ -39,18 +41,57 @@ class Monitor(object):
     def get_videos(self):
         return self.conn.hgetall(self.video_info_hset_key)
 
+    def get_videos_cnt(self):
+        return self.conn.hlen(self.video_info_hset_key)
+
     def extract_channel(self):
         videos = self.get_videos()
-        for k,v in videos.iteritems():
+        for k, v in videos.iteritems():
             # print json.dumps(v)
             video_info = eval(v)
             # print channel['channel_url']
             self.add_channel_list(video_info['channel_url'])
+
+    def get_keywords_score_summy(self):
+        summy = 0
+        keywords = self.conn.zrangebyscore(self.keyword_zset_key, min=self.start_flg, max=999999999, withscores=True)
+        for (k, v) in dict(keywords).iteritems():
+            summy = summy + int(v)
+
+        return summy
+
+    def create_redis_keywords(self):
+        fd = open('./youtube/keyword_news.txt', 'r')
+        keywords = fd.readlines()
+        for keyword in keywords:
+            self.conn.zadd(self.keyword_zset_key, self.todo_flg, keyword.strip('\n'))
+        fd.close()
 
 
 def test():
     monitor = Monitor()
     monitor.extract_channel()
 
+
+def create():
+    monitor = Monitor()
+    monitor.create_redis_keywords()
+
+
+def status():
+    monitor = Monitor()
+    all = monitor.get_all_keywords_cnt()
+    todo = len(monitor.get_todo_keywords())
+    videos_cnt = monitor.get_videos_cnt()
+    videos_score_summy = monitor.get_keywords_score_summy()
+
+    print '---------------------------------------------'
+    print '                     now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print '              done/total: %d / %d' % (all - todo, all)
+    print 'videos cnt / score summy: %d / %d' % (videos_cnt, videos_score_summy)
+    print '---------------------------------------------'
+
 if __name__ == '__main__':
-    test()
+    # create()
+    # test()
+    status()
