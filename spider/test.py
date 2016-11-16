@@ -1,18 +1,23 @@
-import os
-import subprocess
-def match_page(url):
-    if os.name == 'nt':
-        cmd = 'D:\phantomjs\\bin\phantomjs test.js'
-    else:
-        cmd = '/Users/song/workspace/phantomjs/bin/phantomjs ./test.js "%s"' % url
-    stdout, stderr = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    # fd = open('1.html','w')
-    # fd.write(stdout)
-    # fd.close()
-    print stdout
-    # print stderr
-    print 'end'
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+from  multiprocessing import Process, Pool
+import time
+
+
+def Foo(i):
+    # time.sleep(1)
+    print i
+
 
 if __name__ == '__main__':
-    match_page('http://bbs.tianya.cn')
-    # match_page('http://www.baidu.com')
+    t_start=time.time()
+    pool = Pool(5)
+
+    for i in range(10):
+        pool.apply(Foo, (i,))
+
+    pool.close()
+    pool.join()  # 进程池中进程执行完毕后再关闭，如果注释，那么程序直接关闭。
+    t_end=time.time()
+    t=t_end-t_start
+    print 'the program time is :%s' %t
