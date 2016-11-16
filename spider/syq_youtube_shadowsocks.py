@@ -203,9 +203,9 @@ class SpiderMan(object):
         解析带有页数信息的URL的内容，取得各个项目内容
         '''
         global thread_count, thread_lock
-        thread_lock.acquire()  # 获取琐
+        # thread_lock.acquire()  # 获取琐
         thread_count += 1
-        print 'parse_detail_page() %d', thread_count
+        print 'parse_detail_page() start %d' % thread_count
 
         urls = self.conn.zrangebyscore(self.requests_url_zset_key,
                                        min=self.todo_flg,
@@ -286,7 +286,7 @@ class SpiderMan(object):
         except Exception, e:
             print "parse_detail_page(): error: %s" % e
 
-        thread_lock.release()  # 释放琐
+        # thread_lock.release()  # 释放琐
         # return result
 
 
@@ -302,18 +302,18 @@ def test(unit_test):
 def run():
     myspider = SpiderMan()
 
-    pool = Pool(10)
-    for i in range(1):
-        # print 'apply_async %d' % i
-        # pool.apply_async(myspider.get_start_urls, args=())
-        # pool.apply(myspider.get_start_urls)
-        myspider.get_start_urls()
+    # pool = Pool(10)
+    # for i in range(1):
+    #     # print 'apply_async %d' % i
+    #     # pool.apply_async(myspider.get_start_urls, args=())
+    #     # pool.apply(myspider.get_start_urls)
+    #     myspider.get_start_urls()
+    #
+    # pool.close()
+    # pool.join()
+    # # pool.terminate()
 
-    pool.close()
-    pool.join()
-    # pool.terminate()
-
-    for i in xrange(100):
+    for _ in xrange(1):
         thread.start_new_thread(myspider.parse_detail_page, ())
 
 
