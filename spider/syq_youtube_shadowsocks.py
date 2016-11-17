@@ -1,6 +1,7 @@
 #!/usr/bin python
 # coding=utf-8
 import time
+import signal
 import datetime
 import re
 import redis
@@ -9,12 +10,25 @@ import pycurl
 import urllib2
 import traceback
 import cStringIO
+import random
 from  multiprocessing import Process, Pool
 import threading
-
+import gevent.pool
+import gevent.queue
+import gevent.event
+from gevent import threadpool
+from gevent import monkey
+import log
+import util
+import setting
 import htmlparser
 
-REDIS_SERVER = 'redis://127.0.0.1/13'
+# 全局Event变量，用于退出时线程间同步
+eventExit = None
+# 命令行参数对象，保存从命令行中得到的参数
+cmd_args = None
+
+REDIS_SERVER = 'redis://127.0.0.1/12'
 
 # Filters: 1)Upload date: today  2)Sort by: Upload date
 PRE_SEARCH_URL = 'https://www.youtube.com/results?sp=CAISAggC&q='
@@ -22,6 +36,8 @@ PRE_SEARCH_URL = 'https://www.youtube.com/results?sp=CAISAggC&q='
 thread_count = 0
 
 thread_lock = threading.Lock()
+
+monkey.patch_all()
 
 
 class DownloaderCurl(object):
@@ -70,8 +86,12 @@ class DownloaderRequests(object):
                         }
 
     def get_html(self, url):
-        resp = requests.get(url, proxies=self.proxies, headers=self.headers)
-        return resp.content
+        try:
+            resp = requests.get(url, proxies=self.proxies, headers=self.headers)
+            return resp.content
+        except Exception, e:
+            print 'get_html() error',e
+            return None
 
 
 class SpiderMan(object):
@@ -122,12 +142,12 @@ class SpiderMan(object):
                                            min=self.todo_flg,
                                            max=self.todo_flg,
                                            withscores=False)
-        print keywords
+        # print keywords
         for keyword in keywords[:20]:
             # url = PRE_SEARCH_URL + urllib2.quote(keyword)
             url = PRE_SEARCH_URL + keyword
             urls.append(url)
-            print 'get_start_urls() keyword: %s', keyword
+            print 'get_start_urls() keyword: %s' % keyword
             self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
 
             ############################
@@ -146,9 +166,15 @@ class SpiderMan(object):
         try:
             print 'parse() start.', url
             html_content = self.download.get_html(url)
+            if html_content is None:
+                return (url_list, None, None)
+
             data = htmlparser.Parser(html_content)
             cnt_str = data.xpath('''//p[contains(@class,"num-results")]''')
             cnt_str = cnt_str.text().strip()
+
+            print 'parse() debug:', cnt_str
+
             cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sfiltered results)"), cnt_str)
             if cnt_str:
                 cnt_str = cnt_str.group(2)
@@ -170,7 +196,7 @@ class SpiderMan(object):
             print "parse(): error %s" % e
             return (url_list, None, None)
 
-        print 'parse() end.', url, '>>>> %d pages' % len(url_list)
+        print 'parse() end.', url, 'has [ %d ] pages' % len(url_list)
         return (url_list, None, None)
 
     def parse_detail_page(self):
@@ -267,39 +293,97 @@ class SpiderMan(object):
         return result
 
 
-def get_start_urls_process():
+def list_page_thread():
     myspider = SpiderMan()
     myspider.get_start_urls()
 
 
-def parse_detail_page_thread():
+def detail_page_thread():
     myspider = SpiderMan()
     myspider.parse_detail_page()
 
 
+def stop_spider():
+    gevent.killall(timeout=30)
+
+
+def run_spider():
+    # monkey.patch_all()
+
+    global eventExit
+
+    signal.signal(signal.SIGTERM, stop_spider)
+
+    list_thread_pool = gevent.pool.Pool(setting.LIST_PAGE_THREAD_NUM)
+    detail_page_thread_pool = gevent.pool.Pool(setting.DETAIL_PAGE_THREAD_NUM)
+
+    for _ in xrange(setting.LIST_PAGE_THREAD_NUM):
+        time.sleep(random.random())
+        list_thread_pool.spawn(list_page_thread)
+
+    time.sleep(60)
+
+    for _ in range(setting.DETAIL_PAGE_THREAD_NUM):
+        detail_page_thread_pool.spawn(detail_page_thread)
+
+    timeouter = gevent.Timeout(60)
+    try:
+        timeouter.start()
+
+        list_thread_pool.join()
+        detail_page_thread_pool.join()
+    #
+    except gevent.Timeout, e:
+        log.logger.debug("internal timeout triggered: %s" % e)
+    finally:
+        timeouter.cancel()
+
+
+def multi_process_runner():
+    import multiprocessing
+
+    process_pool = []
+
+    def stop_process(signum, frame):
+        for p in process_pool:
+            p.terminate()
+
+    signal.signal(signal.SIGTERM, stop_process)
+
+    for _ in xrange(1):
+        p = multiprocessing.Process(target=run_spider)
+        p.start()
+        process_pool.append(p)
+
+    for p in process_pool:
+        p.join()
+
+
 def main():
-    max_thread_cnt = 10
-    process_cnt = 10
-    threads = []
+    multi_process_runner()
 
-    pool = Pool(processes=4)  # processes default is cpu_count()
-    for i in range(process_cnt):
-        pool.apply_async(get_start_urls_process)
-
-    pool.close()
-    pool.join()
-    pool.terminate()
-    print '----------- process end ---------------'
-
-    for _ in xrange(max_thread_cnt):
-        t = threading.Thread(target=parse_detail_page_thread, args=())
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
-
-    print '----------- thread end ---------------'
+    # max_thread_cnt = 10
+    # process_cnt = 10000
+    # threads = []
+    #
+    # pool = Pool(processes=16)  # default is cpu_count()
+    # for i in range(process_cnt):
+    #     print 'process num: [%d]' % i
+    #     pool.apply_async(get_start_urls_process)
+    #
+    # pool.close()
+    # pool.join()
+    # pool.terminate()
+    # print '----------- process end ---------------'
+    #
+    # for _ in xrange(max_thread_cnt):
+    #     t = threading.Thread(target=parse_detail_page_thread, args=())
+    #     threads.append(t)
+    #     t.start()
+    #
+    # for t in threads:
+    #     t.join()
+    # print '----------- thread end ---------------'
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ import urllib2
 from pprint import pprint
 import redis
 
-REDIS_SERVER = 'redis://127.0.0.1/13'
+REDIS_SERVER = 'redis://127.0.0.1/12'
 
 # Filters: 1)Upload date: today  2)Sort by: Upload date
 PRE_SEARCH_URL = 'https://www.youtube.com/results?sp=CAISAggC&q='
@@ -77,18 +77,34 @@ class MySpider(spider.Spider):
 
         return ret_time.strftime("%Y-%m-%d %H:%M:%S")
 
+    def download(self, url, func_name=None, **kwargs):
+        #kwargs = self.request_headers
+        kwargs.update(self.request_headers)
+
+        response = None
+        if isinstance(url, basestring):
+            newurl_lower = url.lower().strip()
+            if (newurl_lower.startswith('http://') or
+                    newurl_lower.startswith('https://') or
+                    newurl_lower.startswith('ftp://')):
+                proxies = {'http': "socks5://127.0.0.1:1080",
+                           'https': "socks5://127.0.0.1:1080"}
+                response = self.downloader.download(url, verify=False, proxies=proxies,**kwargs)
+                # print response.text
+            else:
+                log.logger.info("-- config_id:%s ; url not start with http/https/ftp: %s"%(self.config_id, url))
+
+        return response
+
     def get_start_urls(self, data=None):
         urls = []
         keywords = self.conn.zrangebyscore(self.keyword_zset_key, self.todo_flg, self.todo_flg, withscores=False)
-        # print keywords[:20]
+        #print 'get_start_urls()', keywords[:20]
         for keyword in keywords[:20]:
             # url = PRE_SEARCH_URL + urllib2.quote(keyword)
             url = PRE_SEARCH_URL + keyword
             urls.append(url)
-            print 'get_start_urls()', keyword, url
             self.conn.zadd(self.keyword_zset_key, self.start_flg, keyword)
-
-        # print urls
         return urls
 
     def parse(self, response):
@@ -99,7 +115,7 @@ class MySpider(spider.Spider):
         if response is not None:
             try:
                 response.encoding = self.encoding
-                unicode_html_body = response.text
+                unicode_html_body = response.content
                 data = htmlparser.Parser(unicode_html_body)
             except Exception, e:
                 print "parse(): %s" % e
@@ -140,7 +156,7 @@ class MySpider(spider.Spider):
 
         try:
             response.encoding = self.encoding
-            unicode_html_body = response.text
+            unicode_html_body = response.content
             # print unicode_html_body
             data = htmlparser.Parser(unicode_html_body)
         except Exception, e:
@@ -216,7 +232,7 @@ class MySpider(spider.Spider):
 # ---------- test run function-----------------------------
 def test(unit_test):
     if unit_test is False:  # spider simulation
-        print '[spider simulation] now starting ..........'
+        print '<<<<< spider simulation >>>>>>'
         for cnt in range(1):
             print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
             detail_job_list = []  # equal to run.py detail_job_queue
@@ -261,6 +277,7 @@ def test(unit_test):
                 #         print k, v
 
     else:  # ---------- unit test -----------------------------
+	print '<<<<<<  unit test  >>>>>>'
         spider = MySpider()
         spider.proxy_enable = False
         spider.init_dedup()
@@ -268,8 +285,8 @@ def test(unit_test):
 
         # ------------ get_start_urls() ----------
         urls = spider.get_start_urls()
-        # pprint(urls)
-        # print(len(urls))
+        pprint(urls)
+        print(len(urls))
 
         # ------------ parse() ----------
         # china+beijing&lclk=short&filters=short
@@ -294,5 +311,5 @@ def test(unit_test):
 
 
 if __name__ == '__main__':
-    # test(unit_test=True)
+    #test(unit_test=True)
     test(unit_test=False)

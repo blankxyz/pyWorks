@@ -2,9 +2,10 @@
 # coding=utf-8
 
 import redis
+import time
 import datetime
 
-REDIS_SERVER = 'redis://127.0.0.1/13'
+REDIS_SERVER = 'redis://127.0.0.1/12'
 
 
 ##################################################################################################
@@ -80,18 +81,22 @@ def create():
 
 def status():
     monitor = Monitor()
-    all = monitor.get_all_keywords_cnt()
-    todo = len(monitor.get_todo_keywords())
-    videos_cnt = monitor.get_videos_cnt()
-    videos_score_summy = monitor.get_keywords_score_summy()
 
-    print '---------------------------------------------'
-    print '                     now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print '              done/total: %d / %d' % (all - todo, all)
-    print 'videos cnt / score summy: %d / %d' % (videos_cnt, videos_score_summy)
-    print '---------------------------------------------'
+    for _ in range(1):
+        all = monitor.get_all_keywords_cnt()
+        todo = len(monitor.get_todo_keywords())
+        done = all - todo
+        videos_cnt = monitor.get_videos_cnt()
+        videos_score_summy = monitor.get_keywords_score_summy()
+
+        print '---------------------------------------------'
+        print '                     now:', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print '              done/total: %d / %d' % (done, all)
+        print 'videos cnt / score summy: %d / %d' % (videos_cnt, videos_score_summy)
+        time.sleep(60)
+
 
 if __name__ == '__main__':
     # create()
-    # test()
     status()
+    # test()
