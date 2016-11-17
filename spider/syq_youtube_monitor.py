@@ -97,6 +97,6 @@ def status():
 
 
 if __name__ == '__main__':
-    # create()
-    status()
+    create()
+    # status()
     # test()
