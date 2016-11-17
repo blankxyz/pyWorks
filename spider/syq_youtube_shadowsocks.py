@@ -303,10 +303,6 @@ def detail_page_thread():
     myspider.parse_detail_page()
 
 
-def stop_spider():
-    gevent.killall(timeout=30)
-
-
 def run_spider():
     # monkey.patch_all()
 

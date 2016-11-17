@@ -77,29 +77,29 @@ class MySpider(spider.Spider):
 
         return ret_time.strftime("%Y-%m-%d %H:%M:%S")
 
-    def download(self, url, func_name=None, **kwargs):
-        #kwargs = self.request_headers
-        kwargs.update(self.request_headers)
-
-        response = None
-        if isinstance(url, basestring):
-            newurl_lower = url.lower().strip()
-            if (newurl_lower.startswith('http://') or
-                    newurl_lower.startswith('https://') or
-                    newurl_lower.startswith('ftp://')):
-                proxies = {'http': "socks5://127.0.0.1:1080",
-                           'https': "socks5://127.0.0.1:1080"}
-                response = self.downloader.download(url, verify=False, proxies=proxies,**kwargs)
-                # print response.text
-            else:
-                log.logger.info("-- config_id:%s ; url not start with http/https/ftp: %s"%(self.config_id, url))
-
-        return response
+    # def download(self, url, func_name=None, **kwargs):
+    #     # kwargs = self.request_headers
+    #     kwargs.update(self.request_headers)
+    #
+    #     response = None
+    #     if isinstance(url, basestring):
+    #         newurl_lower = url.lower().strip()
+    #         if (newurl_lower.startswith('http://') or
+    #                 newurl_lower.startswith('https://') or
+    #                 newurl_lower.startswith('ftp://')):
+    #             proxies = {'http': "socks5://127.0.0.1:1080",
+    #                        'https': "socks5://127.0.0.1:1080"}
+    #             response = self.downloader.download(url, verify=False, proxies=proxies, **kwargs)
+    #             # print response.text
+    #         else:
+    #             log.logger.info("-- config_id:%s ; url not start with http/https/ftp: %s" % (self.config_id, url))
+    #
+    #     return response
 
     def get_start_urls(self, data=None):
         urls = []
         keywords = self.conn.zrangebyscore(self.keyword_zset_key, self.todo_flg, self.todo_flg, withscores=False)
-        #print 'get_start_urls()', keywords[:20]
+        # print 'get_start_urls()', keywords[:20]
         for keyword in keywords[:20]:
             # url = PRE_SEARCH_URL + urllib2.quote(keyword)
             url = PRE_SEARCH_URL + keyword
@@ -112,16 +112,14 @@ class MySpider(spider.Spider):
         根据keyword的检索结果（结果件数），生成带页数信息的url。
         '''
         url_list = []
-        if response is not None:
-            try:
-                response.encoding = self.encoding
-                unicode_html_body = response.content
-                data = htmlparser.Parser(unicode_html_body)
-            except Exception, e:
-                print "parse(): %s" % e
-                return (url_list, None, None)
+        if response is None:
+            print '[info] parse() response is None'
+            return ([None], None, None)
 
-            purl = response.request.url
+        try:
+            req_url = response.request.url
+            response.encoding = self.encoding
+            data = htmlparser.Parser(response.content)
 
             cnt_str = data.xpath(
                 '''//div[2]/div[4]/div/div[5]/div/div/div/div[1]/div/div[2]/div[1]/ol/li[1]/div/div[1]/div/p''')
@@ -141,90 +139,89 @@ class MySpider(spider.Spider):
                     pages = 20
 
                 for page in range(1, pages + 1):
-                    # print 'url:', purl + '&page=%d' % (page+1)
-                    url_list.append(purl + '&page=%d' % page)
+                    url_list.append(req_url + '&page=%d' % page)
 
-            print 'parse()', purl, '>>>> %d pages' % len(url_list)
+        except Exception, e:
+            print "[error] parse() error is [%s]" % e
+            return (url_list, None, None)
 
+        print '[info] parse() [%d pages] %s' % (len(url_list), req_url)
         return (url_list, None, None)
 
     def parse_detail_page(self, response=None, url=None):
         result = []
         if response is None:
-            print "parse_detail_page(): response is None"
-            return result
+            print "[info] parse_detail_page() response is None"
+            return [None]
 
         try:
+            req_url = response.request.url
             response.encoding = self.encoding
-            unicode_html_body = response.content
-            # print unicode_html_body
-            data = htmlparser.Parser(unicode_html_body)
+            data = htmlparser.Parser(response.content)
+
+            keyword = req_url[len(PRE_SEARCH_URL):]
+            keyword = re.match(re.compile(r"(.*)(&page=\d+)"), keyword).group(1)
+            keyword = urllib2.unquote(keyword)
+
+            # 需要包含各个视频信息左侧的图片div
+            divs = data.xpathall('''//div[contains(@class,"yt-lockup-video")]''')
+            for div in divs:
+                ad = div.xpath('''//span[contains(@class,"yt-badge-ad")]''').text().strip()
+                if ad == 'Ad':  # 去除广告
+                    continue
+
+                channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()  # class中会有空格
+                channel_url = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a/@href''').text().strip()
+
+                title = div.xpath('''//h3''').text().strip()
+
+                upload_time_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[1]''').text().strip()
+                upload_time = self.time_convert(upload_time_str)
+
+                thumb_img_src = div.xpath('''//span[contains(@class,"yt-thumb-simple")]/img/@src''').text().strip()
+
+                video_href = div.xpath('''//h3/a/@href''').text().strip()
+                video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
+
+                views = None
+                views_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[last()]''').text().strip()
+                if views_str:
+                    views = re.match(re.compile(r"(.*)(\sview+)"), views_str)
+                    if views:
+                        views = views.group(1)
+                        views = re.sub(r",", "", views)
+                        if views == 'No':
+                            views = 0
+
+                description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''')
+                if description._root is not None:
+                    description = description.text().strip()
+                else:
+                    description = ''
+
+                video_info = {'info_flag': self.info_flag,
+                              'url': 'https://www.youtube.com' + video_href,
+                              'video_id': video_id,
+                              'title': title.decode('utf8'),
+                              'pic_urls': [thumb_img_src],
+                              'video_urls': ['https://www.youtube.com' + video_href],
+                              'content': description.decode('utf8'),
+                              'visitCount': views,
+                              'channel': channel.decode('utf8'),
+                              'channel_url': channel_url,
+                              'ctime': upload_time,
+                              'site_domain': self.site_domain,
+                              'siteName': self.siteName,
+                              }
+
+                self.conn.hset(self.video_info_hset_key, video_info['video_id'], video_info)
+                result.append(video_info)
+
         except Exception, e:
-            print "parse_detail_page(): error: %s" % e
+            print "[error] parse_detail_page() error is [%s]" % e
             return (result, None, None)
 
-        req_url = response.request.url
-        print 'parse_detail_page():', req_url
-        keyword = req_url[len(PRE_SEARCH_URL):]
-        keyword = re.match(re.compile(r"(.*)(&page=\d+)"), keyword).group(1)
-        keyword = urllib2.unquote(keyword)
-
-        # 需要包含各个视频信息左侧的图片div
-        divs = data.xpathall('''//div[contains(@class,"yt-lockup-video")]''')
-        for div in divs:
-            ad = div.xpath('''//span[contains(@class,"yt-badge-ad")]''').text().strip()
-            if ad == 'Ad':  # 去除广告
-                continue
-
-            channel = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a''').text().strip()  # class中会有空格
-            channel_url = div.xpath('''//div[contains(@class,"yt-lockup-byline")]/a/@href''').text().strip()
-
-            title = div.xpath('''//h3''').text().strip()
-
-            upload_time_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[1]''').text().strip()
-            upload_time = self.time_convert(upload_time_str)
-
-            thumb_img_src = div.xpath('''//span[contains(@class,"yt-thumb-simple")]/img/@src''').text().strip()
-
-            video_href = div.xpath('''//h3/a/@href''').text().strip()
-            video_id = video_href[len('/watch?v='):]  # /watch?v=Wza_nSeLH9M
-
-            views = None
-            views_str = div.xpath('''//ul[contains(@class,"yt-lockup-meta-info")]/li[last()]''').text().strip()
-            if views_str:
-                views = re.match(re.compile(r"(.*)(\sview+)"), views_str)
-                if views:
-                    views = views.group(1)
-                    views = re.sub(r",", "", views)
-                    if views == 'No':
-                        views = 0
-
-            description = div.xpath('''//div[contains(@class,"yt-lockup-description")]''')
-            if description._root is not None:
-                description = description.text().strip()
-            else:
-                description = ''
-
-            video_info = {'info_flag': self.info_flag,
-                          'url': 'https://www.youtube.com' + video_href,
-                          'video_id': video_id,
-                          'title': title.decode('utf8'),
-                          'pic_urls': [thumb_img_src],
-                          'video_urls': ['https://www.youtube.com' + video_href],
-                          'content': description.decode('utf8'),
-                          'visitCount': views,
-                          'channel': channel.decode('utf8'),
-                          'channel_url': channel_url,
-                          'ctime': upload_time,
-                          'site_domain': self.site_domain,
-                          'siteName': self.siteName,
-                          }
-
-            self.conn.hset(self.video_info_hset_key, video_info['video_id'], video_info)
-            result.append(video_info)
-            # pprint(result)
-
-        print 'parse_detail_page()', keyword, len(result)
+        print '[info] parse_detail_page() keyword [%s] , result cnt: %d' % (keyword, len(result))
         self.conn.zincrby(self.keyword_zset_key, value=keyword, amount=len(result))
         return result
 
@@ -232,7 +229,7 @@ class MySpider(spider.Spider):
 # ---------- test run function-----------------------------
 def test(unit_test):
     if unit_test is False:  # spider simulation
-        print '<<<<< spider simulation >>>>>>'
+        print '<<<<<<< spider simulation >>>>>>'
         for cnt in range(1):
             print '[loop]', cnt, '[time]', datetime.datetime.utcnow()
             detail_job_list = []  # equal to run.py detail_job_queue
@@ -277,7 +274,7 @@ def test(unit_test):
                 #         print k, v
 
     else:  # ---------- unit test -----------------------------
-	print '<<<<<<  unit test  >>>>>>'
+        print '<<<<<<<  unit test  >>>>>>>'
         spider = MySpider()
         spider.proxy_enable = False
         spider.init_dedup()
@@ -303,13 +300,12 @@ def test(unit_test):
 
         # ------------ parse_detail_page() ----------
         # url = 'https://www.youtube.com/watch?v=MXO7K76RRqg'
-        # url  ='https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E8%BE%BE%E8%B5%96%E5%96%87%E5%98%9B&page=1'
+        # url = 'https://www.youtube.com/results?sp=EgIIAg%253D%253D&q=%E8%BE%BE%E8%B5%96%E5%96%87%E5%98%9B&page=1'
         # resp = spider.download(url)
         # res = spider.parse_detail_page(resp, url)
         # pprint(res)
         # print len(res)
 
-
 if __name__ == '__main__':
-    #test(unit_test=True)
+    # test(unit_test=True)
     test(unit_test=False)

@@ -82,7 +82,7 @@ def create():
 def status():
     monitor = Monitor()
 
-    for _ in range(1):
+    for _ in range(10):
         all = monitor.get_all_keywords_cnt()
         todo = len(monitor.get_todo_keywords())
         done = all - todo
