@@ -73,6 +73,7 @@ def download(url):
 
 def get_start_urls(i):
     print 'get_start_urls() start.'
+    time.sleep(0.1)
     urls = []
     keywords = conn.zrangebyscore(keyword_zset_key,
                                   min=todo_flg,
@@ -226,22 +227,14 @@ def parse_detail_page(urls):
 
     return None
 
-
-def Foo(i):
-    time.sleep(0.1)
-    return i + 100
-
-
-def Bar(arg):
-    print 'Bar', arg
-
-
-if __name__ == '__main__':
+def main():
     pool = Pool()
     for i in range(100):
-        # pool.apply_async(func=Foo, args=(i,), callback=Bar)
         pool.apply_async(func=get_start_urls, args=(i,), callback=parse_detail_page)
 
     pool.close()
     pool.join()
     pool.terminate()
+
+if __name__ == '__main__':
+    main()
