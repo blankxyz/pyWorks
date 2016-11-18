@@ -294,17 +294,19 @@ class SpiderMan(object):
 
 
 def list_page_thread():
-    myspider = SpiderMan()
-    myspider.get_start_urls()
+    print 'list_page_thread start'
+    # myspider = SpiderMan()
+    # myspider.get_start_urls()
 
 
 def detail_page_thread():
-    myspider = SpiderMan()
-    myspider.parse_detail_page()
+    print 'detail_page_thread start'
+    # myspider = SpiderMan()
+    # myspider.parse_detail_page()
 
 
-def run_spider():
-    # monkey.patch_all()
+def run_spider_gevent():
+    monkey.patch_all()
 
     global eventExit
 
@@ -335,6 +337,31 @@ def run_spider():
         timeouter.cancel()
 
 
+def run_spider():
+    max_thread_cnt = 10
+    process_cnt = 100
+    threads = []
+
+    pool = Pool()  # default is cpu_count()
+    for i in range(process_cnt):
+        print 'run_spider() [%d]' % i
+        pool.apply_async(list_page_thread)
+
+    pool.close()
+    pool.join()
+    pool.terminate()
+    print '----------- process end ---------------'
+
+    # for _ in xrange(max_thread_cnt):
+    #     t = threading.Thread(target=detail_page_thread, args=())
+    #     threads.append(t)
+    #     t.start()
+    #
+    # for t in threads:
+    #     t.join()
+    # print '----------- thread end ---------------'
+
+
 def multi_process_runner():
     import multiprocessing
 
@@ -346,7 +373,9 @@ def multi_process_runner():
 
     signal.signal(signal.SIGTERM, stop_process)
 
-    for _ in xrange(1):
+    for i in xrange(1):
+        # p = multiprocessing.Process(target=run_spider_gevent)
+        print 'multi_process_runner %d' % i
         p = multiprocessing.Process(target=run_spider)
         p.start()
         process_pool.append(p)
@@ -356,30 +385,13 @@ def multi_process_runner():
 
 
 def main():
-    multi_process_runner()
+    pool = Pool()
+    for i in range(100):
+        pool.apply_async(func=list_page_thread, args=(i,), callback=detail_page_thread)
 
-    # max_thread_cnt = 10
-    # process_cnt = 10000
-    # threads = []
-    #
-    # pool = Pool(processes=16)  # default is cpu_count()
-    # for i in range(process_cnt):
-    #     print 'process num: [%d]' % i
-    #     pool.apply_async(get_start_urls_process)
-    #
-    # pool.close()
-    # pool.join()
-    # pool.terminate()
-    # print '----------- process end ---------------'
-    #
-    # for _ in xrange(max_thread_cnt):
-    #     t = threading.Thread(target=parse_detail_page_thread, args=())
-    #     threads.append(t)
-    #     t.start()
-    #
-    # for t in threads:
-    #     t.join()
-    # print '----------- thread end ---------------'
+    pool.close()
+    pool.join()
+    pool.terminate()
 
 
 if __name__ == '__main__':
