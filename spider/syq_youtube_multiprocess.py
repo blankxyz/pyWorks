@@ -23,6 +23,7 @@ search_result_urls_zset_key = '%s_search_result_urls_zset' % siteName
 video_info_hset_key = '%s_video_info_hset' % siteName
 todo_flg = -1
 start_flg = 0
+keywords_num = 16
 
 
 def time_convert(ago_time_str):
@@ -72,27 +73,27 @@ def download(url):
 
 
 def get_start_urls(i):
-    print 'get_start_urls() start.'
+    print '[info] get_start_urls() start.'
     time.sleep(0.1)
     urls = []
     keywords = conn.zrangebyscore(keyword_zset_key,
                                   min=todo_flg,
                                   max=todo_flg,
                                   withscores=False)
-    for keyword in keywords[:5]:
+    for keyword in keywords[:keywords_num]:
         # url = PRE_SEARCH_URL + urllib2.quote(keyword)
         url = PRE_SEARCH_URL + keyword
         urls.append(url)
-        print 'get_start_urls() keyword: %s' % keyword
+        print '[info] get_start_urls() keyword: [ %s ]' % keyword
         conn.zadd(keyword_zset_key, start_flg, keyword)
 
-    page_num_urls = []
+    with_page_num_urls = []
     for url in urls:
         (url_list, _, _) = parse(url)
-        page_num_urls.extend(url_list)
+        with_page_num_urls.extend(url_list)
 
-    print 'get_start_urls() end.'
-    return page_num_urls
+    print '[info] get_start_urls() end.'
+    return with_page_num_urls
 
 
 def parse(url):
@@ -103,7 +104,7 @@ def parse(url):
     cnt = 0
 
     try:
-        print 'parse() start.', url
+        print '[info] parse() start.', url
         html_content = download(url)
         if html_content is None:
             return (url_list, None, None)
@@ -112,7 +113,7 @@ def parse(url):
         cnt_str = data.xpath('''//p[contains(@class,"num-results")]''')
         cnt_str = cnt_str.text().strip()
 
-        print 'parse() debug:', cnt_str
+        # print 'parse() debug:', cnt_str
 
         cnt_str = re.match(re.compile(r"(About\s)(.+?)(\sfiltered results)"), cnt_str)
         if cnt_str:
@@ -123,7 +124,7 @@ def parse(url):
         if cnt > 0:
             pages = (cnt / 20) + 1
             if pages > 20:
-                pages = 2
+                pages = 20
 
             for page in range(1, pages + 1):
                 request_url = url + '&page=%d' % page
@@ -132,10 +133,10 @@ def parse(url):
                 conn.zadd(search_result_urls_zset_key, todo_flg, request_url)
 
     except Exception, e:
-        print "parse(): error %s" % e
+        print "[error] parse(): error %s" % e
         return (url_list, None, None)
 
-    print 'parse() end.', url, 'has [ %d ] pages' % len(url_list)
+    print '[info] parse() end.', url, 'has [ %d ] pages' % len(url_list)
     return (url_list, None, None)
 
 
@@ -143,22 +144,23 @@ def parse_detail_page(urls):
     '''
     解析带有页数信息的URL的内容，取得各个项目内容
     '''
-    result = []
     # urls = conn.zrangebyscore(search_result_urls_zset_key,
     #                           min=todo_flg,
     #                           max=todo_flg,
     #                           start=0,
     #                           num=1,
     #                           withscores=False)
-    print 'parse_detail_page() start. [urls] ', urls
+    print '[info] parse_detail_page() start. urls: ', urls
 
     if len(urls) == 0:
-        print 'parse_detail_page() nothing.'
-        return result
+        print '[info] parse_detail_page() nothing.'
+        return [None]
 
     try:
+        result = []
         for url in urls:
             conn.zadd(search_result_urls_zset_key, start_flg, url)
+
             keyword = url[len(PRE_SEARCH_URL):]
             keyword = re.match(re.compile(r"(.*)(&page=\d+)"), keyword).group(1)
             keyword = urllib2.unquote(keyword)
@@ -219,22 +221,26 @@ def parse_detail_page(urls):
                 conn.hset(video_info_hset_key, video_info['video_id'], video_info)
                 result.append(video_info)
 
-            print 'parse_detail_page() end. [keyword] %s, [result cnt] %d' % (keyword, len(result))
+            print '[info] parse_detail_page() end. keyword:[ %s ], result cnt: [ %d ]' % (keyword, len(result))
+
             conn.zincrby(keyword_zset_key, value=keyword, amount=len(result))
 
     except Exception, e:
-        print "parse_detail_page() error. %s" % e
+        print "[error] parse_detail_page() error: [ %s ] " % e
 
     return None
 
+
 def main():
-    pool = Pool()
-    for i in range(100):
+    pool = Pool(16)
+    for i in range(60000):
+        print '[info] main() run [ %d ]' % i
         pool.apply_async(func=get_start_urls, args=(i,), callback=parse_detail_page)
 
     pool.close()
     pool.join()
     pool.terminate()
+
 
 if __name__ == '__main__':
     main()

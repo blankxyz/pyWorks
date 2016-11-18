@@ -1,32 +1,31 @@
-import tornado
+import tornado.web
+import tornado.httpserver
 import tornado.ioloop
-import tornado.gen
-import tornado.httpclient
-import pycurl
+import tornado.options
+import os.path
+
+from tornado.options import define, options
+
+define("port", default=8000, help="run on the given port", type=int)
 
 
-def prepare_curl_socks5(curl):
-    # pycurl.PROXYTYPE_HTTP
-    curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+class HelloHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('hello.html')
 
 
-@tornado.gen.coroutine
-def main():
-    # set CurlAsyncHTTPClient the default AsyncHTTPClient
-    tornado.httpclient.AsyncHTTPClient.configure(
-        "tornado.curl_httpclient.CurlAsyncHTTPClient")
-
-    http_client = tornado.httpclient.AsyncHTTPClient()
-    http_request = tornado.httpclient.HTTPRequest(
-        "http://www.youtube.com",
-        prepare_curl_callback=prepare_curl_socks5,
-        proxy_host="localhost",
-        proxy_port=1080
-    )
-    response = yield http_client.fetch(http_request)
-
-    print response.body
+class HelloModule(tornado.web.UIModule):
+    def render(self):
+        return '<h1>Hello, world!</h1>'
 
 
 if __name__ == '__main__':
-    tornado.ioloop.IOLoop.instance().run_sync(main)
+    tornado.options.parse_command_line()
+    app = tornado.web.Application(
+        handlers=[(r'/', HelloHandler)],
+        template_path=os.path.join(os.path.dirname(__file__), 'templates'),
+        ui_modules={'Hello': HelloModule}
+    )
+    server = tornado.httpserver.HTTPServer(app)
+    server.listen(options.port)
+    tornado.ioloop.IOLoop.instance().start()

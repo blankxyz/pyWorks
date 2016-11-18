@@ -12,7 +12,7 @@ from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.httpclient import HTTPRequest
 from tornado import ioloop, gen, queues
 
-REDIS_SERVER = 'redis://127.0.0.1/12'
+REDIS_SERVER = 'redis://127.0.0.1/11'
 
 siteName = "youtube"
 conn = redis.StrictRedis.from_url(REDIS_SERVER)
@@ -210,7 +210,6 @@ def parse_detail_page(response):
 
 @gen.coroutine
 def downloader(url):
-    print 'downloader()', url
     AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
     http_request = HTTPRequest(
         url,
@@ -228,12 +227,12 @@ def downloader(url):
 def get_keyword_page_url():
     try:
         keyword_url = yield keyword_url_queue.get()
-        print 'spider()', keyword_url
+        print 'get_keyword_page_url()', keyword_url
         response = yield downloader(keyword_url)
         print type(response)
         (url_list, _, _) = parse(response)
         for url in url_list:
-            yield keyword_page_url_queue.put(url)
+            keyword_page_url_queue.put(url)
     finally:
         keyword_url_queue.task_done()
 
@@ -251,7 +250,7 @@ def main():
     for url in urls:  # 生产者
         yield keyword_url_queue.put(url)
 
-    for _ in range(1):  # 消费者
+    for _ in range(1000):  # 消费者
         worker()
 
     yield keyword_url_queue.join(timeout=timedelta(seconds=300))

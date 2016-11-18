@@ -5,7 +5,7 @@ import redis
 import time
 import datetime
 
-REDIS_SERVER = 'redis://127.0.0.1/12'
+REDIS_SERVER = 'redis://127.0.0.1/11'
 
 
 ##################################################################################################
