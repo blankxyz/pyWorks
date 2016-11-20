@@ -1,0 +1,19 @@
+<div class="sns">
+    <h3 class="sns_title">
+    {% if sns_info["content"] != "" %}
+        {{ sns_info["content"] }}
+    {% else %}
+        {{ "无标题" }}
+    {% end %}
+    </h3>
+{#    {% if sns_info["subtitle"] != "" %}#}
+{#    <h4 class="sns_subtitle">{{ sns_info["subtitle"] }}</h4>#}
+{#    {% end %}#}
+    <img src="{{ sns_info["mediaList"][0] }}" class="sns_image"/>
+    <div class="sns_details">
+{#        <div class="sns_date_released">Released: {{ sns_info["date_released"] }}</div>#}
+        <div class="sns_date_added">发布时间: {{ locale.format_date(sns_info["timestamp"], relative=False) }}</div>
+        <h5>描述:</h5>
+        <div class="sns_body">{% raw sns_info["content"] %}</div>
+    </div>
+</div>

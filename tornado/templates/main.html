@@ -1,0 +1,36 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>基本地图展示</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
+    <script src="http://webapi.amap.com/maps?v=1.3&key=546100281c6cd1a95cd4337a9ff9df6b"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{{ static_url("css/style.css") }}"/>
+</head>
+<body>
+<div id="container_1">
+    <header>
+        {% block header %}<h1>微信展示</h1>{% end %}
+    </header>
+    <div id="main">
+        <div id="content">
+            {% block body %}{% end %}
+        </div>
+    </div>
+    <footer>
+        {% block footer %}
+        <p>更多信息请联系
+            <a href="mailto:spider@istarshine.com">spider@istarshine.com</a>.
+        </p>
+{#        <p class="small">Follow us on Facebook#}
+{#            at {% raw linkify("https://facebook.com/burtsbooks", extra_params='ref=website') %}.</p>#}
+        {% end %}
+    </footer>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+{% extends "main.html" %}
+{% autoescape None %}
+
+{% block body %}
+<h2>检索结果</h2>
+<div id="sns">
+	{% for sns in sns_info_list %}
+ 	 	{{ modules.SnsInfo(sns) }}
+	{% end %}
+</div>
+<div id="container_2"></div>
+{% end %}
+
+<script>
+    var map = new AMap.Map('container_2', {
+        resizeEnable: true,
+        zoom: 11,
+        center: [116.397428, 39.90923]
+    });
+</script>
+<script src="{{ static_url("js/script.js") }}"></script>
+
+
+

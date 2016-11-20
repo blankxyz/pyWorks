@@ -1,16 +1,5 @@
-import subprocess
-
-SHELL_DETAIL_CMD = 'a.bat'
-
-# fd = open("test.log", "a")
-# returncode = subprocess.call('python a.py')
-p = subprocess.Popen(['python','a.py'],stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = False)
-process_id = p.pid
-print 'process_id:',process_id
-# print p.stdout.read()
-# fd.write(p.stdout.read())
-# fd.close()
-# print returncode
-
-# for _ in range(10):
-print 'end....'
+import json
+str1 = u'\\u771f\\u5b9e\\u6709\\u6548\\uff0c\\u8d76\\u7d27\\u9886\\u53d6'
+str2 = u'\u5173\u4e8e'
+print json.loads(str1)
+print str2

@@ -1,0 +1,24 @@
+.sns {
+    width: 500px;
+    min-height: 200px;
+    border: 1px solid #555;
+    padding: 0 15px 0 15px;
+    margin: 15px;
+    background-color: #F5F5F5;
+}
+
+.sns img.sns_image {
+    max-width: 100px;
+    max-height: 100px;
+    margin: 5px 15px 5px 0;
+    float: left;
+}
+
+.sns .sns_details {
+    margin: 5px 10px 5px 0;
+}
+
+.sns .sns_title {
+    color: #777;
+}
+
