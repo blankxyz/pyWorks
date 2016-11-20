@@ -12,7 +12,7 @@
     <img src="{{ sns_info["mediaList"][0] }}" class="sns_image"/>
     <div class="sns_details">
 {#        <div class="sns_date_released">Released: {{ sns_info["date_released"] }}</div>#}
-        <div class="sns_date_added">发布时间: {{ locale.format_date(sns_info["timestamp"], relative=False) }}</div>
+        <div class="sns_date_added">发布时间: {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}</div>
         <h5>描述:</h5>
         <div class="sns_body">{% raw sns_info["content"] %}</div>
     </div>
