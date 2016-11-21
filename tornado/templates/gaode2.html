@@ -37,7 +37,7 @@
         resizeEnable: true
     });
     //为地图注册click事件获取鼠标点击出的经纬度坐标
-    var clickEventListener = map.on('click', function(e) {
+    var clickEventListener = map.on('click', function (e) {
         document.getElementById("lnglat").value = e.lnglat.getLng() + ',' + e.lnglat.getLat()
     });
     var auto = new AMap.Autocomplete({
