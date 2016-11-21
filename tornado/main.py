@@ -13,10 +13,11 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 from tornado.options import define, options
+import signal
 
 REDIS_SERVER = 'redis://127.0.0.1/10'
 
-define("port", default=8000, help="run on the given port", type=int)
+define("port", default=5000, help="run on the given port", type=int)
 
 sns_info_list1 = [
     {
@@ -58,11 +59,14 @@ sns_info_list1 = [
     }
 ]
 
+amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 220.249.18.226
+
 
 class RedisDriver(object):
     def __init__(self):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
         self.weixin_info_hset_key = 'hash_weixin_snsinfo'
+        self.weixin_time_location_hset_key = 'hash_weixin_s_time_location'
 
     def get_all_sns_info(self):
         sns_info_list = []
@@ -74,20 +78,41 @@ class RedisDriver(object):
     def get_weixin_cnt(self):
         return self.conn.hlen(self.weixin_info_hset_key)
 
+    def make_time_loacation(self):
+        # var citys =  [
+        #   {"lnglat": ["116.418757", "39.917544"], "name": "东城区"},
+        #   {"lnglat": ["116.366794", "39.915309"], "name": "西城区"},
+        #   {"lnglat": ["116.486409", "39.921489"], "name": "朝阳区"},
+        #];
+        l = self.conn.hvals(self.weixin_time_location_hset_key)
+        fd = open('./static/js/timeLocation.js', 'w')
+        fd.write('var citys =  [\n')
+        cnt = 0
+        for i in l:
+            if i != 'None' and i != '':
+                x = i.split('_')[0]
+                y = i.split('_')[1]
+                fd.write('''    {"lnglat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
+                cnt = cnt + 1
+        fd.write('];\n')
+        fd.close()
+
 
 class Application(tornado.web.Application):
     def __init__(self):
-        handlers = [
-            (r"/", MainHandler),
-            (r"/search/", SearchHandler),
-            (r"/discussion/", DiscussionHandler),
-        ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
+            static_js_path=os.path.join(os.path.dirname(__file__), "static/js"),
             ui_modules={"SnsInfo": SnsInfoModule},
             debug=True,
         )
+        handlers = [
+            (r"/", MainHandler),
+            (r"/search", SearchHandler),
+            (r"/(timeLocation\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
+            (r"/discussion", DiscussionHandler),
+        ]
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
@@ -96,8 +121,7 @@ class MainHandler(tornado.web.RequestHandler):
         self.render(
             "index.html",
             page_title=u"微信采集展示",
-            header_text=u"微信数据展示",
-        )
+            header_text=u"微信数据展示")
 
 
 class SearchHandler(tornado.web.RequestHandler):
@@ -150,7 +174,17 @@ class SnsInfoModule(tornado.web.UIModule):
         return "js/search_result.js"
 
 
+def signal_handler(signum, frame):
+    tornado.ioloop.IOLoop.instance().stop()
+
+
+signal.signal(signal.SIGINT, signal_handler)
+
+
 def main():
+    redis_db = RedisDriver()
+    redis_db.make_time_loacation()
+
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application())
