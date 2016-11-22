@@ -1,24 +1,28 @@
 <div class="sns">
-{#    <h3 class="sns_title">#}
-{#        {% if sns_info["content"] != "" %}#}
-{#        {{ sns_info["content"] }}#}
-{#        {% else %}#}
-{#        {{ "无标题" }}#}
-{#        {% end %}#}
-{#    </h3>#}
+    {#    <h3 class="sns_title">#}
+    {#        {% if sns_info["content"] != "" %}#}
+    {#        {{ sns_info["content"] }}#}
+    {#        {% else %}#}
+    {#        {{ "无标题" }}#}
+    {#        {% end %}#}
+    {#    </h3>#}
     {#    {% if sns_info["subtitle"] != "" %}#}
     {#    <h4 class="sns_subtitle">{{ sns_info["subtitle"] }}</h4>#}
     {#    {% end %}#}
+    {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
     {% if len(sns_info["mediaList"])>0 %}
-    <img src="{{ sns_info["mediaList"][0] }}" class="sns_image"/>
+{#    {{ sns_info["mediaList"][0] }}#}
+    <img src="{{ pre_url+sns_info["mediaList"][0] }}" class="sns_image"/>
     {% else %}
     <img src="" class="sns_image"/>
     {% end %}
     <div class="sns_details">
-        {#        <div class="sns_date_released">Released: {{ sns_info["date_released"] }}</div>#}
+        {# <div class="sns_date_released">Released: {{ sns_info["date_released"] }}</div>#}
+        <h4>发布者: {{ sns_info["authorName"] }}</h4>
         <div class="sns_date_added">
-            发布时间: {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}</div>
-        <h5>发布者: {{ sns_info["authorName"] }}</h5>
+            发布时间: {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}
+            {{ sns_info["poi_address"] }}
+        </div>
         <div class="sns_body">{% raw sns_info["content"] %}</div>
     </div>
 </div>
