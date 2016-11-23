@@ -19,31 +19,20 @@
 {% autoescape None %}
 
 {% block body %}
-<h2>检索结果</h2>
-<form name="search" action="/search" method="post">
-    <input type="text" name="authors"/>
-    <input type="text" name="ago_time"/>
-    <input type="submit" value="Submit"/>
-</form>
-{#<div id="sns">#}
-{#	{% for sns in sns_info_list %}#}
-{# 	 	{{ modules.SnsInfo(sns) }}#}
-{#	{% end %}#}
-{#</div>#}
 <style>
     .sns {
-        width: 1280px;
-        min-height: 110px;
-        border: 1px solid #555;
+        width: 100%;
+        min-height: 200px;
+        border: 0px solid #555;
         padding: 0 15px 0 15px;
-        margin: 1px;
-        background-color: #F5F5F5;
+        margin: 5px;
+    {# background-color: #F5F5F5;#}
     }
 
     .sns img.sns_image {
         max-width: 100px;
         max-height: 100px;
-        margin: 5px 15px 5px 0;
+        margin: 5px 2px 5px 0;
         float: left;
     }
 
@@ -55,33 +44,52 @@
         color: #777;
     }
 </style>
-<div id="left_unkown_urls_div" style="float:left;width:71%; margin-left:20px">
-    <table id="sns_info_tab">
+<h2>检索结果</h2>
+
+<form action="/search" method="post">
+    <input type="text" placeholder="authors" name="authors"/>
+    <input type="text" placeholder="ago_time" name="ago_time"/>
+    <input type="text" placeholder="pic_flg" name="pic_flg"/>
+    <input type="submit" class="btn btn-primary btn-sm" value="Submit"/>
+</form>
+<hr>
+{#<div id="sns">#}
+{#	{% for sns in sns_info_list %}#}
+{# 	 	{{ modules.SnsInfo(sns) }}#}
+{#	{% end %}#}
+{#</div>#}
+<div id="left_unkown_urls_div" style="float:left;width:45%; margin-left:50px">
+    <table id="sns_info_tab" class="table table-striped table-hover">
         <thead>
         <tr>
-            <th>列表URL {{ len(sns_info_list) }}</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
         {% for sns_info in sns_info_list %}
-        <tr>
+        <tr style="border: 1px solid #ccc;">
             <td>
                 <div class="sns">
+                    {#<div class="sns_details">#}
+                    <div class="sns_date_added">
+                        <label>
+                            <span class="glyphicon glyphicon-user"></span>&nbsp;
+                        </label>
+                        {{ sns_info["authorName"] }}&nbsp;&nbsp;&nbsp;
+                        <label>
+                            <span class="glyphicon glyphicon-time"></span>&nbsp;
+                            {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}&nbsp;&nbsp;&nbsp;
+                        </label>
+                        <label><span class="glyphicon glyphicon-screenshot"></span>&nbsp;
+                            {{ sns_info["poi_address"] }}
+                        </label>
+                    </div>
+                    <div class="sns_body">{% raw sns_info["content"] %}</div>
                     {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
                     {% for url in sns_info["mediaList"] %}
-                    {#    {{ sns_info["mediaList"][0] }}#}
                     <img src="{{ pre_url + url }}" class="sns_image"/>
                     {% end %}
-                    <div class="sns_details">
-                        <div class="sns_date_added">
-                            <label><span class="glyphicon glyphicon-user"></span>&nbsp; {{ sns_info["authorName"] }}&nbsp;&nbsp;&nbsp;
-                                <label><span
-                                        class="glyphicon glyphicon-time"></span>&nbsp; {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}&nbsp;&nbsp;&nbsp;
-                                    <label><span
-                                            class="glyphicon glyphicon-screenshot"></span>&nbsp; {{ sns_info["poi_address"] }}
-                        </div>
-                        <div class="sns_body">{% raw sns_info["content"] %}</div>
-                    </div>
+                    {#</div>#}
                 </div>
             </td>
         </tr>
@@ -95,6 +103,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $('#sns_info_tab').DataTable({
+            {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
             "oLanguage": {
                 "sLengthMenu": "每页 _MENU_ 条",
                 "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
@@ -108,10 +117,11 @@
                 },
                 "sZeroRecords": "没有数据 。。。",
                 "sProcessing": "<img src='/static/images/loading.gif'/>",
-                "sSearch": "检索："
+                "sSearch": "内容检索："
             },
             "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
             "info": true,
+{#            "row-border": "2px",#}
             "searching": true,
             "processing": true,
             "search": {"regex": true},//开启正则支持
@@ -119,8 +129,8 @@
             "bFilter": true,
             "bLengthChange": true,
             "aLengthMenu": [5, 15, 30],
-            "scrollY": "800px",
-            "bScrollCollapse": true,
+            "scrollY": "700px",
+{#            "bScrollCollapse": true,#}
             "aaSorting": [[0, "desc"]]
         });
     });

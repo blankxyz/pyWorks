@@ -23,48 +23,51 @@ REDIS_SERVER = 'redis://127.0.0.1/10'
 
 define("port", default=5000, help="run on the given port", type=int)
 
-# sns_info_list1 = [
-#     {u'snsId': u'12381551676090822951',
-#      u'timestamp': 1475995978,
-#      u'authorId': u'v1_e2e2690b7fa86dde01c3325fe797ae0d3a5a67d040e5aefc7406d71841621eae80b62c10d501e75f43cf10973d0a4fa3@stranger',
-#      u'comments': [],
-#      u'content': u'\\u795d\\u54e5\\u4eec\\u59d0\\u4eec\\u670b\\u53cb\\u4eec\\u91cd\\u9633\\u8282\\u5feb\\u4e50\\uff01',
-#      u'authorName': u'\\u6f14\\u660e',
-#      u'isCurrentUser': False,
-#      u'likes': [],
-#      'db_patch': '75a5f0857d53_1479168323.39',
-#      u'mediaList': [
-#          u'http://mmsns.qpic.cn/mmsns/WD4FduqfeKKAbJsmFI6IFrknR3ManjhZqjQxlGJibwvNzbmWzVPbTL3ricnzYhjFp3ZmYiaZKz5yyE/0'
-#      ],
-#      u'rawXML': u'<TimelineObject>'
-#                 u'<id><![CDATA[12381551676090822951]]></id>
-#                 <username> <![CDATA[v1_e2e2690b7fa86dde01c3325fe797ae0d3a5a67d040e5aefc7406d71841621eae80b62c10d501e75f43cf10973d0a4fa3 @ stranger]] >
-#                 </username>
-#                 <createTime> <![CDATA[1475995978]]></createTime>
-#                 <contentDescShowType>0</contentDescShowType>
-#                 <contentDescScene>0</contentDescScene>
-#                 <private><![CDATA[0]]></private>
-#                 <contentDesc><![CDATA[\\u795d\\u54e5\\u4eec\\u59d0\\u4eec\\u670b\\u53cb\\u4eec\\u91cd\\u9633\\u8282\\u5feb\\u4e50\\uff01]]></contentDesc>
-#                 <contentattr><![CDATA[0]]></contentattr>
-#                 <sourceUserName></sourceUserName>
-#                 <sourceNickName></sourceNickName>
-#                 <statisticsData></statisticsData>
-#                 <location poiClickableStatus = \"0\"  " \
-#                     poiClassifyId =  \"\"  " \
-#                     poiScale =  \"0\"  " \
-#                     longitude =  \"0.0\"  " \
-#                     city =  \"\"  " \
-#                     poiName =  \"\"  " \
-#                     latitude =  \"0.0\"  " \
-#                     poiClassifyType =  \"0\"  " \
-#                     poiAddress =  \"\">" \
-#                 </location>
-#                 <ContentObject>
-#                 <contentStyle><![CDATA[1]]></contentStyle><title></title><description></description><contentUrl></contentUrl><mediaList><media><id><![CDATA[12381551676468113677]]></id><type><![CDATA[2]]></type><title></title><description></description><private><![CDATA[0]]></private><url type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/WD4FduqfeKKAbJsmFI6IFrknR3ManjhZqjQxlGJibwvNzbmWzVPbTL3ricnzYhjFp3ZmYiaZKz5yyE/0]]></url><thumb type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/WD4FduqfeKKAbJsmFI6IFrknR3ManjhZqjQxlGJibwvNzbmWzVPbTL3ricnzYhjFp3ZmYiaZKz5yyE/150]]></thumb><size height =  \"488.0\"  width =  \"650.0\"  totalSize =  \"41895.0\" ></size></media></mediaList></ContentObject><actionInfo></actionInfo></TimelineObject>'}
+# sns_info_list1 =
+# "12404766082711236659":
+# "{u'snsId': u'12404766082711236659',
+# u'timestamp': 1478763351,
+# u'authorId': u'wxid_6oeldtzws22c22',
+# u'comments':
+# [{u'content': u'[\\u60a0\\u95f2][\\u60a0\\u95f2]',
+#   u'authorName': u'jfvznumur',
+#   u'isCurrentUser': True,
+#   u'authorId': u'wxid_komia980lnkq12'
+# }],
+# u'content': u'\\u897f\\u6e56\\u9001\\u522b',
+# u'authorName': u'\\u671d\\u9633',
+# u'isCurrentUser': False,
+# u'likes': [{u'userName': u'jfvznumur', u'isCurrentUser': True, u'userId': u'wxid_komia980lnkq12'}],
+# 'db_patch': '75a5f0857d53_1479088651.45',
+# u'mediaList': [u'http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/0'],
+# u'rawXML':
+# u'<TimelineObject>
+#   <id><![CDATA[12404766082711236659]]></id>
+#   <username><![CDATA[wxid_6oeldtzws22c22]]></username>
+#   <createTime><![CDATA[1478763351]]></createTime>
+#   <contentDescShowType>0</contentDescShowType>
+#   <contentDescScene>0</contentDescScene>
+#   <private><![CDATA[0]]></private>
+#   <contentDesc><![CDATA[\\u897f\\u6e56\\u9001\\u522b]]></contentDesc>
+#   <contentattr><![CDATA[0]]></contentattr>
+#   <sourceUserName></sourceUserName>
+#   <sourceNickName></sourceNickName>
+#   <statisticsData></statisticsData>
+#   <location poiClickableStatus =  \"0\"  poiClassifyId =  \"\"  poiScale =  \"0\"  longitude =  \"0.0\"  city =  \"\"  poiName =  \"\"  latitude =  \"0.0\"  poiClassifyType =  \"0\"  poiAddress =  \"\" ></location><ContentObject><contentStyle><![CDATA[1]]></contentStyle><title></title><description></description><contentUrl></contentUrl><mediaList><media><id><![CDATA[12404766083001757752]]></id><type><![CDATA[2]]></type><title></title><description></description><private><![CDATA[0]]></private><url type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/0]]></url><thumb type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/150]]></thumb><size height =  \"854.0\"  width =  \"640.0\"  totalSize =  \"94467.0\" ></size></media></mediaList></ContentObject><actionInfo></actionInfo></TimelineObject>'}",
 
 amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 220.249.18.226
 baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
 
+
+def get_ago_time(timestamp):
+    now = datetime.datetime.now()
+    t = datetime.datetime.utcfromtimestamp(timestamp)
+    if now > t:
+        print str(now - t)
+        num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
+        return num_str
+    else:
+        return u'未知'
 
 class Util(object):
     def convert_str_xy_to_x_y(self, str_x_y):
@@ -87,7 +90,7 @@ class Util(object):
         Returns:
             '北京市海淀区中关村大街27号1101-08室'
         '''
-        address = None
+        address = u'位置信息不明'
         (x, y) = self.convert_str_xy_to_x_y(str_x_y)
         if x:
             url = 'http://api.map.baidu.com/geocoder/v2/?callback=renderReverse&' \
@@ -156,30 +159,39 @@ class RedisDriver(object):
 
         return sns_info_list
 
-    def search_sns_info(self, ago_time, authors):
+    def search_sns_info(self, ago_time, authors, has_pic):
         '''
         Args:
             ago_time_str: '1 hour' or '2 minutes'
             authors: 'tom,jerry'
+            has_pic: 'yes'
         Returns:
         '''
-        authors = authors.sprit(',')
+        print 'post--------------------start', ago_time, authors
+        authors = authors.strip(',')
         sns_info_list = []
         l = self.conn.hgetall(self.weixin_info_hset_patch_key)
         for k, v in l.items():
             author_flg = False
             time_flg = False
+            pic_flg = False
             sns_info = eval(v)
             author = sns_info["authorName"]
             ctime = sns_info["timestamp"]
-            if len(authors) == 0 or author in authors:
-                author_flg = True
-            if ago_time is '' or ctime <= self.util.time_min(ago_time):
-                time_flg = True
+            media_list = sns_info["mediaList"]
+            print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
 
-            if author_flg and time_flg:
+            if not authors.strip() or author in authors:
+                author_flg = True
+            if not ago_time.strip() or datetime.datetime.utcfromtimestamp(ctime) >= self.util.time_min(ago_time):
+                time_flg = True
+            if not has_pic.strip() or len(media_list) > 0:
+                pic_flg = True
+
+            if author_flg and time_flg and pic_flg:
                 sns_info_list.append(sns_info)
 
+        print 'post--------------------end', ago_time, type(ago_time), authors, type(authors)
         return sns_info_list
 
     def get_weixin_cnt(self):
@@ -232,31 +244,33 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class SearchHandler(tornado.web.RequestHandler):
-    def __init__(self):
-        self.util = Util()
-        self.redis_db = RedisDriver()
-
     def get(self):
-        sns_info_list = self.redis_db.get_all_sns_info()
+        redis_db = RedisDriver()
+        sns_info_list = redis_db.get_all_sns_info()
         # pprint(sns_info_list)
         # pprint(eval(sns_info_list[0])['content'])
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
-            sns_info_list=sns_info_list[:300])
+            sns_info_list=sns_info_list[:100])
 
     def post(self):
-        print(self.request.remote_ip)
-        time_range = self.get_argument('time', '')
+        util = Util()
+        redis_db = RedisDriver()
+        # print(self.request.remote_ip)
+        ago_time = self.get_argument('ago_time', '')
         authors = self.get_argument('authors', '')
-        ago_time = self.util.time_min(time_range)
-        sns_info_list = self.redis_db.search_sns_info(ago_time, authors)
+        pic_flg = self.get_argument('pic_flg', '')
+
+        print ago_time, authors, pic_flg
+
+        sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg)
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
-            sns_info_list=sns_info_list)
+            sns_info_list=sns_info_list[:100])
 
 
 class DiscussionHandler(tornado.web.RequestHandler):
@@ -320,6 +334,7 @@ def test():
     redis_db = RedisDriver()
     # pprint(redis_db.get_all_sns_info())
     redis_db.patch_address()
+    redis_db.search_sns_info('3 day', '')
 
 
 if __name__ == "__main__":
