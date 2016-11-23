@@ -20,28 +20,44 @@
 
 {% block body %}
 <style>
-    .sns {
-        width: 100%;
-        min-height: 200px;
-        border: 0px solid #555;
-        padding: 0 15px 0 15px;
-        margin: 5px;
+    .sns_left {
+        float: left;
+        height: 50px;
+        margin: 10px;
     {# background-color: #F5F5F5;#}
     }
 
-    .sns img.sns_image {
-        max-width: 100px;
-        max-height: 100px;
+    img.sns_logo {
+        width: 70px;
+        margin: 5px 5px 5px 0;
+    }
+
+    .sns_right {
+        float: right;
+        width: 560px;
+        min-height: 200px;
+        margin: 10px;
+    {# border: 0px solid #555;#}{# background-color: #F5F5F5;#}
+    }
+
+    .sns_right .sns_title {
+        margin: 10px;
+    }
+
+    .sns_right .sns_image_list {
+        margin: 5px 20px 5px 0;
+        width: 560px;
+    }
+
+    .sns_right .sns_image_list img.sns_image {
+    {#        width: 180px;#} height: 180px;
         margin: 5px 2px 5px 0;
         float: left;
+    {# min-width: 200px;#}{# min-height: 200px;#}
     }
 
-    .sns .sns_details {
+    .sns_right .sns_details {
         margin: 5px 10px 5px 0;
-    }
-
-    .sns .sns_title {
-        color: #777;
     }
 </style>
 <h2>检索结果</h2>
@@ -58,8 +74,8 @@
 {# 	 	{{ modules.SnsInfo(sns) }}#}
 {#	{% end %}#}
 {#</div>#}
-<div id="left_unkown_urls_div" style="float:left;width:45%; margin-left:50px">
-    <table id="sns_info_tab" class="table table-striped table-hover">
+<div id="left_unkown_urls_div" style="float:left;width:700px; margin-left:50px">
+    <table id="sns_info_tab1">
         <thead>
         <tr>
             <th></th>
@@ -69,25 +85,47 @@
         {% for sns_info in sns_info_list %}
         <tr style="border: 1px solid #ccc;">
             <td>
-                <div class="sns">
+                <div class="sns_left">
+                    <img src="static/images/head_first_python.gif" class="img-rounded sns_logo"/>
+                </div>
+                <div class="sns_right">
                     {#<div class="sns_details">#}
-                    <div class="sns_date_added">
+                    <div class="sns_detailsrow clearfix">
                         <label>
                             <span class="glyphicon glyphicon-user"></span>&nbsp;
                         </label>
                         {{ sns_info["authorName"] }}&nbsp;&nbsp;&nbsp;
+                    </div>
+
+                    <div class="sns_details row clearfix">
+                        {% raw sns_info["content"] %}
+                    </div>
+                    <div class="sns_image_list row clearfix">
+                        {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
+                        {% for url in sns_info["mediaList"] %}
+                        <img src="{{ pre_url + url }}" class="img-rounded sns_image"/>
+                        {% end %}
+                    </div>
+                    <div class="sns_details row clearfix">
                         <label>
                             <span class="glyphicon glyphicon-time"></span>&nbsp;
-                            {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}&nbsp;&nbsp;&nbsp;
+{#                            {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
+                            {{ sns_info["ago_days"] }}
+                            &nbsp;&nbsp;&nbsp;
                         </label>
-                        <label><span class="glyphicon glyphicon-screenshot"></span>&nbsp;
+                        <label>
+                            <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
                             {{ sns_info["poi_address"] }}
                         </label>
                     </div>
-                    <div class="sns_body">{% raw sns_info["content"] %}</div>
-                    {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
-                    {% for url in sns_info["mediaList"] %}
-                    <img src="{{ pre_url + url }}" class="sns_image"/>
+                    {% if len(sns_info["comments"])>0 %}
+                    <div class="alert alert-info row clearfix">
+                        {% for comment in sns_info["comments"] %}
+                        <span class="label label-primary">{{ comment['authorName'] }}</span>
+                        &nbsp;&nbsp;&nbsp;
+                        <p>{{ comment['content'] }}</p>
+                        {% end %}
+                    </div>
                     {% end %}
                     {#</div>#}
                 </div>
@@ -121,7 +159,7 @@
             },
             "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
             "info": true,
-{#            "row-border": "2px",#}
+            {#            "row-border": "2px",#}
             "searching": true,
             "processing": true,
             "search": {"regex": true},//开启正则支持
@@ -130,7 +168,7 @@
             "bLengthChange": true,
             "aLengthMenu": [5, 15, 30],
             "scrollY": "700px",
-{#            "bScrollCollapse": true,#}
+            {#            "bScrollCollapse": true,#}
             "aaSorting": [[0, "desc"]]
         });
     });

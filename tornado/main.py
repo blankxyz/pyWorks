@@ -24,7 +24,7 @@ REDIS_SERVER = 'redis://127.0.0.1/10'
 define("port", default=5000, help="run on the given port", type=int)
 
 # sns_info_list1 =
-# "12404766082711236659":
+# {"12404766082711236659":
 # "{u'snsId': u'12404766082711236659',
 # u'timestamp': 1478763351,
 # u'authorId': u'wxid_6oeldtzws22c22',
@@ -58,16 +58,6 @@ define("port", default=5000, help="run on the given port", type=int)
 amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 220.249.18.226
 baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
 
-
-def get_ago_time(timestamp):
-    now = datetime.datetime.now()
-    t = datetime.datetime.utcfromtimestamp(timestamp)
-    if now > t:
-        print str(now - t)
-        num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
-        return num_str
-    else:
-        return u'未知'
 
 class Util(object):
     def convert_str_xy_to_x_y(self, str_x_y):
@@ -128,6 +118,17 @@ class Util(object):
         print ret_time.strftime("%Y-%m-%d %H:%M:%S")
         return ret_time
 
+    @staticmethod
+    def convert_ago_time_to_days(timestamp):
+        now = datetime.datetime.now()
+        t = datetime.datetime.utcfromtimestamp(timestamp)
+        if now > t:
+            print str(now - t)
+            num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
+            return num_str + u'天前'
+        else:
+            return u'未知时间'
+
 
 class RedisDriver(object):
     def __init__(self):
@@ -151,15 +152,15 @@ class RedisDriver(object):
 
             self.conn.hset(self.weixin_info_hset_patch_key, k, sns_info)
 
-    def get_all_sns_info(self):
-        sns_info_list = []
-        l = self.conn.hgetall(self.weixin_info_hset_patch_key)
-        for k, v in l.items():
-            sns_info_list.append(eval(v))
+    # def get_all_sns_info(self):
+    #     sns_info_list = []
+    #     l = self.conn.hgetall(self.weixin_info_hset_patch_key)
+    #     for k, v in l.items():
+    #         sns_info_list.append(eval(v))
+    #
+    #     return sns_info_list
 
-        return sns_info_list
-
-    def search_sns_info(self, ago_time, authors, has_pic):
+    def search_sns_info(self, ago_time='', authors='', has_pic=''):
         '''
         Args:
             ago_time_str: '1 hour' or '2 minutes'
@@ -179,7 +180,8 @@ class RedisDriver(object):
             author = sns_info["authorName"]
             ctime = sns_info["timestamp"]
             media_list = sns_info["mediaList"]
-            print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
+            sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
+            # print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
 
             if not authors.strip() or author in authors:
                 author_flg = True
@@ -246,9 +248,7 @@ class MainHandler(tornado.web.RequestHandler):
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
         redis_db = RedisDriver()
-        sns_info_list = redis_db.get_all_sns_info()
-        # pprint(sns_info_list)
-        # pprint(eval(sns_info_list[0])['content'])
+        sns_info_list = redis_db.search_sns_info()
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",

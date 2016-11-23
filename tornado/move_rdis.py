@@ -16,6 +16,7 @@ class WinxinBackup(object):
         self.conn_import = redis.StrictRedis.from_url(IMPORT_REDIS_SERVER)
         self.weixin_info_hset_key = 'hash_weixin_snsinfo'
         self.weixin_time_location_hset_key = 'hash_weixin_s_time_location'
+        self.weixin_info_hset_key = 'hash_weixin_snsinfo'
 
     def get_weixin_info(self):
         return self.conn_export.hgetall(self.weixin_info_hset_key)
@@ -82,9 +83,30 @@ def time_location_import_redis():
     imp.set_weixin_time_location_list(pp)
 
 
-if __name__ == '__main__':
-    # info_export()
-    # info_import_redis()
+def time_location_export():
+    backup = WinxinBackup()
+    print backup.get_weixin_time_location_cnt()
+    info_list = backup.get_weixin_time_location()
+    # for k,v in info_list.items():
+    j = json.dumps(info_list)
+    fd = open('./weixin_time_location.json', 'w')
+    fd.write(j)
+    fd.close()
 
-    # time_location_export()
+
+def time_location_import_redis():
+    imp = WinxinBackup()
+    fd = open('./weixin_time_location.json', 'r')
+    j = fd.read()
+    pp = json.loads(j)
+    pprint(pp)
+    fd.close()
+    # pprint(pp['12381551676090822951'])
+    imp.set_weixin_time_location_list(pp)
+
+if __name__ == '__main__':
+    info_export()
+    info_import_redis()
+
+    time_location_export()
     time_location_import_redis()

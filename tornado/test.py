@@ -13,3 +13,5 @@ weixin_info_hset_patch_key = 'weixin_info_hset_patch_key'
 v = conn.hget(weixin_info_hset_patch_key, k)
 
 print v
+
+print u'\u671d\u9633'
