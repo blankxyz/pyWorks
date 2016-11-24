@@ -121,6 +121,7 @@ class Util(object):
     @staticmethod
     def convert_ago_time_to_days(timestamp):
         now = datetime.datetime.now()
+        # t = datetime.datetime.utcfromtimestamp(timestamp)
         t = datetime.datetime.utcfromtimestamp(timestamp)
         if now > t:
             # print str(now - t)
@@ -176,9 +177,11 @@ class RedisDriver(object):
         Args:
             ago_time_str: '1 hour' or '2 minutes'
             authors: 'tom,jerry'
-            has_pic: 'yes'
+            has_pic: 'on'
         Returns:
         '''
+        print 'has_pic', has_pic
+
         sns_info_list = []
         l = self.conn.hgetall(self.weixin_info_hset_patch_key)
         for k, v in l.items():
@@ -192,13 +195,15 @@ class RedisDriver(object):
             sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
             # print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
 
-            if len(authors) == 0 or author in authors:
+            if not authors or author in authors:
                 author_flg = True
-            if not ago_time.strip() or datetime.datetime.utcfromtimestamp(ctime) >= self.util.time_min(ago_time):
+            if not ago_time.strip() or datetime.datetime.utcfromtimestamp(ctime) >= \
+                    datetime.datetime.strptime(ago_time, "%Y-%m-%d"):
                 time_flg = True
-            if not has_pic.strip() or len(media_list) > 0:
+            if has_pic == 'off' or (has_pic == 'on' and len(media_list)) > 0:
                 pic_flg = True
 
+            print author_flg, time_flg, pic_flg
             if author_flg and time_flg and pic_flg:
                 sns_info_list.append(sns_info)
 
@@ -272,16 +277,17 @@ class SearchHandler(tornado.web.RequestHandler):
 
     def post(self):
         redis_db = RedisDriver()
-        ago_time = self.get_argument('ago_time',strip=True)
-        authors = self.get_arguments('authors',strip=True)
-        pic_flg = self.get_argument('pic_flg',strip=True)
-        print 'post--------------------start', self.request.remote_ip, ago_time, authors, pic_flg
+        ago_time = self.get_argument('ago_time', '')
+        authors = self.get_arguments('authors')
+        pic_flg = self.get_argument('pic_flg', 'off')
+        print '------------------------   post  ---------------------------- '
+        print 'ago_time:', ago_time, 'authors:', type(authors), authors, 'pic_flg:', pic_flg
+        print '------------------------   post  ---------------------------- '
         authors_list = redis_db.get_authors()
         # pprint(authors_list)
 
         sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg)
         # pprint(sns_info_list)
-        print 'post--------------------end'
 
         self.render(
             "search_result.html",
