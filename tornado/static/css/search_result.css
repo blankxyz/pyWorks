@@ -1,3 +1,7 @@
+body {
+    position: relative;
+}
+
 .sns_left {
     float: left;
     height: 50px;
@@ -24,7 +28,8 @@ img.sns_author_logo_small {
 
 .sns_right .sns_author {
     margin: 10px;
-    font-size: x-large;
+    font-size:large;
+    color:#0c199c;
 }
 
 .sns_right .sns_image_list {
@@ -33,7 +38,7 @@ img.sns_author_logo_small {
 }
 
 .sns_right .sns_image_list img.sns_image {
-    height: 180px;
+    height: 120px;
     margin: 5px 2px 5px 0;
     float: left;
     /*width: 180px;min-width: 200px;min-height: 200px;*/
@@ -45,6 +50,7 @@ img.sns_author_logo_small {
 
 .sns_right .sns_timeLocation {
     margin: 5px 10px 5px 0;
+    font-size:small;
 }
 
 .sns_right .sns_comments {

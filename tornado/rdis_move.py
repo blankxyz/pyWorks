@@ -118,11 +118,11 @@ def lbs_info_import():
 
 
 if __name__ == '__main__':
-    sns_info_export()
+    # sns_info_export()
     sns_info_import()
 
-    time_location_export()
+    # time_location_export()
     time_location_import()
 
-    lbs_info_export()
+    # lbs_info_export()
     lbs_info_import()

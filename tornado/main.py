@@ -254,20 +254,20 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render(
             "index.html",
-            page_title=u"微信采集展示",
-            header_text=u"微信数据展示")
+            # months=[u'一月', u'二月', u'三月', u'四月', u'五月', u'六月', u'七月', u'八月', u'九月', u'十月', u'十一月', u'十二月'])
+            months=['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'])
 
 
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
         redis_db = RedisDriver()
-        print 'get--------------------start'
+        print '------------------------   get  ---------------------------- '
         authors_list = redis_db.get_authors()
-        # pprint(authors_list)
+        pprint(authors_list)
 
         sns_info_list = redis_db.search_sns_info()
-        # pprint(sns_info_list)
-        print 'get--------------------start'
+        pprint(sns_info_list)
+        print '------------------------   get  ---------------------------- '
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
@@ -284,10 +284,10 @@ class SearchHandler(tornado.web.RequestHandler):
         print 'ago_time:', ago_time, 'authors:', type(authors), authors, 'pic_flg:', pic_flg
         print '------------------------   post  ---------------------------- '
         authors_list = redis_db.get_authors()
-        # pprint(authors_list)
+        pprint(authors_list)
 
         sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg)
-        # pprint(sns_info_list)
+        pprint(sns_info_list)
 
         self.render(
             "search_result.html",
