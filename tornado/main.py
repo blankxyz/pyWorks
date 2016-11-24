@@ -115,7 +115,7 @@ class Util(object):
             if 'day' in ago_time_str:
                 ret_time = (ret_time - datetime.timedelta(days=num))
 
-        print ret_time.strftime("%Y-%m-%d %H:%M:%S")
+        # print ret_time.strftime("%Y-%m-%d %H:%M:%S")
         return ret_time
 
     @staticmethod
@@ -123,7 +123,7 @@ class Util(object):
         now = datetime.datetime.now()
         t = datetime.datetime.utcfromtimestamp(timestamp)
         if now > t:
-            print str(now - t)
+            # print str(now - t)
             num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
             return num_str + u'天前'
         else:
@@ -134,14 +134,15 @@ class RedisDriver(object):
     def __init__(self):
         self.util = Util()
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.weixin_info_hset_key = 'hash_weixin_snsinfo'
+        self.weixin_sns_info_hset_key = 'hash_weixin_snsinfo'
         self.weixin_info_hset_patch_key = 'weixin_info_hset_patch_key'  # patch address
         self.weixin_time_location_hset_key = 'hash_weixin_s_time_location'
 
     def patch_address(self):
-        l = self.conn.hgetall(self.weixin_info_hset_key)
+        l = self.conn.hgetall(self.weixin_sns_info_hset_key)
         for k, v in l.items():
-            sns_info = eval(v)
+            # print v
+            sns_info = json.loads(v)
             sns_info['poi_address'] = ''
             if sns_info['db_patch']:
                 str_x_y = self.conn.hget(self.weixin_time_location_hset_key, sns_info['db_patch'])
@@ -160,7 +161,17 @@ class RedisDriver(object):
     #
     #     return sns_info_list
 
-    def search_sns_info(self, ago_time='', authors='', has_pic=''):
+    def get_authors(self):
+        authors = []
+        l = self.conn.hgetall(self.weixin_info_hset_patch_key)
+        for k, v in l.items():
+            sns_info = eval(v)
+            author = sns_info["authorName"]
+            authors.append(author)
+
+        return list(set(authors))
+
+    def search_sns_info(self, ago_time='', authors=[], has_pic=''):
         '''
         Args:
             ago_time_str: '1 hour' or '2 minutes'
@@ -168,8 +179,6 @@ class RedisDriver(object):
             has_pic: 'yes'
         Returns:
         '''
-        print 'post--------------------start', ago_time, authors
-        authors = authors.strip(',')
         sns_info_list = []
         l = self.conn.hgetall(self.weixin_info_hset_patch_key)
         for k, v in l.items():
@@ -183,7 +192,7 @@ class RedisDriver(object):
             sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
             # print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
 
-            if not authors.strip() or author in authors:
+            if len(authors) == 0 or author in authors:
                 author_flg = True
             if not ago_time.strip() or datetime.datetime.utcfromtimestamp(ctime) >= self.util.time_min(ago_time):
                 time_flg = True
@@ -193,11 +202,10 @@ class RedisDriver(object):
             if author_flg and time_flg and pic_flg:
                 sns_info_list.append(sns_info)
 
-        print 'post--------------------end', ago_time, type(ago_time), authors, type(authors)
         return sns_info_list
 
     def get_weixin_cnt(self):
-        return self.conn.hlen(self.weixin_info_hset_key)
+        return self.conn.hlen(self.weixin_sns_info_hset_key)
 
     def make_time_loacation(self):
         # var citys =  [
@@ -248,29 +256,39 @@ class MainHandler(tornado.web.RequestHandler):
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
         redis_db = RedisDriver()
+        print 'get--------------------start'
+        authors_list = redis_db.get_authors()
+        # pprint(authors_list)
+
         sns_info_list = redis_db.search_sns_info()
+        # pprint(sns_info_list)
+        print 'get--------------------start'
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
-            sns_info_list=sns_info_list[:100])
+            sns_info_list=sns_info_list[:100],
+            authors_list=authors_list)
 
     def post(self):
-        util = Util()
         redis_db = RedisDriver()
-        # print(self.request.remote_ip)
-        ago_time = self.get_argument('ago_time', '')
-        authors = self.get_argument('authors', '')
-        pic_flg = self.get_argument('pic_flg', '')
-
-        print ago_time, authors, pic_flg
+        ago_time = self.get_argument('ago_time',strip=True)
+        authors = self.get_arguments('authors',strip=True)
+        pic_flg = self.get_argument('pic_flg',strip=True)
+        print 'post--------------------start', self.request.remote_ip, ago_time, authors, pic_flg
+        authors_list = redis_db.get_authors()
+        # pprint(authors_list)
 
         sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg)
+        # pprint(sns_info_list)
+        print 'post--------------------end'
+
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
-            sns_info_list=sns_info_list[:100])
+            sns_info_list=sns_info_list[:100],
+            authors_list=authors_list)
 
 
 class DiscussionHandler(tornado.web.RequestHandler):
@@ -328,15 +346,17 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 
-def test():
-    # util = Util()
-    # print util.convert_xy_to_address('39.983424_116.322987')
+def patch_address():
     redis_db = RedisDriver()
-    # pprint(redis_db.get_all_sns_info())
     redis_db.patch_address()
-    redis_db.search_sns_info('3 day', '')
+
+
+def test():
+    redis_db = RedisDriver()
+    pprint(redis_db.get_authors())
 
 
 if __name__ == "__main__":
-    main()
     # test()
+    # patch_address()
+    main()

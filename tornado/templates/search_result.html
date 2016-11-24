@@ -5,8 +5,7 @@
     {#    <meta http-equiv="X-UA-Compatible" content="IE=edge">#}
     {#    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">#}
     <title>微信数据展示</title>
-    <link rel="stylesheet" href="{{ static_url("css/style.css") }}"/>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
     <script src="http://cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
     <!-- bootstrap -->
     <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
@@ -19,62 +18,46 @@
 {% autoescape None %}
 
 {% block body %}
-<style>
-    .sns_left {
-        float: left;
-        height: 50px;
-        margin: 10px;
-    {# background-color: #F5F5F5;#}
-    }
 
-    img.sns_logo {
-        width: 70px;
-        margin: 5px 5px 5px 0;
-    }
-
-    .sns_right {
-        float: right;
-        width: 560px;
-        min-height: 200px;
-        margin: 10px;
-    {# border: 0px solid #555;#}{# background-color: #F5F5F5;#}
-    }
-
-    .sns_right .sns_title {
-        margin: 10px;
-    }
-
-    .sns_right .sns_image_list {
-        margin: 5px 20px 5px 0;
-        width: 560px;
-    }
-
-    .sns_right .sns_image_list img.sns_image {
-    {#        width: 180px;#} height: 180px;
-        margin: 5px 2px 5px 0;
-        float: left;
-    {# min-width: 200px;#}{# min-height: 200px;#}
-    }
-
-    .sns_right .sns_details {
-        margin: 5px 10px 5px 0;
+<style type="text/css">
+    option.imagebacked {
+        padding: 2px 0 2px 20px;
+        background-repeat: no-repeat;
+        background-position: 1px 2px;
+        vertical-align: middle;
     }
 </style>
-<h2>检索结果</h2>
 
-<form action="/search" method="post">
-    <input type="text" placeholder="authors" name="authors"/>
-    <input type="text" placeholder="ago_time" name="ago_time"/>
-    <input type="text" placeholder="pic_flg" name="pic_flg"/>
-    <input type="submit" class="btn btn-primary btn-sm" value="Submit"/>
-</form>
+{#<h2>检索结果</h2>#}
+{% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
+
+
 <hr>
 {#<div id="sns">#}
 {#	{% for sns in sns_info_list %}#}
 {# 	 	{{ modules.SnsInfo(sns) }}#}
 {#	{% end %}#}
 {#</div>#}
-<div id="left_unkown_urls_div" style="float:left;width:700px; margin-left:50px">
+<div id="authors_div" style="float:left;width:200px; margin-left:20px">
+    <div class="form-group">
+        <form role="form" action="/search" method="post">
+{#            <input type="text" placeholder="authors" name="authors"/>#}
+            <input type="text" placeholder="ago_time" name="ago_time"/>
+            <input type="text" placeholder="pic_flg" name="pic_flg"/>
+            <select name="authors" multiple class="form-control">
+                {% for author in authors_list %}
+                {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
+                <option class="imagebacked" value="{{ author }}">
+                    &nbsp;&nbsp;&nbsp;{{ author }}&nbsp;&nbsp;&nbsp;
+                </option>
+                {% end %}
+            </select>
+            <input type="submit" class="btn btn-primary btn-sm" value="Submit"/>
+        </form>
+    </div>
+</div>
+
+<div id="sns_info_div" style="float:left;width:700px; margin-left:20px">
     <table id="sns_info_tab1">
         <thead>
         <tr>
@@ -86,44 +69,38 @@
         <tr style="border: 1px solid #ccc;">
             <td>
                 <div class="sns_left">
-                    <img src="static/images/head_first_python.gif" class="img-rounded sns_logo"/>
+                    <img src="static/images/head_first_python.gif" class="sns_author_logo img-rounded"/>
                 </div>
                 <div class="sns_right">
                     {#<div class="sns_details">#}
-                    <div class="sns_detailsrow clearfix">
-                        <label>
-                            <span class="glyphicon glyphicon-user"></span>&nbsp;
-                        </label>
-                        {{ sns_info["authorName"] }}&nbsp;&nbsp;&nbsp;
+                    <div class="sns_author row clearfix">
+                        {# <span class="glyphicon glyphicon-user"></span>&nbsp;#}
+                        {{ sns_info["authorName"] }}
                     </div>
 
-                    <div class="sns_details row clearfix">
-                        {% raw sns_info["content"] %}
+                    <div class="sns_content row clearfix">
+                        <small>{% raw sns_info["content"] %}</small>
                     </div>
                     <div class="sns_image_list row clearfix">
-                        {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
                         {% for url in sns_info["mediaList"] %}
                         <img src="{{ pre_url + url }}" class="img-rounded sns_image"/>
                         {% end %}
                     </div>
-                    <div class="sns_details row clearfix">
-                        <label>
-                            <span class="glyphicon glyphicon-time"></span>&nbsp;
-{#                            {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
+                    <div class="sns_timeLocation row clearfix">
+                        <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
+                            {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
                             {{ sns_info["ago_days"] }}
                             &nbsp;&nbsp;&nbsp;
-                        </label>
-                        <label>
                             <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
                             {{ sns_info["poi_address"] }}
-                        </label>
+                        </h6>
                     </div>
                     {% if len(sns_info["comments"])>0 %}
-                    <div class="alert alert-info row clearfix">
+                    <div class="sns_comments row clearfix">
                         {% for comment in sns_info["comments"] %}
-                        <span class="label label-primary">{{ comment['authorName'] }}</span>
-                        &nbsp;&nbsp;&nbsp;
-                        <p>{{ comment['content'] }}</p>
+                        <h4>{{ comment['authorName'] }} :
+                            <small>&nbsp;&nbsp;{{ comment['content'] }}</small>
+                        </h4>
                         {% end %}
                     </div>
                     {% end %}
