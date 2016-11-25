@@ -16,7 +16,7 @@ img.sns_author_logo_small {
 }
 
 .sns_right {
-    float: right;
+    float: left;
     width: 560px;
     margin: 5px;
     /*min-height: 200px;border: 0px solid #555;background-color: #F5F5F5;*/

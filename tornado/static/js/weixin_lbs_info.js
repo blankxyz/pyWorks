@@ -1,4 +1,4 @@
-var citys =  [
+var weixin_lbs_info =  [
     {"lnglat": ["116.310815", "39.981343"], "name": "location0"},
     {"lnglat": ["120.000000", "29.984396"], "name": "location1"},
     {"lnglat": ["121.431587", "31.228628"], "name": "location2"},
