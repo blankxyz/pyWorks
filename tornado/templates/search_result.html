@@ -1,11 +1,11 @@
 {#{% extends "main.html" %}#}
+{% autoescape None %}
 <html>
 <head>
     <meta charset="utf-8">
-    {#    <meta http-equiv="X-UA-Compatible" content="IE=edge">#}
-    {#    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">#}
-    <title>微信数据展示</title>
-    <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <!-- jquery -->
     <script src="http://cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
     <!-- bootstrap -->
     <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
@@ -13,22 +13,24 @@
     <!-- DataTables -->
     <link rel="stylesheet" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
     <script src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-
-    <!-- datetime picker -->
+    <!-- 日期选择插件 -->
     <link href="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css"
           rel="stylesheet"/>
-
-    {#    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>#}
-    {#    <script src="http://libs.baidu.com/bootstrap/2.2.1/js/bootstrap.min.js"></script>#}
     <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
+    <!-- 高德地图 -->
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
     <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
-
+    <script type="text/javascript"
+            src="http://webapi.amap.com/maps?v=1.3&key=0c7fb71b2e13546416337666cd406db3&plugin=AMap.Autocomplete"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+    <script type="text/javascript" src='http://127.0.0.1:5000/weixin_lbs_info.js'></script>
+    <!-- self css -->
+    <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
+    <title>微信数据展示</title>
 </head>
 
-{% autoescape None %}
-
 {% block body %}
-
+<hr>
 <style type="text/css">
     option.imagebacked {
         padding: 2px 0 2px 20px;
@@ -37,27 +39,26 @@
         vertical-align: middle;
     }
 </style>
-<body data-spy="scroll" data-target="#filter_div" data-offset="20">
-{#<h2>检索结果</h2>#}
+
+<!-- 反 微信防盗链  -->
 {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
 
-
-<hr>
 {#<div id="sns">#}
 {#	{% for sns in sns_info_list %}#}
 {# 	 	{{ modules.SnsInfo(sns) }}#}
 {#	{% end %}#}
 {#</div>#}
-<div id="filter_div" style="float:left;width:200px; margin-left:20px;" class="container-fluid">
-    <div class="form-group">
+
+<!-- 左侧检索栏  -->
+<div id="filter_div" style="float:left;width:200px; margin-left:50px">
+    <div class="form-group row">
         <form role="form" action="/search" method="post">
-            {#            <label class="control-label col-xs-3">日期：</label>#}
-            <div class='input-group date row clearfix' id='datetimepicker1'>
+            <div class='input-group date' id='datetimepicker'>
                 <input type='text' name="ago_time" class="form-control"/>
                 <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
             </div>
             <br>
-            <div class="row clearfix">
+            <div>
                 <select name="authors" multiple class="form-control">
                     {% for author in authors_list %}
                     {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
@@ -68,18 +69,25 @@
                 </select>
             </div>
             <br>
-            <div class="checkbox row clearfix">
+            <div>
+                <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true">
+                <input id="address" type="text" size="28" readonly="true">
+                <input name="distance" type="text" size="28">
+            </div>
+            <br>
+            <div class="checkbox">
                 <label>
                     <input name="pic_flg" type="checkbox">仅显示有图消息&nbsp;&nbsp;&nbsp;
                 </label>
-                <input type="submit" class="btn btn-primary btn-sm" value="Submit"/>
+                <input type="submit" class="btn btn-primary btn-sm" value="微信搜索"/>
             </div>
         </form>
     </div>
 </div>
 
-<div id="sns_info_div" style="float:left;width:700px; margin-left:20px">
-    <table id="sns_info_tab1">
+<!-- 中间 微信信息展示栏  -->
+<div id="sns_info_div" style="float:left;width:700px; margin-left:50px" class="col-sm-9">
+    <table id="sns_info_tab11">
         <thead>
         <tr>
             <th></th>
@@ -108,12 +116,13 @@
                         {% end %}
                     </div>
                     <div class="sns_timeLocation row clearfix">
-                        <span class="glyphicon glyphicon-time"></span>&nbsp;
+                        <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
                             {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
                             {{ sns_info["ago_days"] }}
                             &nbsp;&nbsp;&nbsp;
                             <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
                             {{ sns_info["poi_address"] }}
+                        </h6>
                     </div>
                     {% if len(sns_info["comments"])>0 %}
                     <div class="sns_comments row clearfix">
@@ -132,17 +141,118 @@
         </tbody>
     </table>
 </div>
-{#<div id="container_2"></div>#}
-</body>
+
+<!-- 右侧 地图展示栏  -->
+<div id="map_div" style="float:left;width:700px; height:900px; margin-left:10px;" class="map" tabindex="0">
+    <h1>地图加载后，会覆盖该区域。</h1>
+</div>
+
+<!-- 右上 地图坐标栏  -->
+<div id="myPageTop" style="margin-right:120px;margin-top:50px">
+    <table>
+        <tr>
+            <td>
+                <label>位置搜索：</label>
+            </td>
+            <td class="column2">
+                <label>经度, 纬度：</label>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" placeholder="请输入地理位置关键字" id="tipinput">
+            </td>
+            <td class="column2">
+                <input id="lnglat" type="text" readonly="true">
+            </td>
+        </tr>
+    </table>
+</div>
 {% end %}
+
+
 <script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
     $(function () {
-        $('#datetimepicker1').datetimepicker({
+        $('#datetimepicker').datetimepicker({
             format: 'YYYY-MM-DD',//日期格式化，只显示日期
             locale: 'zh-CN'      //中文化
         });
     });
+
+    //-------------------------------------------------------------------------------
+    var map = new AMap.Map('map_div', {
+        layers: [new AMap.TileLayer({
+            textIndex: 2
+        })],
+        zoom: 4,
+        center: [102.342785, 35.312316],
+        resizeEnable: true
+    });
+
+    //-------------------------------------------------------------------------------
+    //为地图注册click事件获取鼠标点击出的经纬度坐标
+    var clickEventListener = map.on('click', function (e) {
+        x = e.lnglat.getLng();
+        y = e.lnglat.getLat();
+        document.getElementById("lnglat").value = x + ',' + y;
+        document.getElementById("filter_lnglat").value = x + ',' + y;
+
+        $.ajax({
+            url: 'http://127.0.0.1:5000/convert_xy_to_address?y_x=' + y + '_' + x,
+            type: 'get',
+            contentType: "application/json; charset=UTF-8",
+            {#            dataType: 'json',#}
+            {#            data: {"x": x, "y": y},#}
+            error: function (xhr, err) {
+                alert(err);
+            },
+            success: function (data, textStatus) {
+{#                alert(data);#}
+                document.getElementById("address").value = data;
+            }
+        });
+    });
+    var auto = new AMap.Autocomplete({
+        input: "tipinput"
+    });
+    AMap.event.addListener(auto, "select", select); //注册监听，当选中某条记录时会触发
+    function select(e) {
+        if (e.poi && e.poi.location) {
+            map.setZoom(15);
+            map.setCenter(e.poi.location);
+        }
+    }
+    //-------------------------------------------------------------------------------
+    var circle = new AMap.Circle({
+        center: new AMap.LngLat("116.316405", "39.977629"),// 圆心位置
+        radius: 200000, //半径 200km
+        strokeColor: "#F33", //线颜色
+        strokeOpacity: 9, //线透明度
+        strokeWeight: 1, //线粗细度
+        fillColor: "#ee2200", //填充颜色
+        fillOpacity: 0.10//填充透明度
+    });
+    {#circle.setMap(map);#}
+    //-------------------------------------------------------------------------------
+    var mass = new AMap.MassMarks(weixin_lbs_info, {
+        url: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+        anchor: new AMap.Pixel(3, 7),
+        size: new AMap.Size(5, 7),
+        opacity: 0.7,
+        cursor: 'pointer',
+        zIndex: 1
+    });
+    var marker = new AMap.Marker({
+        content: ' ',
+        map: map
+    });
+    mass.on('mouseover', function (e) {
+        marker.setPosition(e.data.lnglat);
+        marker.setLabel({content: e.data.name})
+    });
+    mass.setMap(map);
+    //-------------------------------------------------------------------------------
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
