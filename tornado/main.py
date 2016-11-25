@@ -68,6 +68,8 @@ amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 2
 baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
 
 
+
+
 class Util(object):
     @staticmethod
     def calcDistance(Lat_A, Lng_A, Lat_B, Lng_B):
