@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin python
 # coding=utf-8
 
 import os.path
@@ -8,6 +8,7 @@ import re
 import signal
 import requests
 import redis
+from math import *
 
 from pprint import pprint
 import tornado.locale
@@ -23,8 +24,8 @@ REDIS_SERVER = 'redis://127.0.0.1/10'
 
 define("port", default=5000, help="run on the given port", type=int)
 
-# sns_info_list1 =
-# "12404766082711236659":
+# sns_info_list =
+# {"12404766082711236659":
 # "{u'snsId': u'12404766082711236659',
 # u'timestamp': 1478763351,
 # u'authorId': u'wxid_6oeldtzws22c22',
@@ -53,23 +54,54 @@ define("port", default=5000, help="run on the given port", type=int)
 #   <sourceUserName></sourceUserName>
 #   <sourceNickName></sourceNickName>
 #   <statisticsData></statisticsData>
-#   <location poiClickableStatus =  \"0\"  poiClassifyId =  \"\"  poiScale =  \"0\"  longitude =  \"0.0\"  city =  \"\"  poiName =  \"\"  latitude =  \"0.0\"  poiClassifyType =  \"0\"  poiAddress =  \"\" ></location><ContentObject><contentStyle><![CDATA[1]]></contentStyle><title></title><description></description><contentUrl></contentUrl><mediaList><media><id><![CDATA[12404766083001757752]]></id><type><![CDATA[2]]></type><title></title><description></description><private><![CDATA[0]]></private><url type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/0]]></url><thumb type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/150]]></thumb><size height =  \"854.0\"  width =  \"640.0\"  totalSize =  \"94467.0\" ></size></media></mediaList></ContentObject><actionInfo></actionInfo></TimelineObject>'}",
+#   <location poiClickableStatus =  \"0\"  poiClassifyId =  \"\"  poiScale =  \"0\"  longitude =  \"0.0\"  city =  \"\"
+#   poiName =  \"\"  latitude =  \"0.0\"  poiClassifyType =  \"0\"  poiAddress =  \"\" ></location><ContentObject>
+#   <contentStyle><![CDATA[1]]></contentStyle><title></title><description></description><contentUrl></contentUrl>
+#   <mediaList><media><id><![CDATA[12404766083001757752]]></id><type><![CDATA[2]]></type>
+#   <title></title><description></description><private><![CDATA[0]]></private>
+#   <url type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/0]]></url>
+#   <thumb type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/150]]></thumb>
+#   <size height =  \"854.0\"  width =  \"640.0\"  totalSize =  \"94467.0\" ></size></media></mediaList></ContentObject>
+#   <actionInfo></actionInfo></TimelineObject>'}",
 
 amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 220.249.18.226
 baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
 
 
-def get_ago_time(timestamp):
-    now = datetime.datetime.now()
-    t = datetime.datetime.utcfromtimestamp(timestamp)
-    if now > t:
-        print str(now - t)
-        num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
-        return num_str
-    else:
-        return u'未知'
+
 
 class Util(object):
+    @staticmethod
+    def calcDistance(Lat_A, Lng_A, Lat_B, Lng_B):
+        '''
+            Lat_A 纬度A, Lng_A 经度A
+            Lat_B 纬度B, Lng_B 经度B
+            distance 距离(km)
+        '''
+        ra = 6378.140  # 赤道半径 (km)
+        rb = 6356.755  # 极半径 (km)
+        flatten = (ra - rb) / ra  # 地球扁率
+        rad_lat_A = radians(Lat_A)
+        rad_lng_A = radians(Lng_A)
+        rad_lat_B = radians(Lat_B)
+        rad_lng_B = radians(Lng_B)
+        pA = atan(rb / ra * tan(rad_lat_A))
+        pB = atan(rb / ra * tan(rad_lat_B))
+        xx = acos(sin(pA) * sin(pB) + cos(pA) * cos(pB) * cos(rad_lng_A - rad_lng_B))
+        c1 = (sin(xx) - xx) * (sin(pA) + sin(pB)) ** 2 / cos(xx / 2) ** 2
+        c2 = (sin(xx) + xx) * (sin(pA) - sin(pB)) ** 2 / sin(xx / 2) ** 2
+        dr = flatten / 8 * (c1 - c2)
+        distance = ra * (xx + dr)
+        return distance
+
+        # Lat_A = 32.060255
+        # Lng_A = 118.796877  # 南京
+        # Lat_B = 39.904211
+        # Lng_B = 116.407395  # 北京
+        # print('(Lat_A, Lng_A)=({0:10.3f},{1:10.3f})'.format(Lat_A, Lng_A))
+        # print('(Lat_B, Lng_B)=({0:10.3f},{1:10.3f})'.format(Lat_B, Lng_B))
+        # print('Distance={0:10.3f} km'.format(distance))
+
     def convert_str_xy_to_x_y(self, str_x_y):
         '''
         Args:
@@ -81,6 +113,8 @@ class Util(object):
         if str_x_y != 'None' and str_x_y != '':
             x = str_x_y.split('_')[0]
             y = str_x_y.split('_')[1]
+
+        print 'convert_str_xy_to_x_y()', str_x_y, x, y
         return (x, y)
 
     def convert_xy_to_address(self, str_x_y):
@@ -95,6 +129,9 @@ class Util(object):
         if x:
             url = 'http://api.map.baidu.com/geocoder/v2/?callback=renderReverse&' \
                   'location=%s,%s&output=json&pois=0&ak=%s' % (x, y, baidu_map_key)
+
+            print '[info] convert_xy_to_address()', url
+
             response = requests.get(url)
             content = response.content[len('renderReverse&&renderReverse('):-1]
             j = json.loads(content)
@@ -102,7 +139,8 @@ class Util(object):
 
         return address
 
-    def time_min(self, ago_time_str):
+    @staticmethod
+    def time_min(ago_time_str):
         '''
         Args:
             ago_time_str: 例：'1 hour' or '2 minutes'
@@ -125,22 +163,35 @@ class Util(object):
             if 'day' in ago_time_str:
                 ret_time = (ret_time - datetime.timedelta(days=num))
 
-        print ret_time.strftime("%Y-%m-%d %H:%M:%S")
+        # print ret_time.strftime("%Y-%m-%d %H:%M:%S")
         return ret_time
+
+    @staticmethod
+    def convert_ago_time_to_days(timestamp):
+        now = datetime.datetime.now()
+        # t = datetime.datetime.utcfromtimestamp(timestamp)
+        t = datetime.datetime.utcfromtimestamp(timestamp)
+        if now > t:
+            # print str(now - t)
+            num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
+            return num_str + u'天前'
+        else:
+            return u'未知时间'
 
 
 class RedisDriver(object):
     def __init__(self):
         self.util = Util()
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.weixin_info_hset_key = 'hash_weixin_snsinfo'
+        self.weixin_sns_info_hset_key = 'hash_weixin_snsinfo'
         self.weixin_info_hset_patch_key = 'weixin_info_hset_patch_key'  # patch address
         self.weixin_time_location_hset_key = 'hash_weixin_s_time_location'
 
     def patch_address(self):
-        l = self.conn.hgetall(self.weixin_info_hset_key)
+        l = self.conn.hgetall(self.weixin_sns_info_hset_key)
         for k, v in l.items():
-            sns_info = eval(v)
+            # print v
+            sns_info = json.loads(v)
             sns_info['poi_address'] = ''
             if sns_info['db_patch']:
                 str_x_y = self.conn.hget(self.weixin_time_location_hset_key, sns_info['db_patch'])
@@ -151,24 +202,32 @@ class RedisDriver(object):
 
             self.conn.hset(self.weixin_info_hset_patch_key, k, sns_info)
 
-    def get_all_sns_info(self):
-        sns_info_list = []
+    # def get_all_sns_info(self):
+    #     sns_info_list = []
+    #     l = self.conn.hgetall(self.weixin_info_hset_patch_key)
+    #     for k, v in l.items():
+    #         sns_info_list.append(eval(v))
+    #
+    #     return sns_info_list
+
+    def get_authors(self):
+        authors = []
         l = self.conn.hgetall(self.weixin_info_hset_patch_key)
         for k, v in l.items():
-            sns_info_list.append(eval(v))
+            sns_info = eval(v)
+            author = sns_info["authorName"]
+            authors.append(author)
 
-        return sns_info_list
+        return list(set(authors))
 
-    def search_sns_info(self, ago_time, authors, has_pic):
+    def search_sns_info(self, ago_time='', authors=[], has_pic='', x_y='', distance=-1):
         '''
         Args:
-            ago_time_str: '1 hour' or '2 minutes'
-            authors: 'tom,jerry'
-            has_pic: 'yes'
+            ago_time: '1 hour' or '2 minutes'
+            authors: list type
+            has_pic: 'on'
         Returns:
         '''
-        print 'post--------------------start', ago_time, authors
-        authors = authors.strip(',')
         sns_info_list = []
         l = self.conn.hgetall(self.weixin_info_hset_patch_key)
         for k, v in l.items():
@@ -179,33 +238,37 @@ class RedisDriver(object):
             author = sns_info["authorName"]
             ctime = sns_info["timestamp"]
             media_list = sns_info["mediaList"]
-            print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
+            sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
+            # print datetime.datetime.utcfromtimestamp(ctime), self.util.time_min(ago_time)
 
-            if not authors.strip() or author in authors:
+            if not authors or author in authors:
                 author_flg = True
-            if not ago_time.strip() or datetime.datetime.utcfromtimestamp(ctime) >= self.util.time_min(ago_time):
+            if not ago_time.strip() or datetime.datetime.utcfromtimestamp(ctime) >= \
+                    datetime.datetime.strptime(ago_time, "%Y-%m-%d"):
                 time_flg = True
-            if not has_pic.strip() or len(media_list) > 0:
+            if has_pic == 'off' or (has_pic == 'on' and len(media_list)) > 0:
                 pic_flg = True
 
+            distance = Util().calcDistance(Lat_A, Lng_A, Lat_B, Lng_B)
+
+            # print author_flg, time_flg, pic_flg
             if author_flg and time_flg and pic_flg:
                 sns_info_list.append(sns_info)
 
-        print 'post--------------------end', ago_time, type(ago_time), authors, type(authors)
         return sns_info_list
 
     def get_weixin_cnt(self):
-        return self.conn.hlen(self.weixin_info_hset_key)
+        return self.conn.hlen(self.weixin_sns_info_hset_key)
 
     def make_time_loacation(self):
-        # var citys =  [
+        # var weixin_lbs_info =  [
         #   {"lnglat": ["116.418757", "39.917544"], "name": "东城区"},
         #   {"lnglat": ["116.366794", "39.915309"], "name": "西城区"},
         #   {"lnglat": ["116.486409", "39.921489"], "name": "朝阳区"},
         # ];
         l = self.conn.hvals(self.weixin_time_location_hset_key)
-        fd = open('./static/js/timeLocation.js', 'w')
-        fd.write('var citys =  [\n')
+        fd = open('./static/js/weixin_lbs_info.js', 'w')
+        fd.write('var weixin_lbs_info =  [\n')
         cnt = 0
         for i in l:
             if i != 'None' and i != '':
@@ -229,7 +292,8 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", MainHandler),
             (r"/search", SearchHandler),
-            (r"/(timeLocation\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
+            (r"/convert_xy_to_address", Manager),
+            (r"/(weixin_lbs_info\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
             (r"/discussion", DiscussionHandler),
         ]
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -246,31 +310,54 @@ class MainHandler(tornado.web.RequestHandler):
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
         redis_db = RedisDriver()
-        sns_info_list = redis_db.get_all_sns_info()
+        print 'get--------------------start'
+        authors_list = redis_db.get_authors()
+        # pprint(authors_list)
+
+        sns_info_list = redis_db.search_sns_info()
         # pprint(sns_info_list)
-        # pprint(eval(sns_info_list[0])['content'])
+        print 'get--------------------start'
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
-            sns_info_list=sns_info_list[:100])
+            sns_info_list=sns_info_list,
+            authors_list=authors_list)
 
     def post(self):
-        util = Util()
         redis_db = RedisDriver()
-        # print(self.request.remote_ip)
         ago_time = self.get_argument('ago_time', '')
-        authors = self.get_argument('authors', '')
-        pic_flg = self.get_argument('pic_flg', '')
+        authors = self.get_arguments('authors')
+        pic_flg = self.get_argument('pic_flg', 'off')
+        x_y = self.get_argument('x_y', '')
+        distance = self.get_argument('distance', -1)
+        print '-------------------------------   post  ----------------------------------- '
+        print 'ago_time is:<<< ', ago_time, ' >>>  authors is: <<< ', authors, ' >>>  pic_flg is: <<<', pic_flg, ' >>>'
+        print '-------------------------------   post  ----------------------------------- '
+        authors_list = redis_db.get_authors()
+        # pprint(authors_list)
 
-        print ago_time, authors, pic_flg
+        sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg, x_y, distance)
+        # pprint(sns_info_list)
 
-        sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg)
         self.render(
             "search_result.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
-            sns_info_list=sns_info_list[:100])
+            sns_info_list=sns_info_list,
+            authors_list=authors_list)
+
+
+class Manager(tornado.web.RequestHandler):
+    def get(self):
+        print '[info]Manager get() start'
+        util = Util()
+        y_x = self.get_argument('y_x')
+        address = util.convert_xy_to_address(y_x)
+        # jsonStr = json.dumps(ret, sort_keys=True)
+        print '[info]Manager get()', y_x, '->', address
+        # self.write(json.dumps({'address': address}))
+        self.write(address)
 
 
 class DiscussionHandler(tornado.web.RequestHandler):
@@ -328,15 +415,17 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 
-def test():
-    # util = Util()
-    # print util.convert_xy_to_address('39.983424_116.322987')
+def patch_address():
     redis_db = RedisDriver()
-    # pprint(redis_db.get_all_sns_info())
     redis_db.patch_address()
-    redis_db.search_sns_info('3 day', '')
+
+
+def test():
+    redis_db = RedisDriver()
+    pprint(redis_db.get_authors())
 
 
 if __name__ == "__main__":
-    main()
     # test()
+    # patch_address()
+    main()

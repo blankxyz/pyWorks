@@ -1,24 +1,59 @@
-.sns {
-    width: 500px;
-    min-height: 110px;
-    border: 1px solid #555;
-    padding: 0 15px 0 15px;
-    margin: 15px;
-    background-color: #F5F5F5;
+body {
+    position: relative;
 }
 
-.sns img.sns_image {
-    max-width: 100px;
-    max-height: 100px;
-    margin: 5px 15px 5px 0;
+.sns_left {
     float: left;
+    height: 50px;
+    margin: 10px;
+    /* background-color: #F5F5F5;*/
 }
 
-.sns .sns_details {
+img.sns_author_logo {
+    height: 60px;
+    margin: 5px 5px 5px 0;
+}
+
+img.sns_author_logo_small {
+    height: 30px;
+    margin: 5px 5px 5px 0;
+}
+
+.sns_right {
+    float: left;
+    width: 560px;
+    margin: 5px;
+    /*min-height: 200px;border: 0px solid #555;background-color: #F5F5F5;*/
+}
+
+.sns_right .sns_author {
+    margin: 10px;
+    font-size:large;
+    color:#0c199c;
+}
+
+.sns_right .sns_image_list {
+    margin: 5px 20px 5px 0;
+    width: 560px;
+}
+
+.sns_right .sns_image_list img.sns_image {
+    height: 120px;
+    margin: 5px 2px 5px 0;
+    float: left;
+    /*width: 180px;min-width: 200px;min-height: 200px;*/
+}
+
+.sns_right .sns_content {
     margin: 5px 10px 5px 0;
 }
 
-.sns .sns_title {
-    color: #777;
+.sns_right .sns_timeLocation {
+    margin: 5px 10px 5px 0;
+    font-size:small;
 }
 
+.sns_right .sns_comments {
+    margin: 5px 10px 5px 0;
+    background-color: #F5F5F5;
+}
