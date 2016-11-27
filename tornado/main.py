@@ -10,6 +10,7 @@ import requests
 import redis
 from math import *
 
+import tornado.autoreload
 from pprint import pprint
 import tornado.locale
 import tornado.auth
@@ -17,6 +18,7 @@ import tornado.escape
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
+from tornado.log import LogFormatter
 import tornado.web
 from tornado.options import define, options
 
@@ -68,12 +70,14 @@ amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 2
 baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
 
 
-
+# logger = LogFormatter()
 
 class Util(object):
     @staticmethod
-    def calcDistance(Lat_A, Lng_A, Lat_B, Lng_B):
+    def calc_distance((Lng_A, Lat_A), (Lng_B, Lat_B)):
         '''
+            Lat_A = 32.060255, Lng_A = 118.796877  # 南京
+            Lat_B = 39.904211, Lng_B = 116.407395  # 北京
             Lat_A 纬度A, Lng_A 经度A
             Lat_B 纬度B, Lng_B 经度B
             distance 距离(km)
@@ -81,10 +85,10 @@ class Util(object):
         ra = 6378.140  # 赤道半径 (km)
         rb = 6356.755  # 极半径 (km)
         flatten = (ra - rb) / ra  # 地球扁率
-        rad_lat_A = radians(Lat_A)
-        rad_lng_A = radians(Lng_A)
-        rad_lat_B = radians(Lat_B)
-        rad_lng_B = radians(Lng_B)
+        rad_lat_A = radians(float(Lat_A))
+        rad_lng_A = radians(float(Lng_A))
+        rad_lat_B = radians(float(Lat_B))
+        rad_lng_B = radians(float(Lng_B))
         pA = atan(rb / ra * tan(rad_lat_A))
         pB = atan(rb / ra * tan(rad_lat_B))
         xx = acos(sin(pA) * sin(pB) + cos(pA) * cos(pB) * cos(rad_lng_A - rad_lng_B))
@@ -93,11 +97,6 @@ class Util(object):
         dr = flatten / 8 * (c1 - c2)
         distance = ra * (xx + dr)
         return distance
-
-        # Lat_A = 32.060255
-        # Lng_A = 118.796877  # 南京
-        # Lat_B = 39.904211
-        # Lng_B = 116.407395  # 北京
         # print('(Lat_A, Lng_A)=({0:10.3f},{1:10.3f})'.format(Lat_A, Lng_A))
         # print('(Lat_B, Lng_B)=({0:10.3f},{1:10.3f})'.format(Lat_B, Lng_B))
         # print('Distance={0:10.3f} km'.format(distance))
@@ -105,16 +104,16 @@ class Util(object):
     def convert_str_xy_to_x_y(self, str_x_y):
         '''
         Args:
-            str_x_y: '39.983424_116.322987'
+            str_x_y: '116.322987_39.983424','116.322987,39.983424'
         Returns:
-            (x,y)
+            str type (x,y)
         '''
         (x, y) = (None, None)
-        if str_x_y != 'None' and str_x_y != '':
-            x = str_x_y.split('_')[0]
-            y = str_x_y.split('_')[1]
-
-        print 'convert_str_xy_to_x_y()', str_x_y, x, y
+        if str_x_y != 'None' and str_x_y:
+            sp = '_' if '_' in str_x_y else ','
+            x = str_x_y.split(sp)[0]
+            y = str_x_y.split(sp)[1]
+            # logger.format('convert_str_xy_to_x_y() %s %s %s' % (str_x_y, x, y))
         return (x, y)
 
     def convert_xy_to_address(self, str_x_y):
@@ -130,8 +129,7 @@ class Util(object):
             url = 'http://api.map.baidu.com/geocoder/v2/?callback=renderReverse&' \
                   'location=%s,%s&output=json&pois=0&ak=%s' % (x, y, baidu_map_key)
 
-            print '[info] convert_xy_to_address()', url
-
+            # logger.format('[info] convert_xy_to_address() %s' % url)
             response = requests.get(url)
             content = response.content[len('renderReverse&&renderReverse('):-1]
             j = json.loads(content)
@@ -220,20 +218,26 @@ class RedisDriver(object):
 
         return list(set(authors))
 
-    def search_sns_info(self, ago_time='', authors=[], has_pic='', x_y='', distance=-1):
+    def search_sns_info(self, ago_time='', authors=[], has_pic='', x_y='', distance=''):
         '''
         Args:
             ago_time: '1 hour' or '2 minutes'
             authors: list type
             has_pic: 'on'
+            x_y: '116.316405_39.977629' 目标位置
+            distance: km   距目标位置的距离要求（ xxx km以内）
         Returns:
+            符合要求的 sns_info_list
         '''
+        util = Util()
         sns_info_list = []
         l = self.conn.hgetall(self.weixin_info_hset_patch_key)
         for k, v in l.items():
             author_flg = False
             time_flg = False
             pic_flg = False
+            distance_flg = False
+
             sns_info = eval(v)
             author = sns_info["authorName"]
             ctime = sns_info["timestamp"]
@@ -249,10 +253,22 @@ class RedisDriver(object):
             if has_pic == 'off' or (has_pic == 'on' and len(media_list)) > 0:
                 pic_flg = True
 
-            distance = Util().calcDistance(Lat_A, Lng_A, Lat_B, Lng_B)
+            if not distance:
+                distance_flg = True
+            else:
+                sns_info_y_x = self.conn.hget(self.weixin_time_location_hset_key, sns_info['db_patch'])
+                print u'采集地点:', sns_info_y_x, u'点击选取地点:', x_y
+                (x, y) = util.convert_str_xy_to_x_y(x_y)
+                (sns_info_y, sns_info_x) = util.convert_str_xy_to_x_y(sns_info_y_x)
+                print (x, y), (sns_info_x, sns_info_y)
+                if x and sns_info_x:
+                    d = util.calc_distance((x, y), (sns_info_x, sns_info_y))
+                    print u'两地相距：', d, u'限定距离：',distance
+                    if d <= int(distance):
+                        distance_flg = True
 
-            # print author_flg, time_flg, pic_flg
-            if author_flg and time_flg and pic_flg:
+            # print author_flg, time_flg, pic_flg, distance_flg
+            if author_flg and time_flg and pic_flg and distance_flg:
                 sns_info_list.append(sns_info)
 
         return sns_info_list
@@ -278,25 +294,6 @@ class RedisDriver(object):
                 cnt = cnt + 1
         fd.write('];\n')
         fd.close()
-
-
-class Application(tornado.web.Application):
-    def __init__(self):
-        settings = dict(
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            static_path=os.path.join(os.path.dirname(__file__), "static"),
-            static_js_path=os.path.join(os.path.dirname(__file__), "static/js"),
-            ui_modules={"SnsInfo": SnsInfoModule},
-            debug=True,
-        )
-        handlers = [
-            (r"/", MainHandler),
-            (r"/search", SearchHandler),
-            (r"/convert_xy_to_address", Manager),
-            (r"/(weixin_lbs_info\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
-            (r"/discussion", DiscussionHandler),
-        ]
-        tornado.web.Application.__init__(self, handlers, **settings)
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -330,9 +327,10 @@ class SearchHandler(tornado.web.RequestHandler):
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', 'off')
         x_y = self.get_argument('x_y', '')
-        distance = self.get_argument('distance', -1)
+        distance = self.get_argument('distance', '')
         print '-------------------------------   post  ----------------------------------- '
-        print 'ago_time is:<<< ', ago_time, ' >>>  authors is: <<< ', authors, ' >>>  pic_flg is: <<<', pic_flg, ' >>>'
+        print 'ago_time: ', ago_time, ' | authors: ', authors, ' | pic_flg: ', pic_flg, ' |'
+        print 'x_y:', x_y, ' | distance:', distance, ' |'
         print '-------------------------------   post  ----------------------------------- '
         authors_list = redis_db.get_authors()
         # pprint(authors_list)
@@ -402,6 +400,25 @@ def signal_handler(signum, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
+
+
+class Application(tornado.web.Application):
+    def __init__(self):
+        settings = dict(
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            static_js_path=os.path.join(os.path.dirname(__file__), "static/js"),
+            ui_modules={"SnsInfo": SnsInfoModule},
+            debug=True,
+        )
+        handlers = [
+            (r"/", MainHandler),
+            (r"/search", SearchHandler),
+            (r"/convert_xy_to_address", Manager),
+            (r"/(weixin_lbs_info\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
+            (r"/discussion", DiscussionHandler),
+        ]
+        tornado.web.Application.__init__(self, handlers, **settings)
 
 
 def main():
