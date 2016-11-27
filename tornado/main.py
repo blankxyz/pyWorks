@@ -257,13 +257,11 @@ class RedisDriver(object):
                 distance_flg = True
             else:
                 sns_info_y_x = self.conn.hget(self.weixin_time_location_hset_key, sns_info['db_patch'])
-                print u'采集地点:', sns_info_y_x, u'点击选取地点:', x_y
                 (x, y) = util.convert_str_xy_to_x_y(x_y)
                 (sns_info_y, sns_info_x) = util.convert_str_xy_to_x_y(sns_info_y_x)
-                print (x, y), (sns_info_x, sns_info_y)
                 if x and sns_info_x:
                     d = util.calc_distance((x, y), (sns_info_x, sns_info_y))
-                    print u'两地相距：', d, u'限定距离：',distance
+                    print u'采集地:', sns_info_y_x, u'选取地:', x_y, u'相距：', d, u'限定：', distance
                     if d <= int(distance):
                         distance_flg = True
 
@@ -290,7 +288,7 @@ class RedisDriver(object):
             if i != 'None' and i != '':
                 x = i.split('_')[0]
                 y = i.split('_')[1]
-                fd.write('''    {"lnglat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
+                fd.write('''    {"lng_lat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
                 cnt = cnt + 1
         fd.write('];\n')
         fd.close()
@@ -304,7 +302,7 @@ class MainHandler(tornado.web.RequestHandler):
             header_text=u"微信数据展示")
 
 
-class SearchHandler(tornado.web.RequestHandler):
+class FriendsHandler(tornado.web.RequestHandler):
     def get(self):
         redis_db = RedisDriver()
         print 'get--------------------start'
@@ -315,7 +313,7 @@ class SearchHandler(tornado.web.RequestHandler):
         # pprint(sns_info_list)
         print 'get--------------------start'
         self.render(
-            "search_result.html",
+            "friends.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
@@ -329,8 +327,7 @@ class SearchHandler(tornado.web.RequestHandler):
         x_y = self.get_argument('x_y', '')
         distance = self.get_argument('distance', '')
         print '-------------------------------   post  ----------------------------------- '
-        print 'ago_time: ', ago_time, ' | authors: ', authors, ' | pic_flg: ', pic_flg, ' |'
-        print 'x_y:', x_y, ' | distance:', distance, ' |'
+        print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
         print '-------------------------------   post  ----------------------------------- '
         authors_list = redis_db.get_authors()
         # pprint(authors_list)
@@ -339,7 +336,7 @@ class SearchHandler(tornado.web.RequestHandler):
         # pprint(sns_info_list)
 
         self.render(
-            "search_result.html",
+            "friends.html",
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
@@ -358,26 +355,11 @@ class Manager(tornado.web.RequestHandler):
         self.write(address)
 
 
-class DiscussionHandler(tornado.web.RequestHandler):
+class AroundHandler(tornado.web.RequestHandler):
     def get(self):
         self.render(
-            "discussion.html",
-            page_title="Burt's Books | Discussion",
-            header_text="Talkin' About Books With Burt",
-            comments=[
-                {
-                    "user": "Alice",
-                    "text": "I can't wait for the next version of Programming Collective Intelligence!"
-                },
-                {
-                    "user": "Burt",
-                    "text": "We can't either, Alice.  In the meantime, be sure to check out RESTful Web Services too."
-                },
-                {
-                    "user": "Melvin",
-                    "text": "Totally hacked ur site lulz <script src=\"http://melvins-web-sploits.com/evil_sploit.js\"></script><script>alert('RUNNING EVIL H4CKS AND SPL0ITS NOW...');</script>"
-                }
-            ]
+            "around.html",
+            xiaoliang=[5, 20, 36, 10, 10, 20]
         )
 
 
@@ -413,10 +395,11 @@ class Application(tornado.web.Application):
         )
         handlers = [
             (r"/", MainHandler),
-            (r"/search", SearchHandler),
+            (r"/friends", FriendsHandler),
             (r"/convert_xy_to_address", Manager),
             (r"/(weixin_lbs_info\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
-            (r"/discussion", DiscussionHandler),
+            (r"/(authors\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
+            (r"/around", AroundHandler),
         ]
         tornado.web.Application.__init__(self, handlers, **settings)
 

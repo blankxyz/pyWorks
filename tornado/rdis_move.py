@@ -14,14 +14,14 @@ class WinxinBackup(object):
     def __init__(self):
         self.conn_export = redis.StrictRedis.from_url(EXPORT_REDIS_SERVER)
         self.conn_import = redis.StrictRedis.from_url(IMPORT_REDIS_SERVER)
-
+        self.export_path = 'export/'
         self.weixin_sns_info_hset_key = 'hash_weixin_snsinfo'
         self.weixin_time_location_hset_key = 'hash_weixin_s_time_location'
         self.weixin_lbs_info_hset_key = 'hash_weixin_lbsinfo'
 
-        self.weixin_sns_info_file = 'weixin_sns_info_backup.json'
-        self.weixin_time_location_file = 'weixin_time_location_backup.json'
-        self.weixin_lbs_info_file = 'weixin_lbs_info_backup.json'
+        self.weixin_sns_info_file = self.export_path + 'weixin_sns_info_backup.json'
+        self.weixin_time_location_file = self.export_path + 'weixin_time_location_backup.json'
+        self.weixin_lbs_info_file = self.export_path + 'weixin_lbs_info_backup.json'
 
     def get_sns_info_list(self):
         return self.conn_export.hgetall(self.weixin_sns_info_hset_key)

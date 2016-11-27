@@ -30,7 +30,6 @@
 </head>
 
 {% block body %}
-<hr>
 <style type="text/css">
     option.imagebacked {
         padding: 2px 0 2px 20px;
@@ -51,8 +50,10 @@
 
 <!-- 左侧检索栏  -->
 <div id="filter_div" style="float:left;width:200px; margin-left:50px">
+    <h3>检索条件</h3>
+    <hr>
     <div class="form-group row">
-        <form role="form" action="/search" method="post">
+        <form role="form" action="/friends" method="post">
             <div class='input-group date' id='datetimepicker'>
                 <input type='text' name="ago_time" class="form-control"/>
                 <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
@@ -63,7 +64,9 @@
                     {% for author in authors_list %}
                     {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
                     <option class="imagebacked" value="{{ author }}">
-                        &nbsp;&nbsp;&nbsp;{{ author }}&nbsp;&nbsp;&nbsp;
+                        <div>
+                            &nbsp;&nbsp;&nbsp;{{ author }}&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;<span class="badge">21</span>
+                        </div>
                     </option>
                     {% end %}
                 </select>
@@ -87,6 +90,8 @@
 
 <!-- 中间 微信信息展示栏  -->
 <div id="sns_info_div" style="float:left;width:700px; margin-left:50px" class="col-sm-9">
+    <h3>共有 {{ len(sns_info_list) }} 条</h3>
+    <hr>
     <table id="sns_info_tab11">
         <thead>
         <tr>
@@ -104,15 +109,15 @@
                     {#<div class="sns_details">#}
                     <div class="sns_author row clearfix">
                         {# <span class="glyphicon glyphicon-user"></span>&nbsp;#}
-                        {{ sns_info["authorName"] }}
+                        {{ sns_info["authorName"] }} <span class="badge">21</span>
                     </div>
 
                     <div class="sns_content row clearfix">
                         <small>{% raw sns_info["content"] %}</small>
                     </div>
-                    <div class="sns_image_list row clearfix">
+                    <div class="pull-left sns_image_list row clearfix">
                         {% for url in sns_info["mediaList"] %}
-                        <img src="{{ pre_url + url }}" class="img-rounded sns_image"/>
+                        <img src="{{ pre_url + url }}" class="media img-rounded sns_image"/>
                         {% end %}
                     </div>
                     <div class="sns_timeLocation row clearfix">
@@ -143,11 +148,16 @@
 </div>
 
 <!-- 右侧 地图展示栏  -->
-<div id="map_div" style="float:left;width:700px; height:900px; margin-left:10px;" class="map" tabindex="0">
+<div id="map_title" style="float:left;width:700px; height:60px; margin-top:0px;margin-left:10px;">
+    <h3>地理位置信息</h3>
+    <hr>
+</div>
+<div id="map_div" style="float:left;width:700px; height:800px; margin-top:10px;margin-left:10px;" class="map"
+     tabindex="0">
     <h1>地图加载后，会覆盖该区域。</h1>
 </div>
-    <!-- 右上 地图坐标栏  -->
-<div id="myPageTop" style="margin-right:120px;margin-top:50px">
+<!-- 右上 地图坐标栏  -->
+<div id="myPageTop" style="margin-right:140px;margin-top:5px">
     <table>
         <tr>
             <td>
@@ -167,9 +177,6 @@
         </tr>
     </table>
 </div>
-
-
-
 {% end %}
 
 
@@ -204,14 +211,15 @@
             url: 'http://127.0.0.1:5000/convert_xy_to_address?y_x=' + y + '_' + x,
             type: 'get',
             contentType: "application/json; charset=UTF-8",
-            {#            dataType: 'json',#}
-            {#            data: {"x": x, "y": y},#}
+            {# dataType: 'json',#}
+            {# data: {"x": x, "y": y},#}
             error: function (xhr, err) {
                 alert(err);
             },
             success: function (data, textStatus) {
-{#                alert(data);#}
+                {#                alert(data);#}
                 document.getElementById("address").value = data;
+                alert(data + " 周围发现 100 人。")
             }
         });
     });
@@ -250,7 +258,7 @@
         map: map
     });
     mass.on('mouseover', function (e) {
-        marker.setPosition(e.data.lnglat);
+        marker.setPosition(e.data.lng_lat);
         marker.setLabel({content: e.data.name})
     });
     mass.setMap(map);
