@@ -1,102 +1,184 @@
+{% autoescape None %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Bootstrap 实例</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <style>
-        body {
-            position: relative;
-        }
-
-        ul.nav-pills {
-            top: 20px;
-            position: fixed;
-        }
-
-        div.col-sm-9 div {
-            height: 250px;
-            font-size: 28px;
-        }
-
-        #section1 {
-            color: #fff;
-            background-color: #1E88E5;
-        }
-
-        #section2 {
-            color: #fff;
-            background-color: #673ab7;
-        }
-
-        #section3 {
-            color: #fff;
-            background-color: #ff9800;
-        }
-
-        #section41 {
-            color: #fff;
-            background-color: #00bcd4;
-        }
-
-        #section42 {
-            color: #fff;
-            background-color: #009688;
-        }
-
-        @media screen and (max-width: 810px) {
-            #section1, #section2, #section3, #section41, #section42 {
-                margin-left: 150px;
-            }
-        }
-    </style>
+    <title>ECharts</title>
+    <!-- 引入 echarts.js -->
+    <script src="static/js/echarts.js"></script>
+    <script type="text/javascript" src='http://127.0.0.1:5000/authors.js'></script>
 </head>
-<body data-spy="scroll" data-offset="20">
+<body>
+<!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+<div id="main" style="width: 600px;height:400px;"></div>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
 
-<div class="container">
-    <div class="row">
-        <nav class="col-sm-3">
-            <ul class="nav nav-pills nav-stacked">
-                <li class="active"><a href="#section1">Section 1</a></li>
-                <li><a href="#section2">Section 2</a></li>
-                <li><a href="#section3">Section 3</a></li>
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Section 4 <span
-                            class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#section41">Section 4-1</a></li>
-                        <li><a href="#section42">Section 4-2</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        <div class="col-sm-9">
-            <div id="section1">
-                <h1>Section 1</h1>
-                <p>Try to scroll this section and look at the navigation list while scrolling!</p>
-            </div>
-            <div id="section2">
-                <h1>Section 2</h1>
-                <p>Try to scroll this section and look at the navigation list while scrolling!</p>
-            </div>
-            <div id="section3">
-                <h1>Section 3</h1>
-                <p>Try to scroll this section and look at the navigation list while scrolling!</p>
-            </div>
-            <div id="section41">
-                <h1>Section 4-1</h1>
-                <p>Try to scroll this section and look at the navigation list while scrolling!</p>
-            </div>
-            <div id="section42">
-                <h1>Section 4-2</h1>
-                <p>Try to scroll this section and look at the navigation list while scrolling!</p>
-            </div>
-        </div>
-    </div>
-</div>
+    // 指定图表的配置项和数据
+{#    var option = {#}
+{#        title: {#}
+{#            text: 'ECharts 入门示例'#}
+{#        },#}
+{#        tooltip: {},#}
+{#        legend: {#}
+{#            data: ['销量']#}
+{#        },#}
+{#        xAxis: {#}
+{#            data: chanpin#}
+{#        },#}
+{#        yAxis: {},#}
+{#        series: [{#}
+{#            name: '销量',#}
+{#            type: 'bar',#}
+{#            data: {{ xiaoliang }}#}
+{#        }]#}
+{#    };#}
 
+
+
+    function createRandomItemStyle() {
+        return {
+            normal: {
+                color: 'rgb(' + [
+                    Math.round(Math.random() * 160),
+                    Math.round(Math.random() * 160),
+                    Math.round(Math.random() * 160)
+                ].join(',') + ')'
+            }
+        };
+    }
+
+    option = {
+        title: {
+            text: 'Google Trends',
+            link: 'http://www.google.com/trends/hottrends'
+        },
+        tooltip: {
+            show: true
+        },
+        series: [{
+            name: 'Google Trends',
+            type: 'wordCloud',
+            size: ['80%', '80%'],
+            textRotation: [0, 45, 90, -45],
+            textPadding: 0,
+            autoSize: {
+                enable: true,
+                minSize: 14
+            },
+            data: [
+                {
+                    name: "Sam S Club",
+                    value: 10000,
+                    itemStyle: {
+                        normal: {
+                            color: 'black'
+                        }
+                    }
+                },
+                {
+                    name: "Macys",
+                    value: 6181,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Amy Schumer",
+                    value: 4386,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Jurassic World",
+                    value: 4055,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Charter Communications",
+                    value: 2467,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Chick Fil A",
+                    value: 2244,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Planet Fitness",
+                    value: 1898,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Pitch Perfect",
+                    value: 1484,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Express",
+                    value: 1112,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Home",
+                    value: 965,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Johnny Depp",
+                    value: 847,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Lena Dunham",
+                    value: 582,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Lewis Hamilton",
+                    value: 555,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "KXAN",
+                    value: 550,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Mary Ellen Mark",
+                    value: 462,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Farrah Abraham",
+                    value: 366,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Rita Ora",
+                    value: 360,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Serena Williams",
+                    value: 282,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "NCAA baseball tournament",
+                    value: 273,
+                    itemStyle: createRandomItemStyle()
+                },
+                {
+                    name: "Point Break",
+                    value: 265,
+                    itemStyle: createRandomItemStyle()
+                }
+            ]
+        }]
+    };
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+</script>
 </body>
 </html>

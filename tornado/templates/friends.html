@@ -41,6 +41,7 @@
 
 <!-- 反 微信防盗链  -->
 {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
+{#{% set pre_url = "" %}#}
 
 {#<div id="sns">#}
 {#	{% for sns in sns_info_list %}#}
@@ -65,17 +66,11 @@
                     {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
                     <option class="imagebacked" value="{{ author }}">
                         <div>
-                            &nbsp;&nbsp;&nbsp;{{ author }}&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;<span class="badge">21</span>
+                            {{ author }}
                         </div>
                     </option>
                     {% end %}
                 </select>
-            </div>
-            <br>
-            <div>
-                <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true">
-                <input id="address" type="text" size="28" readonly="true">
-                <input name="distance" type="text" size="28">
             </div>
             <br>
             <div class="checkbox">
@@ -109,7 +104,7 @@
                     {#<div class="sns_details">#}
                     <div class="sns_author row clearfix">
                         {# <span class="glyphicon glyphicon-user"></span>&nbsp;#}
-                        {{ sns_info["authorName"] }} <span class="badge">21</span>
+                        {{ sns_info["authorName"] }}
                     </div>
 
                     <div class="sns_content row clearfix">
@@ -123,10 +118,10 @@
                     <div class="sns_timeLocation row clearfix">
                         <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
                             {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
-                            {{ sns_info["ago_days"] }}
+{#                            {{ sns_info["ago_days"] }}#}
                             &nbsp;&nbsp;&nbsp;
                             <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
-                            {{ sns_info["poi_address"] }}
+{#                            {{ sns_info["poi_address"] }}#}
                         </h6>
                     </div>
                     {% if len(sns_info["comments"])>0 %}
@@ -146,124 +141,10 @@
         </tbody>
     </table>
 </div>
-
-<!-- 右侧 地图展示栏  -->
-<div id="map_title" style="float:left;width:700px; height:60px; margin-top:0px;margin-left:10px;">
-    <h3>地理位置信息</h3>
-    <hr>
-</div>
-<div id="map_div" style="float:left;width:700px; height:800px; margin-top:10px;margin-left:10px;" class="map"
-     tabindex="0">
-    <h1>地图加载后，会覆盖该区域。</h1>
-</div>
-<!-- 右上 地图坐标栏  -->
-<div id="myPageTop" style="margin-right:140px;margin-top:5px">
-    <table>
-        <tr>
-            <td>
-                <label>位置搜索：</label>
-            </td>
-            <td class="column2">
-                <label>经度, 纬度：</label>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <input type="text" placeholder="请输入地理位置关键字" id="tipinput">
-            </td>
-            <td class="column2">
-                <input id="lnglat" type="text" readonly="true">
-            </td>
-        </tr>
-    </table>
-</div>
 {% end %}
 
 
 <script src="{{ static_url("js/script.js") }}"></script>
-<script type="text/javascript">
-    $(function () {
-        $('#datetimepicker').datetimepicker({
-            format: 'YYYY-MM-DD',//日期格式化，只显示日期
-            locale: 'zh-CN'      //中文化
-        });
-    });
-
-    //-------------------------------------------------------------------------------
-    var map = new AMap.Map('map_div', {
-        layers: [new AMap.TileLayer({
-            textIndex: 2
-        })],
-        zoom: 4,
-        center: [102.342785, 35.312316],
-        resizeEnable: true
-    });
-
-    //-------------------------------------------------------------------------------
-    //为地图注册click事件获取鼠标点击出的经纬度坐标
-    var clickEventListener = map.on('click', function (e) {
-        x = e.lnglat.getLng();
-        y = e.lnglat.getLat();
-        document.getElementById("lnglat").value = x + ',' + y;
-        document.getElementById("filter_lnglat").value = x + ',' + y;
-
-        $.ajax({
-            url: 'http://127.0.0.1:5000/convert_xy_to_address?y_x=' + y + '_' + x,
-            type: 'get',
-            contentType: "application/json; charset=UTF-8",
-            {# dataType: 'json',#}
-            {# data: {"x": x, "y": y},#}
-            error: function (xhr, err) {
-                alert(err);
-            },
-            success: function (data, textStatus) {
-                {#                alert(data);#}
-                document.getElementById("address").value = data;
-                alert(data + " 周围发现 100 人。")
-            }
-        });
-    });
-    var auto = new AMap.Autocomplete({
-        input: "tipinput"
-    });
-    AMap.event.addListener(auto, "select", select); //注册监听，当选中某条记录时会触发
-    function select(e) {
-        if (e.poi && e.poi.location) {
-            map.setZoom(15);
-            map.setCenter(e.poi.location);
-        }
-    }
-    //-------------------------------------------------------------------------------
-    var circle = new AMap.Circle({
-        center: new AMap.LngLat("116.316405", "39.977629"),// 圆心位置
-        radius: 200000, //半径 200km
-        strokeColor: "#F33", //线颜色
-        strokeOpacity: 9, //线透明度
-        strokeWeight: 1, //线粗细度
-        fillColor: "#ee2200", //填充颜色
-        fillOpacity: 0.10//填充透明度
-    });
-    {#circle.setMap(map);#}
-    //-------------------------------------------------------------------------------
-    var mass = new AMap.MassMarks(weixin_lbs_info, {
-        url: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
-        anchor: new AMap.Pixel(3, 7),
-        size: new AMap.Size(5, 7),
-        opacity: 0.7,
-        cursor: 'pointer',
-        zIndex: 1
-    });
-    var marker = new AMap.Marker({
-        content: ' ',
-        map: map
-    });
-    mass.on('mouseover', function (e) {
-        marker.setPosition(e.data.lng_lat);
-        marker.setLabel({content: e.data.name})
-    });
-    mass.setMap(map);
-    //-------------------------------------------------------------------------------
-</script>
 <script type="text/javascript">
     $(document).ready(function () {
         $('#sns_info_tab').DataTable({

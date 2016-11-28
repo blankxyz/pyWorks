@@ -8,6 +8,7 @@ import re
 import signal
 import requests
 import redis
+import pymongo
 from math import *
 
 import tornado.autoreload
@@ -23,6 +24,8 @@ import tornado.web
 from tornado.options import define, options
 
 REDIS_SERVER = 'redis://127.0.0.1/10'
+MONGODB_SERVER = '127.0.0.1' # '192.168.187.4'
+MONGODB_PORT = 27017  #'37017'
 
 define("port", default=5000, help="run on the given port", type=int)
 
@@ -294,6 +297,69 @@ class RedisDriver(object):
         fd.close()
 
 
+class MongodbDriver(object):
+    def __init__(self):
+        self.client = pymongo.MongoClient(MONGODB_SERVER, MONGODB_PORT)
+        self.db = self.client.wx_sns_data
+        self.sns_info = self.db.sns_info
+
+    # def patch_address(self):
+    #     return None
+
+    def get_authors(self):
+        authors = []
+        l = self.sns_info.find().sort("authorName")
+        for sns_info in l:
+            author = sns_info["authorName"]
+            authors.append(author)
+
+        return list(set(authors))
+
+    def search_sns_info(self, ago_time='', authors='', has_pic='', x_y='', distance=''):
+        sns_info_list = []
+        # l = self.sns_info.find({'$or': [{"authorName": authors}, {"timestamp": {'$gte', ago_time}}]}).sort("timestamp")
+        l = self.sns_info.find().sort("timestamp")
+        for sns_info in l:
+            sns_info_list.append(sns_info)
+        # for k, v in l.items():
+        #     pic_flg = False
+        #
+        #     sns_info = eval(v)
+        #     media_list = sns_info["mediaList"]
+        #     sns_info["ago_days"] = '3 day'
+        #
+        #     if has_pic == 'off' or (has_pic == 'on' and len(media_list)) > 0:
+        #         pic_flg = True
+        #
+        #     if pic_flg:
+        #         sns_info_list.append(sns_info)
+
+        return sns_info_list
+
+    def get_weixin_cnt(self):
+        return self.sns_info.find().count()
+
+    def make_time_loacation(self):
+        # var weixin_lbs_info =  [
+        #   {"lnglat": ["116.418757", "39.917544"], "name": "东城区"},
+        #   {"lnglat": ["116.366794", "39.915309"], "name": "西城区"},
+        #   {"lnglat": ["116.486409", "39.921489"], "name": "朝阳区"},
+        # ];
+        l = self.sns_info.find()
+        fd = open('./static/js/weixin_lbs_info.js', 'w')
+        fd.write('var weixin_lbs_info =  [\n')
+        cnt = 0
+        for i in l:
+            print(i['snsId'])
+            if i['rawXML']['TimelineObject'].has_key('location'):
+                x = i['rawXML']['TimelineObject']['location']['@longitude']
+                y = i['rawXML']['TimelineObject']['location']['@latitude']
+                fd.write('''    {"lng_lat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
+                cnt = cnt + 1
+        fd.write('];\n')
+        fd.close()
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render(
@@ -304,12 +370,13 @@ class MainHandler(tornado.web.RequestHandler):
 
 class FriendsHandler(tornado.web.RequestHandler):
     def get(self):
-        redis_db = RedisDriver()
+        # db = RedisDriver()
+        db = MongodbDriver()
         print 'get--------------------start'
-        authors_list = redis_db.get_authors()
+        authors_list = db.get_authors()
         # pprint(authors_list)
 
-        sns_info_list = redis_db.search_sns_info()
+        sns_info_list = db.search_sns_info()
         # pprint(sns_info_list)
         print 'get--------------------start'
         self.render(
@@ -320,7 +387,8 @@ class FriendsHandler(tornado.web.RequestHandler):
             authors_list=authors_list)
 
     def post(self):
-        redis_db = RedisDriver()
+        # db = RedisDriver()
+        db = MongodbDriver()
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', 'off')
@@ -329,15 +397,15 @@ class FriendsHandler(tornado.web.RequestHandler):
         print '-------------------------------   post  ----------------------------------- '
         print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
         print '-------------------------------   post  ----------------------------------- '
-        authors_list = redis_db.get_authors()
+        authors_list = db.get_authors()
         # pprint(authors_list)
 
-        sns_info_list = redis_db.search_sns_info(ago_time, authors, pic_flg, x_y, distance)
+        sns_info_list = db.search_sns_info(ago_time, authors, pic_flg, x_y, distance)
         # pprint(sns_info_list)
 
         self.render(
             "friends.html",
-            page_title=u"微信信息采集结果",
+            page_title=u"微信朋友圈",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
             authors_list=authors_list)
@@ -357,10 +425,44 @@ class Manager(tornado.web.RequestHandler):
 
 class AroundHandler(tornado.web.RequestHandler):
     def get(self):
+        # db = RedisDriver()
+        db = MongodbDriver()
+        print 'get--------------------start'
+        authors_list = db.get_authors()
+        # pprint(authors_list)
+
+        sns_info_list = db.search_sns_info()
+        # pprint(sns_info_list)
+        print 'get--------------------start'
         self.render(
             "around.html",
-            xiaoliang=[5, 20, 36, 10, 10, 20]
-        )
+            page_title=u"微信周围的人",
+            header_text=u"采集结果展示",
+            sns_info_list=sns_info_list,
+            authors_list=authors_list)
+
+    def post(self):
+        db = RedisDriver()
+        ago_time = self.get_argument('ago_time', '')
+        authors = self.get_arguments('authors')
+        pic_flg = self.get_argument('pic_flg', 'off')
+        x_y = self.get_argument('x_y', '')
+        distance = self.get_argument('distance', '')
+        print '-------------------------------   post  ----------------------------------- '
+        print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
+        print '-------------------------------   post  ----------------------------------- '
+        authors_list = db.get_authors()
+        # pprint(authors_list)
+
+        sns_info_list = db.search_sns_info(ago_time, authors, pic_flg, x_y, distance)
+        # pprint(sns_info_list)
+
+        self.render(
+            "around.html",
+            page_title=u"微信周围的人",
+            header_text=u"采集结果展示",
+            sns_info_list=sns_info_list,
+            authors_list=authors_list)
 
 
 class SnsInfoModule(tornado.web.UIModule):
@@ -405,8 +507,9 @@ class Application(tornado.web.Application):
 
 
 def main():
-    redis_db = RedisDriver()
-    redis_db.make_time_loacation()
+    # db = RedisDriver()
+    db =MongodbDriver()
+    # db.make_time_loacation()
 
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()
