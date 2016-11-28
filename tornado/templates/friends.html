@@ -61,7 +61,7 @@
             </div>
             <br>
             <div>
-                <select name="authors" multiple class="form-control">
+                <select name="authors" class="form-control">
                     {% for author in authors_list %}
                     {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
                     <option class="imagebacked" value="{{ author }}">
@@ -118,10 +118,10 @@
                     <div class="sns_timeLocation row clearfix">
                         <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
                             {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
-{#                            {{ sns_info["ago_days"] }}#}
+                            {{ sns_info["ago_days"] }}
                             &nbsp;&nbsp;&nbsp;
                             <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
-{#                            {{ sns_info["poi_address"] }}#}
+                            {{ sns_info["poi_address"] }}
                         </h6>
                     </div>
                     {% if len(sns_info["comments"])>0 %}
@@ -146,6 +146,13 @@
 
 <script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
+    $(function () {
+        $('#datetimepicker').datetimepicker({
+            format: 'YYYY-MM-DD',//日期格式化，只显示日期
+            locale: 'zh-CN'      //中文化
+        });
+    });
+
     $(document).ready(function () {
         $('#sns_info_tab').DataTable({
             {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}

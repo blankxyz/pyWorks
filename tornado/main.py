@@ -9,6 +9,7 @@ import signal
 import requests
 import redis
 import pymongo
+import time
 from math import *
 
 import tornado.autoreload
@@ -24,12 +25,12 @@ import tornado.web
 from tornado.options import define, options
 
 REDIS_SERVER = 'redis://127.0.0.1/10'
-MONGODB_SERVER = '127.0.0.1' # '192.168.187.4'
-MONGODB_PORT = 27017  #'37017'
+MONGODB_SERVER = '127.0.0.1'  # '192.168.187.4'
+MONGODB_PORT = 27017  # '37017'
 
 define("port", default=5000, help="run on the given port", type=int)
 
-# sns_info_list =
+# sns_info =
 # {"12404766082711236659":
 # "{u'snsId': u'12404766082711236659',
 # u'timestamp': 1478763351,
@@ -170,17 +171,15 @@ class Util(object):
     @staticmethod
     def convert_ago_time_to_days(timestamp):
         now = datetime.datetime.now()
-        # t = datetime.datetime.utcfromtimestamp(timestamp)
         t = datetime.datetime.utcfromtimestamp(timestamp)
         if now > t:
-            # print str(now - t)
             num_str = re.match(re.compile(r"(\d+)\s[a-z]+"), str(now - t)).group(1)
             return num_str + u'天前'
         else:
             return u'未知时间'
 
 
-class RedisDriver(object):
+class __DBDriver(object):
     def __init__(self):
         self.util = Util()
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
@@ -297,7 +296,7 @@ class RedisDriver(object):
         fd.close()
 
 
-class MongodbDriver(object):
+class DBDriver(object):
     def __init__(self):
         self.client = pymongo.MongoClient(MONGODB_SERVER, MONGODB_PORT)
         self.db = self.client.wx_sns_data
@@ -315,26 +314,38 @@ class MongodbDriver(object):
 
         return list(set(authors))
 
-    def search_sns_info(self, ago_time='', authors='', has_pic='', x_y='', distance=''):
+    def search_sns_info(self, ago_time='', author=[], has_pic='', x_y='', distance=''):
         sns_info_list = []
-        # l = self.sns_info.find({'$or': [{"authorName": authors}, {"timestamp": {'$gte', ago_time}}]}).sort("timestamp")
-        l = self.sns_info.find().sort("timestamp")
-        for sns_info in l:
-            sns_info_list.append(sns_info)
-        # for k, v in l.items():
-        #     pic_flg = False
-        #
-        #     sns_info = eval(v)
-        #     media_list = sns_info["mediaList"]
-        #     sns_info["ago_days"] = '3 day'
-        #
-        #     if has_pic == 'off' or (has_pic == 'on' and len(media_list)) > 0:
-        #         pic_flg = True
-        #
-        #     if pic_flg:
-        #         sns_info_list.append(sns_info)
+        if not ago_time:
+            ago_time = '1970-01-01'  # 相当于无条件
 
-        return sns_info_list
+        if not author:
+            author_cond = ".*"
+        else:
+            author_cond = "^" + author[0] + "$"
+
+        if not has_pic:
+            pic_cond = "mediaList"  # 相当于无条件
+        else:
+            pic_cond = "mediaList.0"  # len(mediaList) >= 0
+
+        t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+        l = self.sns_info.find({"authorName": {"$regex": author_cond},
+                                "timestamp": {"$gte": t},
+                                pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
+        # l = self.sns_info.find().sort("timestamp", pymongo.DESCENDING)
+
+        for sns_info in l:
+            ctime = sns_info["timestamp"]
+            sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
+            sns_info["poi_address"] = u'未知地点'
+            if sns_info['rawXML']['TimelineObject'].has_key('location'):
+                if sns_info['rawXML']['TimelineObject']['location']['@longitude'] != '0.0':
+                    sns_info["poi_address"] = sns_info['rawXML']['TimelineObject']['location']['@poiName']
+
+            sns_info_list.append(sns_info)
+
+        return sns_info_list[:100]
 
     def get_weixin_cnt(self):
         return self.sns_info.find().count()
@@ -350,12 +361,14 @@ class MongodbDriver(object):
         fd.write('var weixin_lbs_info =  [\n')
         cnt = 0
         for i in l:
-            print(i['snsId'])
             if i['rawXML']['TimelineObject'].has_key('location'):
-                x = i['rawXML']['TimelineObject']['location']['@longitude']
-                y = i['rawXML']['TimelineObject']['location']['@latitude']
-                fd.write('''    {"lng_lat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
-                cnt = cnt + 1
+                print '[info] make_time_loacation()', i['snsId']
+                x = i['rawXML']['TimelineObject']['location']['@latitude']
+                y = i['rawXML']['TimelineObject']['location']['@longitude']
+                poiName = i['rawXML']['TimelineObject']['location']['@poiName']
+                # print poiName, type(poiName)
+                if x != '0.0':
+                    fd.write('''    {"lng_lat": ["''' + y + '''", "''' + x + '''"], "name": "''' + i['snsId'] + '''"},\n''')
         fd.write('];\n')
         fd.close()
 
@@ -370,15 +383,14 @@ class MainHandler(tornado.web.RequestHandler):
 
 class FriendsHandler(tornado.web.RequestHandler):
     def get(self):
-        # db = RedisDriver()
-        db = MongodbDriver()
-        print 'get--------------------start'
+        db = DBDriver()
+        # print '-------------------------------   get  ----------------------------------- '
         authors_list = db.get_authors()
         # pprint(authors_list)
 
         sns_info_list = db.search_sns_info()
         # pprint(sns_info_list)
-        print 'get--------------------start'
+        # print '-------------------------------   get  ----------------------------------- '
         self.render(
             "friends.html",
             page_title=u"微信信息采集结果",
@@ -387,8 +399,7 @@ class FriendsHandler(tornado.web.RequestHandler):
             authors_list=authors_list)
 
     def post(self):
-        # db = RedisDriver()
-        db = MongodbDriver()
+        db = DBDriver()
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', 'off')
@@ -425,8 +436,7 @@ class Manager(tornado.web.RequestHandler):
 
 class AroundHandler(tornado.web.RequestHandler):
     def get(self):
-        # db = RedisDriver()
-        db = MongodbDriver()
+        db = DBDriver()
         print 'get--------------------start'
         authors_list = db.get_authors()
         # pprint(authors_list)
@@ -442,7 +452,7 @@ class AroundHandler(tornado.web.RequestHandler):
             authors_list=authors_list)
 
     def post(self):
-        db = RedisDriver()
+        db = DBDriver()
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', 'off')
@@ -507,9 +517,8 @@ class Application(tornado.web.Application):
 
 
 def main():
-    # db = RedisDriver()
-    db =MongodbDriver()
-    # db.make_time_loacation()
+    db = DBDriver()
+    db.make_time_loacation()
 
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()
@@ -519,13 +528,13 @@ def main():
 
 
 def patch_address():
-    redis_db = RedisDriver()
-    redis_db.patch_address()
+    db = DBDriver()
+    # db.patch_address()
 
 
 def test():
-    redis_db = RedisDriver()
-    pprint(redis_db.get_authors())
+    db = DBDriver()
+    pprint(db.get_authors())
 
 
 if __name__ == "__main__":

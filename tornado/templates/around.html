@@ -23,7 +23,7 @@
     <script type="text/javascript"
             src="http://webapi.amap.com/maps?v=1.3&key=0c7fb71b2e13546416337666cd406db3&plugin=AMap.Autocomplete"></script>
     <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
-    <script type="text/javascript" src='http://172.16.5.152:5000/weixin_lbs_info.js'></script>
+    <script type="text/javascript" src='static/js/weixin_lbs_info.js'></script>
     <!-- self css -->
     <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
     <title>微信数据展示</title>
@@ -65,7 +65,7 @@
                     {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
                     <option class="imagebacked" value="{{ author }}">
                         <div>
-                            &nbsp;&nbsp;&nbsp;{{ author }}&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;<span class="badge">21</span>
+                            {{ author }}
                         </div>
                     </option>
                     {% end %}
@@ -208,7 +208,7 @@
         document.getElementById("filter_lnglat").value = x + ',' + y;
 
         $.ajax({
-            url: 'http://172.16.5.152:5000/convert_xy_to_address?y_x=' + y + '_' + x,
+            url: '/convert_xy_to_address?y_x=' + y + '_' + x,
             type: 'get',
             contentType: "application/json; charset=UTF-8",
             {# dataType: 'json',#}
