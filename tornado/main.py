@@ -410,8 +410,7 @@ class DBDriver(object):
             ];
         '''
         if area:
-            l = self.sns_info_patch.find({"localFlag": AROUND_FLG,
-                                          'province': area['province'],
+            l = self.sns_info_patch.find({'province': area['province'],
                                           'city': area['city'],
                                           'district': area['district']})
         else:
