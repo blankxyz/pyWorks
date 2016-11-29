@@ -23,6 +23,17 @@ import tornado.options
 from tornado.log import LogFormatter
 import tornado.web
 from tornado.options import define, options
+import ConfigParser
+
+config = ConfigParser.ConfigParser()
+if len(config.read('./user_conf.ini')) == 0:
+    print '[error] cannot read the config file.'
+    exit(-1)
+else:
+    print '[info] read the config file.'
+
+USER_AREA = config.get('user', 'user_area')
+print '[info] user area is :', USER_AREA
 
 REDIS_SERVER = 'redis://127.0.0.1/10'
 MONGODB_SERVER = '127.0.0.1'  # '192.168.187.4'
@@ -45,12 +56,13 @@ class Util(object):
     @staticmethod
     def calc_distance((Lng_A, Lat_A), (Lng_B, Lat_B)):
         '''
-            Lat_A = 32.060255, Lng_A = 118.796877  # 南京
-            Lat_B = 39.904211, Lng_B = 116.407395  # 北京
+            Lng_A = 118.796877, Lat_A = 32.060255  # 南京
+            Lng_B = 116.407395, Lat_B = 39.904211  # 北京
             Lat_A 纬度A, Lng_A 经度A
             Lat_B 纬度B, Lng_B 经度B
             distance 距离(km)
         '''
+        print '[info] calc_distance() ', (Lng_A, Lat_A), (Lng_B, Lat_B)
         ra = 6378.140  # 赤道半径 (km)
         rb = 6356.755  # 极半径 (km)
         flatten = (ra - rb) / ra  # 地球扁率
@@ -234,7 +246,7 @@ class __DBDriver(object):
             authors: list type
             has_pic: 'on'
             x_y: '116.316405_39.977629' 目标位置
-            distance: km   距目标位置的距离要求（ xxx km以内）
+            distance: km  距目标位置的距离要求（ xxx km以内）
         Returns:
             符合要求的 sns_info_list
         '''
@@ -338,8 +350,8 @@ class DBDriver(object):
                                                 "district": district,
                                                 "adcode": adcode,
                                                 "street": street,
-                                                "latitude":x,
-                                                "longitude":y})
+                                                "latitude": x,
+                                                "longitude": y})
             cnt = cnt + 1
 
     def get_friends(self):
@@ -360,7 +372,17 @@ class DBDriver(object):
 
         return list(set(authors))
 
-    def search_sns_info(self, local_flg, ago_time='', author=[], has_pic='', x_y='', distance=''):
+    def get_address_form_patch(self, (x, y)):
+        poi_address = u'地点未知'
+        l = self.sns_info_patch.find_one({"longitude": x,
+                                          "latitude": y})
+        if l and l['street']:
+            poi_address = l['city'] + u' · ' + l['district'] + l['street']
+            print l
+
+        return poi_address
+
+    def search_sns_info(self, local_flg, ago_time='', author=[], has_pic='', x_y='', distance=-1):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
         if not ago_time:
@@ -385,14 +407,32 @@ class DBDriver(object):
         # l = self.sns_info.find().sort("timestamp", pymongo.DESCENDING)
 
         for sns_info in l:
+            distance_flg = False
+            d = 0
             ctime = sns_info["timestamp"]
             sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
             sns_info["poi_address"] = u'未知地点'
             if sns_info['rawXML']['TimelineObject'].has_key('location'):
-                if sns_info['rawXML']['TimelineObject']['location']['@longitude'] != '0.0':
-                    sns_info["poi_address"] = sns_info['rawXML']['TimelineObject']['location']['@poiName']
+                sns_info_x = sns_info['rawXML']['TimelineObject']['location']['@longitude']
+                sns_info_y = sns_info['rawXML']['TimelineObject']['location']['@latitude']
+                if sns_info_x != '0.0':
+                    poi_address = sns_info['rawXML']['TimelineObject']['location']['@poiName']
+                    if poi_address:
+                        sns_info["poi_address"] = poi_address
+                    else:
+                        sns_info["poi_address"] = self.get_address_form_patch((sns_info_x, sns_info_y))
 
-            sns_info_list.append(sns_info)
+                    if not x_y or distance == -1:
+                        distance_flg = True
+                    else:
+                        (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+                        d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
+                        if distance > 0 and d <= distance:
+                            distance_flg = True
+
+                    if distance_flg:
+                        print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
+                        sns_info_list.append(sns_info)
 
         return sns_info_list[:30]
 
@@ -420,12 +460,33 @@ class DBDriver(object):
         fd.write('var lbsInfo =  [\n')
         for i in l:
             y = i['latitude']  # 25.05287
-            x = i['longitude'] # 102.90062
+            x = i['longitude']  # 102.90062
             if x != '0.0':
                 fd.write(
                     '''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "''' + i['snsId'] + '''"},\n''')
         fd.write('];\n')
         fd.close()
+
+    def make_around_userArea_js(self, user_area):
+        '''
+            area : {"province": "北京市", "city": "北京市", "district": "海淀区"}
+            var userArea =  "朝阳区";
+        '''
+        fd = open('./static/js/userArea.js', 'w')  # 不能使用‘_’作为文件名
+        fd.write('''var userArea = "''' + user_area + '''";\n''')
+        fd.close()
+
+
+class Manager(tornado.web.RequestHandler):
+    def get(self):
+        print '[info]Manager get() start'
+        util = Util()
+        y_x = self.get_argument('y_x')
+        address = util.convert_xy_to_address(y_x)
+        # jsonStr = json.dumps(ret, sort_keys=True)
+        print '[info]Manager get()', y_x, '->', address
+        # self.write(json.dumps({'address': address}))
+        self.write(address)
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -459,14 +520,14 @@ class FriendsHandler(tornado.web.RequestHandler):
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', 'off')
         x_y = self.get_argument('x_y', '')
-        distance = self.get_argument('distance', '')
+        distance = self.get_argument('distance', '-1')
         print '-------------------------------   post  ----------------------------------- '
         print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
         print '-------------------------------   post  ----------------------------------- '
         friends_list = db.get_friends()
         # pprint(authors_list)
 
-        sns_info_list = db.search_sns_info(FRIENDS_FLG, ago_time, authors, pic_flg, x_y, distance)
+        sns_info_list = db.search_sns_info(FRIENDS_FLG, ago_time, authors, pic_flg, x_y, int(distance))
         # pprint(sns_info_list)
 
         self.render(
@@ -475,18 +536,6 @@ class FriendsHandler(tornado.web.RequestHandler):
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
             authors_list=friends_list)
-
-
-class Manager(tornado.web.RequestHandler):
-    def get(self):
-        print '[info]Manager get() start'
-        util = Util()
-        y_x = self.get_argument('y_x')
-        address = util.convert_xy_to_address(y_x)
-        # jsonStr = json.dumps(ret, sort_keys=True)
-        print '[info]Manager get()', y_x, '->', address
-        # self.write(json.dumps({'address': address}))
-        self.write(address)
 
 
 class AroundHandler(tornado.web.RequestHandler):
@@ -499,9 +548,11 @@ class AroundHandler(tornado.web.RequestHandler):
         # pprint(sns_info_list)
         print '-------------------------------   get  -----------------------------------'
         self.render(
+            # "around.html",
             "around.html",
             page_title=u"微信周围的人",
             header_text=u"采集结果展示",
+            user_area=USER_AREA,
             sns_info_list=sns_info_list,
             authors_list=around_list)
 
@@ -517,13 +568,15 @@ class AroundHandler(tornado.web.RequestHandler):
         print '-------------------------------   post  ----------------------------------- '
         around_list = db.get_around()
         # pprint(authors_list)
-        sns_info_list = db.search_sns_info(AROUND_FLG, ago_time, authors, pic_flg, x_y, distance)
+        sns_info_list = db.search_sns_info(AROUND_FLG, ago_time, authors, pic_flg, x_y, int(distance))
         # pprint(sns_info_list)
 
         self.render(
+            # "around.html",
             "around.html",
             page_title=u"微信周围的人",
             header_text=u"采集结果展示",
+            user_area=USER_AREA,
             sns_info_list=sns_info_list,
             authors_list=around_list)
 
@@ -570,9 +623,11 @@ class Application(tornado.web.Application):
 
 def main():
     db = DBDriver()
-    area = {"province": "北京市", "city": "北京市", "district": "海淀区"}
+    # area = {"province": "北京市", "city": "北京市", "district": "海淀区"}
+    area = {"province": "北京市", "city": "北京市", "district": USER_AREA}
     # area = {}
     db.make_around_lbsInfo_js(area)
+    db.make_around_userArea_js(USER_AREA)
 
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()
