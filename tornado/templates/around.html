@@ -3,6 +3,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="referrer" content="never">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
     <!-- jquery -->
@@ -23,7 +24,7 @@
     <script type="text/javascript"
             src="http://webapi.amap.com/maps?v=1.3&key=0c7fb71b2e13546416337666cd406db3&plugin=AMap.Autocomplete"></script>
     <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
-    <script type="text/javascript" src='static/js/weixin_lbs_info.js'></script>
+    <script type="text/javascript" src='static/js/lbsInfo.js'></script>
     <!-- self css -->
     <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
     <title>微信数据展示</title>
@@ -55,7 +56,7 @@
     <div class="form-group row">
         <form role="form" action="/around" method="post">
             <div class='input-group date' id='datetimepicker'>
-                <input type='text' name="ago_time" class="form-control"/>
+                <input type='text' name="ago_time" class="form-control" placeholder="采集时间为 XX日 以后"/>
                 <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
             </div>
             <br>
@@ -73,9 +74,10 @@
             </div>
             <br>
             <div>
-                <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true">
-                <input id="address" type="text" size="28" readonly="true">
-                <input name="distance" type="text" size="28">
+                <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true" placeholder="地图点击位置的经纬度">
+                <input id="address" type="text" size="28" readonly="true" placeholder="经纬度转化为地址">
+                <br><br>
+                <input name="distance" type="text" size="28" placeholder="请设定距离限定条件（km）">
             </div>
             <br>
             <div class="checkbox">
@@ -169,10 +171,10 @@
         </tr>
         <tr>
             <td>
-                <input type="text" placeholder="请输入地理位置关键字" id="tipinput">
+                <input id="search_address" type="text" placeholder="请输入要查询的地址">
             </td>
             <td class="column2">
-                <input id="lnglat" type="text" readonly="true">
+                <input id="lnglat" type="text" readonly="true" placeholder="地图点击位置的经纬度">
             </td>
         </tr>
     </table>
@@ -223,8 +225,10 @@
             }
         });
     });
+    //-------------------------------------------------------------------------------
+    // 输入位置搜索框，选择地址
     var auto = new AMap.Autocomplete({
-        input: "tipinput"
+        input: "search_address"
     });
     AMap.event.addListener(auto, "select", select); //注册监听，当选中某条记录时会触发
     function select(e) {
@@ -245,7 +249,7 @@
     });
     {#circle.setMap(map);#}
     //-------------------------------------------------------------------------------
-    var mass = new AMap.MassMarks(weixin_lbs_info, {
+    var mass = new AMap.MassMarks(lbsInfo, {
         url: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
         anchor: new AMap.Pixel(3, 7),
         size: new AMap.Size(5, 7),
@@ -258,7 +262,7 @@
         map: map
     });
     mass.on('mouseover', function (e) {
-        marker.setPosition(e.data.lng_lat);
+        marker.setPosition(e.data.lnglat);
         marker.setLabel({content: e.data.name})
     });
     mass.setMap(map);

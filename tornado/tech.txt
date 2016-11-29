@@ -4,6 +4,7 @@ http://bl.ocks.org/mbostock/4063269
 http://blog.csdn.net/just4you/article/details/52933620
 
 http://www.tuicool.com/articles/yumUba
+http://lbs.amap.com/api/javascript-api/example/district-search/city-drop-down-list/
 
 [gaode map]
 http://lbs.amap.com/api/javascript-api/example/map/map-show/
@@ -12,3 +13,11 @@ http://lbs.amap.com/api/javascript-api/example/map/map-show/
 http://blog.csdn.net/z69183787/article/details/48465735
 http://www.oschina.net/p/js-emoji
 http://www.webpagefx.com/tools/emoji-cheat-sheet/
+
+[�ƽ�΢��ͼƬ������]
+http://www.cnblogs.com/youler/p/5985313.html
+
+
+http://www.cnblogs.com/wupeiqi/articles/5354900.html
+
+

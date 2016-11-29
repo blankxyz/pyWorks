@@ -28,50 +28,15 @@ REDIS_SERVER = 'redis://127.0.0.1/10'
 MONGODB_SERVER = '127.0.0.1'  # '192.168.187.4'
 MONGODB_PORT = 27017  # '37017'
 
+# local_flg 0: 附近的人  2：朋友圈
+FRIENDS_FLG = 2
+AROUND_FLG = 0
+
 define("port", default=5000, help="run on the given port", type=int)
 
-# sns_info =
-# {"12404766082711236659":
-# "{u'snsId': u'12404766082711236659',
-# u'timestamp': 1478763351,
-# u'authorId': u'wxid_6oeldtzws22c22',
-# u'comments':
-# [{u'content': u'[\\u60a0\\u95f2][\\u60a0\\u95f2]',
-#   u'authorName': u'jfvznumur',
-#   u'isCurrentUser': True,
-#   u'authorId': u'wxid_komia980lnkq12'
-# }],
-# u'content': u'\\u897f\\u6e56\\u9001\\u522b',
-# u'authorName': u'\\u671d\\u9633',
-# u'isCurrentUser': False,
-# u'likes': [{u'userName': u'jfvznumur', u'isCurrentUser': True, u'userId': u'wxid_komia980lnkq12'}],
-# 'db_patch': '75a5f0857d53_1479088651.45',
-# u'mediaList': [u'http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/0'],
-# u'rawXML':
-# u'<TimelineObject>
-#   <id><![CDATA[12404766082711236659]]></id>
-#   <username><![CDATA[wxid_6oeldtzws22c22]]></username>
-#   <createTime><![CDATA[1478763351]]></createTime>
-#   <contentDescShowType>0</contentDescShowType>
-#   <contentDescScene>0</contentDescScene>
-#   <private><![CDATA[0]]></private>
-#   <contentDesc><![CDATA[\\u897f\\u6e56\\u9001\\u522b]]></contentDesc>
-#   <contentattr><![CDATA[0]]></contentattr>
-#   <sourceUserName></sourceUserName>
-#   <sourceNickName></sourceNickName>
-#   <statisticsData></statisticsData>
-#   <location poiClickableStatus =  \"0\"  poiClassifyId =  \"\"  poiScale =  \"0\"  longitude =  \"0.0\"  city =  \"\"
-#   poiName =  \"\"  latitude =  \"0.0\"  poiClassifyType =  \"0\"  poiAddress =  \"\" ></location><ContentObject>
-#   <contentStyle><![CDATA[1]]></contentStyle><title></title><description></description><contentUrl></contentUrl>
-#   <mediaList><media><id><![CDATA[12404766083001757752]]></id><type><![CDATA[2]]></type>
-#   <title></title><description></description><private><![CDATA[0]]></private>
-#   <url type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/0]]></url>
-#   <thumb type =  \"1\" ><![CDATA[http://mmsns.qpic.cn/mmsns/PFPUMLY8F77ibkrGrBsiaxaUocjELU14XXSwVyf8ibBcCJAno7eiaIlib3VFGAgiaVqTVXibLrsiapYiabcs/150]]></thumb>
-#   <size height =  \"854.0\"  width =  \"640.0\"  totalSize =  \"94467.0\" ></size></media></mediaList></ContentObject>
-#   <actionInfo></actionInfo></TimelineObject>'}",
-
 amap_key = '0c7fb71b2e13546416337666cd406db3'  # 高德地图JavaScriptAPI key 220.249.18.226
-baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
+# baidu_map_key = 'e9ospC88hj5iHoI9xUabaHFYAEiFXlRa'
+baidu_map_key = '4119853f8e9c07a0eeaf89352b2c795d'
 
 
 # logger = LogFormatter()
@@ -140,6 +105,48 @@ class Util(object):
             address = j['result']['sematic_description']
 
         return address
+
+    def convert_xy_to_addressComponent(self, str_x_y):
+        '''
+        Args:
+            str_x_y: '39.983424_116.322987'
+        Returns:
+                "addressComponent": {
+                                      "country": "中国",
+                                      "country_code": 0,
+                                      "province": "北京市",
+                                      "city": "北京市",
+                                      "district": "海淀区",
+                                      "adcode": "110108",
+                                      "street": "中关村大街",
+                                      "street_number": "27号1101-08室",
+                                      "direction": "附近",
+                                      "distance": "7"
+                                    },
+        '''
+        addressComponent = {"country": "",
+                            "country_code": 0,
+                            "province": "",
+                            "city": "",
+                            "district": "",
+                            "adcode": "",
+                            "street": "",
+                            "street_number": "",
+                            "direction": "",
+                            "distance": ""
+                            }
+        (x, y) = self.convert_str_xy_to_x_y(str_x_y)
+        if x:
+            url = 'http://api.map.baidu.com/geocoder/v2/?callback=renderReverse&' \
+                  'location=%s,%s&output=json&pois=0&ak=%s' % (x, y, baidu_map_key)
+
+            # logger.format('[info] convert_xy_to_address() %s' % url)
+            response = requests.get(url)
+            content = response.content[len('renderReverse&&renderReverse('):-1]
+            j = json.loads(content)
+            addressComponent = j['result']['addressComponent']
+
+        return addressComponent
 
     @staticmethod
     def time_min(ago_time_str):
@@ -276,7 +283,7 @@ class __DBDriver(object):
     def get_weixin_cnt(self):
         return self.conn.hlen(self.weixin_sns_info_hset_key)
 
-    def make_time_loacation(self):
+    def make_lbsInfo_js(self):
         # var weixin_lbs_info =  [
         #   {"lnglat": ["116.418757", "39.917544"], "name": "东城区"},
         #   {"lnglat": ["116.366794", "39.915309"], "name": "西城区"},
@@ -290,7 +297,7 @@ class __DBDriver(object):
             if i != 'None' and i != '':
                 x = i.split('_')[0]
                 y = i.split('_')[1]
-                fd.write('''    {"lng_lat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
+                fd.write('''    {"lnglat": ["''' + y + '''", "''' + x + '''"], "name": "location%d"},\n''' % cnt)
                 cnt = cnt + 1
         fd.write('];\n')
         fd.close()
@@ -298,26 +305,66 @@ class __DBDriver(object):
 
 class DBDriver(object):
     def __init__(self):
+        self.util = Util()
         self.client = pymongo.MongoClient(MONGODB_SERVER, MONGODB_PORT)
         self.db = self.client.wx_sns_data
         self.sns_info = self.db.sns_info
+        self.sns_info_patch = self.db.sns_info_patch
 
-    # def patch_address(self):
-    #     return None
+    def patch_address(self):
+        l = self.sns_info.find({"localFlag": AROUND_FLG})
+        cnt = 0
+        for i in l:
+            print cnt
+            if i['rawXML']['TimelineObject'].has_key('location'):
+                x = i['rawXML']['TimelineObject']['location']['@latitude']
+                y = i['rawXML']['TimelineObject']['location']['@longitude']
+                if x != '0.0':
+                    str_x_y = x + '_' + y
+                    addressComponent = self.util.convert_xy_to_addressComponent(str_x_y)
 
-    def get_authors(self):
+                    snsId = i['snsId']
+                    country = addressComponent['country']
+                    province = addressComponent['province']
+                    city = addressComponent['city']
+                    district = addressComponent['district']
+                    adcode = addressComponent['adcode']
+                    street = addressComponent['street']
+
+                    self.sns_info_patch.insert({"snsId": snsId,
+                                                "country": country,
+                                                "province": province,
+                                                "city": city,
+                                                "district": district,
+                                                "adcode": adcode,
+                                                "street": street,
+                                                "latitude":x,
+                                                "longitude":y})
+            cnt = cnt + 1
+
+    def get_friends(self):
         authors = []
-        l = self.sns_info.find().sort("authorName")
+        l = self.sns_info.find({"localFlag": FRIENDS_FLG}).sort("authorName")
         for sns_info in l:
             author = sns_info["authorName"]
             authors.append(author)
 
         return list(set(authors))
 
-    def search_sns_info(self, ago_time='', author=[], has_pic='', x_y='', distance=''):
+    def get_around(self):
+        authors = []
+        l = self.sns_info.find({"localFlag": AROUND_FLG}).sort("authorName")
+        for sns_info in l:
+            author = sns_info["authorName"]
+            authors.append(author)
+
+        return list(set(authors))
+
+    def search_sns_info(self, local_flg, ago_time='', author=[], has_pic='', x_y='', distance=''):
+        # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
         if not ago_time:
-            ago_time = '1970-01-01'  # 相当于无条件
+            ago_time = '1980-01-01'  # 相当于无条件
 
         if not author:
             author_cond = ".*"
@@ -329,8 +376,10 @@ class DBDriver(object):
         else:
             pic_cond = "mediaList.0"  # len(mediaList) >= 0
 
+        print 'ago_time', ago_time
         t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-        l = self.sns_info.find({"authorName": {"$regex": author_cond},
+        l = self.sns_info.find({"localFlag": local_flg,
+                                "authorName": {"$regex": author_cond},
                                 "timestamp": {"$gte": t},
                                 pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
         # l = self.sns_info.find().sort("timestamp", pymongo.DESCENDING)
@@ -345,30 +394,37 @@ class DBDriver(object):
 
             sns_info_list.append(sns_info)
 
-        return sns_info_list[:100]
+        return sns_info_list[:30]
 
     def get_weixin_cnt(self):
         return self.sns_info.find().count()
 
-    def make_time_loacation(self):
-        # var weixin_lbs_info =  [
-        #   {"lnglat": ["116.418757", "39.917544"], "name": "东城区"},
-        #   {"lnglat": ["116.366794", "39.915309"], "name": "西城区"},
-        #   {"lnglat": ["116.486409", "39.921489"], "name": "朝阳区"},
-        # ];
-        l = self.sns_info.find()
-        fd = open('./static/js/weixin_lbs_info.js', 'w')
-        fd.write('var weixin_lbs_info =  [\n')
-        cnt = 0
+    def make_around_lbsInfo_js(self, area):
+        '''
+            area : {"province": "北京市", "city": "北京市", "district": "海淀区"}
+
+            var weixin_lbs_info =  [
+                {"lnglat": ["116.418757", "39.917544"], "name": "东城区"},
+                {"lnglat": ["116.366794", "39.915309"], "name": "西城区"},
+                {"lnglat": ["116.486409", "39.921489"], "name": "朝阳区"},
+            ];
+        '''
+        if area:
+            l = self.sns_info_patch.find({"localFlag": AROUND_FLG,
+                                          'province': area['province'],
+                                          'city': area['city'],
+                                          'district': area['district']})
+        else:
+            l = self.sns_info.find({"localFlag": AROUND_FLG})
+
+        fd = open('./static/js/lbsInfo.js', 'w')  # 不能使用‘_’作为文件名
+        fd.write('var lbsInfo =  [\n')
         for i in l:
-            if i['rawXML']['TimelineObject'].has_key('location'):
-                print '[info] make_time_loacation()', i['snsId']
-                x = i['rawXML']['TimelineObject']['location']['@latitude']
-                y = i['rawXML']['TimelineObject']['location']['@longitude']
-                poiName = i['rawXML']['TimelineObject']['location']['@poiName']
-                # print poiName, type(poiName)
-                if x != '0.0':
-                    fd.write('''    {"lng_lat": ["''' + y + '''", "''' + x + '''"], "name": "''' + i['snsId'] + '''"},\n''')
+            y = i['latitude']  # 25.05287
+            x = i['longitude'] # 102.90062
+            if x != '0.0':
+                fd.write(
+                    '''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "''' + i['snsId'] + '''"},\n''')
         fd.write('];\n')
         fd.close()
 
@@ -385,10 +441,10 @@ class FriendsHandler(tornado.web.RequestHandler):
     def get(self):
         db = DBDriver()
         # print '-------------------------------   get  ----------------------------------- '
-        authors_list = db.get_authors()
+        friends_list = db.get_friends()
         # pprint(authors_list)
 
-        sns_info_list = db.search_sns_info()
+        sns_info_list = db.search_sns_info(local_flg=FRIENDS_FLG)
         # pprint(sns_info_list)
         # print '-------------------------------   get  ----------------------------------- '
         self.render(
@@ -396,7 +452,7 @@ class FriendsHandler(tornado.web.RequestHandler):
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
-            authors_list=authors_list)
+            authors_list=friends_list)
 
     def post(self):
         db = DBDriver()
@@ -408,10 +464,10 @@ class FriendsHandler(tornado.web.RequestHandler):
         print '-------------------------------   post  ----------------------------------- '
         print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
         print '-------------------------------   post  ----------------------------------- '
-        authors_list = db.get_authors()
+        friends_list = db.get_friends()
         # pprint(authors_list)
 
-        sns_info_list = db.search_sns_info(ago_time, authors, pic_flg, x_y, distance)
+        sns_info_list = db.search_sns_info(FRIENDS_FLG, ago_time, authors, pic_flg, x_y, distance)
         # pprint(sns_info_list)
 
         self.render(
@@ -419,7 +475,7 @@ class FriendsHandler(tornado.web.RequestHandler):
             page_title=u"微信朋友圈",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
-            authors_list=authors_list)
+            authors_list=friends_list)
 
 
 class Manager(tornado.web.RequestHandler):
@@ -437,19 +493,18 @@ class Manager(tornado.web.RequestHandler):
 class AroundHandler(tornado.web.RequestHandler):
     def get(self):
         db = DBDriver()
-        print 'get--------------------start'
-        authors_list = db.get_authors()
+        print '-------------------------------   get  -----------------------------------'
+        around_list = db.get_around()
         # pprint(authors_list)
-
-        sns_info_list = db.search_sns_info()
+        sns_info_list = db.search_sns_info(local_flg=AROUND_FLG)
         # pprint(sns_info_list)
-        print 'get--------------------start'
+        print '-------------------------------   get  -----------------------------------'
         self.render(
             "around.html",
             page_title=u"微信周围的人",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
-            authors_list=authors_list)
+            authors_list=around_list)
 
     def post(self):
         db = DBDriver()
@@ -461,10 +516,9 @@ class AroundHandler(tornado.web.RequestHandler):
         print '-------------------------------   post  ----------------------------------- '
         print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
         print '-------------------------------   post  ----------------------------------- '
-        authors_list = db.get_authors()
+        around_list = db.get_around()
         # pprint(authors_list)
-
-        sns_info_list = db.search_sns_info(ago_time, authors, pic_flg, x_y, distance)
+        sns_info_list = db.search_sns_info(AROUND_FLG, ago_time, authors, pic_flg, x_y, distance)
         # pprint(sns_info_list)
 
         self.render(
@@ -472,7 +526,7 @@ class AroundHandler(tornado.web.RequestHandler):
             page_title=u"微信周围的人",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
-            authors_list=authors_list)
+            authors_list=around_list)
 
 
 class SnsInfoModule(tornado.web.UIModule):
@@ -509,7 +563,6 @@ class Application(tornado.web.Application):
             (r"/", MainHandler),
             (r"/friends", FriendsHandler),
             (r"/convert_xy_to_address", Manager),
-            (r"/(weixin_lbs_info\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
             (r"/(authors\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
             (r"/around", AroundHandler),
         ]
@@ -518,7 +571,9 @@ class Application(tornado.web.Application):
 
 def main():
     db = DBDriver()
-    db.make_time_loacation()
+    area = {"province": "北京市", "city": "北京市", "district": "海淀区"}
+    # area = {}
+    db.make_around_lbsInfo_js(area)
 
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()
@@ -529,12 +584,12 @@ def main():
 
 def patch_address():
     db = DBDriver()
-    # db.patch_address()
+    db.patch_address()
 
 
 def test():
     db = DBDriver()
-    pprint(db.get_authors())
+    pprint(db.get_friends())
 
 
 if __name__ == "__main__":
