@@ -90,7 +90,7 @@ class Util(object):
             str type (x,y)
         '''
         (x, y) = (None, None)
-        if str_x_y != 'None' and str_x_y:
+        if str_x_y != u'None' and len(str_x_y) > 0:
             sp = '_' if '_' in str_x_y else ','
             x = str_x_y.split(sp)[0]
             y = str_x_y.split(sp)[1]
@@ -321,6 +321,8 @@ class DBDriver(object):
         self.client = pymongo.MongoClient(MONGODB_SERVER, MONGODB_PORT)
         self.db = self.client.wx_sns_data
         self.sns_info = self.db.sns_info
+        self.lbs_info = self.db.lbs_info
+        self.db_patch_location = self.db.db_patch_location
         self.sns_info_patch = self.db.sns_info_patch
 
     def patch_address(self):
@@ -365,7 +367,7 @@ class DBDriver(object):
 
     def get_around(self):
         authors = []
-        l = self.sns_info.find({"localFlag": AROUND_FLG}).sort("authorName")
+        l = self.lbs_info.find({"localFlag": AROUND_FLG}).sort("authorName")
         for sns_info in l:
             author = sns_info["authorName"]
             authors.append(author)
@@ -378,11 +380,10 @@ class DBDriver(object):
                                           "latitude": y})
         if l and l['street']:
             poi_address = l['city'] + u' · ' + l['district'] + l['street']
-            print l
 
         return poi_address
 
-    def around_sns_info(self, ago_time='', author=[], has_pic='', x_y='', distance=''):
+    def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance=''):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
         if not ago_time:
@@ -407,13 +408,13 @@ class DBDriver(object):
                "timestamp": {"$gte": t},
                pic_cond: {"$exists": 1}}
 
-        l = self.sns_info.find({"localFlag": AROUND_FLG,
-                                "authorName": {"$regex": author_cond},
-                                "timestamp": {"$gte": t},
-                                pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
+        info_list = self.lbs_info.find({"localFlag": AROUND_FLG,
+                                        "authorName": {"$regex": author_cond},
+                                        "timestamp": {"$gte": t},
+                                        pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
         # l = self.sns_info.find().sort("timestamp", pymongo.DESCENDING)
 
-        for sns_info in l:
+        for sns_info in info_list:
             distance_flg = False
             d = 0
             # patch sns_info["ago_days"]
@@ -431,16 +432,16 @@ class DBDriver(object):
                     else:
                         sns_info["poi_address"] = self.get_address_form_patch((sns_info_x, sns_info_y))
 
-            # if not x_y or not distance:
-            #     distance_flg = True
-            # else:
-            #     (x, y) = self.util.convert_str_xy_to_x_y(x_y)
-            #     d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
-            #     if distance > 0 and d <= distance:
-            #         distance_flg = True
+                        # if not x_y or not distance:
+                        #     distance_flg = True
+                        # else:
+                        #     (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+                        #     d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
+                        #     if distance > 0 and d <= distance:
+                        #         distance_flg = True
 
-            # if distance_flg:
-                # print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
+                        # if distance_flg:
+                        # print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
             sns_info_list.append(sns_info)
 
         return sns_info_list[:100]
@@ -491,10 +492,10 @@ class DBDriver(object):
 
         return sns_info_list
 
-    def get_weixin_cnt(self):
-        return self.sns_info.find().count()
+    def get_drivers(self):
+        return self.db_patch_location.find()
 
-    def make_around_lbsInfo_js(self, area):
+    def make_drivers_location_js(self, area):
         '''
             area : {"province": "北京市", "city": "北京市", "district": "海淀区"}
 
@@ -505,20 +506,19 @@ class DBDriver(object):
             ];
         '''
         if area:
-            l = self.sns_info_patch.find({'province': area['province'],
-                                          'city': area['city'],
-                                          'district': area['district']})
+            l = self.db_patch_location.find()
         else:
-            l = self.sns_info.find({"localFlag": AROUND_FLG})
+            l = self.db_patch_location.find()
 
         fd = open('./static/js/lbsInfo.js', 'w')  # 不能使用‘_’作为文件名
         fd.write('var lbsInfo =  [\n')
         for i in l:
-            y = i['latitude']  # 25.05287
-            x = i['longitude']  # 102.90062
-            if x != '0.0':
-                fd.write(
-                    '''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "''' + i['snsId'] + '''"},\n''')
+            location = i['location']
+            if location != u'None':
+                (y, x) = self.util.convert_str_xy_to_x_y(location)
+                if x and float(x):
+                    fd.write('''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "''' +
+                             i['db_patch'] + '''"},\n''')
         fd.write('];\n')
         fd.close()
 
@@ -597,7 +597,7 @@ class AroundHandler(tornado.web.RequestHandler):
         print '-------------------------------   get  -----------------------------------'
         around_list = db.get_around()
         # pprint(authors_list)
-        sns_info_list = db.around_sns_info()
+        lbs_info_list = db.around_lbs_info()
         # pprint(sns_info_list)
         print '-------------------------------   get  -----------------------------------'
         self.render(
@@ -606,7 +606,7 @@ class AroundHandler(tornado.web.RequestHandler):
             page_title=u"微信周围的人",
             header_text=u"采集结果展示",
             user_area=USER_AREA,
-            sns_info_list=sns_info_list,
+            lbs_info_list=lbs_info_list,
             authors_list=around_list)
 
     def post(self):
@@ -621,17 +621,34 @@ class AroundHandler(tornado.web.RequestHandler):
         print '-------------------------------   post  ----------------------------------- '
         around_list = db.get_around()
         # pprint(authors_list)
-        sns_info_list = db.around_sns_info(ago_time, authors, pic_flg, x_y, distance)
+        lbs_info_list = db.around_lbs_info(ago_time, authors, pic_flg, x_y, distance)
         # pprint(sns_info_list)
 
         self.render(
-            # "around.html",
             "around.html",
             page_title=u"微信周围的人",
             header_text=u"采集结果展示",
             user_area=USER_AREA,
-            sns_info_list=sns_info_list,
+            lbs_info_list=lbs_info_list,
             authors_list=around_list)
+
+
+class DriversHandler(tornado.web.RequestHandler):
+    def get(self):
+        db = DBDriver()
+        print '-------------------------------   get  -----------------------------------'
+        drivers = db.get_drivers()
+        print '-------------------------------   get  -----------------------------------'
+        self.render(
+            # "around.html",
+            "drivers.html",
+            page_title=u"微信周围的人",
+            header_text=u"采集结果展示",
+            user_area=USER_AREA,
+            drivers=drivers)
+
+    def post(self):
+        pass
 
 
 class SnsInfoModule(tornado.web.UIModule):
@@ -667,6 +684,7 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", MainHandler),
             (r"/friends", FriendsHandler),
+            (r"/drivers", DriversHandler),
             (r"/convert_xy_to_address", Manager),
             (r"/(authors\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
             (r"/around", AroundHandler),
@@ -679,7 +697,7 @@ def main():
     # area = {"province": "北京市", "city": "北京市", "district": "海淀区"}
     area = {"province": "北京市", "city": "北京市", "district": USER_AREA}
     # area = {}
-    db.make_around_lbsInfo_js(area)
+    db.make_drivers_location_js(area)
     db.make_around_userArea_js(USER_AREA)
 
     tornado.locale.set_default_locale('zh_CN')

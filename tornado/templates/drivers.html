@@ -2,32 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="referrer" content="never">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <!-- jquery -->
+    <script src="http://cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
+    <!-- bootstrap -->
+    <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <!-- DataTables -->
+    <link rel="stylesheet" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+    <script src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <!-- 日期选择插件 -->
+    <link href="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css"
+          rel="stylesheet"/>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
+    <!-- 高德地图 -->
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript"
+            src="http://webapi.amap.com/maps?v=1.3&key=0c7fb71b2e13546416337666cd406db3&plugin=AMap.Autocomplete"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+    <script type="text/javascript" src='static/js/lbsInfo.js'></script>
+    <script type="text/javascript" src='static/js/userArea.js'></script>
+    <!-- self css -->
+    <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
+    <title>微信-周围的人</title>
     <title>Title</title>
 </head>
 <body>
 <table id="drivers_tab" class="table table-striped table-hover">
     <thead>
     <tr>
-        <th>主页</th>
-        <th>限定域名</th>
-        <th>域名黑名单</th>
-        <th>分类</th>
-        <th>正则表达式</th>
-        <th>权重</th>
+        <th>db_patch</th>
+        <th>location</th>
     </tr>
     </thead>
     <tbody>
     {% for driver in drivers %}
-        <tr id={{ loop.index }}>
-            <td>{{ driver['start_url'] }}</td>
-            <td>{{ driver['site_domain'] }}</td>
-            <td>{{ driver['black_domain_str'] }}</td>
-            <td>{{ driver['detail_or_list'] }}</td>
-            <td>{{ driver['regex'] }}</td>
-            <td>{{ driver['weight'] }}</td>
+        <tr>
+            <td>{{ driver['db_patch'] }}</td>
+            <td>{{ driver['location'] }}</td>
         </tr>
     {% end %}
     </tbody>
 </table>
 </body>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#drivers_tab').DataTable({
+            {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "共 0 条",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前页",
+                    "sNext": "后页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有数据 。。。",
+                "sProcessing": "<img src='/static/images/loading.gif'/>",
+                "sSearch": "内容检索："
+            },
+            "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
+            "info": true,
+            {#            "row-border": "2px",#}
+            "searching": true,
+            "processing": true,
+            "search": {"regex": true},//开启正则支持
+            {#"bStateSave": true, //状态保存,与正则检索矛盾#}
+            "bFilter": true,
+            "bLengthChange": true,
+            "aLengthMenu": [20, 30, 50],
+{#            "scrollY": "700px",#}
+            {#            "bScrollCollapse": true,#}
+            "aaSorting": [[0, "desc"]]
+        });
+    });
+</script>
 </html>
