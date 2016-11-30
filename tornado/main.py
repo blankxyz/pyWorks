@@ -382,7 +382,7 @@ class DBDriver(object):
 
         return poi_address
 
-    def search_sns_info(self, local_flg, ago_time='', author=[], has_pic='', x_y='', distance=-1):
+    def around_sns_info(self, ago_time='', author=[], has_pic='', x_y='', distance=''):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
         if not ago_time:
@@ -398,9 +398,16 @@ class DBDriver(object):
         else:
             pic_cond = "mediaList.0"  # len(mediaList) >= 0
 
-        print 'ago_time', ago_time
+        if not distance:
+            distance = 0
+
         t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-        l = self.sns_info.find({"localFlag": local_flg,
+        print {"localFlag": AROUND_FLG,
+               "authorName": {"$regex": author_cond},
+               "timestamp": {"$gte": t},
+               pic_cond: {"$exists": 1}}
+
+        l = self.sns_info.find({"localFlag": AROUND_FLG,
                                 "authorName": {"$regex": author_cond},
                                 "timestamp": {"$gte": t},
                                 pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
@@ -409,8 +416,10 @@ class DBDriver(object):
         for sns_info in l:
             distance_flg = False
             d = 0
+            # patch sns_info["ago_days"]
             ctime = sns_info["timestamp"]
             sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
+            # patch sns_info["poi_address"]
             sns_info["poi_address"] = u'未知地点'
             if sns_info['rawXML']['TimelineObject'].has_key('location'):
                 sns_info_x = sns_info['rawXML']['TimelineObject']['location']['@longitude']
@@ -422,19 +431,65 @@ class DBDriver(object):
                     else:
                         sns_info["poi_address"] = self.get_address_form_patch((sns_info_x, sns_info_y))
 
-                    if not x_y or distance == -1:
-                        distance_flg = True
+            # if not x_y or not distance:
+            #     distance_flg = True
+            # else:
+            #     (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+            #     d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
+            #     if distance > 0 and d <= distance:
+            #         distance_flg = True
+
+            # if distance_flg:
+                # print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
+            sns_info_list.append(sns_info)
+
+        return sns_info_list[:100]
+
+    def friends_sns_info(self, ago_time='', friends=[], has_pic=''):
+        # local_flg 0: 附近的人  2：朋友圈
+        sns_info_list = []
+        if not ago_time:
+            ago_time = '1980-01-01'  # 相当于无条件
+
+        if not friends or friends[0] == 'all':
+            friends_cond = ".*"
+        else:
+            friends_cond = "^" + friends[0] + "$"
+
+        if not has_pic:
+            pic_cond = "mediaList"  # 相当于无条件
+        else:
+            pic_cond = "mediaList.0"  # len(mediaList) >= 0
+
+        t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+        print  {"localFlag": FRIENDS_FLG,
+                "authorName": {"$regex": friends_cond},
+                "timestamp": {"$gte": t},
+                pic_cond: {"$exists": 1}}
+
+        l = self.sns_info.find({"localFlag": FRIENDS_FLG,
+                                "authorName": {"$regex": friends_cond},
+                                "timestamp": {"$gte": t},
+                                pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
+
+        for sns_info in l:
+            ctime = sns_info["timestamp"]
+            sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
+
+            sns_info["poi_address"] = u'未知地点'
+            if sns_info['rawXML']['TimelineObject'].has_key('location'):
+                sns_info_x = sns_info['rawXML']['TimelineObject']['location']['@longitude']
+                sns_info_y = sns_info['rawXML']['TimelineObject']['location']['@latitude']
+                if sns_info_x != '0.0':
+                    poi_address = sns_info['rawXML']['TimelineObject']['location']['@poiName']
+                    if poi_address:
+                        sns_info["poi_address"] = poi_address
                     else:
-                        (x, y) = self.util.convert_str_xy_to_x_y(x_y)
-                        d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
-                        if distance > 0 and d <= distance:
-                            distance_flg = True
+                        sns_info["poi_address"] = self.get_address_form_patch((sns_info_x, sns_info_y))
 
-                    if distance_flg:
-                        print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
-                        sns_info_list.append(sns_info)
+            sns_info_list.append(sns_info)
 
-        return sns_info_list[:30]
+        return sns_info_list
 
     def get_weixin_cnt(self):
         return self.sns_info.find().count()
@@ -504,7 +559,7 @@ class FriendsHandler(tornado.web.RequestHandler):
         friends_list = db.get_friends()
         # pprint(authors_list)
 
-        sns_info_list = db.search_sns_info(local_flg=FRIENDS_FLG)
+        sns_info_list = db.friends_sns_info()
         # pprint(sns_info_list)
         # print '-------------------------------   get  ----------------------------------- '
         self.render(
@@ -512,22 +567,20 @@ class FriendsHandler(tornado.web.RequestHandler):
             page_title=u"微信信息采集结果",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
-            authors_list=friends_list)
+            friends_list=friends_list)
 
     def post(self):
         db = DBDriver()
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
-        pic_flg = self.get_argument('pic_flg', 'off')
-        x_y = self.get_argument('x_y', '')
-        distance = self.get_argument('distance', '-1')
+        pic_flg = self.get_argument('pic_flg', '')
         print '-------------------------------   post  ----------------------------------- '
-        print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
+        print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg
         print '-------------------------------   post  ----------------------------------- '
         friends_list = db.get_friends()
         # pprint(authors_list)
 
-        sns_info_list = db.search_sns_info(FRIENDS_FLG, ago_time, authors, pic_flg, x_y, int(distance))
+        sns_info_list = db.friends_sns_info(ago_time, authors, pic_flg)
         # pprint(sns_info_list)
 
         self.render(
@@ -535,7 +588,7 @@ class FriendsHandler(tornado.web.RequestHandler):
             page_title=u"微信朋友圈",
             header_text=u"采集结果展示",
             sns_info_list=sns_info_list,
-            authors_list=friends_list)
+            friends_list=friends_list)
 
 
 class AroundHandler(tornado.web.RequestHandler):
@@ -544,7 +597,7 @@ class AroundHandler(tornado.web.RequestHandler):
         print '-------------------------------   get  -----------------------------------'
         around_list = db.get_around()
         # pprint(authors_list)
-        sns_info_list = db.search_sns_info(local_flg=AROUND_FLG)
+        sns_info_list = db.around_sns_info()
         # pprint(sns_info_list)
         print '-------------------------------   get  -----------------------------------'
         self.render(
@@ -560,7 +613,7 @@ class AroundHandler(tornado.web.RequestHandler):
         db = DBDriver()
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
-        pic_flg = self.get_argument('pic_flg', 'off')
+        pic_flg = self.get_argument('pic_flg', '')
         x_y = self.get_argument('x_y', '')
         distance = self.get_argument('distance', '')
         print '-------------------------------   post  ----------------------------------- '
@@ -568,7 +621,7 @@ class AroundHandler(tornado.web.RequestHandler):
         print '-------------------------------   post  ----------------------------------- '
         around_list = db.get_around()
         # pprint(authors_list)
-        sns_info_list = db.search_sns_info(AROUND_FLG, ago_time, authors, pic_flg, x_y, int(distance))
+        sns_info_list = db.around_sns_info(ago_time, authors, pic_flg, x_y, distance)
         # pprint(sns_info_list)
 
         self.render(

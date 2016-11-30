@@ -28,7 +28,7 @@
     <script type="text/javascript" src='static/js/userArea.js'></script>
     <!-- self css -->
     <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
-    <title>微信数据展示</title>
+    <title>微信-周围的人</title>
 </head>
 
 {% block body %}
@@ -56,9 +56,18 @@
     <hr>
     <div class="form-group row">
         <form role="form" action="/around" method="post">
+            <h4>选择发布时间</h4>
             <div class='input-group date' id='datetimepicker'>
                 <input type='text' name="ago_time" class="form-control" placeholder="采集时间为 XX日 以后"/>
                 <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+            </div>
+            <br>
+            <div>
+                <h4>选择位置信息范围</h4>
+                <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true" placeholder="地图点击位置的经纬度">
+                <input id="address" type="text" size="28" readonly="true" placeholder="经纬度转化为地址">
+                <br><br>
+                <input name="distance" type="text" size="28" placeholder="请设定距离限定条件（km）">
             </div>
             <br>
             <div>
@@ -75,13 +84,7 @@
                 </select>
             </div>
             <br>
-            <div>
-                <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true" placeholder="地图点击位置的经纬度">
-                <input id="address" type="text" size="28" readonly="true" placeholder="经纬度转化为地址">
-                <br><br>
-                <input name="distance" type="text" size="28" placeholder="请设定距离限定条件（km）">
-            </div>
-            <br>
+
             <div class="checkbox">
                 <label>
                     <input name="pic_flg" type="checkbox">仅显示有图消息&nbsp;&nbsp;&nbsp;
@@ -107,7 +110,7 @@
         <tr style="border: 1px solid #ccc;">
             <td>
                 <div class="sns_left">
-                    <img src="static/images/head_first_python.gif" class="sns_author_logo img-rounded"/>
+                    <img src="static/images/weixin_logo.png" class="sns_author_logo img-rounded"/>
                 </div>
                 <div class="sns_right">
                     {#<div class="sns_details">#}
@@ -133,6 +136,14 @@
                             {{ sns_info["poi_address"] }}
                         </h6>
                     </div>
+                    {% if len(sns_info["likes"])>0 %}
+                    <div class="sns_comments row clearfix">
+                        <span class="glyphicon glyphicon-heart-empty"></span>
+                        {% for comment in sns_info["likes"] %}
+                        <small>&nbsp;&nbsp;{{ comment['userName'] }}</small>
+                        {% end %}
+                    </div>
+                    {% end %}
                     {% if len(sns_info["comments"])>0 %}
                     <div class="sns_comments row clearfix">
                         {% for comment in sns_info["comments"] %}
@@ -156,10 +167,6 @@
     <h3>地理位置信息</h3>
     <hr>
 </div>
-<div id="map_div" style="float:left;width:700px; height:800px; margin-top:10px;margin-left:10px;" class="map"
-     tabindex="0">
-    <h1>地图加载后，会覆盖该区域。</h1>
-</div>
 <!-- 右上 地图坐标栏  -->
 <div id="myPageTop" style="margin-right:140px;margin-top:5px">
     <table>
@@ -181,6 +188,14 @@
         </tr>
     </table>
 </div>
+<div id="map_div" style="float:left;width:700px; height:800px; margin-top:10px;margin-left:10px;" class="map"
+     tabindex="0">
+    <h1>地图加载后，会覆盖该区域。</h1>
+</div>
+<div style="float:left;width:700px; margin-top:10px;margin-left:100px;" class="row clearfix">
+    <h3><img src="http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png">&nbsp;&nbsp;&nbsp;&nbsp;采集设备位置</h3>
+</div>
+
 {% end %}
 
 
@@ -194,11 +209,12 @@
     });
     //-------------------------------------------------------------------------------
     var district, map = new AMap.Map('map_div', {
-        //layers: [new AMap.TileLayer({
-        //    textIndex: 2
-        //})],
-        zoom: 10,
-{#        center: [116.486409, 39.921489],#}
+        layers: [new AMap.TileLayer({
+            textIndex: 2
+        })],
+        zIndex:2,
+        //zoom: 10,
+        {#center: [116.486409, 39.921489],#}
         resizeEnable: true
     });
     //-------------------------------------------------------------------------------
@@ -206,7 +222,7 @@
 
     function addBeiJing() {
         //加载行政区划插件
-        AMap.service('AMap.DistrictSearch', function() {
+        AMap.service('AMap.DistrictSearch', function () {
             var opts = {
                 subdistrict: 1,   //返回下一级行政区
                 extensions: 'all',  //返回行政区边界坐标组等具体信息
@@ -216,8 +232,7 @@
             district = new AMap.DistrictSearch(opts);
             district.setLevel('district');
             //行政区查询
-            district.search(userArea, function(status, result) {
-            //district.search('海淀区', function(status, result) {
+            district.search(userArea, function (status, result) {
                 var bounds = result.districtList[0].boundaries;
                 var polygons = [];
                 if (bounds) {
@@ -228,7 +243,7 @@
                             strokeWeight: 2,
                             path: bounds[i],
                             fillOpacity: 0.2,
-{#                            fillColor: '#CCF3FF',#}
+                            //fillColor: '#CCF3FF',
                             strokeColor: '#CC66CC'
                         });
                         polygons.push(polygon);
@@ -304,6 +319,18 @@
     });
     mass.setMap(map);
     //-------------------------------------------------------------------------------
+    map.setLimitBounds(map.getBounds());
+    function getLimitBounds() {
+        var limitBounds = map.getLimitBounds();
+        if (limitBounds) {
+            var tip = [];
+            tip.push('限制区域：\n西南坐标[' + limitBounds.southwest.lng + ',' + limitBounds.southwest.lat + ']\n')
+            tip.push('东北坐标[' + limitBounds.northeast.lng + ',' + limitBounds.northeast.lat + ']')
+            alert(tip.join(''));
+        } else {
+            alert('未设置限制区域');
+        }
+    }
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
