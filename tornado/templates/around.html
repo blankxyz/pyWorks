@@ -96,12 +96,15 @@
 </div>
 
 <!-- 中间 微信信息展示栏  -->
-<div id="sns_info_div" style="float:left;width:700px; margin-left:50px" class="col-sm-9">
+<div id="sns_info_div" style="float:left;width:800px; margin-left:20px" class="col-sm-9">
     <h3>共有 {{ len(lbs_info_list) }} 条</h3>
     <hr>
-    <table id="sns_info_tab11">
+    <button style="float: right" name="pre">pre</button>
+    <button style="float: right" name="next">next</button>
+    <table id="lbs_info_tab11" class="table">
         <thead>
         <tr>
+            <th></th>
             <th></th>
         </tr>
         </thead>
@@ -112,6 +115,8 @@
                 <div class="sns_left">
                     <img src="static/images/weixin_logo.png" class="sns_author_logo img-rounded"/>
                 </div>
+            </td>
+            <td>
                 <div class="sns_right">
                     {#<div class="sns_details">#}
                     <div class="sns_author row clearfix">
@@ -192,7 +197,7 @@
      tabindex="0">
     <h1>地图加载后，会覆盖该区域。</h1>
 </div>
-<div style="float:left;width:700px; margin-top:10px;margin-left:100px;" class="row clearfix">
+<div style="float:left;width:700px; margin-top:10px;margin-left:50px;" class="row clearfix">
     <h3><img src="http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png">&nbsp;&nbsp;&nbsp;&nbsp;采集设备位置</h3>
 </div>
 
@@ -212,7 +217,7 @@
         layers: [new AMap.TileLayer({
             textIndex: 2
         })],
-        zIndex:2,
+        zIndex: 2,
         //zoom: 10,
         {#center: [116.486409, 39.921489],#}
         resizeEnable: true
@@ -334,7 +339,7 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
-        $('#sns_info_tab').DataTable({
+        $('#lbs_info_tab').DataTable({
             {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
             "oLanguage": {
                 "sLengthMenu": "每页 _MENU_ 条",
@@ -361,8 +366,8 @@
             "bFilter": true,
             "bLengthChange": true,
             "aLengthMenu": [5, 15, 30],
-            "scrollY": "700px",
-            {#            "bScrollCollapse": true,#}
+            "scrollY": "800px",
+            {# "bScrollCollapse": true,#}
             "aaSorting": [[0, "desc"]]
         });
     });

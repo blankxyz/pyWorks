@@ -1,1 +1,1 @@
-var userArea = "朝阳区";
+var userArea = "all";
