@@ -22,6 +22,7 @@ import tornado.ioloop
 import tornado.options
 from tornado.log import LogFormatter
 import tornado.web
+from tornado.escape import json_encode
 from tornado.options import define, options
 
 # import ConfigParser
@@ -43,6 +44,7 @@ MONGODB_PORT = 27017  # '37017'
 # local_flg 0: 附近的人  2：朋友圈
 FRIENDS_FLG = 2
 AROUND_FLG = 0
+PAGE_NUM = 10
 
 define("port", default=5000, help="run on the given port", type=int)
 
@@ -205,19 +207,55 @@ class Util(object):
 class SessionManager(object):
     def __init__(self):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.hset_key = '_session_hset'
+        self.snsInfo_hset_key = '_session_hset'
+        self.pages_hset_key = '_pages_hset'
+        self.current = 'current'  # index
 
     def set_around_search_result(self, userId, snsId_list):
-        if self.conn.exists(userId + self.hset_key):
-            self.conn.delete(userId + self.hset_key)
+        if self.conn.exists(userId + self.snsInfo_hset_key):
+            self.conn.delete(userId + self.snsInfo_hset_key)
+        i = 1
+        for sns_info in snsId_list:
+            self.conn.hset(userId + self.snsInfo_hset_key, i, sns_info['snsId'])
+            i = i + 1
 
-        for snsId in snsId_list:
-            self.conn.hset(userId + self.hset_key, snsId, 0)
+        self.conn.hset(userId + self.pages_hset_key, self.current, 1)
 
-    def get_around_search_result(self, userId, start_page, end_page):
-        snsId_list = self.conn.hkeys(userId + self.hset_key)
-        # self.conn.hset()
-        return snsId_list[start_page:end_page]
+    def get_around_search_result(self, userId, action):
+        snsId_list = []
+        current = self.conn.hget(userId + self.pages_hset_key, self.current)
+        current = int(current)
+        total = self.conn.hlen(userId + self.snsInfo_hset_key)
+        print 'action:', action, 'current:', current, 'total:', total
+        if total <= PAGE_NUM:  # 不足1页
+            start = 1
+            end = total
+        else:
+            if action == 'next':
+                if current + PAGE_NUM >= total:  # 已经是末页
+                    start = current
+                    end = total
+                else:
+                    start = current + PAGE_NUM
+                    end = start + PAGE_NUM - 1
+                    if start <= total and total <= end:
+                        end = total
+
+            else:  # action：pre
+                if current == 1:  # 已经是首页
+                    start = 1
+                    end = PAGE_NUM
+                else:
+                    start = current - PAGE_NUM
+                    end = start + PAGE_NUM - 1
+
+        self.conn.hset(userId + self.pages_hset_key, self.current, start)
+
+        print 'start:', start, 'end:', end
+        for i in range(start, end):
+            snsId_list.append(self.conn.hget(userId + self.snsInfo_hset_key, i))
+
+        return snsId_list
 
 
 class DBDriver(object):
@@ -289,6 +327,21 @@ class DBDriver(object):
 
         return poi_address
 
+    def patch_agoDays_address(self, sns_info):
+        ctime = sns_info["timestamp"]
+        ago_days = Util.convert_ago_time_to_days(ctime)
+
+        poi_address = u'未知地点'
+        if sns_info['rawXML']['TimelineObject'].has_key('location'):
+            sns_info_x = sns_info['rawXML']['TimelineObject']['location']['@longitude']
+            sns_info_y = sns_info['rawXML']['TimelineObject']['location']['@latitude']
+            if sns_info_x != '0.0':
+                poi_address = sns_info['rawXML']['TimelineObject']['location']['@poiName']
+                if not poi_address:
+                    poi_address = self.get_address_form_patch((sns_info_x, sns_info_y))
+
+        return (ago_days, poi_address)
+
     def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
@@ -309,12 +362,13 @@ class DBDriver(object):
             distance = 0
 
         t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-        print {"localFlag": AROUND_FLG,
-               "authorName": {"$regex": author_cond},
-               "timestamp": {"$gte": t},
-               pic_cond: {"$exists": 1},
-               'start_page': start_page,
-               'end_page': end_page}
+
+        print 'search condition:', {"localFlag": AROUND_FLG,
+                                    "authorName": {"$regex": author_cond},
+                                    "timestamp": {"$gte": t},
+                                    pic_cond: {"$exists": 1},
+                                    'start_page': start_page,
+                                    'end_page': end_page}
 
         info_list = self.lbs_info.find({"localFlag": AROUND_FLG,
                                         "authorName": {"$regex": author_cond},
@@ -326,32 +380,20 @@ class DBDriver(object):
         for sns_info in info_list:
             distance_flg = False
             d = 0
-            # patch sns_info["ago_days"]
-            ctime = sns_info["timestamp"]
-            sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
 
-            # patch sns_info["poi_address"]
-            sns_info["poi_address"] = u'未知地点'
-            if sns_info['rawXML']['TimelineObject'].has_key('location'):
-                sns_info_x = sns_info['rawXML']['TimelineObject']['location']['@longitude']
-                sns_info_y = sns_info['rawXML']['TimelineObject']['location']['@latitude']
-                if sns_info_x != '0.0':
-                    poi_address = sns_info['rawXML']['TimelineObject']['location']['@poiName']
-                    if poi_address:
-                        sns_info["poi_address"] = poi_address
-                    else:
-                        sns_info["poi_address"] = self.get_address_form_patch((sns_info_x, sns_info_y))
+            # if not x_y or not distance:
+            #     distance_flg = True
+            # else:
+            #     (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+            #     d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
+            #     if distance > 0 and d <= distance:
+            #         distance_flg = True
 
-                        # if not x_y or not distance:
-                        #     distance_flg = True
-                        # else:
-                        #     (x, y) = self.util.convert_str_xy_to_x_y(x_y)
-                        #     d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
-                        #     if distance > 0 and d <= distance:
-                        #         distance_flg = True
-
-                        # if distance_flg:
-                        # print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
+            # if distance_flg:
+            # print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
             sns_info_list.append(sns_info)
 
         return sns_info_list
@@ -373,10 +415,10 @@ class DBDriver(object):
             pic_cond = "mediaList.0"  # len(mediaList) >= 0
 
         t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-        print  {"localFlag": FRIENDS_FLG,
-                "authorName": {"$regex": friends_cond},
-                "timestamp": {"$gte": t},
-                pic_cond: {"$exists": 1}}
+        print 'search condition:', {"localFlag": FRIENDS_FLG,
+                                    "authorName": {"$regex": friends_cond},
+                                    "timestamp": {"$gte": t},
+                                    pic_cond: {"$exists": 1}}
 
         l = self.sns_info.find({"localFlag": FRIENDS_FLG,
                                 "authorName": {"$regex": friends_cond},
@@ -384,20 +426,9 @@ class DBDriver(object):
                                 pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
 
         for sns_info in l:
-            ctime = sns_info["timestamp"]
-            sns_info["ago_days"] = Util.convert_ago_time_to_days(ctime)
-
-            sns_info["poi_address"] = u'未知地点'
-            if sns_info['rawXML']['TimelineObject'].has_key('location'):
-                sns_info_x = sns_info['rawXML']['TimelineObject']['location']['@longitude']
-                sns_info_y = sns_info['rawXML']['TimelineObject']['location']['@latitude']
-                if sns_info_x != '0.0':
-                    poi_address = sns_info['rawXML']['TimelineObject']['location']['@poiName']
-                    if poi_address:
-                        sns_info["poi_address"] = poi_address
-                    else:
-                        sns_info["poi_address"] = self.get_address_form_patch((sns_info_x, sns_info_y))
-
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
             sns_info_list.append(sns_info)
 
         return sns_info_list
@@ -407,6 +438,17 @@ class DBDriver(object):
 
     def get_users(self):
         return self.users.find()
+
+    def get_lbsInfo_list_by_snsId(self, snsId_list):
+        lbsInfo_list = []
+        l = self.lbs_info.find({'snsId': {'$in': snsId_list}}).sort("timestamp", pymongo.DESCENDING)
+        for sns_info in l:
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
+            lbsInfo_list.append(sns_info)
+
+        return lbsInfo_list
 
     def get_loginUser_area(self):
         area_list = []
@@ -476,13 +518,12 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class FriendsHandler(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
     def get(self):
         db = DBDriver()
-        # print '-------------------------------   get  ----------------------------------- '
+        print '------------------------------- Friends  get  ----------------------------------- '
         friends_list = db.get_friends()
         sns_info_list = db.friends_sns_info()
-        # print '-------------------------------   get  ----------------------------------- '
+        print '------------------------------- Friends  get  ----------------------------------- '
         self.render(
             "friends.html",
             title=u"微信-朋友圈",
@@ -494,9 +535,9 @@ class FriendsHandler(tornado.web.RequestHandler):
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', '')
-        print '-------------------------------   post  ----------------------------------- '
+        print '------------------------------- Friends  post  ----------------------------------- '
         print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg
-        print '-------------------------------   post  ----------------------------------- '
+        print '------------------------------- Friends  post  ----------------------------------- '
         friends_list = db.get_friends()
         sns_info_list = db.friends_sns_info(ago_time, authors, pic_flg)
 
@@ -508,21 +549,115 @@ class FriendsHandler(tornado.web.RequestHandler):
 
 
 class AroundHandler(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
+    def create_table(self, lbs_info_list):
+        html = '''
+        <table id="lbs_info_tab" class="table">
+        <thead>
+        <tr>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        '''
+
+        for sns_info in lbs_info_list:
+            html += '''
+            <tr style="border: 1px solid #ccc;">
+                <td>
+                    <div class="sns_left">
+                        <img src="static/images/weixin_logo.png" class="sns_author_logo img-rounded"/>
+                    </div>
+                </td>
+                <td>
+                    <div class="sns_right">
+                        <div class="sns_author row clearfix">
+                        ''' + sns_info["authorName"] + '''
+                        </div>
+                        <div class="sns_content row clearfix">
+                            <small>''' + sns_info["content"] + '''</small>
+                        </div>
+                        <div class="pull-left sns_image_list row clearfix">'''
+            # -----------------------------------------------------------------------------
+            for url in sns_info["mediaList"]:
+                html += '''<img src="http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=''' \
+                        + url + '''" class="media img-rounded sns_image"/>'''
+
+            html += '''</div>'''
+            html += '''
+                    <div class="sns_timeLocation row clearfix">
+                        <h6><span class="glyphicon glyphicon-time"></span>&nbsp; ''' \
+                    + sns_info["ago_days"] + '''&nbsp;&nbsp;&nbsp;
+                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; ''' \
+                    + sns_info["poi_address"] + '''
+                        </h6>
+                    </div>
+                    '''
+            # -----------------------------------------------------------------------------
+            if len(sns_info["likes"]) > 0:
+                html += '''
+                    <div class="sns_comments row clearfix">
+                        <span class="glyphicon glyphicon-heart-empty"></span>'''
+
+            for comment in sns_info["likes"]:
+                html += '''<small>&nbsp;&nbsp;''' + comment['userName'] + '''</small>'''
+
+            html += '''</div>'''
+            # -----------------------------------------------------------------------------
+            if len(sns_info["comments"]) > 0:
+                html += '''<div class="sns_comments row clearfix">'''
+                for comment in sns_info["comments"]:
+                    html += '''<h4>''' + comment['authorName'] + '''<small>&nbsp;&nbsp;''' + \
+                            comment['content'] + '''</small></h4>'''
+                html += '''</div>'''
+
+            # -----------------------------------------------------------------------------
+            html += '''</div>
+                </td>
+            </tr>'''
+            # -----------------------------------------------------------------------------
+
+        # end for
+        html += '''</tbody></table>'''
+        return html
+
     def get(self):
+        util = Util()
         db = DBDriver()
-        print '-------------------------------   get  -----------------------------------'
-        around_list = db.get_around()
-        lbs_info_list = db.around_lbs_info()
-        print '-------------------------------   get  -----------------------------------'
-        self.render(
-            "around.html",
-            title=u"微信-周围的人",
-            lbs_info_list=lbs_info_list,
-            authors_list=around_list)
+        session = SessionManager()
+        userId = util.get_loginUser()
+
+        init_flg = self.get_argument('init', 'false')
+        action = self.get_argument('action', '')
+
+        print '------------------------------- Around  get  -----------------------------------'
+        print  'init_flg: ', init_flg, 'action: ', action
+        print '------------------------------- Around  get  -----------------------------------'
+        authors_list = db.get_around()
+        if init_flg == 'true':  # init
+            lbs_info_list = db.around_lbs_info()
+            session.set_around_search_result(userId, lbs_info_list)
+            lbs_info_list = lbs_info_list[:PAGE_NUM]
+            self.render(
+                "around.html",
+                title=u"微信-周围的人",
+                lbs_info_list=lbs_info_list,
+                authors_list=authors_list)
+        else:
+            snsId_list = session.get_around_search_result(userId, action)
+            lbs_info_list = db.get_lbsInfo_list_by_snsId(snsId_list)
+            print 'lbs_info_list:', len(lbs_info_list)
+            # self.write("<h1>AAAA</h1>")
+            html = self.create_table(lbs_info_list)
+            self.write(html)
 
     def post(self):
+        util = Util()
         db = DBDriver()
+        session = SessionManager()
+        userId = util.get_loginUser()
+        snsId_list = []
+
         ago_time = self.get_argument('ago_time', '')
         authors = self.get_arguments('authors')
         pic_flg = self.get_argument('pic_flg', '')
@@ -533,9 +668,13 @@ class AroundHandler(tornado.web.RequestHandler):
 
         print '-------------------------------   post  ----------------------------------- '
         print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
-        print '-------------------------------   post  ----------------------------------- '
         around_list = db.get_around()
         lbs_info_list = db.around_lbs_info(ago_time, authors, pic_flg, x_y, distance, start_page, end_page)
+        for snsInfo in lbs_info_list:
+            snsId_list.append(snsInfo['snsId'])
+
+        session.set_around_search_result(userId, snsId_list)
+        print '-------------------------------   post  ----------------------------------- '
 
         self.render(
             "around.html",
@@ -552,7 +691,6 @@ class DriversHandler(tornado.web.RequestHandler):
         users = db.get_users()
         print '-------------------------------   get  -----------------------------------'
         self.render(
-            # "around.html",
             "drivers.html",
             page_title=u"微信-",
             header_text=u"采集结果展示",

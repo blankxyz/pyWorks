@@ -99,9 +99,9 @@
 <div id="sns_info_div" style="float:left;width:800px; margin-left:20px" class="col-sm-9">
     <h3>共有 {{ len(lbs_info_list) }} 条</h3>
     <hr>
-    <button style="float: right" name="pre">pre</button>
-    <button style="float: right" name="next">next</button>
-    <table id="lbs_info_tab11" class="table">
+    <button id="next_btn" class="button" style="float: right">next</button>
+    <button id="pre_btn" class="button" style="float: right">pre</button>
+    <table id="lbs_info_tab" class="table">
         <thead>
         <tr>
             <th></th>
@@ -206,6 +206,24 @@
 
 <script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
+    $('#next_btn').click(function () {
+        $.ajax({
+            url: '/around?init=false&action=next',
+            type: 'get',
+            {#dataType: 'json',#}
+            contentType: "application/json; charset=UTF-8",
+            error: function (xhr, err) {
+                alert(err);
+            },
+            success: function (data, textStatus) {
+                alert(data);
+                $("#lbs_info_tab").remove();
+                $("#sns_info_div").append(data);
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
     $(function () {
         $('#datetimepicker').datetimepicker({
             format: 'YYYY-MM-DD',//日期格式化，只显示日期
@@ -276,7 +294,6 @@
                 alert(err);
             },
             success: function (data, textStatus) {
-                {#                alert(data);#}
                 document.getElementById("address").value = data;
                 alert(data + " 周围发现 100 人。")
             }
@@ -339,7 +356,7 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
-        $('#lbs_info_tab').DataTable({
+        $('#lbs_info_tab11').DataTable({
             {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
             "oLanguage": {
                 "sLengthMenu": "每页 _MENU_ 条",
