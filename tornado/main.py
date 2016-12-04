@@ -354,7 +354,7 @@ class DBDriver(object):
 
         return (ago_days, poi_address)
 
-    def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
+    def _around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
         db_patch_list = []  # 符合距离要求的db_patch
@@ -401,6 +401,49 @@ class DBDriver(object):
                                         "db_patch": {"$in": db_patch_list}
                                         }) \
             .sort("timestamp", pymongo.DESCENDING)  # .skip(10 * skip_page).limit(10)
+
+        for sns_info in info_list:
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
+            sns_info_list.append(sns_info)
+
+        print 'around_lbs_info()', len(sns_info_list)
+        return sns_info_list
+
+    def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
+        # local_flg 0: 附近的人  2：朋友圈
+        sns_info_list = []
+        db_patch_list = []  # 符合距离要求的db_patch
+        cond = {}
+
+        if ago_time:
+            t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+            cond['timestamp'] = {"$gte": t}
+
+        if author:
+            cond['authorName'] = {"$in": author}
+
+        if has_pic:
+            cond['mediaList.0'] =  {"$exists": 1} # len(mediaList) >= 0
+
+        if distance:
+            (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+            db_list = self.db_patch_location.find()
+            for db in db_list:
+                (db_y, db_x) = self.util.convert_str_xy_to_x_y(db['location'])
+                if db_x and float(db_x) != 0.0:
+                    d = self.util.calc_distance((x, y), (db_x, db_y))
+                    print u'选取地', (x, y), u'限定', distance, u'采集地', (db_x, db_y), u'相距', d
+                    if d <= float(distance):
+                        db_patch_list.append(db['db_patch'])
+
+            cond['db_patch'] = {"$in": db_patch_list}
+
+        print 'around_lbs_info() cond is:'
+        pprint(cond)
+
+        info_list = self.lbs_info.find(cond).sort("timestamp", pymongo.DESCENDING)  # .skip(10 * skip_page).limit(10)
 
         for sns_info in info_list:
             (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
