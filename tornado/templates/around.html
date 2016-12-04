@@ -97,10 +97,15 @@
 
 <!-- 中间 微信信息展示栏  -->
 <div id="sns_info_div" style="float:left;width:800px; margin-left:20px" class="col-sm-9">
-    <h3>共有 {{ len(lbs_info_list) }} 条</h3>
-    <hr>
-    <button id="next_btn" class="button" style="float: right">next</button>
-    <button id="pre_btn" class="button" style="float: right">pre</button>
+    <div style="height: 50px;alignment: center">
+        <ul class="pager">
+            <li><a id="firstPage" href="#">首页</a></li>
+            <li><a id="prePage" href="#">上一页</a></li>
+            <li><a id="current" href="#">3</a></li>
+            <li><a id="nextPage" href="#">下一页</a></li>
+            <li><a id="lastPage" href="#">末页</a></li>
+        </ul>
+    </div>
     <table id="lbs_info_tab" class="table">
         <thead>
         <tr>
@@ -118,9 +123,7 @@
             </td>
             <td>
                 <div class="sns_right">
-                    {#<div class="sns_details">#}
                     <div class="sns_author row clearfix">
-                        {# <span class="glyphicon glyphicon-user"></span>&nbsp;#}
                         {{ sns_info["authorName"] }}
                     </div>
 
@@ -158,7 +161,6 @@
                         {% end %}
                     </div>
                     {% end %}
-                    {#</div>#}
                 </div>
             </td>
         </tr>
@@ -206,7 +208,7 @@
 
 <script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
-    $('#next_btn').click(function () {
+    $('#nextPage').click(function () {
         $.ajax({
             url: '/around?init=false&action=next',
             type: 'get',
@@ -216,7 +218,21 @@
                 alert(err);
             },
             success: function (data, textStatus) {
-                alert(data);
+                $("#lbs_info_tab").remove();
+                $("#sns_info_div").append(data);
+            }
+        });
+    });
+    $('#prePage').click(function () {
+        $.ajax({
+            url: '/around?init=false&action=pre',
+            type: 'get',
+            {#dataType: 'json',#}
+            contentType: "application/json; charset=UTF-8",
+            error: function (xhr, err) {
+                alert(err);
+            },
+            success: function (data, textStatus) {
                 $("#lbs_info_tab").remove();
                 $("#sns_info_div").append(data);
             }
@@ -326,7 +342,7 @@
     var mass = new AMap.MassMarks(lbsInfo, {
         url: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
         anchor: new AMap.Pixel(3, 7),
-        size: new AMap.Size(5, 7),
+        size: new AMap.Size(10, 14),
         opacity: 0.7,
         cursor: 'pointer',
         zIndex: 1

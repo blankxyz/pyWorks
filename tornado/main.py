@@ -215,8 +215,8 @@ class SessionManager(object):
         if self.conn.exists(userId + self.snsInfo_hset_key):
             self.conn.delete(userId + self.snsInfo_hset_key)
         i = 1
-        for sns_info in snsId_list:
-            self.conn.hset(userId + self.snsInfo_hset_key, i, sns_info['snsId'])
+        for snsId in snsId_list:
+            self.conn.hset(userId + self.snsInfo_hset_key, i, snsId)
             i = i + 1
 
         self.conn.hset(userId + self.pages_hset_key, self.current, 1)
@@ -227,10 +227,18 @@ class SessionManager(object):
         current = int(current)
         total = self.conn.hlen(userId + self.snsInfo_hset_key)
         print 'action:', action, 'current:', current, 'total:', total
+
+        start = current
+        end = current + PAGE_NUM - 1
+
         if total <= PAGE_NUM:  # 不足1页
             start = 1
             end = total
         else:
+            if action == 'frist':
+                start = 1
+                end = total if total < PAGE_NUM else PAGE_NUM
+
             if action == 'next':
                 if current + PAGE_NUM >= total:  # 已经是末页
                     start = current
@@ -241,13 +249,17 @@ class SessionManager(object):
                     if start <= total and total <= end:
                         end = total
 
-            else:  # action：pre
+            if action == 'pre':
                 if current == 1:  # 已经是首页
                     start = 1
                     end = PAGE_NUM
                 else:
                     start = current - PAGE_NUM
                     end = start + PAGE_NUM - 1
+
+            if action == 'last':
+                start = 1 if total < PAGE_NUM else (total - (total % PAGE_NUM) + 1)
+                end = total
 
         self.conn.hset(userId + self.pages_hset_key, self.current, start)
 
@@ -345,6 +357,8 @@ class DBDriver(object):
     def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
+        db_patch_list = []  # 符合距离要求的db_patch
+
         if not ago_time:
             ago_time = '1980-01-01'  # 相当于无条件
 
@@ -358,44 +372,43 @@ class DBDriver(object):
         else:
             pic_cond = "mediaList.0"  # len(mediaList) >= 0
 
-        if not distance:
-            distance = 0
+        if distance:
+            (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+            db_list = self.db_patch_location.find()
+            for db in db_list:
+                (db_y, db_x) = self.util.convert_str_xy_to_x_y(db['location'])
+                if db_x and float(db_x) != 0.0:
+                    d = self.util.calc_distance((x, y), (db_x, db_y))
+                    print u'选取地', (x, y), u'限定', distance, u'采集地', (db_x, db_y), u'相距', d
+                    if d <= float(distance):
+                        db_patch_list.append(db['db_patch'])
+
+        print 'db_patch_list:', len(db_patch_list)
+        pprint(db_patch_list)
 
         t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-
         print 'search condition:', {"localFlag": AROUND_FLG,
                                     "authorName": {"$regex": author_cond},
                                     "timestamp": {"$gte": t},
                                     pic_cond: {"$exists": 1},
-                                    'start_page': start_page,
-                                    'end_page': end_page}
+                                    "db_patch": len(db_patch_list),
+                                    }
 
         info_list = self.lbs_info.find({"localFlag": AROUND_FLG,
                                         "authorName": {"$regex": author_cond},
                                         "timestamp": {"$gte": t},
-                                        pic_cond: {"$exists": 1}}) \
+                                        pic_cond: {"$exists": 1},
+                                        "db_patch": {"$in": db_patch_list}
+                                        }) \
             .sort("timestamp", pymongo.DESCENDING)  # .skip(10 * skip_page).limit(10)
-        # l = self.sns_info.find().sort("timestamp", pymongo.DESCENDING)
 
         for sns_info in info_list:
-            distance_flg = False
-            d = 0
             (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
             sns_info['ago_days'] = ago_days
             sns_info['poi_address'] = poi_address
-
-            # if not x_y or not distance:
-            #     distance_flg = True
-            # else:
-            #     (x, y) = self.util.convert_str_xy_to_x_y(x_y)
-            #     d = self.util.calc_distance((x, y), (sns_info_x, sns_info_y))
-            #     if distance > 0 and d <= distance:
-            #         distance_flg = True
-
-            # if distance_flg:
-            # print u'采集地:', (sns_info_x, sns_info_y), u'选取地:', x_y, u'相距：', d, u'限定：', distance
             sns_info_list.append(sns_info)
 
+        print 'around_lbs_info()', len(sns_info_list)
         return sns_info_list
 
     def friends_sns_info(self, ago_time='', friends=[], has_pic=''):
@@ -637,17 +650,15 @@ class AroundHandler(tornado.web.RequestHandler):
         if init_flg == 'true':  # init
             lbs_info_list = db.around_lbs_info()
             session.set_around_search_result(userId, lbs_info_list)
-            lbs_info_list = lbs_info_list[:PAGE_NUM]
             self.render(
                 "around.html",
                 title=u"微信-周围的人",
-                lbs_info_list=lbs_info_list,
+                lbs_info_list= lbs_info_list[:PAGE_NUM],
                 authors_list=authors_list)
         else:
             snsId_list = session.get_around_search_result(userId, action)
             lbs_info_list = db.get_lbsInfo_list_by_snsId(snsId_list)
             print 'lbs_info_list:', len(lbs_info_list)
-            # self.write("<h1>AAAA</h1>")
             html = self.create_table(lbs_info_list)
             self.write(html)
 
@@ -679,7 +690,7 @@ class AroundHandler(tornado.web.RequestHandler):
         self.render(
             "around.html",
             title=u"微信-周围的人",
-            lbs_info_list=lbs_info_list,
+            lbs_info_list=lbs_info_list[:PAGE_NUM],
             authors_list=around_list)
 
 
