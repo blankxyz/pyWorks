@@ -48,11 +48,11 @@
 <div id="filter_div" style="float:left;width:200px; margin-left:50px">
     <div class="form-group row">
         <form role="form" action="/friends" method="post">
-            <h1>共有 {{ len(sns_info_list) }} 条</h1>
+            <h1>共有</h1><h1 id="total">{{ total }}</h1><h1>条</h1>
             <br>
             <br>
             <h4>选择朋友圈</h4>
-            <select name="authors" multiple class="form-control">
+            <select id="friends" multiple class="form-control">
                 {% for friends in friends_list %}
                 <option value="{{ friends }}">{{ friends }}</option>
                 {% end %}
@@ -71,7 +71,7 @@
         <input type='text' id="timeEnd" class="form-control" placeholder="截止时间"/>
         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
     </div>
-{#     <input type="datetime-local" name="bdaytime">#}
+    {#     <input type="datetime-local" name="bdaytime">#}
     <div class="checkbox" style="float:right">
         <label>
             <input id="hasPic" type="checkbox">有图&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -79,6 +79,15 @@
             <input id="hasComments" type="checkbox">有回复&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </label>
         <input id="submit" type="submit" class="btn btn-primary btn-sm" value="检索"/>
+    </div>
+    <div style="height: 50px;alignment: center">
+        <ul class="pager">
+            <li><a id="firstPage" href="#">首页</a></li>
+            <li><a id="prePage" href="#">上一页</a></li>
+            <li><a id="current" href="#">{{ current }}</a></li>
+            <li><a id="nextPage" href="#">下一页</a></li>
+            <li><a id="lastPage" href="#">末页</a></li>
+        </ul>
     </div>
     <table id="sns_info_tab" class="table">
         <thead>
@@ -156,14 +165,44 @@
             locale: 'zh-CN'      //中文化
         });
     });
-
+    $('#nextPage').click(function () {
+        $.ajax({
+            url: '/friends?init=false&action=next',
+            type: 'get',
+            {#dataType: 'json',#}
+            contentType: "application/json; charset=UTF-8",
+            error: function (xhr, err) {
+                alert(err);
+            },
+            success: function (data, textStatus) {
+                $("#sns_info_tab").remove();
+                $("#sns_info_div").append(data);
+            }
+        });
+    });
+    $('#prePage').click(function () {
+        $.ajax({
+            url: '/friends?init=false&action=pre',
+            type: 'get',
+            {#dataType: 'json',#}
+            contentType: "application/json; charset=UTF-8",
+            error: function (xhr, err) {
+                alert(err);
+            },
+            success: function (data, textStatus) {
+                $("#sns_info_tab").remove();
+                $("#sns_info_div").append(data);
+            }
+        });
+    });
     $('#submit').click(function () {
         $.ajax({
-            url: '/friends',
+            url: '/friends?init=false',
             type: 'post',
             //dataType: 'json', //不能使用否则server无法取值
             //contentType: "application/json; charset=UTF-8",
             data: {
+                friends: $('#friends').val(),
                 timeStart: $('#timeStart').val(),
                 timeEnd: $('#timeEnd').val(),
                 hasPic: $('#hasPic').is(':checked'),
@@ -174,8 +213,10 @@
                 alert(err);
             },
             success: function (data, textStatus) {
+                $("#current").text(data["current"]);
+                $("#total").text(data["total"]);
                 $("#sns_info_tab").remove();
-                $("#sns_info_div").append(data);
+                $("#sns_info_div").append(data["html"]);
             }
         });
     });
