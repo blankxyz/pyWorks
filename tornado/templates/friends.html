@@ -71,10 +71,11 @@
         <input type='text' id="timeEnd" class="form-control" placeholder="截止时间"/>
         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
     </div>
+{#     <input type="datetime-local" name="bdaytime">#}
     <div class="checkbox" style="float:right">
         <label>
             <input id="hasPic" type="checkbox">有图&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input id="haslikes" type="checkbox">有点赞&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input id="hasLikes" type="checkbox">有点赞&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input id="hasComments" type="checkbox">有回复&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </label>
         <input id="submit" type="submit" class="btn btn-primary btn-sm" value="检索"/>
@@ -165,9 +166,9 @@
             data: {
                 timeStart: $('#timeStart').val(),
                 timeEnd: $('#timeEnd').val(),
-                hasPic: $('#hasPic').val(),
-                hasComments: $('#hasComments').val(),
-                hasLikes: $('#hasLikes').val()
+                hasPic: $('#hasPic').is(':checked'),
+                hasComments: $('#hasComments').is(':checked'),
+                hasLikes: $('#hasLikes').is(':checked')
             },
             error: function (xhr, err) {
                 alert(err);

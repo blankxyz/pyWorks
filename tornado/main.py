@@ -487,13 +487,13 @@ class DBDriver(object):
             t = int(time.mktime(time.strptime(timeStart + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
             cond['timestamp'] = {"$gte": t}
 
-        if hasPic == 'on':
+        if hasPic == 'true':
             cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
-        if hasLikes == 'on':
+        if hasLikes == 'true':
             cond['likes.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
-        if hasComments == 'on':
+        if hasComments == 'true':
             cond['comments.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
         print 'friends_sns_info() cond is:'
@@ -705,8 +705,8 @@ class FriendsHandler(tornado.web.RequestHandler):
         hasComments = self.get_argument('hasComments', '')
 
         print '------------------------------- Friends  post  ----------------------------------- '
-        print 'timeStart: ', timeStart, 'timeEnd:', timeEnd, 'authors: ', authors
-        print 'hasPic: ', hasPic, 'hasLikes: ', hasLikes, 'hasComments: ', hasComments
+        print 'timeStart: ', timeStart, ' timeEnd:', timeEnd, ' authors: ', authors
+        print 'hasPic: ', hasPic, ' hasLikes:', hasLikes, ' hasComments: ', hasComments
         print '------------------------------- Friends  post  ----------------------------------- '
         friends = db.get_friends()
         sns_info_list = db.friends_sns_info(friends, timeStart, timeEnd, hasPic, hasLikes, hasComments)
