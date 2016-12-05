@@ -6,6 +6,7 @@ import json
 import datetime
 import re
 import signal
+import urllib
 import requests
 import redis
 import pymongo
@@ -207,25 +208,29 @@ class Util(object):
 class SessionManager(object):
     def __init__(self):
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.snsInfo_hset_key = '_session_hset'
-        self.pages_hset_key = '_pages_hset'
-        self.current = 'current'  # index
+        self.around_snsInfo_hset_key = '_around_session_hset'
+        self.around_pages_hset_key = '_around_pages_hset'
+        self.around_current = 'around_current'  # index
+
+        self.friends_snsInfo_hset_key = '_friends_session_hset'
+        self.friends_pages_hset_key = '_friends_pages_hset'
+        self.friends_current = 'friends_current'  # index
 
     def set_around_search_result(self, userId, snsId_list):
-        if self.conn.exists(userId + self.snsInfo_hset_key):
-            self.conn.delete(userId + self.snsInfo_hset_key)
+        if self.conn.exists(userId + self.around_snsInfo_hset_key):
+            self.conn.delete(userId + self.around_snsInfo_hset_key)
         i = 1
         for snsId in snsId_list:
-            self.conn.hset(userId + self.snsInfo_hset_key, i, snsId)
+            self.conn.hset(userId + self.around_snsInfo_hset_key, i, snsId)
             i = i + 1
 
-        self.conn.hset(userId + self.pages_hset_key, self.current, 1)
+        self.conn.hset(userId + self.around_pages_hset_key, self.around_current, 1)
 
     def get_around_search_result(self, userId, action):
         snsId_list = []
-        current = self.conn.hget(userId + self.pages_hset_key, self.current)
+        current = self.conn.hget(userId + self.around_pages_hset_key, self.around_current)
         current = int(current)
-        total = self.conn.hlen(userId + self.snsInfo_hset_key)
+        total = self.conn.hlen(userId + self.around_snsInfo_hset_key)
         print 'action:', action, 'current:', current, 'total:', total
 
         start = current
@@ -261,11 +266,69 @@ class SessionManager(object):
                 start = 1 if total < PAGE_NUM else (total - (total % PAGE_NUM) + 1)
                 end = total
 
-        self.conn.hset(userId + self.pages_hset_key, self.current, start)
+        self.conn.hset(userId + self.around_pages_hset_key, self.around_current, start)
 
         print 'start:', start, 'end:', end
         for i in range(start, end):
-            snsId_list.append(self.conn.hget(userId + self.snsInfo_hset_key, i))
+            snsId_list.append(self.conn.hget(userId + self.around_snsInfo_hset_key, i))
+
+        return snsId_list
+
+    def set_friends_search_result(self, userId, snsId_list):
+        if self.conn.exists(userId + self.friends_snsInfo_hset_key):
+            self.conn.delete(userId + self.friends_snsInfo_hset_key)
+        i = 1
+        for snsId in snsId_list:
+            self.conn.hset(userId + self.friends_snsInfo_hset_key, i, snsId)
+            i = i + 1
+
+        self.conn.hset(userId + self.friends_pages_hset_key, self.friends_current, 1)
+
+    def get_friends_search_result(self, userId, action):
+        snsId_list = []
+        current = self.conn.hget(userId + self.friends_pages_hset_key, self.friends_current)
+        current = int(current)
+        total = self.conn.hlen(userId + self.friends_snsInfo_hset_key)
+        print 'action:', action, 'current:', current, 'total:', total
+
+        start = current
+        end = current + PAGE_NUM - 1
+
+        if total <= PAGE_NUM:  # 不足1页
+            start = 1
+            end = total
+        else:
+            if action == 'frist':
+                start = 1
+                end = total if total < PAGE_NUM else PAGE_NUM
+
+            if action == 'next':
+                if current + PAGE_NUM >= total:  # 已经是末页
+                    start = current
+                    end = total
+                else:
+                    start = current + PAGE_NUM
+                    end = start + PAGE_NUM - 1
+                    if start <= total and total <= end:
+                        end = total
+
+            if action == 'pre':
+                if current == 1:  # 已经是首页
+                    start = 1
+                    end = PAGE_NUM
+                else:
+                    start = current - PAGE_NUM
+                    end = start + PAGE_NUM - 1
+
+            if action == 'last':
+                start = 1 if total < PAGE_NUM else (total - (total % PAGE_NUM) + 1)
+                end = total
+
+        self.conn.hset(userId + self.friends_pages_hset_key, self.friends_current, start)
+
+        print 'start:', start, 'end:', end
+        for i in range(start, end):
+            snsId_list.append(self.conn.hget(userId + self.friends_snsInfo_hset_key, i))
 
         return snsId_list
 
@@ -278,6 +341,7 @@ class DBDriver(object):
         self.sns_info = self.db.sns_info
         self.lbs_info = self.db.lbs_info
         self.users = self.db.users
+        self.authorId_name = self.db.authorId_name
         self.db_patch_location = self.db.db_patch_location  # drivers
         self.sns_info_patch = self.db.sns_info_patch
 
@@ -314,12 +378,23 @@ class DBDriver(object):
 
     def get_friends(self):
         authors = []
-        l = self.sns_info.find({"localFlag": FRIENDS_FLG}).sort("authorName")
+        l = self.authorId_name.find().sort("authorId")
         for sns_info in l:
             author = sns_info["authorName"]
             authors.append(author)
 
-        return list(set(authors))
+        authors.sort()
+
+        return authors
+
+    def get_frinedsId_by_name(self, authorName_list):
+        db = DBDriver()
+        frinedsId_list = []
+        for authorName in authorName_list:
+            authorId_name = db.authorId_name.find_one({"authorName": authorName})
+            frinedsId_list.append(authorId_name['authorId'])
+
+        return frinedsId_list
 
     def get_around(self):
         authors = []
@@ -354,63 +429,6 @@ class DBDriver(object):
 
         return (ago_days, poi_address)
 
-    def _around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
-        # local_flg 0: 附近的人  2：朋友圈
-        sns_info_list = []
-        db_patch_list = []  # 符合距离要求的db_patch
-
-        if not ago_time:
-            ago_time = '1980-01-01'  # 相当于无条件
-
-        if not author:
-            author_cond = ".*"
-        else:
-            author_cond = "^" + author[0] + "$"
-
-        if not has_pic:
-            pic_cond = "mediaList"  # 相当于无条件
-        else:
-            pic_cond = "mediaList.0"  # len(mediaList) >= 0
-
-        if distance:
-            (x, y) = self.util.convert_str_xy_to_x_y(x_y)
-            db_list = self.db_patch_location.find()
-            for db in db_list:
-                (db_y, db_x) = self.util.convert_str_xy_to_x_y(db['location'])
-                if db_x and float(db_x) != 0.0:
-                    d = self.util.calc_distance((x, y), (db_x, db_y))
-                    print u'选取地', (x, y), u'限定', distance, u'采集地', (db_x, db_y), u'相距', d
-                    if d <= float(distance):
-                        db_patch_list.append(db['db_patch'])
-
-        print 'db_patch_list:', len(db_patch_list)
-        pprint(db_patch_list)
-
-        t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-        print 'search condition:', {"localFlag": AROUND_FLG,
-                                    "authorName": {"$regex": author_cond},
-                                    "timestamp": {"$gte": t},
-                                    pic_cond: {"$exists": 1},
-                                    "db_patch": len(db_patch_list),
-                                    }
-
-        info_list = self.lbs_info.find({"localFlag": AROUND_FLG,
-                                        "authorName": {"$regex": author_cond},
-                                        "timestamp": {"$gte": t},
-                                        pic_cond: {"$exists": 1},
-                                        "db_patch": {"$in": db_patch_list}
-                                        }) \
-            .sort("timestamp", pymongo.DESCENDING)  # .skip(10 * skip_page).limit(10)
-
-        for sns_info in info_list:
-            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
-            sns_info['ago_days'] = ago_days
-            sns_info['poi_address'] = poi_address
-            sns_info_list.append(sns_info)
-
-        print 'around_lbs_info()', len(sns_info_list)
-        return sns_info_list
-
     def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance='', start_page=0, end_page=0):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
@@ -425,7 +443,7 @@ class DBDriver(object):
             cond['authorName'] = {"$in": author}
 
         if has_pic:
-            cond['mediaList.0'] =  {"$exists": 1} # len(mediaList) >= 0
+            cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
         if distance:
             (x, y) = self.util.convert_str_xy_to_x_y(x_y)
@@ -454,33 +472,34 @@ class DBDriver(object):
         print 'around_lbs_info()', len(sns_info_list)
         return sns_info_list
 
-    def friends_sns_info(self, ago_time='', friends=[], has_pic=''):
+    def friends_sns_info(self, friends=[], timeStart='', timeEnd='',
+                         hasPic='', hasLikes='', hasComments=''):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
-        if not ago_time:
-            ago_time = '1980-01-01'  # 相当于无条件
+        cond = {}
 
-        if not friends or friends[0] == 'all':
-            friends_cond = ".*"
-        else:
-            friends_cond = "^" + friends[0] + "$"
+        if friends:
+            friendsId_list = self.get_frinedsId_by_name(friends)
+            print 'friendsId_list:', friendsId_list
+            cond['authorId'] = {"$in": friendsId_list}
 
-        if not has_pic:
-            pic_cond = "mediaList"  # 相当于无条件
-        else:
-            pic_cond = "mediaList.0"  # len(mediaList) >= 0
+        if timeStart:
+            t = int(time.mktime(time.strptime(timeStart + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+            cond['timestamp'] = {"$gte": t}
 
-        t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-        print 'search condition:', {"localFlag": FRIENDS_FLG,
-                                    "authorName": {"$regex": friends_cond},
-                                    "timestamp": {"$gte": t},
-                                    pic_cond: {"$exists": 1}}
+        if hasPic == 'on':
+            cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
-        l = self.sns_info.find({"localFlag": FRIENDS_FLG,
-                                "authorName": {"$regex": friends_cond},
-                                "timestamp": {"$gte": t},
-                                pic_cond: {"$exists": 1}}).sort("timestamp", pymongo.DESCENDING)
+        if hasLikes == 'on':
+            cond['likes.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
+        if hasComments == 'on':
+            cond['comments.0'] = {"$exists": 1}  # len(mediaList) >= 0
+
+        print 'friends_sns_info() cond is:'
+        pprint(cond)
+
+        l = self.sns_info.find(cond).sort("timestamp", pymongo.DESCENDING)
         for sns_info in l:
             (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
             sns_info['ago_days'] = ago_days
@@ -574,34 +593,130 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class FriendsHandler(tornado.web.RequestHandler):
+    def create_table(self, sns_info_list):
+        html = '''
+                <table id="lbs_info_tab" class="table">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                '''
+
+        for sns_info in sns_info_list:
+            html += '''
+            <tr style="border: 1px;">
+                <td>
+                    <div class="sns_left" style="padding-top:0;">
+                        <img src="static/images/weixin_logo.png" class="sns_author_logo img-rounded"/>
+                    </div>
+                </td>
+                <td>
+                    <div class="sns_right">
+                        <div class="sns_author row clearfix">
+                        ''' + sns_info["authorName"] + '''
+                        </div>
+                        <div class="sns_content row clearfix">
+                            <small>''' + sns_info["content"] + '''</small>
+                        </div>
+                        <div class="pull-left sns_image_list row clearfix">'''
+            # -----------------------------------------------------------------------------
+            for url in sns_info["mediaList"]:
+                html += '''<img src="http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=''' \
+                        + url + '''" class="media img-rounded sns_image"/>'''
+
+            html += '''</div>'''
+            # -----------------------------------------------------------------------------
+            html += '''<div class="sns_timeLocation row clearfix">
+                        <h6><span class="glyphicon glyphicon-time"></span>'''
+            html += sns_info["ago_days"]
+            html += '''&nbsp;&nbsp;&nbsp;
+                            <span class="glyphicon glyphicon-screenshot"></span>&nbsp;'''
+            html += sns_info["poi_address"]
+            html += ''' </h6>
+                        </div>'''
+
+            if len(sns_info["likes"]) > 0:
+                html += '''<div class="sns_comments row clearfix">
+                            <span class="glyphicon glyphicon-heart-empty"></span>'''
+                for comment in sns_info["likes"]:
+                    html += '''<small>&nbsp;&nbsp;'''
+                    html += comment['userName']
+                    html += '''</small>'''
+
+                html += '''</div>'''
+
+            if len(sns_info["comments"]) > 0:
+                html += '''<div class="sns_comments row clearfix">'''
+                for comment in sns_info["comments"]:
+                    html += '''<h4>'''
+                    html += comment['authorName']
+                    html += ''':<small>&nbsp;&nbsp;'''
+                    html += comment['content']
+                    html += '''</small>'''
+                    html += '''</h4>'''
+                html += '''</div>'''
+
+            html += '''</div>
+                </td>
+            </tr>'''
+
+        # end for
+        html += '''</tbody></table>'''
+        return html
+
     def get(self):
+        util = Util()
         db = DBDriver()
+        session = SessionManager()
+        userId = util.get_loginUser()
+
+        init_flg = self.get_argument('init', 'false')
+        action = self.get_argument('action', '')
+
+        print '------------------------------- Friends  get  ----------------------------------- '
+        print  'init_flg: ', init_flg, 'action: ', action
         print '------------------------------- Friends  get  ----------------------------------- '
         friends_list = db.get_friends()
-        sns_info_list = db.friends_sns_info()
-        print '------------------------------- Friends  get  ----------------------------------- '
-        self.render(
-            "friends.html",
-            title=u"微信-朋友圈",
-            sns_info_list=sns_info_list,
-            friends_list=friends_list)
+        if init_flg == 'true':  # init
+            sns_info_list = db.friends_sns_info()
+            self.render(
+                "friends.html",
+                title=u"微信-朋友圈",
+                sns_info_list=sns_info_list,
+                friends_list=friends_list)
+        else:
+            pass
 
     def post(self):
+        util = Util()
+        session = SessionManager()
+        userId = util.get_loginUser()
         db = DBDriver()
-        ago_time = self.get_argument('ago_time', '')
-        authors = self.get_arguments('authors')
-        pic_flg = self.get_argument('pic_flg', '')
-        print '------------------------------- Friends  post  ----------------------------------- '
-        print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg
-        print '------------------------------- Friends  post  ----------------------------------- '
-        friends_list = db.get_friends()
-        sns_info_list = db.friends_sns_info(ago_time, authors, pic_flg)
+        snsId_list = []
 
-        self.render(
-            "friends.html",
-            title=u"微信-朋友圈",
-            sns_info_list=sns_info_list,
-            friends_list=friends_list)
+        timeStart = self.get_argument('timeStart', '')
+        timeEnd = self.get_argument('timeEnd', '')
+        authors = self.get_arguments('authors')
+        hasPic = self.get_argument('hasPic', '')
+        hasLikes = self.get_argument('hasLikes', '')
+        hasComments = self.get_argument('hasComments', '')
+
+        print '------------------------------- Friends  post  ----------------------------------- '
+        print 'timeStart: ', timeStart, 'timeEnd:', timeEnd, 'authors: ', authors
+        print 'hasPic: ', hasPic, 'hasLikes: ', hasLikes, 'hasComments: ', hasComments
+        print '------------------------------- Friends  post  ----------------------------------- '
+        friends = db.get_friends()
+        sns_info_list = db.friends_sns_info(friends, timeStart, timeEnd, hasPic, hasLikes, hasComments)
+        for snsInfo in sns_info_list:
+            snsId_list.append(snsInfo['snsId'])
+
+        session.set_friends_search_result(userId, snsId_list)
+
+        html = self.create_table(sns_info_list)
+        self.write(html)
 
 
 class AroundHandler(tornado.web.RequestHandler):
@@ -640,6 +755,7 @@ class AroundHandler(tornado.web.RequestHandler):
                         + url + '''" class="media img-rounded sns_image"/>'''
 
             html += '''</div>'''
+            # -----------------------------------------------------------------------------
             html += '''
                     <div class="sns_timeLocation row clearfix">
                         <h6><span class="glyphicon glyphicon-time"></span>&nbsp; ''' \
@@ -696,7 +812,7 @@ class AroundHandler(tornado.web.RequestHandler):
             self.render(
                 "around.html",
                 title=u"微信-周围的人",
-                lbs_info_list= lbs_info_list[:PAGE_NUM],
+                lbs_info_list=lbs_info_list[:PAGE_NUM],
                 authors_list=authors_list)
         else:
             snsId_list = session.get_around_search_result(userId, action)
@@ -755,12 +871,33 @@ class DriversHandler(tornado.web.RequestHandler):
         pass
 
 
+class UserManagerHandler(tornado.web.RequestHandler):
+    def get(self):
+        db = DBDriver()
+        print '-------------------------------   get  -----------------------------------'
+        drivers = db.get_drivers()
+        users = db.get_users()
+        print '-------------------------------   get  -----------------------------------'
+        self.render(
+            "userManager.html",
+            page_title=u"微信-",
+            header_text=u"采集结果展示",
+            users=users)
+
+    def post(self):
+        db = DBDriver()
+
+        userName = self.get_argument('userName', '')
+        province = self.get_arguments('province')
+        city = self.get_argument('city', '')
+        district = self.get_argument('district', '')
+
+
 class SnsInfoModule(tornado.web.UIModule):
     def render(self, sns_info):
         return self.render_string(
             "modules/sns_info.html",
-            sns_info=sns_info,
-        )
+            sns_info=sns_info)
 
     def css_files(self):
         return "css/search_result.css"
@@ -790,6 +927,7 @@ class Application(tornado.web.Application):
             (r"/friends", FriendsHandler),
             (r"/around", AroundHandler),
             (r"/drivers", DriversHandler),
+            (r"/users", UserManagerHandler),
             (r"/convert_xy_to_address", Manager),
             # (r"/(authors\.js)", tornado.web.StaticFileHandler, dict(path=settings['static_js_path'])),
         ]

@@ -39,56 +39,39 @@
 </div>
 <hr>
 <div style="float: left;width: 48%">
-    <table id="users_tab" class="table table-striped table-hover">
-        <thead>
-        <tr>
-            <th>userName</th>
-            <th>province</th>
-            <th>city</th>
-            <th>district</th>
-            <th>drivers_cnt</th>
-            <th>delete</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% set cnt = 1 %}
-        {% for user in users %}
-        <tr>
-            <td>{{ user['userName'] }}</td>
-            <td>{{ user['province'] }}</td>
-            <td>{{ user['city'] }}</td>
-            <td>{{ user['district'] }}</td>
-            <td>{{ user['drivers_cnt'] }}</td>
-            <td>
-                <a id={{ cnt }} href="#">
-                    <span class="glyphicon glyphicon-remove"></span>
-                </a>
-            </td>
-        </tr>
-        {% set cnt = cnt+1 %}
-        {% end %}
-        </tbody>
-    </table>
+    <form role="form" action="/users" method="post">
+        <table id="users_tab" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>用户名</th>
+                <th>省（直辖市）</th>
+                <th>市</th>
+                <th>区（县）</th>
+                <th>drivers_cnt</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% set cnt = 1 %}
+            {% for user in users %}
+            <tr>
+                <td>{{ user['userName'] }}</td>
+                <td>{{ user['province'] }}</td>
+                <td>{{ user['city'] }}</td>
+                <td>{{ user['district'] }}</td>
+                <td>{{ user['drivers_cnt'] }}</td>
+                <td><a id={{ cnt }} href="#">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </a>
+                </td>
+            </tr>
+            {% set cnt = cnt+1 %}
+            {% end %}
+            </tbody>
+        </table>
+    </form>
 </div>
 
-<div style="float: right;width: 48%">
-    <table id="drivers_tab" class="table table-striped table-hover">
-        <thead>
-        <tr>
-            <th>db_patch</th>
-            <th>location</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for driver in drivers %}
-        <tr>
-            <td>{{ driver['db_patch'] }}</td>
-            <td>{{ driver['location'] }}</td>
-        </tr>
-        {% end %}
-        </tbody>
-    </table>
-</div>
 </body>
 <script type="text/javascript">
     $(document).ready(function () {
@@ -123,41 +106,11 @@
             {#            "bScrollCollapse": true,#}
             "aaSorting": [[0, "desc"]]
         });
-        $('#drivers_tab').DataTable({
-            {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
-            "oLanguage": {
-                "sLengthMenu": "每页 _MENU_ 条",
-                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                "sInfoEmpty": "共 0 条",
-                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                "oPaginate": {
-                    "sFirst": "首页",
-                    "sPrevious": "前页",
-                    "sNext": "后页",
-                    "sLast": "尾页"
-                },
-                "sZeroRecords": "没有数据 。。。",
-                "sProcessing": "<img src='/static/images/loading.gif'/>",
-                "sSearch": "内容检索："
-            },
-            "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
-            "info": true,
-            {#            "row-border": "2px",#}
-            "searching": true,
-            "processing": true,
-            "search": {"regex": true},//开启正则支持
-            {#"bStateSave": true, //状态保存,与正则检索矛盾#}
-            "bFilter": true,
-            "bLengthChange": true,
-            "aLengthMenu": [20, 30, 50],
-            {#            "scrollY": "700px",#}
-            {#            "bScrollCollapse": true,#}
-            "aaSorting": [[0, "desc"]]
-        });
         $('.table').on('click', ' tbody td',
             function () {
                 alert("td click!");
             });
+
         $('a').click(function () {
             var id_str = $(this).attr("id");
             var num = id_str.substr(id_str.indexOf("_") + 1);

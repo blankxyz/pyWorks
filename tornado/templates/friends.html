@@ -46,42 +46,40 @@
 
 <!-- 左侧检索栏  -->
 <div id="filter_div" style="float:left;width:200px; margin-left:50px">
-    <h3>检索条件</h3>
-    <hr>
     <div class="form-group row">
         <form role="form" action="/friends" method="post">
-            <h4>选择发布时间</h4>
-            <div class='input-group date' id='datetimepicker'>
-                <input type='text' name="ago_time" class="form-control" placeholder="采集时间为 XX日 以后"/>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-            </div>
+            <h1>共有 {{ len(sns_info_list) }} 条</h1>
             <br>
-            <div>
-                <h4>选择朋友圈</h4>
-                <select name="authors" class="form-control">
-                    <option value="all">----- 全部 -----</option>
-                    {% for friends in friends_list %}
-                    {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
-                    <option value="{{ friends }}">{{ friends }}</option>
-                    {% end %}
-                </select>
-            </div>
             <br>
-            <div class="checkbox">
-                <label>
-                    <input name="pic_flg" type="checkbox">仅显示有图消息&nbsp;&nbsp;&nbsp;
-                </label>
-                <input type="submit" class="btn btn-primary btn-sm" value="微信搜索"/>
-            </div>
+            <h4>选择朋友圈</h4>
+            <select name="authors" multiple class="form-control">
+                {% for friends in friends_list %}
+                <option value="{{ friends }}">{{ friends }}</option>
+                {% end %}
+            </select>
         </form>
     </div>
 </div>
 
 <!-- 中间 微信信息展示栏  -->
-<div id="sns_info_div" style="float:left;width:800px; margin-left:50px" class="col-sm-9">
-    <h3>共有 {{ len(sns_info_list) }} 条</h3>
-    <hr>
-    <table id="sns_info_tab11" class="table">
+<div id="sns_info_div" style="width:800px; margin-left:50px;margin-top:20px" class="col-sm-9">
+    <div style="width:200px;float:left" class='input-group date' id='datetimepickerStart'>
+        <input type='text' id="timeStart" class="form-control" placeholder="起始时间"/>
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+    </div>
+    <div style="width:200px;float:left" class='input-group date' id='datetimepickerEnd'>
+        <input type='text' id="timeEnd" class="form-control" placeholder="截止时间"/>
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+    </div>
+    <div class="checkbox" style="float:right">
+        <label>
+            <input id="hasPic" type="checkbox">有图&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input id="haslikes" type="checkbox">有点赞&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <input id="hasComments" type="checkbox">有回复&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </label>
+        <input id="submit" type="submit" class="btn btn-primary btn-sm" value="检索"/>
+    </div>
+    <table id="sns_info_tab" class="table">
         <thead>
         <tr>
             <th></th>
@@ -98,9 +96,7 @@
             </td>
             <td>
                 <div class="sns_right">
-                    {#<div class="sns_details">#}
                     <div class="sns_author row clearfix">
-                        {# <span class="glyphicon glyphicon-user"></span>&nbsp;#}
                         {{ sns_info["authorName"] }}
                     </div>
                     <div class="sns_content row clearfix">
@@ -112,7 +108,7 @@
                         {% end %}
                     </div>
                     <div class="sns_timeLocation row clearfix">
-                        <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
+                        <h6><span class="glyphicon glyphicon-time"></span>
                             {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
                             {{ sns_info["ago_days"] }}
                             &nbsp;&nbsp;&nbsp;
@@ -137,7 +133,6 @@
                         {% end %}
                     </div>
                     {% end %}
-                    {#</div>#}
                 </div>
             </td>
         </tr>
@@ -151,14 +146,41 @@
 <script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
     $(function () {
-        $('#datetimepicker').datetimepicker({
+        $('#datetimepickerStart').datetimepicker({
+            format: 'YYYY-MM-DD',//日期格式化，只显示日期
+            locale: 'zh-CN'      //中文化
+        });
+        $('#datetimepickerEnd').datetimepicker({
             format: 'YYYY-MM-DD',//日期格式化，只显示日期
             locale: 'zh-CN'      //中文化
         });
     });
 
+    $('#submit').click(function () {
+        $.ajax({
+            url: '/friends',
+            type: 'post',
+            //dataType: 'json', //不能使用否则server无法取值
+            //contentType: "application/json; charset=UTF-8",
+            data: {
+                timeStart: $('#timeStart').val(),
+                timeEnd: $('#timeEnd').val(),
+                hasPic: $('#hasPic').val(),
+                hasComments: $('#hasComments').val(),
+                hasLikes: $('#hasLikes').val()
+            },
+            error: function (xhr, err) {
+                alert(err);
+            },
+            success: function (data, textStatus) {
+                $("#sns_info_tab").remove();
+                $("#sns_info_div").append(data);
+            }
+        });
+    });
+
     $(document).ready(function () {
-        $('#sns_info_tab').DataTable({
+        $('#sns_info_tab11').DataTable({
             {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
             "oLanguage": {
                 "sLengthMenu": "每页 _MENU_ 条",
@@ -186,7 +208,7 @@
             "bLengthChange": true,
             "aLengthMenu": [5, 15, 30],
             "scrollY": "800px",
-{#            "bScrollCollapse": true,#}
+            {#"bScrollCollapse": true,#}
             "aaSorting": [[0, "desc"]]
         });
     });

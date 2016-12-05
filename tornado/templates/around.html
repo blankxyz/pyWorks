@@ -89,7 +89,7 @@
                 <label>
                     <input name="pic_flg" type="checkbox">仅显示有图消息&nbsp;&nbsp;&nbsp;
                 </label>
-                <input type="submit" class="btn btn-primary btn-sm" value="微信搜索"/>
+                <input type="submit" class="btn btn-primary btn-sm" value="检索"/>
             </div>
         </form>
     </div>
@@ -130,11 +130,13 @@
                     <div class="sns_content row clearfix">
                         <small>{% raw sns_info["content"] %}</small>
                     </div>
+
                     <div class="pull-left sns_image_list row clearfix">
                         {% for url in sns_info["mediaList"] %}
                         <img src="{{ pre_url + url }}" class="media img-rounded sns_image"/>
                         {% end %}
                     </div>
+
                     <div class="sns_timeLocation row clearfix">
                         <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
                             {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
@@ -144,6 +146,7 @@
                             {{ sns_info["poi_address"] }}
                         </h6>
                     </div>
+
                     {% if len(sns_info["likes"])>0 %}
                     <div class="sns_comments row clearfix">
                         <span class="glyphicon glyphicon-heart-empty"></span>
@@ -152,6 +155,7 @@
                         {% end %}
                     </div>
                     {% end %}
+
                     {% if len(sns_info["comments"])>0 %}
                     <div class="sns_comments row clearfix">
                         {% for comment in sns_info["comments"] %}
@@ -161,6 +165,7 @@
                         {% end %}
                     </div>
                     {% end %}
+
                 </div>
             </td>
         </tr>
@@ -206,7 +211,7 @@
 
 <script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
-    $('#nextPage').click(function () {
+    $('#next_btn').click(function () {
         $.ajax({
             url: '/around?init=false&action=next',
             type: 'get',
