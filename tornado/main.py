@@ -66,7 +66,7 @@ class Util(object):
             Lat_B 纬度B, Lng_B 经度B
             distance 距离(km)
         '''
-        print '[info] calc_distance() ', (Lng_A, Lat_A), (Lng_B, Lat_B)
+        # print '[info] calc_distance() ', (Lng_A, Lat_A), (Lng_B, Lat_B)
         ra = 6378.140  # 赤道半径 (km)
         rb = 6356.755  # 极半径 (km)
         flatten = (ra - rb) / ra  # 地球扁率
@@ -357,7 +357,6 @@ class SessionManager(object):
         for i in range(start, end + 1):
             snsId_list.append(self.conn.hget(self.userId + self.around_snsId_hset_key, i))
 
-        print snsId_list
         return snsId_list
 
     def get_around_result_cnt(self):
@@ -554,8 +553,8 @@ class DBDriver(object):
                 (db_y, db_x) = self.util.convert_str_xy_to_x_y(db['location'])
                 if db_x and float(db_x) != 0.0:
                     d = self.util.calc_distance((x, y), (db_x, db_y))
-                    print u'选取地', (x, y), u'限定', distance, u'采集地', (db_x, db_y), u'相距', d
                     if d <= float(distance):
+                        print u'选取地', (x, y), u'限定', distance, u'km  采集地', (db_x, db_y), u'相距', d ,'km'
                         db_patch_list.append(db['db_patch'])
 
             cond['db_patch'] = {"$in": db_patch_list}

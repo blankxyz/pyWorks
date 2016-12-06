@@ -67,10 +67,10 @@
         <br>
         <div>
             <h4>信息采集位置</h4>
-            <input id="filter_lnglat" name="x_y" type="text" size="28" readonly="true" placeholder="地图点击位置的经纬度">
+            <input id="x_y" type="text" size="28" readonly="true" placeholder="地图点击位置的经纬度">
             <input id="address" type="text" size="28" readonly="true" placeholder="经纬度转化为地址">
             <br><br>
-            <input name="distance" type="text" size="28" placeholder="请设定距离限定条件（km）">
+            <input id="distance" type="text" size="28" placeholder="请设定距离限定条件（km）">
         </div>
         <br>
         <div>
@@ -237,6 +237,8 @@
                 authors: authors,
                 timeStart: $('#timeStart').val(),
                 timeEnd: $('#timeEnd').val(),
+                x_y:$('#x_y').val(),
+                distance:$('#distance').val(),
                 hasPic: $('#hasPic').is(':checked')
             },
             error: function (xhr, err) {
@@ -322,7 +324,7 @@
         x = e.lnglat.getLng();
         y = e.lnglat.getLat();
         document.getElementById("lnglat").value = x + ',' + y;
-        document.getElementById("filter_lnglat").value = x + ',' + y;
+        document.getElementById("x_y").value = x + ',' + y;
 
         $.ajax({
             url: '/convert_xy_to_address?y_x=' + y + '_' + x,
@@ -372,7 +374,7 @@
         zIndex: 1
     });
     var marker = new AMap.Marker({
-        content: ' ',
+        content: '  ',
         map: map
     });
     mass.on('mouseover', function (e) {
