@@ -36,7 +36,6 @@
 
 <!-- 反 微信防盗链  -->
 {% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
-{#{% set pre_url = "" %}#}
 
 {#<div id="sns">#}
 {#	{% for sns in sns_info_list %}#}
@@ -46,19 +45,16 @@
 
 <!-- 左侧检索栏  -->
 <div id="filter_div" style="float:left;width:200px; margin-left:50px">
-    <div class="form-group row">
-        <form role="form" action="/friends" method="post">
-            <h1>共有</h1><h1 id="total">{{ total }}</h1><h1>条</h1>
-            <br>
-            <br>
-            <h4>选择朋友圈</h4>
-            <select id="friends" multiple class="form-control">
-                {% for friends in friends_list %}
-                <option value="{{ friends }}">{{ friends }}</option>
-                {% end %}
-            </select>
-        </form>
-    </div>
+    <form role="form" action="/friends" method="post">
+        <h3>共有<span id="total">{{ total }}</span>条微信</h3>
+        <hr>
+        <h4>选择朋友圈</h4>
+        <select id="friendsSel" class="form-control">
+            {% for friends in friends_list %}
+            <option value="{{ friends }}">{{ friends }}</option>
+            {% end %}
+        </select>
+    </form>
 </div>
 
 <!-- 中间 微信信息展示栏  -->
@@ -72,7 +68,7 @@
         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
     </div>
     {#     <input type="datetime-local" name="bdaytime">#}
-    <div class="checkbox" style="float:right">
+    <div class="checkbox" style="float:right;width:350px">
         <label>
             <input id="hasPic" type="checkbox">有图&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <input id="hasLikes" type="checkbox">有点赞&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -80,13 +76,21 @@
         </label>
         <input id="submit" type="submit" class="btn btn-primary btn-sm" value="检索"/>
     </div>
-    <div style="height: 50px;alignment: center">
+    <div style="margin-top:50px;height:50px;alignment: center">
         <ul class="pager">
-            <li><a id="firstPage" href="#">首页</a></li>
-            <li><a id="prePage" href="#">上一页</a></li>
-            <li><a id="current" href="#">{{ current }}</a></li>
-            <li><a id="nextPage" href="#">下一页</a></li>
-            <li><a id="lastPage" href="#">末页</a></li>
+            <li>
+                <a id="firstPage" onclick="pagging(this)">首页</a>
+            </li>
+            <li>
+                <a id="prePage" onclick="pagging(this)">上一页</a>
+            </li>
+            <li id="currentPage">{{ current }}</li>
+            <li>
+                <a id="nextPage" onclick="pagging(this)">下一页</a>
+            </li>
+            <li>
+                <a id="lastPage" onclick="pagging(this)">末页</a>
+            </li>
         </ul>
     </div>
     <table id="sns_info_tab" class="table">
@@ -165,9 +169,12 @@
             locale: 'zh-CN'      //中文化
         });
     });
-    $('#nextPage').click(function () {
+
+    function pagging(obj) {
+        var idStr = $(obj).attr('id');
+        var action = idStr.substr(0, idStr.length - 4);
         $.ajax({
-            url: '/friends?init=false&action=next',
+            url: '/friends?init=false&action=' + action,
             type: 'get',
             {#dataType: 'json',#}
             contentType: "application/json; charset=UTF-8",
@@ -175,34 +182,23 @@
                 alert(err);
             },
             success: function (data, textStatus) {
+                $("#currentPage").text(data["currentPage"]);
+                $("#total").text(data["total"]);
                 $("#sns_info_tab").remove();
-                $("#sns_info_div").append(data);
+                $("#sns_info_div").append(data["html"]);
             }
         });
-    });
-    $('#prePage').click(function () {
-        $.ajax({
-            url: '/friends?init=false&action=pre',
-            type: 'get',
-            {#dataType: 'json',#}
-            contentType: "application/json; charset=UTF-8",
-            error: function (xhr, err) {
-                alert(err);
-            },
-            success: function (data, textStatus) {
-                $("#sns_info_tab").remove();
-                $("#sns_info_div").append(data);
-            }
-        });
-    });
+    }
+
     $('#submit').click(function () {
+        var friendArr = $('#friendsSel').val().toString();
         $.ajax({
             url: '/friends?init=false',
             type: 'post',
             //dataType: 'json', //不能使用否则server无法取值
             //contentType: "application/json; charset=UTF-8",
             data: {
-                friends: $('#friends').val(),
+                friendsSel: friendArr,
                 timeStart: $('#timeStart').val(),
                 timeEnd: $('#timeEnd').val(),
                 hasPic: $('#hasPic').is(':checked'),
@@ -213,7 +209,7 @@
                 alert(err);
             },
             success: function (data, textStatus) {
-                $("#current").text(data["current"]);
+                $("#currentPage").text(data["currentPage"]);
                 $("#total").text(data["total"]);
                 $("#sns_info_tab").remove();
                 $("#sns_info_div").append(data["html"]);
@@ -221,39 +217,6 @@
         });
     });
 
-    $(document).ready(function () {
-        $('#sns_info_tab11').DataTable({
-            {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
-            "oLanguage": {
-                "sLengthMenu": "每页 _MENU_ 条",
-                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                "sInfoEmpty": "共 0 条",
-                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                "oPaginate": {
-                    "sFirst": "首页",
-                    "sPrevious": "前页",
-                    "sNext": "后页",
-                    "sLast": "尾页"
-                },
-                "sZeroRecords": "没有数据 。。。",
-                "sProcessing": "<img src='/static/images/loading.gif'/>",
-                "sSearch": "内容检索："
-            },
-            "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
-            "info": true,
-            "row-border": "2px",
-            "searching": true,
-            "processing": true,
-            "search": {"regex": true},//开启正则支持
-            {#"bStateSave": true, //状态保存,与正则检索矛盾#}
-            "bFilter": true,
-            "bLengthChange": true,
-            "aLengthMenu": [5, 15, 30],
-            "scrollY": "800px",
-            {#"bScrollCollapse": true,#}
-            "aaSorting": [[0, "desc"]]
-        });
-    });
 </script>
 
 </html>

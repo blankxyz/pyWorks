@@ -211,21 +211,24 @@ class SessionManager(object):
         self.userId = util.get_loginUser()
 
         self.conn = redis.StrictRedis.from_url(REDIS_SERVER)
-        self.around_snsInfo_hset_key = '_around_session_hset'
+        self.around_snsId_hset_key = '_around_snsId_hset'
         self.around_pages_hset_key = '_around_pages_hset'
         self.around_current = 'around_current'  # index
 
-        self.friends_snsInfo_hset_key = '_friends_session_hset'
+        self.friends_snsId_hset_key = '_friends_snsId_hset'
         self.friends_pages_hset_key = '_friends_pages_hset'
         self.friends_current = 'friends_current'  # index
 
-    def set_around_result(self, snsId_list):
-        if self.conn.exists(self.userId + self.around_snsInfo_hset_key):
-            self.conn.delete(self.userId + self.around_snsInfo_hset_key)
+    def set_around_result(self, snsInfo_list):
+        print 'set_around_result', len(snsInfo_list)
+        snsId_list = [snsInfo['snsId'] for snsInfo in snsInfo_list]
+
+        if self.conn.exists(self.userId + self.around_snsId_hset_key):
+            self.conn.delete(self.userId + self.around_snsId_hset_key)
 
         i = 1
         for snsId in snsId_list:
-            self.conn.hset(self.userId + self.around_snsInfo_hset_key, i, snsId)
+            self.conn.hset(self.userId + self.around_snsId_hset_key, i, snsId)
             i = i + 1
 
         self.conn.hset(self.userId + self.around_pages_hset_key, self.around_current, 1)
@@ -234,7 +237,7 @@ class SessionManager(object):
         snsId_list = []
         current = self.conn.hget(self.userId + self.around_pages_hset_key, self.around_current)
         current = int(current)
-        total = self.conn.hlen(self.userId + self.around_snsInfo_hset_key)
+        total = self.conn.hlen(self.userId + self.around_snsId_hset_key)
         print 'action:', action, 'current:', current, 'total:', total
 
         start = current
@@ -273,20 +276,25 @@ class SessionManager(object):
         self.conn.hset(self.userId + self.around_pages_hset_key, self.around_current, start)
 
         print 'start:', start, 'end:', end
-        for i in range(start, end):
-            snsId_list.append(self.conn.hget(self.userId + self.around_snsInfo_hset_key, i))
+        for i in range(start, end + 1):
+            snsId_list.append(self.conn.hget(self.userId + self.around_snsId_hset_key, i))
 
         return snsId_list
 
     def get_around_result_cnt(self):
-        return self.conn.hlen(self.userId + self.around_snsInfo_hset_key)
+        return self.conn.hlen(self.userId + self.around_snsId_hset_key)
 
-    def set_friends_result(self, snsId_list):
-        if self.conn.exists(self.userId + self.friends_snsInfo_hset_key):
-            self.conn.delete(self.userId + self.friends_snsInfo_hset_key)
+    def get_around_result_currentPage(self):
+        return self.conn.hget(self.userId + self.around_pages_hset_key, self.around_current)
+
+    def set_friends_result(self, snsInfo_list):
+        snsId_list = [snsInfo['snsId'] for snsInfo in snsInfo_list]
+
+        if self.conn.exists(self.userId + self.friends_snsId_hset_key):
+            self.conn.delete(self.userId + self.friends_snsId_hset_key)
         i = 1
         for snsId in snsId_list:
-            self.conn.hset(self.userId + self.friends_snsInfo_hset_key, i, snsId)
+            self.conn.hset(self.userId + self.friends_snsId_hset_key, i, snsId)
             i = i + 1
 
         self.conn.hset(self.userId + self.friends_pages_hset_key, self.friends_current, 1)
@@ -295,7 +303,7 @@ class SessionManager(object):
         snsId_list = []
         current = self.conn.hget(self.userId + self.friends_pages_hset_key, self.friends_current)
         current = int(current)
-        total = self.conn.hlen(self.userId + self.friends_snsInfo_hset_key)
+        total = self.conn.hlen(self.userId + self.friends_snsId_hset_key)
         print 'get_friends_result()', 'action:', action, 'current:', current, 'total:', total
 
         start = current
@@ -334,13 +342,16 @@ class SessionManager(object):
         self.conn.hset(self.userId + self.friends_pages_hset_key, self.friends_current, start)
 
         print 'get_friends_result()', 'start:', start, 'end:', end
-        for i in range(start, end):
-            snsId_list.append(self.conn.hget(self.userId + self.friends_snsInfo_hset_key, i))
+        for i in range(start, end + 1):
+            snsId_list.append(self.conn.hget(self.userId + self.friends_snsId_hset_key, i))
 
         return snsId_list
 
     def get_friends_result_cnt(self):
-        return self.conn.hlen(self.userId + self.friends_snsInfo_hset_key)
+        return self.conn.hlen(self.userId + self.friends_snsId_hset_key)
+
+    def get_friends_result_currentPage(self):
+        return self.conn.hget(self.userId + self.friends_pages_hset_key, self.friends_current)
 
 
 class DBDriver(object):
@@ -400,8 +411,9 @@ class DBDriver(object):
         db = DBDriver()
         friendsId_list = []
         for authorName in authorName_list:
-            authorId_name = db.authorId_name.find_one({"authorName": authorName})
-            friendsId_list.append(authorId_name['authorId'])
+            if authorName:
+                authorId_name = db.authorId_name.find_one({"authorName": authorName})
+                friendsId_list.append(authorId_name['authorId'])
 
         return friendsId_list
 
@@ -438,58 +450,14 @@ class DBDriver(object):
 
         return (ago_days, poi_address)
 
-    def around_lbs_info(self, ago_time='', author=[], has_pic='', x_y='', distance=''):
-        # local_flg 0: 附近的人  2：朋友圈
-        sns_info_list = []
-        db_patch_list = []  # 符合距离要求的db_patch
-        cond = {}
-
-        if ago_time:
-            t = int(time.mktime(time.strptime(ago_time + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
-            cond['timestamp'] = {"$gte": t}
-
-        if author:
-            cond['authorName'] = {"$in": author}
-
-        if has_pic:
-            cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
-
-        if distance:
-            (x, y) = self.util.convert_str_xy_to_x_y(x_y)
-            db_list = self.db_patch_location.find()
-            for db in db_list:
-                (db_y, db_x) = self.util.convert_str_xy_to_x_y(db['location'])
-                if db_x and float(db_x) != 0.0:
-                    d = self.util.calc_distance((x, y), (db_x, db_y))
-                    print u'选取地', (x, y), u'限定', distance, u'采集地', (db_x, db_y), u'相距', d
-                    if d <= float(distance):
-                        db_patch_list.append(db['db_patch'])
-
-            cond['db_patch'] = {"$in": db_patch_list}
-
-        print 'around_lbs_info() cond is:'
-        pprint(cond)
-
-        info_list = self.lbs_info.find(cond).sort("timestamp", pymongo.DESCENDING)  # .skip(10 * skip_page).limit(10)
-
-        for sns_info in info_list:
-            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
-            sns_info['ago_days'] = ago_days
-            sns_info['poi_address'] = poi_address
-            sns_info_list.append(sns_info)
-
-        print 'around_lbs_info()', len(sns_info_list)
-        return sns_info_list
-
     def friends_sns_info(self, friends='', timeStart='', timeEnd='',
                          hasPic='', hasLikes='', hasComments=''):
         # local_flg 0: 附近的人  2：朋友圈
         sns_info_list = []
         cond = {}
 
-        if friends:
-            print 'friends', friends
-            friendsId_list = self.get_friendsId_by_name(friends)
+        friendsId_list = self.get_friendsId_by_name(friends)
+        if friendsId_list:
             cond['authorId'] = {"$in": friendsId_list}
 
         if timeStart:
@@ -508,12 +476,12 @@ class DBDriver(object):
             cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
         if hasLikes == 'true':
-            cond['likes.0'] = {"$exists": 1}  # len(mediaList) >= 0
+            cond['likes.0'] = {"$exists": 1}
 
         if hasComments == 'true':
-            cond['comments.0'] = {"$exists": 1}  # len(mediaList) >= 0
+            cond['comments.0'] = {"$exists": 1}
 
-        print 'friends_sns_info() cond is:'
+        print '[info] friends cond is:'
         pprint(cond)
 
         l = self.sns_info.find(cond).sort("timestamp", pymongo.DESCENDING)
@@ -523,6 +491,58 @@ class DBDriver(object):
             sns_info['poi_address'] = poi_address
             sns_info_list.append(sns_info)
 
+        print '[info] friends post result is:', len(sns_info_list)
+        return sns_info_list
+
+    def around_sns_info(self, timeStart='', timeEnd='', author=[], x_y='', distance='', hasPic=''):
+        # local_flg 0: 附近的人  2：朋友圈
+        sns_info_list = []
+        db_patch_list = []  # 符合距离要求的db_patch
+        cond = {}
+
+        if timeStart:
+            st = int(time.mktime(time.strptime(timeStart + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+        else:
+            st = int(time.mktime(time.strptime('1971-01-01' + ' 00:00:00', "%Y-%m-%d %H:%M:%S")))
+
+        if timeEnd:
+            et = int(time.mktime(time.strptime(timeEnd + ' 23:59:59', "%Y-%m-%d %H:%M:%S")))
+        else:
+            et = int(time.mktime(time.strptime('2046-01-01' + ' 23:59:59', "%Y-%m-%d %H:%M:%S")))
+
+        cond['timestamp'] = {"$gte": st, "$lte": et}
+
+        if author and author[0] != 'all':
+            cond['authorName'] = {"$in": author}
+
+        if distance:
+            (x, y) = self.util.convert_str_xy_to_x_y(x_y)
+            db_list = self.db_patch_location.find()
+            for db in db_list:
+                (db_y, db_x) = self.util.convert_str_xy_to_x_y(db['location'])
+                if db_x and float(db_x) != 0.0:
+                    d = self.util.calc_distance((x, y), (db_x, db_y))
+                    print u'选取地', (x, y), u'限定', distance, u'采集地', (db_x, db_y), u'相距', d
+                    if d <= float(distance):
+                        db_patch_list.append(db['db_patch'])
+
+            cond['db_patch'] = {"$in": db_patch_list}
+
+        if hasPic:
+            cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
+
+        print '[info] around post cond:'
+        pprint(cond)
+
+        info_list = self.lbs_info.find(cond).sort("timestamp", pymongo.DESCENDING)  # .skip(10 * skip_page).limit(10)
+
+        for sns_info in info_list:
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
+            sns_info_list.append(sns_info)
+
+        print '[info] around post result:', len(sns_info_list)
         return sns_info_list
 
     def get_drivers(self):
@@ -531,7 +551,18 @@ class DBDriver(object):
     def get_users(self):
         return self.users.find()
 
-    def get_lbsInfo_list_by_snsId(self, snsId_list):
+    def get_aroundInfo_list_by_snsId(self, snsId_list):
+        aroundInfo_list = []
+        l = self.sns_info.find({'snsId': {'$in': snsId_list}}).sort("timestamp", pymongo.DESCENDING)
+        for sns_info in l:
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
+            aroundInfo_list.append(sns_info)
+
+        return aroundInfo_list
+
+    def get_friendsInfo_list_by_snsId(self, snsId_list):
         lbsInfo_list = []
         l = self.lbs_info.find({'snsId': {'$in': snsId_list}}).sort("timestamp", pymongo.DESCENDING)
         for sns_info in l:
@@ -698,27 +729,28 @@ class FriendsHandler(tornado.web.RequestHandler):
         if init_flg == 'true':  # init
             sns_info_list = db.friends_sns_info()
             session.set_friends_result(sns_info_list)
-            current = 1
             total = session.get_friends_result_cnt()
             self.render("friends.html",
                         title=u"微信-朋友圈",
-                        current=current,
+                        current=1,
                         total=total,
                         sns_info_list=sns_info_list[:PAGE_NUM],
                         friends_list=friends_list)
         else:
             snsId_list = session.get_friends_result(action)
-            sns_info_list = db.get_lbsInfo_list_by_snsId(snsId_list)
+            sns_info_list = db.get_aroundInfo_list_by_snsId(snsId_list)
             print 'get() sns_info_list:', len(sns_info_list)
+            current = session.get_friends_result_currentPage()
+            total = session.get_friends_result_cnt()
             html = self.create_table(sns_info_list)
-            self.write(html)
+            self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
 
     def post(self):
         session = SessionManager()
         db = DBDriver()
         snsId_list = []
 
-        friends = self.get_arguments('friends')
+        friendsSel = self.get_arguments('friendsSel')
 
         timeStart = self.get_argument('timeStart', '')
         timeEnd = self.get_argument('timeEnd', '')
@@ -727,25 +759,23 @@ class FriendsHandler(tornado.web.RequestHandler):
         hasComments = self.get_argument('hasComments', '')
 
         print '------------------------------- Friends  post  ----------------------------------- '
-        print 'friends:', friends
-        print 'timeStart: ', timeStart, ' timeEnd:', timeEnd, ' friends: ', friends
-        print 'hasPic: ', hasPic, ' hasLikes:', hasLikes, ' hasComments: ', hasComments
+        print 'friendsSel: ', friendsSel
+        print 'timeStart: ', timeStart, ' timeEnd:', timeEnd, 'hasPic: ', hasPic, ' hasLikes:', hasLikes, ' hasComments: ', hasComments
         print '------------------------------- Friends  post  ----------------------------------- '
-        sns_info_list = db.friends_sns_info(friends, timeStart, timeEnd, hasPic, hasLikes, hasComments)
-        for snsInfo in sns_info_list:
-            snsId_list.append(snsInfo['snsId'])
+        sns_info_list = db.friends_sns_info(friendsSel, timeStart, timeEnd, hasPic, hasLikes, hasComments)
+        session.set_friends_result(sns_info_list)
 
-        session.set_friends_result(snsId_list)
+        current = session.get_friends_result_currentPage()
         total = session.get_friends_result_cnt()
-        html = self.create_table(sns_info_list)
+        html = self.create_table(sns_info_list[:PAGE_NUM])
 
-        self.write({'total': total, 'html': html})
+        self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
 
 
 class AroundHandler(tornado.web.RequestHandler):
-    def create_table(self, lbs_info_list):
+    def create_table(self, sns_info_list):
         html = '''
-        <table id="lbs_info_tab" class="table">
+        <table id="sns_info_tab" class="table">
         <thead>
         <tr>
             <th></th>
@@ -755,7 +785,7 @@ class AroundHandler(tornado.web.RequestHandler):
         <tbody>
         '''
 
-        for sns_info in lbs_info_list:
+        for sns_info in sns_info_list:
             html += '''
             <tr style="border: 1px solid #ccc;">
                 <td>
@@ -828,48 +858,48 @@ class AroundHandler(tornado.web.RequestHandler):
         print '------------------------------- Around  get  -----------------------------------'
         authors_list = db.get_around()
         if init_flg == 'true':  # init
-            lbs_info_list = db.around_lbs_info()
-            session.set_around_result(lbs_info_list)
+            sns_info_list = db.around_sns_info()
+            session.set_around_result(sns_info_list)
             total = session.get_around_result_cnt()
             self.render(
                 "around.html",
+                current=1,
                 total=total,
-                title=u"微信-周围的人",
-                lbs_info_list=lbs_info_list[:PAGE_NUM],
+                sns_info_list=sns_info_list[:PAGE_NUM],
                 authors_list=authors_list)
         else:
             snsId_list = session.get_around_result(action)
-            lbs_info_list = db.get_lbsInfo_list_by_snsId(snsId_list)
-            print 'lbs_info_list:', len(lbs_info_list)
-            html = self.create_table(lbs_info_list)
-            self.write(html)
+            sns_info_list = db.get_friendsInfo_list_by_snsId(snsId_list)
+            print 'sns_info_list:', len(sns_info_list)
+            current = session.get_around_result_currentPage()
+            total = session.get_around_result_cnt()
+            html = self.create_table(sns_info_list)
+            self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
 
     def post(self):
         db = DBDriver()
         session = SessionManager()
         snsId_list = []
 
-        ago_time = self.get_argument('ago_time', '')
+        timeStart = self.get_argument('timeStart', '')
+        timeEnd = self.get_argument('timeEnd', '')
         authors = self.get_arguments('authors')
-        pic_flg = self.get_argument('pic_flg', '')
+        hasPic = self.get_argument('hasPic', '')
         x_y = self.get_argument('x_y', '')
         distance = self.get_argument('distance', '')
 
         print '-------------------------------   post  ----------------------------------- '
-        print 'ago_time: ', ago_time, 'authors: ', authors, 'pic_flg: ', pic_flg, 'x_y: ', x_y, 'distance: ', distance
-        around_list = db.get_around()
-        lbs_info_list = db.around_lbs_info(ago_time, authors, pic_flg, x_y, distance)
-        for snsInfo in lbs_info_list:
-            snsId_list.append(snsInfo['snsId'])
-
-        session.set_around_result(snsId_list)
+        print 'timeStart:', timeStart, ' timeEnd: ', timeEnd, ' authors:', authors
+        print 'hasPic:', hasPic, 'x_y:', x_y, ' distance:', distance
         print '-------------------------------   post  ----------------------------------- '
+        sns_info_list = db.around_sns_info(timeStart, timeEnd, authors, x_y, distance, hasPic)
+        session.set_around_result(sns_info_list)
 
-        self.render(
-            "around.html",
-            title=u"微信-周围的人",
-            lbs_info_list=lbs_info_list[:PAGE_NUM],
-            authors_list=around_list)
+        total = session.get_around_result_cnt()
+        current = session.get_around_result_currentPage()
+        html = self.create_table(sns_info_list[:PAGE_NUM])
+
+        self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
 
 
 class DriversHandler(tornado.web.RequestHandler):
