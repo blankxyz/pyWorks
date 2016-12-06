@@ -229,7 +229,7 @@ flare.vis.operator.label,
 flare.vis.operator.label.Labeler,9956
 flare.vis.operator.label.RadialLabeler,3899
 flare.vis.operator.label.StackedAreaLabeler,3202
-flare.vis.operator.label.Cccccccc,1000000
+flare.vis.operator.label.中文,1000000
 flare.vis.operator.layout,
 flare.vis.operator.layout.AxisLayout,6725
 flare.vis.operator.layout.BundledEdgeRouter,3727

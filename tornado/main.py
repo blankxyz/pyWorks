@@ -379,6 +379,22 @@ class DBDriver(object):
         self.db_patch_location = self.db.db_patch_location  # drivers
         self.sns_info_patch = self.db.sns_info_patch
 
+    def db_patch_location_add_city_district(self):
+        l = self.db_patch_location.find()
+        for i in l:
+            location = i['location']
+            addressComponent = self.util.convert_xy_to_addressComponent(location)
+            country = addressComponent['country']
+            province = addressComponent['province']
+            city = addressComponent['city']
+            district = addressComponent['district']
+            self.db_patch_location.update({'_id':i['_id']},
+                                          {'$set':{'country':country,
+                                                   'province':province,
+                                                   'city':city,
+                                                   'district':district}
+                                           })
+
     def patch_address(self):
         l = self.sns_info.find({"localFlag": AROUND_FLG})
         cnt = 0
@@ -636,6 +652,20 @@ class DBDriver(object):
         fd.write('''var userArea = "''' + area[0]['district'] + '''";\n''')
         fd.close()
 
+    def make_ball_js(self):
+        authors_list = self.get_around()
+
+        # fd = open('./templates/ball.html', 'w')
+        # fd.write('var lbsInfo =  [\n')
+        # for i in l:
+        #     location = i['location']
+        #     if location != u'None':
+        #         (y, x) = self.util.convert_str_xy_to_x_y(location)
+        #         if x and float(x):
+        #             fd.write('''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "''' +
+        #                      i['db_patch'] + '''"},\n''')
+        # fd.write('];\n')
+        # fd.close()
 
 class Manager(tornado.web.RequestHandler):
     def get(self):
@@ -1001,6 +1031,7 @@ class Application(tornado.web.Application):
 
 def main():
     db = DBDriver()
+    # db.make_ball_js()
     db.make_userArea_point_js()  # 控制前端采集点描绘
     db.make_userArea_outline_js()  # 控制前端行政区轮廓划分
 
@@ -1018,7 +1049,7 @@ def patch_address():
 
 def test():
     db = DBDriver()
-    pprint(db.get_friends())
+    db.db_patch_location_add_city_district()
 
 
 if __name__ == "__main__":
