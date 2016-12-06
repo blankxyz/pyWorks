@@ -559,7 +559,7 @@ class DBDriver(object):
 
             cond['db_patch'] = {"$in": db_patch_list}
 
-        if hasPic:
+        if hasPic == 'true':
             cond['mediaList.0'] = {"$exists": 1}  # len(mediaList) >= 0
 
         print '[info] around post cond:'
