@@ -50,6 +50,7 @@
         <hr>
         <h4>选择朋友圈</h4>
         <select id="friendsSel" class="form-control">
+            <option value="all">--- all ---</option>
             {% for friends in friends_list %}
             <option value="{{ friends }}">{{ friends }}</option>
             {% end %}

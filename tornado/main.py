@@ -219,74 +219,6 @@ class SessionManager(object):
         self.friends_pages_hset_key = '_friends_pages_hset'
         self.friends_current = 'friends_current'  # index
 
-    def set_around_result(self, snsInfo_list):
-        print 'set_around_result', len(snsInfo_list)
-        snsId_list = [snsInfo['snsId'] for snsInfo in snsInfo_list]
-
-        if self.conn.exists(self.userId + self.around_snsId_hset_key):
-            self.conn.delete(self.userId + self.around_snsId_hset_key)
-
-        i = 1
-        for snsId in snsId_list:
-            self.conn.hset(self.userId + self.around_snsId_hset_key, i, snsId)
-            i = i + 1
-
-        self.conn.hset(self.userId + self.around_pages_hset_key, self.around_current, 1)
-
-    def get_around_result(self, action):
-        snsId_list = []
-        current = self.conn.hget(self.userId + self.around_pages_hset_key, self.around_current)
-        current = int(current)
-        total = self.conn.hlen(self.userId + self.around_snsId_hset_key)
-        print 'action:', action, 'current:', current, 'total:', total
-
-        start = current
-        end = current + PAGE_NUM - 1
-
-        if total <= PAGE_NUM:  # 不足1页
-            start = 1
-            end = total
-        else:
-            if action == 'frist':
-                start = 1
-                end = total if total < PAGE_NUM else PAGE_NUM
-
-            if action == 'next':
-                if current + PAGE_NUM >= total:  # 已经是末页
-                    start = current
-                    end = total
-                else:
-                    start = current + PAGE_NUM
-                    end = start + PAGE_NUM - 1
-                    if start <= total and total <= end:
-                        end = total
-
-            if action == 'pre':
-                if current == 1:  # 已经是首页
-                    start = 1
-                    end = PAGE_NUM
-                else:
-                    start = current - PAGE_NUM
-                    end = start + PAGE_NUM - 1
-
-            if action == 'last':
-                start = 1 if total < PAGE_NUM else (total - (total % PAGE_NUM) + 1)
-                end = total
-
-        self.conn.hset(self.userId + self.around_pages_hset_key, self.around_current, start)
-
-        print 'start:', start, 'end:', end
-        for i in range(start, end + 1):
-            snsId_list.append(self.conn.hget(self.userId + self.around_snsId_hset_key, i))
-
-        return snsId_list
-
-    def get_around_result_cnt(self):
-        return self.conn.hlen(self.userId + self.around_snsId_hset_key)
-
-    def get_around_result_currentPage(self):
-        return self.conn.hget(self.userId + self.around_pages_hset_key, self.around_current)
-
     def set_friends_result(self, snsInfo_list):
         snsId_list = [snsInfo['snsId'] for snsInfo in snsInfo_list]
 
@@ -336,7 +268,12 @@ class SessionManager(object):
                     end = start + PAGE_NUM - 1
 
             if action == 'last':
-                start = 1 if total < PAGE_NUM else (total - (total % PAGE_NUM) + 1)
+                if total < PAGE_NUM:
+                    start = 1
+                elif total % PAGE_NUM:
+                    start = (total - (total % PAGE_NUM) + 1)
+                else:
+                    start = (total - PAGE_NUM + 1)
                 end = total
 
         self.conn.hset(self.userId + self.friends_pages_hset_key, self.friends_current, start)
@@ -350,8 +287,84 @@ class SessionManager(object):
     def get_friends_result_cnt(self):
         return self.conn.hlen(self.userId + self.friends_snsId_hset_key)
 
-    def get_friends_result_currentPage(self):
+    def get_friends_result_current(self):
+        # 1, 11, 21, 31
         return self.conn.hget(self.userId + self.friends_pages_hset_key, self.friends_current)
+
+    def set_around_result(self, snsInfo_list):
+        print 'set_around_result', len(snsInfo_list)
+        snsId_list = [snsInfo['snsId'] for snsInfo in snsInfo_list]
+
+        if self.conn.exists(self.userId + self.around_snsId_hset_key):
+            self.conn.delete(self.userId + self.around_snsId_hset_key)
+
+        i = 1
+        for snsId in snsId_list:
+            self.conn.hset(self.userId + self.around_snsId_hset_key, i, snsId)
+            i = i + 1
+
+        self.conn.hset(self.userId + self.around_pages_hset_key, self.around_current, 1)
+
+    def get_around_result(self, action):
+        print 'get_around_result'
+        snsId_list = []
+        current = self.conn.hget(self.userId + self.around_pages_hset_key, self.around_current)
+        current = int(current)
+        total = self.conn.hlen(self.userId + self.around_snsId_hset_key)
+        print 'action:', action, 'current:', current, 'total:', total
+
+        start = current
+        end = current + PAGE_NUM - 1
+
+        if total <= PAGE_NUM:  # 不足1页
+            start = 1
+            end = total
+        else:
+            if action == 'first':
+                start = 1
+                end = total if total < PAGE_NUM else PAGE_NUM
+
+            if action == 'next':
+                if current + PAGE_NUM >= total:  # 已经是末页
+                    start = current
+                    end = total
+                else:
+                    start = current + PAGE_NUM
+                    end = start + PAGE_NUM - 1
+                    if start <= total and total <= end:
+                        end = total
+
+            if action == 'pre':
+                if current == 1:  # 已经是首页
+                    start = 1
+                    end = PAGE_NUM
+                else:
+                    start = current - PAGE_NUM
+                    end = start + PAGE_NUM - 1
+
+            if action == 'last':
+                if total < PAGE_NUM:
+                    start = 1
+                elif total % PAGE_NUM:
+                    start = (total - (total % PAGE_NUM) + 1)
+                else:
+                    start = (total - PAGE_NUM + 1)
+                end = total
+
+        self.conn.hset(self.userId + self.around_pages_hset_key, self.around_current, start)
+
+        print 'start:', start, 'end:', end
+        for i in range(start, end + 1):
+            snsId_list.append(self.conn.hget(self.userId + self.around_snsId_hset_key, i))
+
+        print snsId_list
+        return snsId_list
+
+    def get_around_result_cnt(self):
+        return self.conn.hlen(self.userId + self.around_snsId_hset_key)
+
+    def get_around_result_current(self):
+        return self.conn.hget(self.userId + self.around_pages_hset_key, self.around_current)
 
 
 class DBDriver(object):
@@ -407,12 +420,15 @@ class DBDriver(object):
 
         return authors
 
-    def get_friendsId_by_name(self, authorName_list):
+    def get_friendsId_by_name(self, friendsName_list):
         db = DBDriver()
         friendsId_list = []
-        for authorName in authorName_list:
-            if authorName:
-                authorId_name = db.authorId_name.find_one({"authorName": authorName})
+        for friendsName in friendsName_list:
+            if friendsName == 'all':
+                break
+
+            if friendsName:
+                authorId_name = db.authorId_name.find_one({"authorName": friendsName})
                 friendsId_list.append(authorId_name['authorId'])
 
         return friendsId_list
@@ -552,26 +568,26 @@ class DBDriver(object):
         return self.users.find()
 
     def get_aroundInfo_list_by_snsId(self, snsId_list):
-        aroundInfo_list = []
-        l = self.sns_info.find({'snsId': {'$in': snsId_list}}).sort("timestamp", pymongo.DESCENDING)
-        for sns_info in l:
-            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
-            sns_info['ago_days'] = ago_days
-            sns_info['poi_address'] = poi_address
-            aroundInfo_list.append(sns_info)
-
-        return aroundInfo_list
-
-    def get_friendsInfo_list_by_snsId(self, snsId_list):
-        lbsInfo_list = []
+        snsInfo_list = []
         l = self.lbs_info.find({'snsId': {'$in': snsId_list}}).sort("timestamp", pymongo.DESCENDING)
         for sns_info in l:
             (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
             sns_info['ago_days'] = ago_days
             sns_info['poi_address'] = poi_address
-            lbsInfo_list.append(sns_info)
+            snsInfo_list.append(sns_info)
 
-        return lbsInfo_list
+        return snsInfo_list
+
+    def get_friendsInfo_list_by_snsId(self, snsId_list):
+        snsInfo_list = []
+        l = self.sns_info.find({'snsId': {'$in': snsId_list}}).sort("timestamp", pymongo.DESCENDING)
+        for sns_info in l:
+            (ago_days, poi_address) = self.patch_agoDays_address(sns_info)
+            sns_info['ago_days'] = ago_days
+            sns_info['poi_address'] = poi_address
+            snsInfo_list.append(sns_info)
+
+        return snsInfo_list
 
     def get_loginUser_area(self):
         area_list = []
@@ -736,11 +752,11 @@ class FriendsHandler(tornado.web.RequestHandler):
                         total=total,
                         sns_info_list=sns_info_list[:PAGE_NUM],
                         friends_list=friends_list)
-        else:
+        else:  # 翻页
             snsId_list = session.get_friends_result(action)
-            sns_info_list = db.get_aroundInfo_list_by_snsId(snsId_list)
-            print 'get() sns_info_list:', len(sns_info_list)
-            current = session.get_friends_result_currentPage()
+            sns_info_list = db.get_friendsInfo_list_by_snsId(snsId_list)
+            print '[info] friends get sns_info_list:', len(sns_info_list)
+            current = session.get_friends_result_current()
             total = session.get_friends_result_cnt()
             html = self.create_table(sns_info_list)
             self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
@@ -748,7 +764,6 @@ class FriendsHandler(tornado.web.RequestHandler):
     def post(self):
         session = SessionManager()
         db = DBDriver()
-        snsId_list = []
 
         friendsSel = self.get_arguments('friendsSel')
 
@@ -765,7 +780,7 @@ class FriendsHandler(tornado.web.RequestHandler):
         sns_info_list = db.friends_sns_info(friendsSel, timeStart, timeEnd, hasPic, hasLikes, hasComments)
         session.set_friends_result(sns_info_list)
 
-        current = session.get_friends_result_currentPage()
+        current = session.get_friends_result_current()
         total = session.get_friends_result_cnt()
         html = self.create_table(sns_info_list[:PAGE_NUM])
 
@@ -867,19 +882,20 @@ class AroundHandler(tornado.web.RequestHandler):
                 total=total,
                 sns_info_list=sns_info_list[:PAGE_NUM],
                 authors_list=authors_list)
-        else:
+        else:  # 翻页
             snsId_list = session.get_around_result(action)
-            sns_info_list = db.get_friendsInfo_list_by_snsId(snsId_list)
+            sns_info_list = db.get_aroundInfo_list_by_snsId(snsId_list)
             print 'sns_info_list:', len(sns_info_list)
-            current = session.get_around_result_currentPage()
+
+            current = session.get_around_result_current()
             total = session.get_around_result_cnt()
             html = self.create_table(sns_info_list)
+
             self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
 
     def post(self):
         db = DBDriver()
         session = SessionManager()
-        snsId_list = []
 
         timeStart = self.get_argument('timeStart', '')
         timeEnd = self.get_argument('timeEnd', '')
@@ -896,7 +912,7 @@ class AroundHandler(tornado.web.RequestHandler):
         session.set_around_result(sns_info_list)
 
         total = session.get_around_result_cnt()
-        current = session.get_around_result_currentPage()
+        current = session.get_around_result_current()
         html = self.create_table(sns_info_list[:PAGE_NUM])
 
         self.write({'currentPage': int(current) / PAGE_NUM + 1, 'total': total, 'html': html})
