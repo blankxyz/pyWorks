@@ -311,7 +311,7 @@
                         });
                         polygons.push(polygon);
                     }
-                    map.setFitView();//地图自适应
+                    //map.setFitView();//地图自适应
                 }
             });
         });
@@ -380,19 +380,19 @@
         marker.setLabel({content: e.data.name})
     });
     mass.setMap(map);
-    //-------------------------------------------------------------------------------
-    map.setLimitBounds(map.getBounds());
-    function getLimitBounds() {
-        var limitBounds = map.getLimitBounds();
-        if (limitBounds) {
-            var tip = [];
-            tip.push('限制区域：\n西南坐标[' + limitBounds.southwest.lng + ',' + limitBounds.southwest.lat + ']\n')
-            tip.push('东北坐标[' + limitBounds.northeast.lng + ',' + limitBounds.northeast.lat + ']')
-            alert(tip.join(''));
-        } else {
-            alert('未设置限制区域');
-        }
-    }
+    //---------限制区域----------------------------------------------------------------
+{#    map.setLimitBounds(map.getBounds());#}
+{#    function getLimitBounds() {#}
+{#        var limitBounds = map.getLimitBounds();#}
+{#        if (limitBounds) {#}
+{#            var tip = [];#}
+{#            tip.push('限制区域：\n西南坐标[' + limitBounds.southwest.lng + ',' + limitBounds.southwest.lat + ']\n')#}
+{#            tip.push('东北坐标[' + limitBounds.northeast.lng + ',' + limitBounds.northeast.lat + ']')#}
+{#            alert(tip.join(''));#}
+{#        } else {#}
+{#            alert('未设置限制区域');#}
+{#        }#}
+{#    }#}
 </script>
 </html>
 

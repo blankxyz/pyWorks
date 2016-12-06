@@ -637,8 +637,8 @@ class DBDriver(object):
             if location != u'None':
                 (y, x) = self.util.convert_str_xy_to_x_y(location)
                 if x and float(x):
-                    fd.write('''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "''' +
-                             i['db_patch'] + '''"},\n''')
+                    cnt = self.lbs_info.find({'db_patch':i['db_patch']}).count()
+                    fd.write('''    {"lnglat": ["''' + x + '''", "''' + y + '''"], "name": "Collect ''' + str(cnt) + ''' WeChat"},\n''')
         fd.write('];\n')
         fd.close()
 
