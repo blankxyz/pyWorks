@@ -1,0 +1,88 @@
+{#{% extends "main.html" %}#}
+{% autoescape None %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="referrer" content="never">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <!-- jquery -->
+    <script src="http://cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
+    <!-- bootstrap -->
+    <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <!-- DataTables -->
+    <link rel="stylesheet" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+    <script src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <title>全站展示</title>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#site_index_tab').DataTable({
+                "oLanguage": {
+                    "sLengthMenu": "每页 _MENU_ 条",
+                    "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                    "sInfoEmpty": "共 0 条",
+                    "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                    "sZeroRecords": "没有数据 。。。",
+                    "sProcessing": "<img src='/static/images/loading_roll.gif'/>",
+                    "sSearch": "网站名称检索：",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前页",
+                        "sNext": "后页",
+                        "sLast": "尾页"
+                    }
+                },
+                "info": true,
+                "aLengthMenu": [20, 50, 100],
+                "bLengthChange": true,
+                "bFilter": true,
+                "bProcessing": true,
+                "bServerSide": true,
+{#                "scrollY": "785px",#}
+                "ajax": "./getListJson",
+                "aoColumns": [{"mData": "hubPage"}, {"mData": "siteName"}],
+                "aoColumnDefs": [
+                    {   "sWidth":"50%",
+                        "aTargets": [0],
+                        "mRender": function (data, type, row) {
+                            return '<a href=\"/getHubPage?hubPage=' + row[0] + '\">' + row[0] + '</a>';
+                        }
+                    },
+                    {
+                        "sWidth":"50%",
+                        "aTargets": [1],
+                        "mRender": function (data, type, row) {
+                            return '<a href=\"http://www.' + row[0] + '\">' + row[1] + '</a>';
+                        }
+                    }
+                ],
+{#                "fnServerParams": function (aoData) {#}
+{#                    aoData.push({"name": "aaa", "value": "bbbb"});#}
+{#                },#}
+                "aaSorting": [[0, "desc"]]
+            });
+        });
+    </script>
+</head>
+
+{% block body %}
+<style type="text/css">
+</style>
+
+{% set url_pre = "http://www." %}
+<div id="site_index_div" style="width:1024px; margin-left:50px;margin-top:50px" class="col-sm-9">
+    <table id="site_index_tab" class="table">
+        <thead>
+        <tr>
+            <th>网站域名（首页地址）</th>
+            <th>网站名称</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+{% end %}
+</html>
+
+

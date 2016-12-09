@@ -1,195 +1,133 @@
-{#{% extends "main.html" %}#}
-{% autoescape None %}
+<!doctype html>
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="referrer" content="never">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
-    <!-- jquery -->
-    <script src="http://cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
-    <!-- bootstrap -->
-    <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-    <!-- DataTables -->
-    <link rel="stylesheet" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
-    <script src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-    <!-- 日期选择插件 -->
-    <link href="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css"
-          rel="stylesheet"/>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
-    <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
-    <!-- self css -->
-    <link rel="stylesheet" href="{{ static_url("css/search_result.css") }}"/>
-    <title>微信-朋友圈</title>
+    <title>全国城市下拉列表</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0"/>
+<script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=0c7fb71b2e13546416337666cd406db3&plugin=AMap.DistrictSearch"></script>
+
+    <style type="text/css">
+        #tip {
+            background-color: #fff;
+            padding:0 10px;
+            border: 1px solid silver;
+            box-shadow: 3px 4px 3px 0px silver;
+            position: absolute;
+            font-size: 12px;
+            right: 10px;
+            top: 5px;
+            border-radius: 3px;
+            line-height: 36px;
+        }
+    </style>
 </head>
-
-{% block body %}
-<style type="text/css">
-    option.imagebacked {
-        padding: 2px 0 2px 20px;
-        background-repeat: no-repeat;
-        background-position: 1px 2px;
-        vertical-align: middle;
-    }
-</style>
-
-<!-- 反 微信防盗链  -->
-{% set pre_url = "http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=" %}
-{#{% set pre_url = "" %}#}
-
-{#<div id="sns">#}
-{#	{% for sns in sns_info_list %}#}
-{# 	 	{{ modules.SnsInfo(sns) }}#}
-{#	{% end %}#}
-{#</div>#}
-
-<!-- 左侧检索栏  -->
-<div id="filter_div" style="float:left;width:200px; margin-left:50px">
-    <h3>检索条件</h3>
-    <hr>
-    <div class="form-group row">
-        <form role="form" action="/friends" method="post">
-            <h4>选择发布时间</h4>
-            <div class='input-group date' id='datetimepicker'>
-                <input type='text' name="ago_time" class="form-control" placeholder="采集时间为 XX日 以后"/>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-            </div>
-            <br>
-            <div>
-                <h4>选择朋友圈</h4>
-                <select name="authors" class="form-control">
-                    <option value="all">----- 全部 -----</option>
-                    {% for friends in friends_list %}
-                    {#<option class="imagebacked" style="background-image: url(static/images/head_first_python.gif)">#}
-                    <option value="{{ friends }}">{{ friends }}</option>
-                    {% end %}
-                </select>
-            </div>
-            <br>
-            <div class="checkbox">
-                <label>
-                    <input name="pic_flg" type="checkbox">仅显示有图消息&nbsp;&nbsp;&nbsp;
-                </label>
-                <input type="submit" class="btn btn-primary btn-sm" value="微信搜索"/>
-            </div>
-        </form>
-    </div>
+<body>
+<div id="mapContainer"></div>
+<div id="tip">
+    省：<select id='province' style="width:100px" onchange='search(this)'></select>
+    市：<select id='city' style="width:100px" onchange='search(this)'></select>
+    区：<select id='district' style="width:100px" onchange='search(this)'></select>
+    街道：<select id='street' style="width:100px" onchange= 'setCenter(this)'></select>
 </div>
-
-<!-- 中间 微信信息展示栏  -->
-<div id="sns_info_div" style="float:left;width:700px; margin-left:50px" class="col-sm-9">
-    <h3>共有 {{ len(sns_info_list) }} 条</h3>
-    <hr>
-    <table id="sns_info_tab11">
-        <thead>
-        <tr>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for sns_info in sns_info_list %}
-        <tr style="border: 1px solid #ccc;">
-            <td>
-                <div class="sns_left">
-                    <img src="static/images/weixin_logo.png" class="sns_author_logo img-rounded"/>
-                </div>
-                <div class="sns_right">
-                    {#<div class="sns_details">#}
-                    <div class="sns_author row clearfix">
-                        {# <span class="glyphicon glyphicon-user"></span>&nbsp;#}
-                        {{ sns_info["authorName"] }}
-                    </div>
-
-                    <div class="sns_content row clearfix">
-                        <small>{% raw sns_info["content"] %}</small>
-                    </div>
-                    <div class="pull-left sns_image_list row clearfix">
-                        {% for url in sns_info["mediaList"] %}
-                        <img src="{{ pre_url + url }}" class="media img-rounded sns_image"/>
-                        {% end %}
-                    </div>
-                    <div class="sns_timeLocation row clearfix">
-                        <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
-                            {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
-                            {{ sns_info["ago_days"] }}
-                            &nbsp;&nbsp;&nbsp;
-                            <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
-                            {{ sns_info["poi_address"] }}
-                        </h6>
-                    </div>
-                    {% if len(sns_info["likes"])>0 %}
-                    <div class="sns_comments row clearfix">
-                        <span class="glyphicon glyphicon-heart-empty"></span>
-                        {% for comment in sns_info["likes"] %}
-                        <small>&nbsp;&nbsp;{{ comment['userName'] }}</small>
-                        {% end %}
-                    </div>
-                    {% end %}
-                    {% if len(sns_info["comments"])>0 %}
-                    <div class="sns_comments row clearfix">
-                        {% for comment in sns_info["comments"] %}
-                        <h4>{{ comment['authorName'] }} :
-                            <small>&nbsp;&nbsp;{{ comment['content'] }}</small>
-                        </h4>
-                        {% end %}
-                    </div>
-                    {% end %}
-                    {#</div>#}
-                </div>
-            </td>
-        </tr>
-        {% end %}
-        </tbody>
-    </table>
-</div>
-{% end %}
-
-
-<script src="{{ static_url("js/script.js") }}"></script>
 <script type="text/javascript">
-    $(function () {
-        $('#datetimepicker').datetimepicker({
-            format: 'YYYY-MM-DD',//日期格式化，只显示日期
-            locale: 'zh-CN'      //中文化
-        });
-    });
+    var map, district, polygons = [], citycode;
+    var citySelect = document.getElementById('city');
+    var districtSelect = document.getElementById('district');
+    var areaSelect = document.getElementById('street');
 
-    $(document).ready(function () {
-        $('#sns_info_tab').DataTable({
-            {#"sDom":'<"top"iflp<"clear">>rt<"bottom"<"clear"><t<“span12 center”p>>>',#}
-            "oLanguage": {
-                "sLengthMenu": "每页 _MENU_ 条",
-                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                "sInfoEmpty": "共 0 条",
-                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                "oPaginate": {
-                    "sFirst": "首页",
-                    "sPrevious": "前页",
-                    "sNext": "后页",
-                    "sLast": "尾页"
-                },
-                "sZeroRecords": "没有数据 。。。",
-                "sProcessing": "<img src='/static/images/loading.gif'/>",
-                "sSearch": "内容检索："
-            },
-            "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
-            "info": true,
-            {#            "row-border": "2px",#}
-            "searching": true,
-            "processing": true,
-            "search": {"regex": true},//开启正则支持
-            {#"bStateSave": true, //状态保存,与正则检索矛盾#}
-            "bFilter": true,
-            "bLengthChange": true,
-            "aLengthMenu": [5, 15, 30],
-            "scrollY": "700px",
-            {#            "bScrollCollapse": true,#}
-            "aaSorting": [[0, "desc"]]
-        });
+    map = new AMap.Map('mapContainer', {
+        resizeEnable: true,
+        center: [116.30946, 39.937629],
+        zoom: 3
     });
+    //行政区划查询
+    var opts = {
+        subdistrict: 1,   //返回下一级行政区
+        level: 'city',
+        showbiz:false  //查询行政级别为 市
+    };
+    district = new AMap.DistrictSearch(opts);//注意：需要使用插件同步下发功能才能这样直接使用
+    district.search('中国', function(status, result) {
+            getData(result);
+    });
+    function getData(e) {
+        var dList = e.districtList;
+        for (var m = 0, ml = dList.length; m < ml; m++) {
+            var data = e.districtList[m].level;
+            var bounds = e.districtList[m].boundaries;
+            if (bounds) {
+                for (var i = 0, l = bounds.length; i < l; i++) {
+                    var polygon = new AMap.Polygon({
+                        map: map,
+                        strokeWeight: 1,
+                        strokeColor: '#CC66CC',
+                        fillColor: '#CCF3FF',
+                        fillOpacity: 0.5,
+                        path: bounds[i]
+                    });
+                    polygons.push(polygon);
+                }
+                map.setFitView();//地图自适应
+            }
+            var list = e.districtList || [],
+                    subList = [], level, nextLevel;
+            if (list.length >= 1) {
+                subList = list[0].districtList;
+                level = list[0].level;
+            }
+            //清空下一级别的下拉列表
+            if (level === 'province') {
+                nextLevel = 'city';
+                citySelect.innerHTML = '';
+                districtSelect.innerHTML = '';
+                areaSelect.innerHTML = '';
+            } else if (level === 'city') {
+                nextLevel = 'district';
+                districtSelect.innerHTML = '';
+                areaSelect.innerHTML = '';
+            } else if (level === 'district') {
+                nextLevel = 'street';
+                areaSelect.innerHTML = '';
+            }
+            if (subList) {
+                var contentSub =new Option('--请选择--');
+                for (var i = 0, l = subList.length; i < l; i++) {
+                    var name = subList[i].name;
+                    var levelSub = subList[i].level;
+                    var cityCode = subList[i].citycode;
+                    if(i==0){
+                        document.querySelector('#' + levelSub).add(contentSub);
+                    }
+                    contentSub=new Option(name);
+                    contentSub.setAttribute("value", levelSub);
+                    contentSub.center = subList[i].center;
+                    document.querySelector('#' + levelSub).add(contentSub);
+                }
+            }
+        }
+    }
+    function search(obj) {
+        //清除地图上所有覆盖物
+        for (var i = 0, l = polygons.length; i < l; i++) {
+            polygons[i].setMap(null);
+        }
+
+        var option = obj[obj.options.selectedIndex];
+        var keyword = option.text; //关键字
+        district.setLevel(option.value); //行政区级别
+        district.setExtensions('all');
+        //行政区查询
+        district.search(keyword, function(status, result) {
+            getData(result);
+        });
+    }
+    function setCenter(obj){
+        map.setCenter(obj[obj.options.selectedIndex].center)
+    }
 </script>
+<script type="text/javascript" src="http://webapi.amap.com/demos/js/liteToolbar.js"></script>
 
+</body>
 </html>
-
-

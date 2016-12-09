@@ -573,7 +573,7 @@ class DBDriver(object):
             sns_info['poi_address'] = poi_address
             sns_info_list.append(sns_info)
 
-        print '[info] around post result:', len(sns_info_list)
+        print '[info] around_sns_info() result:', len(sns_info_list)
         return sns_info_list
 
     def get_drivers(self):
@@ -914,7 +914,7 @@ class AroundHandler(tornado.web.RequestHandler):
         else:  # 翻页
             snsId_list = session.get_around_result(action)
             sns_info_list = db.get_aroundInfo_list_by_snsId(snsId_list)
-            print 'sns_info_list:', len(sns_info_list)
+            print '[info] sns_info_list:', len(sns_info_list)
 
             current = session.get_around_result_current()
             total = session.get_around_result_cnt()
