@@ -23,11 +23,15 @@ http://www.cnblogs.com/wupeiqi/articles/5354900.html
 [geojson-mongodb]
 http://www.cnblogs.com/duyinqiang/p/5696444.html
 
+
 [geojson]
 http://www.ourd3js.com/wordpress/638/#more-638
 http://blog.csdn.net/pi9nc/article/details/17629883
 http://www.360sdn.com/MongoDB/2015/0413/5629.html
 http://blog.csdn.net/rrrrssss00/article/details/25784263
-http://blog.csdn.net/gebitan505/article/details/48372121
+http://blog.csdn.net/gebitan505/article/details/48372121 ---OK
 http://stackoverflow.com/questions/22029114/how-to-import-geojson-file-to-mongodb
 http://www.yl1001.com/article/7541414129987221.htm
+
+[redis-geo]
+https://matt.sh/redis-geo#_how-it-works
