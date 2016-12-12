@@ -82,7 +82,7 @@ function onlineRegexsChange(e) {
     });
 }
 
-var url = 'http://172.16.5.152:5000/regexs/list';
+var url = 'http://127.0.0.1:2000/regexs/list';
 httpRequest(url, showRegexs);
 
 document.body.onchange = onlineRegexsChange;

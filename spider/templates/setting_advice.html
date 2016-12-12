@@ -1,101 +1,18 @@
-{% extends "bootstrap/base.html" %}
-{% import 'marco.html' as t %}
-
-{% block content %}
-    <h3 align="center">主页URL归类
-        <small>正则表达式/关键字 (黄框：无效，绿框：列表，蓝框：详情)</small>
-    </h3>
-    <hr>
-    <div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
-        {{ t.top_massage() }}
-    </div>
-    <form id="setting" method="POST" action="/setting_advice_try">
-        <hr>
-        <div id="config_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.start_url.label }}&nbsp;
-            {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
-            {{ inputForm.site_domain.label }}&nbsp;
-            {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com",onblur="rtrim(this);") }}&nbsp;
-            {{ inputForm.black_domain_str.label }}&nbsp;
-            {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
-{#            {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;&nbsp;&nbsp;#}
-            {# {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}#}
-            <button type="submit" href="#" data-toggle="modal" data-target="#myModal"
-                    class="btn btn-primary btn-default">提取
-            </button>
-            <!-- 模态框（Modal） -->
-            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <label class="modal-title" id="myModalLabel">
-                                提取结果后,页面将自动刷新，请等待。
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </form>
-    <hr>
-    <form id="setting" method="POST" action="/setting_advice_use">
-        <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:20px">
-            <table id="regex_tab" class="table table-striped table-hover">
-                <thead>
-                <tr>
-                    <th>正则表达式</th>
-                    <th>匹配次数</th>
-                    <th>类别选择</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for row in inputForm.regex_list %}
-                    <tr id= {{ "regex_" ~ loop.index }}>
-                        <td id={{ "regex_expr_"~ loop.index }}>{{ row.regex(size=60) }}</td>
-                        <td>
-                            <a id={{ "regex_score_" ~ loop.index }} href="#">
-                                {{ row.score(readonly="readonly",size=5) }}</a>
-                        </td>
-                        <td>{{ row.select() }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div id="keyword_div" class="form-group" style="float:right;width:48%; margin-right:20px">
-            <table id="keyword_tab" class="table table-striped table-hover">
-                <thead>
-                <tr>
-                    <th>关键字</th>
-                    <th>匹配次数</th>
-                    <th>类别选择</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for row in inputForm.keyword_list %}
-                    <tr id= {{ "keyword_" ~ loop.index }}>
-                        <td id={{ "keyword_expr_"~ loop.index }}>{{ row.keyword(size=60) }}</td>
-                        <td>
-                            <a id={{ "keyword_score_"~ loop.index }} href="#">
-                                {{ row.score(readonly="readonly",size=5) }}</a>
-                        </td>
-                        <td>{{ row.select() }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
-            {{ inputForm.use(id="use_btn",class="btn btn-primary btn-default",type="submit") }}
-            {#<input id="use_btn" type="button" class="btn btn-info">&nbsp;#}
-        </div>
-    </form>
-{% endblock %}
-
-{% block scripts %}
-    {{ super() }}
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    {#    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">#}
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    {#<script src="http://cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>#}
+    <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    {#<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>#}
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
     <!-- DataTables Javascript-->
@@ -114,9 +31,9 @@
         {#        patrn_list = {{ patrn_list | safe }};#}
         <!-- 颜色标示 黄框：无效，绿框：列表，蓝框：详情 -->
         $(document).ready(function () {
-{#            alert(patrn_rubbish);#}
-{#            alert(patrn_detail);#}
-{#            alert(patrn_list);#}
+            {#            alert(patrn_rubbish);#}
+            {#            alert(patrn_detail);#}
+            {#            alert(patrn_list);#}
             for (var i = 0; i < 30; i++) {
                 var obj_k = "#keyword_list-" + i.toString() + "-keyword";
                 var keyword = $(obj_k).val();
@@ -159,7 +76,7 @@
                 {#alert(regex_id + ":" + expr);#}
             }
             var myWin = window.open("setting_advice_window?regex=" + expr, "_blank",
-                    "top=200,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no,resizable=no,location=yes");
+                "top=200,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no,resizable=no,location=yes");
             if (myWin.document) {
                 myWin.document.title = "推荐";
             }
@@ -236,4 +153,112 @@
             });
         });
     </script>
-{% endblock %}
+</head>
+<body>
+
+<h3 align="center">主页URL归类
+    <small>正则表达式/关键字 (黄框：无效，绿框：列表，蓝框：详情)</small>
+</h3>
+<hr>
+<div id="message" class="alert alert-warning form-group center" style="width:98%; margin-left:20px">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for categoly, message in messages %}
+                    {% if categoly =='info' %} {% set color = 'blue' %}
+                        {% elif categoly =='warning' %}{% set color = 'orange' %}
+                        {% elif categoly =='error' %}{% set color = 'red' %}
+                    {% else %} {% set color = 'black' %}
+                    {% endif %}
+                    <li style="color: {{ color }}">{{ message|safe }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</div>
+<form id="setting" method="POST" action="/setting_advice_try">
+    <hr>
+    <div id="config_div" class="form-group center" style="width:100%; margin-left:20px">
+        {{ inputForm.start_url.label }}&nbsp;
+        {{ inputForm.start_url(id='start_url',size=30,placeholder="例如：http://www.baidu.com") }}&nbsp;
+        {{ inputForm.site_domain.label }}&nbsp;
+        {{ inputForm.site_domain(id='site_domain',size=20,placeholder="例如：baidu.com",onblur="rtrim(this);") }}&nbsp;
+        {{ inputForm.black_domain_str.label }}&nbsp;
+        {{ inputForm.black_domain_str(size=50,placeholder="域名1;域名2;域名3; 的形式以；分割") }}&nbsp;&nbsp;&nbsp;
+        {#            {{ inputForm.info_flg_sel(id="info_flg_sel") }}&nbsp;&nbsp;&nbsp;#}
+        {# {{ inputForm.advice(id="advice_btn",class="btn btn-info btn-sm") }}#}
+        <button type="submit" href="#" data-toggle="modal" data-target="#myModal"
+                class="btn btn-primary btn-default">提取
+        </button>
+        <!-- 模态框（Modal） -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <label class="modal-title" id="myModalLabel">
+                            提取结果后,页面将自动刷新，请等待。
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+<hr>
+<form id="setting" method="POST" action="/setting_advice_use">
+    <div id="regex_div" class="form-group" style="float:left;width:48%; margin-left:20px">
+        <table id="regex_tab" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>正则表达式</th>
+                <th>匹配次数</th>
+                <th>类别选择</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in inputForm.regex_list %}
+                <tr id= {{ "regex_" ~ loop.index }}>
+                    <td id={{ "regex_expr_"~ loop.index }}>{{ row.regex(size=60) }}</td>
+                    <td>
+                        <a id={{ "regex_score_" ~ loop.index }} href="#">
+                            {{ row.score(readonly="readonly",size=5) }}</a>
+                    </td>
+                    <td>{{ row.select() }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="keyword_div" class="form-group" style="float:right;width:48%; margin-right:20px">
+        <table id="keyword_tab" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>关键字</th>
+                <th>匹配次数</th>
+                <th>类别选择</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in inputForm.keyword_list %}
+                <tr id= {{ "keyword_" ~ loop.index }}>
+                    <td id={{ "keyword_expr_"~ loop.index }}>{{ row.keyword(size=60) }}</td>
+                    <td>
+                        <a id={{ "keyword_score_"~ loop.index }} href="#">
+                            {{ row.score(readonly="readonly",size=5) }}</a>
+                    </td>
+                    <td>{{ row.select() }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="use_div" class="form-group center" style="width:100%; margin-left:20px">
+        {{ inputForm.use(id="use_btn",class="btn btn-primary btn-default",type="submit") }}
+        {#<input id="use_btn" type="button" class="btn btn-info">&nbsp;#}
+    </div>
+</form>
+
+</body>
+</html>

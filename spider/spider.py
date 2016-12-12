@@ -147,10 +147,10 @@ class Spider(object):
         """
         初始化downloader
         """
-        self.downloader = downloader.Downloader(self.proxy_enable, 
-                                                self.proxy_max_num, 
-                                                proxy_url=self.proxy_url,
-                                                timeout=self.timeout)
+        self.downloader = downloader.Downloader(self.proxy_enable,
+                                                           self.proxy_max_num,
+                                                           proxy_url=self.proxy_url,
+                                                           timeout=self.timeout)
 
     def init_dedup(self):
         """

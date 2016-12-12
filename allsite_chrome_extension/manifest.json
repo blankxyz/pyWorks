@@ -25,11 +25,11 @@
         "matches": ["http://*/*", "https://*/*"],
         "js": ["js/jquery.min.js","js/content.js"],
         "run_at": "document_end",
-        "exclude_matches": ["http://127.0.0.1:5000/*"]
+        "exclude_matches": ["http://127.0.0.1:2000/*"]
         // "exclude_matches": ["http://172.16.5.152:5000/*"]
     }],
     "options_page": "options.html",
     "permissions": [
-        "http://172.16.5.152:5000/regexs"
+        "http://127.0.0.1:2000/regexs"
     ]
 }
