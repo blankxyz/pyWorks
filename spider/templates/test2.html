@@ -1,41 +1,96 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>Bootstrap 实例 - 模态框（Modal）插件</title>
-	<link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
-	<script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
-	<script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" type="image/ico" href="http://www.datatables.net/favicon.ico">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=2.0">
+    <title>DataTables example - Highlighting rows and columns</title>
+    <link rel="stylesheet" type="text/css" href="../../static/DataTables/media/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="../../static/DataTables/examples/resources/syntax/shCore.css">
+    <link rel="stylesheet" type="text/css" href="../../static/DataTables/examples/resources/demo.css">
+    <style type="text/css" class="init">
+
+
+        td.highlight {
+            background-color: whitesmoke !important;
+        }
+
+
+    </style>
+    <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.3.min.js">
+    </script>
+    <script type="text/javascript" language="javascript" src="../../static/DataTables/media/js/jquery.dataTables.js">
+    </script>
+    <script type="text/javascript" language="javascript"
+            src="../../static/DataTables/examples/resources/syntax/shCore.js">
+    </script>
+    <script type="text/javascript" language="javascript" src="../../static/DataTables/examples/resources/demo.js">
+    </script>
 </head>
-<body>
+<body class="dt-example">
+    <div id="menu" style="height:100%;width:6.06%;float:left;" class="navbar navbar-inverse navbar-fixed-top">
+        <nav class="navbar nav-pills" role="navigation">
+            <ul class="nav nav-pills nav-stacked">
+                <li><a href="setting_advice_init" target="mainframe" data-toggle="tooltip"
+                       title="主页URL归类 正则表达式/关键字">①列表/详情 ---自动推荐
+                </a>
+                </li>
+                <li>
+                    <a href="list_detail_init" target="mainframe" data-toggle="tooltip"
+                       title="主页、域名、详情页/列表页URL的特征词/正则表达式"> ①列表/详情 ---手工配置规则
+                    </a>
+                </li>
+                <li>
+                    <a href="show_result_init" target="mainframe" data-toggle="tooltip"
+                       title="抓取结果 列表/详情"> ①列表/详情 ---匹配结果
+                    </a>
+                </li>
+                <li>
+                    <a href="show_unkown_urls" target="mainframe" data-toggle="tooltip"
+                       title="未匹配的URL信息"> ①列表/详情 ---未匹配
+                    </a>
+                </li>
+                <li>
+                    <a href="show_process_init" target="mainframe" data-toggle="tooltip"
+                       title="抓取情况展示"> ②过程监测
+                    </a>
+                </li>
+                <li>
+                    <a href="content_init" target="mainframe" data-toggle="tooltip"
+                       title="内容提取 标题、创建时间、内容、作者"> ③内容提取
+                    </a>
+                </li>
+                <li>
+                    <a href="history_search" target="mainframe" data-toggle="tooltip"
+                       title="配置信息-历史记录"> ④历史查询
+                    </a>
+                </li>
+                <li id="task_manager">
+                    <a href="task_manager_init" target="mainframe" data-toggle="tooltip"
+                       title="爬虫任务管理增删,数据清除"> ④爬虫任务管理
+                    </a>
+                </li>
+                <li id="admin_preset">
+                    <a href="preset_init" target="mainframe" data-toggle="tooltip"
+                       title="无效，列表，详情"> ⑤预置规则
+                    </a>
+                </li>
+                <li id="admin_tools">
+                    <a href="admin_tools" target="mainframe" data-toggle="tooltip"
+                       title="管理员 工具集"> ⑥管理工具
+                    </a>
+                </li>
+                <li id="admin_server_log">
+                    <a href="admin_server_log" target="mainframe" data-toggle="tooltip"
+                       title="web server log"> ⑥后台log
+                    </a>
+                </li>
+{#                <li id="test" class="disabled">#}
+{#                    <a href="test" target="mainframe" data-toggle="tooltip" title="test"> test</a>#}
+{#                </li>#}
+            </ul>
+        </nav>
+    </div>
 
-<h2>创建模态框（Modal）</h2>
-<!-- 按钮触发模态框 -->
-<button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-	开始演示模态框
-</button>
-<!-- 模态框（Modal） -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-					&times;
-				</button>
-				<h4 class="modal-title" id="myModalLabel">
-					模态框（Modal）标题
-				</h4>
-			</div>
-
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">关闭
-				</button>
-				<button type="button" class="btn btn-primary">
-					提交更改
-				</button>
-			</div>
-		</div><!-- /.modal-content -->
-	</div><!-- /.modal -->
-</div>
 </body>
 </html>

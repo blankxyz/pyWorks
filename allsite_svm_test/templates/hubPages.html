@@ -14,7 +14,7 @@
     <!-- DataTables -->
     <link rel="stylesheet" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
     <script src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-    <title>全站展示-中文网站列表页</title>
+    <title>全站展示-中文网站-列表页一览</title>
 </head>
 
 {% block body %}
@@ -28,7 +28,7 @@
 </style>
 {% set url_pre = "http://www." %}
 
-<div id="site_index_div" style="width:90%; margin-left:50px;margin-top:50px" class="col-sm-9">
+<div id="site_index_div" style="width:800px; margin-left:50px;margin-top:50px;" class="col-sm-9">
     <table id="hubPages_tab" class="table">
         <thead>
         <tr>
@@ -43,7 +43,7 @@
                 <a href="{{ hubPage }}">{{ hubPage }}</a>
             </td>
             <td>
-
+                <span class="badge" style="background-color:dodgerblue">10</span>
             </td>
         </tr>
         {% end %}
@@ -69,11 +69,11 @@
                 },
                 "sZeroRecords": "没有数据 。。。",
                 "sProcessing": "<img src='/static/images/loading.gif'/>",
-                "sSearch": "检索："
+{#                "sSearch": "检索："#}
             },
             "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
             "info": true,
-            "searching": true,
+            "searching": false,
             "processing": true,
             "search": {"regex": true},//开启正则支持
             {#"bStateSave": true, //状态保存,与正则检索矛盾#}

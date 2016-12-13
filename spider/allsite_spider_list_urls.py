@@ -56,8 +56,8 @@ START_URLS = '''http://bbs.tianya.cn'''
 SITE_DOMAIN = '''bbs.tianya.cn'''
 BLACK_DOMAIN_LIST = ''''''
 
-LIST_RULE_LIST = '''\/$@/list-@-1.html@/^user/@/^username/@'''
-DETAIL_RULE_LIST = '''/post/.*?\d+x.html@/\d+.html@'''
+LIST_RULE_LIST = '''/^uid/@/^username/@/^space/@/^search/@/^blog/@/^group/@list@index@forum@fid@'''
+DETAIL_RULE_LIST = '''post@thread@detail@content@'''
 
 
 # spider-modify-end

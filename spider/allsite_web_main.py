@@ -21,7 +21,7 @@ from flask_restful import reqparse, abort, Api, Resource
 from flask import Flask, render_template, request, session, url_for, flash, redirect, g
 from flask import send_from_directory
 from flask_bootstrap import Bootstrap
-from flask_wtf import FlaskForm
+from flask_wtf import Form
 from wtforms import validators
 from wtforms import FieldList, IntegerField, StringField, RadioField, DecimalField, DateTimeField, \
     FormField, SelectField, TextField, PasswordField, TextAreaField, BooleanField, SubmitField
@@ -98,19 +98,19 @@ global g_start_url_list  # 推荐所使用的首页所有的url
 
 
 ######## setting_advice.html ##############################################################################
-class AdviceRegexForm(FlaskForm):  # advice_setting
+class AdviceRegexForm(Form):  # advice_setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}//[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     score = IntegerField(label=u'匹配数', default=0)
     select = SelectField(label=u'采用', choices=[('0', u'-'), ('1', u'列表'), ('2', u'详情')])
 
 
-class AdviceKeyWordForm(FlaskForm):  # advice_setting
+class AdviceKeyWordForm(Form):  # advice_setting
     keyword = StringField(label=u'关键字')
     score = IntegerField(label=u'匹配数', default=0)
     select = SelectField(label=u'采用', choices=[('0', u'-'), ('1', u'列表'), ('2', u'详情')])
 
 
-class AdviceRegexListInputForm(FlaskForm):  # setting
+class AdviceRegexListInputForm(Form):  # setting
     start_url = StringField(label=u'主页')
     site_domain = StringField(label=u'限定域名')
     white_list = StringField(label=u'白名单')
@@ -128,16 +128,16 @@ class AdviceRegexListInputForm(FlaskForm):  # setting
 
 
 ######## setting_advice_window.html #######################################################################
-class AdviceUrlForm(FlaskForm):
+class AdviceUrlForm(Form):
     url = StringField(label=u'url')
 
 
-class AdviceUrlListForm(FlaskForm):
+class AdviceUrlListForm(Form):
     url_list = FieldList(FormField(AdviceUrlForm), label=u'URL列表')
 
 
 ######## setting_list_detail.html #########################################################################
-class RegexSettingForm(FlaskForm):  # setting
+class RegexSettingForm(Form):  # setting
     regex = StringField(label=u'表达式')  # , default='/[a-zA-Z]{1,}/[a-zA-Z]{1,}/\d{4}\/?\d{4}/\d{1,}.html')
     weight = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
     score = IntegerField(label=u'匹配数', default=0)
@@ -155,7 +155,7 @@ class BSListWidget(ListWidget):
         return HTMLString(u''.join(html))
 
 
-class ListDetailRegexSettingForm(FlaskForm):  # setting
+class ListDetailRegexSettingForm(Form):  # setting
     start_url = StringField(label=u'主页')  # 'http://cpt.xtu.edu.cn/'
     site_domain = StringField(label=u'限定域名')  # cpt.xtu.edu.cn'  # 湘潭大学
     white_list = StringField(label=u'白名单')
@@ -186,7 +186,7 @@ class ListDetailRegexSettingForm(FlaskForm):  # setting
 
 
 ######## show_result.html #############################################################################
-class ResultForm(FlaskForm):  # 内容提取
+class ResultForm(Form):  # 内容提取
     list_regex_sel = SelectField(label=u'列表页规则', choices=[], default='0')
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
     list_match = SubmitField(label=u'列表正则')
@@ -199,7 +199,7 @@ class ResultForm(FlaskForm):  # 内容提取
 
 
 ######## content.html #############################################################################
-class ContentInputForm(FlaskForm):
+class ContentInputForm(Form):
     content_mode = BooleanField(label=u'自动提取', default=True)
 
     detail_regex_sel = SelectField(label=u'详情页规则', choices=[], default='0')
@@ -236,7 +236,7 @@ class ContentInputForm(FlaskForm):
 
 
 ########## history.html  ####################################################################################
-class SearchCondForm(FlaskForm):  # user search
+class SearchCondForm(Form):  # user search
     start_url = StringField(label=u'主页', default='')
     start_url_sel = SelectField(label=u'历史记录', choices=[('', '')], default=('', ''))
     site_domain = StringField(label=u'限定域名', default='')
@@ -246,7 +246,7 @@ class SearchCondForm(FlaskForm):  # user search
     recover = SubmitField(label=u'导入')
 
 
-class SearchResultForm(FlaskForm):  # user search
+class SearchResultForm(Form):  # user search
     # select = BooleanField(label=u'选择', default=False)
     start_url = StringField(label=u'主页', default='')
     site_domain = StringField(label=u'限定域名', default='')
@@ -259,19 +259,19 @@ class SearchResultForm(FlaskForm):  # user search
 
 
 ######## admin_server_log.html #############################################################################
-class ShowServerLogInputForm(FlaskForm):  # show_server_log
+class ShowServerLogInputForm(Form):  # show_server_log
     unkown_sel = BooleanField(label=u'仅显示筛选信息', default=True)
     refresh = SubmitField(label=u'刷新')
 
 
 ######## admin_preset.html #############################################################################
-class PresetForm(FlaskForm):
+class PresetForm(Form):
     partn_type_sel = SelectField(label=u'规则类别', choices=[('list', u'列表'), ('detail', u'详情'), ('rubbish', u'无效')])
     partn = StringField(label=u'规则')
     weight_sel = SelectField(label=u'权重', choices=[('0', u'高'), ('1', u'中'), ('2', u'低')])
 
 
-class PresetListForm(FlaskForm):
+class PresetListForm(Form):
     # 01新闻、02论坛、03博客、04微博 05平媒 06微信 07 视频、99搜索引擎
     scope_sel = SelectField(label=u'分类',
                             choices=[('01', u'新闻'), ('02', u'论坛'), ('03', u'博客'), ('04', u'微博'),
@@ -291,7 +291,7 @@ class PresetListForm(FlaskForm):
 #                          choices=[('todo', u'todo'), ('start', u'start'), ('end', u'end'), ('killed', u'killed')])
 #
 
-class TaskManagerListForm(FlaskForm):
+class TaskManagerListForm(Form):
     # task_list = FieldList(FormField(TaskManagerForm), label=u'任务管理')
     start_spider_server = SubmitField(label=u'启动后台爬虫服务')
     stop_spider_server = SubmitField(label=u'停止后台爬虫服务')
@@ -1941,29 +1941,33 @@ def login():
     global g_advice_keyword_list
     global g_start_url_list
 
-    if request.method == 'POST':
-        user_id = request.form['username']
-        password = request.form['password']
-        mysql_db = MySqlDrive()
-        if mysql_db.check_password(user_id, password):
-            session['user_id'] = user_id  # password OK！
-            mysql_db.set_current_main_setting(user_id=user_id, start_url='', site_domain='', black_domain_str='',
-                                              setting_json='')
+    # if request.method == 'POST':
+    #     print '[info] login() POST.'
+    #     user_id = request.form['username']
+    #     password = request.form['password']
+    #     mysql_db = MySqlDrive()
+    #     if mysql_db.check_password(user_id, password):
+    #         session['user_id'] = user_id  # password OK！
+    #         mysql_db.set_current_main_setting(user_id=user_id, start_url='', site_domain='', black_domain_str='',
+    #                                           setting_json='')
+    #
+    #         session['start_url'] = ''
+    #         session['site_domain'] = ''
+    #         session['black_domain_str'] = ''
+    #
+    #         g_advice_regex_list = []  # 推荐所使用的 正则
+    #         g_advice_keyword_list = []  # 推荐所使用的 关键字
+    #         g_start_url_list = []  # 推荐所使用的首页所有的url
+    #
+    #         return render_template('menu.html', user_id=user_id)
+    #     else:
+    #         flash(u"输入密码不正确。", "error")
+    #
+    print '[info] login() ok.'
+    # return render_template('login.html')
+    session['user_id'] = 'admin'
 
-            session['start_url'] = ''
-            session['site_domain'] = ''
-            session['black_domain_str'] = ''
-
-            g_advice_regex_list = []  # 推荐所使用的 正则
-            g_advice_keyword_list = []  # 推荐所使用的 关键字
-            g_start_url_list = []  # 推荐所使用的首页所有的url
-
-            print 'login ok'
-            return render_template('menu.html', user_id=user_id)
-        else:
-            flash(u"输入密码不正确。", "error")
-
-    return render_template('login.html')
+    return render_template('test2.html', user_id='admin')
 
 
 @app.errorhandler(404)
@@ -3485,7 +3489,7 @@ def task_manager_run_spider_server():
 
 @app.route('/test', methods=['GET', 'POST'])
 def test():
-    return render_template('test.html')
+    return render_template('login.html')
 
 
 ##########################################################################################

@@ -14,7 +14,7 @@
     <!-- DataTables -->
     <link rel="stylesheet" href="http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
     <script src="http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-    <title>全站展示</title>
+    <title>全站展示-中文网站-网站一览</title>
 
     <script type="text/javascript">
         $(document).ready(function () {
@@ -26,7 +26,7 @@
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading_roll.gif'/>",
-                    "sSearch": "网站名称检索：",
+{#                    "sSearch": "网站名称检索：",#}
                     "oPaginate": {
                         "sFirst": "首页",
                         "sPrevious": "前页",
@@ -37,31 +37,41 @@
                 "info": true,
                 "aLengthMenu": [20, 50, 100],
                 "bLengthChange": true,
-                "bFilter": true,
+                "bFilter": false,
                 "bProcessing": true,
                 "bServerSide": true,
-{#                "scrollY": "785px",#}
-                "ajax": "./getListJson",
-                "aoColumns": [{"mData": "hubPage"}, {"mData": "siteName"}],
+                "ajax": "./getSiteListJson",
+                "aoColumns": [{"mData": "hubPage"}, {"mData": "hubPageCnt"}, {"mData": "siteName"}],
                 "aoColumnDefs": [
-                    {   "sWidth":"50%",
+                    {
+                        "sWidth": "20%",
                         "aTargets": [0],
                         "mRender": function (data, type, row) {
-                            return '<a href=\"/getHubPage?hubPage=' + row[0] + '\">' + row[0] + '</a>';
+                            return row[0];
                         }
                     },
                     {
-                        "sWidth":"50%",
+                        "sWidth": "20%",
                         "aTargets": [1],
                         "mRender": function (data, type, row) {
-                            return '<a href=\"http://www.' + row[0] + '\">' + row[1] + '</a>';
+                            return '<a href=\"/getHubPage?hubPage=' + row[0] + '\">' +
+                                '<span class=\"badge\" style=\"background-color:dodgerblue\">' + row[1] + '</span>' +
+                                '</a>';
+                        }
+                    },
+                    {
+                        "sWidth": "60%",
+                        "aTargets": [2],
+                        "mRender": function (data, type, row) {
+                            return '<a href=\"http://www.' + row[0] + '\">' + row[2] + '</a>';
                         }
                     }
                 ],
-{#                "fnServerParams": function (aoData) {#}
-{#                    aoData.push({"name": "aaa", "value": "bbbb"});#}
-{#                },#}
-                "aaSorting": [[0, "desc"]]
+                {#                "fnServerParams": function (aoData) {#}
+                {#                    aoData.push({"name": "aaa", "value": "bbbb"});#}
+                {#                },#}
+                //"aaSorting": [[0, "desc"]],
+                //"scrollY": "785px"
             });
         });
     </script>
@@ -72,11 +82,12 @@
 </style>
 
 {% set url_pre = "http://www." %}
-<div id="site_index_div" style="width:1024px; margin-left:50px;margin-top:50px" class="col-sm-9">
+<div id="site_index_div" style="width:800px; margin-left:50px;margin-top:50px" class="col-sm-9">
     <table id="site_index_tab" class="table">
         <thead>
         <tr>
-            <th>网站域名（首页地址）</th>
+            <th>网站地址</th>
+            <th></th>
             <th>网站名称</th>
         </tr>
         </thead>
