@@ -26,7 +26,7 @@
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading_roll.gif'/>",
-{#                    "sSearch": "网站名称检索：",#}
+                    "sSearch": "网站名称检索：",
                     "oPaginate": {
                         "sFirst": "首页",
                         "sPrevious": "前页",
@@ -37,7 +37,7 @@
                 "info": true,
                 "aLengthMenu": [20, 50, 100],
                 "bLengthChange": true,
-                "bFilter": false,
+                "bFilter": true,
                 "bProcessing": true,
                 "bServerSide": true,
                 "ajax": "./getSiteListJson",
@@ -63,7 +63,7 @@
                         "sWidth": "60%",
                         "aTargets": [2],
                         "mRender": function (data, type, row) {
-                            return '<a href=\"http://www.' + row[0] + '\">' + row[2] + '</a>';
+                            return '<a href=\"' + row[0] + '\">' + row[2] + '</a>';
                         }
                     }
                 ],
