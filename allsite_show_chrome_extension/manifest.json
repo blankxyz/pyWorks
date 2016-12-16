@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "allsite-debug",
-  "version": "1.0",
-  "description": "allsite-debug",
+  "name": "全站爬虫数据展示",
+  "version": "1.1",
+  "description": "全站爬虫数据展示",
   "icons": {
     "16": "images/icon16.png",
     "48": "images/icon48.png",
@@ -10,14 +10,16 @@
   },
   "browser_action": {
     "default_icon": {
+      "16": "images/icon16.png",
       "19": "images/icon19.png",
       "38": "images/icon38.png"
     },
-    "default_title": "debug",
+    "default_title": "全站爬虫数据展示",
     "default_popup": "popup.html"
   },
   "background": {
     "scripts": [
+      "js/jquery.min.js",
       "js/background.js"
     ]
   },
@@ -31,15 +33,21 @@
         "js/jquery.min.js",
         "js/content.js"
       ],
+      "css": [
+      ],
       "run_at": "document_end",
       "exclude_matches": [
-        "http://127.0.0.1:2000/*",
+//        "http://127.0.0.1:2000/*",
         "http://172.16.5.152:9000/*"
       ]
     }
   ],
   "options_page": "options.html",
   "permissions": [
+    "contextMenus",
+    "notifications",
+    "cookies",
+    "<all_urls>",
     "http://127.0.0.1:2000/regexs"
   ]
 }

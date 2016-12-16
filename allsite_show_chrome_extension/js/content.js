@@ -1,7 +1,15 @@
+var hostIP = "http://172.16.5.152:9000";
+// var hostIP = chrome.cookies.get({
+//     'url': 'localhost',
+//     'name': 'hostIP'
+// });
 var links = new Array();
 var topPage = document.location.href;
+// var hostIP = $.cookie('hostIP');
+
 //window.location.reload();
 // document.removeChild()
+alert('--- 全站爬虫-页面数据展示-启动　---\n' + topPage + ' ' + hostIP);
 
 $("a").each(function () {
     var link = $(this).attr("href");
@@ -64,12 +72,14 @@ function httpPost_XMLHttpRequest(hrefs) {
 }
 
 function httpPost_ajax(hrefs) {
-    alert('httpPost_ajax call');
-    alert(topPage);
-    alert(links);
+    // var hostIP = localStorage.hostIP;
+    // var hostIP = document.cookie.split(";")[0].split("=")[1];
+    // var hostIP = document.cookie;
+
+    alert('＞＞＞ 发送页面全部链接到服务器　＞＞＞\n' + hostIP + '\n' + topPage + '\n' + links);
 
     $.ajax({
-        url: 'http://172.16.5.152:9000/matchHubpage',
+        url: 'http://172.16.5.152:9000/matchHubPage',
         type: 'post',
         dataType: 'json', //不能使用否则servesr无法取值
         // contentType: "application/json; charset=UTF-8",
@@ -77,21 +87,23 @@ function httpPost_ajax(hrefs) {
             hrefList: hrefs,
             topPage: topPage
         },
+        // data:JSON.stringify({
+        //     'hrefList': hrefs,
+        //     'topPage': topPage
+        // }),
         error: function (xhr, err) {
             alert(err);
         },
         success: function (data, textStatus) {
             var respArr = data['response'];
-            alert(respArr);
+            alert('＞＞＞　在全站爬虫中找到如下结果　＞＞＞\n' + respArr);
             $("a").each(function () {
                 var link = $(this).attr("href");
                 for (var i = 0; i < respArr.length; i++) {
                     if (link == respArr[i]) {
-                        // alert(link);
                         $(this).css({"border-style": "solid", "border-color": "red"});
                     }
                 }
-
             });
         }
     });
@@ -99,4 +111,27 @@ function httpPost_ajax(hrefs) {
 
 // httpPost_XMLHttpRequest(links);
 httpPost_ajax(links);
+
+//------------------------------------------
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    var act = request.act;
+    var regex = request.regex;
+    var patrn = new RegExp(regex);
+
+    alert('接收到:  ' + act + '  ' + regex);
+    alert(patrn);
+
+    if (act == "match") {
+        // window.location.reload();
+        $("a").each(function () {
+            var link = $(this).attr("href");
+            if (patrn.exec(link)) {
+                $(this).css({"border-style": "solid", "border-color": "blue"});
+            } else {
+                $(this).css({"border-style": null, "border-color": null});
+            }
+        });
+    }
+});
+
 

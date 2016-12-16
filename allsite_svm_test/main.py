@@ -7,6 +7,7 @@ import datetime
 import re
 import signal
 import urllib
+import urlparse
 import requests
 import redis
 import pymongo
@@ -35,13 +36,73 @@ g_ListPages = []
 g_site_url = ''
 
 
-def topPage_to_domain(topPage):
-    domain = ''
-    if 'http://www.' in topPage:
-        domain = topPage[len('http://www.'):]
-    elif 'http://' in topPage:
-        domain = topPage[len('http://'):]
-    return domain
+class Util(object):
+    @staticmethod
+    def get_domain(url):
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        domain = netloc
+        if 'www.' in netloc:
+            domain = netloc[len('www.'):]
+
+        return domain
+
+    def convert_path_to_rule(self, url):
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+        pos = path.rfind('.')
+        if pos > 0:
+            suffix = path[pos:]
+            path = path[:pos]
+        else:
+            suffix = ''
+
+        split_path = path.split('/')
+
+        new_path_list = []
+        for p in split_path:
+            regex = re.sub(r'[a-zA-Z]', '[a-zA-Z]', p)
+            regex = re.sub(r'\d', '\d', regex)
+            new_path_list.append(self.convert_regex_format(regex))
+
+        new_path = '/'.join(new_path_list) + suffix
+        return urlparse.urlunparse(('', '', new_path, '', '', ''))
+
+    def convert_regex_format(self, rule):
+        '''
+        /news/\d\d\d\d\d\d/[a-zA-Z]\d\d\d\d\d\d\d\d_\d\d\d\d\d\d\d.htm ->
+        /news/\d{6}/[a-zA-Z]\d{8}_\d{6}.htm
+        '''
+        ret = ''
+        digit = '\d'
+        word = '[a-zA-Z]'
+        cnt = 0
+        pos = 0
+        temp = ''
+        while pos <= len(rule):
+            if rule[pos:pos + len(digit)] == digit:
+                if temp.find(digit) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d}' % (digit, cnt)
+                pos = pos + len(digit)
+            elif rule[pos:pos + len(word)] == word:
+                if temp.find(word) < 0:
+                    ret = ret + temp
+                    temp = ''
+                    cnt = 0
+                cnt = cnt + 1
+                temp = '%s{%d}' % (word, cnt)
+                pos = pos + len(word)
+            elif pos == len(rule):
+                ret = ret + temp
+                break
+            else:
+                ret = ret + temp + rule[pos]
+                temp = ''
+                cnt = 0
+                pos = pos + 1
+        return ret
 
 
 class DBDriver(object):
@@ -51,6 +112,7 @@ class DBDriver(object):
         self.conn = redis.StrictRedis.from_url('redis://192.168.174.130/12')
         self.hash_cn_domain_site = 'hash_cn_domain_site'  # 网站域名: 首页地址
         self.hash_cn_site_name = 'hash_cn_site_index'  # 首页地址: 网站名字
+        self.hash_cn_domain_site_name = 'hash_cn_domain_site_name'  # 网站域名: {首页地址, 网站名字}
         self.set_cnn_hub_urls = 'set_cnn_hub_urls'  # 所有的列表页
         self.site_hub_pre = 'set_%s_hub'  # site_域名_hub 某个域名下的列表页
 
@@ -59,6 +121,16 @@ class DBDriver(object):
 
     def get_site_name(self, site):
         return self.conn.hget(self.hash_cn_site_name, site)
+
+    def get_all_domain_site_name(self):
+        ret = []
+        l = self.conn.hgetall(self.hash_cn_domain_site_name)
+        # pprint(l)
+        for (domain, site_name) in l.items():
+            site_name = eval(site_name)
+            ret.append([domain, site_name['site'], site_name['name']])
+
+        return ret
 
     def get_listPages(self, domain):
         ret = []
@@ -69,6 +141,10 @@ class DBDriver(object):
             ret = self.conn.smembers(hubPage_key)
         else:
             print '[info] get_hubPage() not found.', hubPage_key
+
+        if ret:
+            ret = list(ret)
+            ret.sort(reverse=True)
         return ret
 
     def get_listPage_cnt(self, domain):
@@ -78,6 +154,14 @@ class DBDriver(object):
             cnt = self.conn.scard(domain_key)
 
         return cnt
+
+    def add_hubpage(self, domain, hubPage):
+        hubPage_key = self.site_hub_pre % domain
+        self.conn.sadd(hubPage_key, hubPage)
+
+    def delete_hubpage(self, domain, hubPage):
+        hubPage_key = self.site_hub_pre % domain
+        self.conn.srem(hubPage_key, hubPage)
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -96,7 +180,7 @@ class SiteListHandler(tornado.web.RequestHandler):
         length = self.get_argument('length')
         search = self.get_argument('search[value]')
 
-        init(search)
+        # init(search)
 
         start = int(start)
         length = int(length)
@@ -130,7 +214,7 @@ class HubPageHandler(tornado.web.RequestHandler):
         topPage = self.get_argument('hubPage', '')
         print '[info] HubPageHandler() get', topPage
         db = DBDriver()
-        domain = topPage_to_domain(topPage)
+        domain = Util.get_domain(topPage)
         g_ListPages = db.get_listPages(domain)
         g_site_url = topPage
         print '[info] HubPageHandler() get save to global', g_site_url, len(g_ListPages)
@@ -166,13 +250,6 @@ class HubPage2Handler(tornado.web.RequestHandler):
 
 
 class MatchHugPageHandler(tornado.web.RequestHandler):
-    # def get(self):
-    #     print '[info] MatchHugPageHandler() get'
-    #     pprint(self.request.body_arguments)
-    #     data = self.get_body_argument('data')
-    #     pprint(data)
-    #     self.write('ok')
-
     def post(self):
         db = DBDriver()
         resp_links = []
@@ -186,15 +263,24 @@ class MatchHugPageHandler(tornado.web.RequestHandler):
         # topPage = para['topPage']
         # print topPage, request_links
 
+
+        # content.js:  data:JSON.stringify({'hrefList':hrefs,'topPage':topPage}),
+        # d = json.loads(self.request.body)
+        # print 'json.loads(self.request.body)', d
+        # topPage = d['topPage']
+        # request_links = list(set(d['hrefList']))
+
         # httpPost_ajax
         para = self.request.body_arguments
         topPage = para['topPage'][0]
         if topPage[-1] == '/':
             topPage = topPage[:-1]
 
+        print '[info] MatchHugPageHandler() post start.', topPage
+
         request_links = list(set(para['hrefList[]']))
 
-        domain = topPage_to_domain(topPage)
+        domain = Util.get_domain(topPage)
         db_listPages = db.get_listPages(domain)
 
         for link in request_links:
@@ -208,9 +294,72 @@ class MatchHugPageHandler(tornado.web.RequestHandler):
                     resp_links.append(link)
                     break
 
-        print '[info] MatchHugPageHandler() post end. recv:%d filter:%d' % (len(request_links), len(resp_links))
+        print '[info] MatchHugPageHandler() post end. [url-recv] %d [url-filter] %d' % (
+            len(request_links), len(resp_links))
         # pprint(resp_links)
         self.write({'response': resp_links})
+
+
+class HubPageEditer(tornado.web.RequestHandler):
+    def post(self):
+        # action = self.get_argument('action')
+        # hubPage = self.get_argument('hubPage')
+        print '[info] HubpageEditer() post'
+        d = json.loads(self.request.body)
+        pprint(d)
+
+        hubPage = d['hubPage']
+        action = d['action']
+
+        domain = Util.get_domain(hubPage)
+        print '[info] HubpageEditer() post', action, hubPage, domain
+
+        db = DBDriver()
+
+        if action == 'add':
+            db.add_hubpage(domain, hubPage)
+
+        if action == 'delete':
+            db.delete_hubpage(domain, hubPage)
+
+        self.write({'response': action + ' ' + hubPage + ' ok!'})
+
+
+class UrlFinder(tornado.web.RequestHandler):
+    def post(self):
+        resp_links = []
+        d = json.loads(self.request.body)
+        pprint(d)
+        url = d['url']
+        links = d['links']
+
+        util = Util()
+        regex = util.convert_path_to_rule(url)
+        new_regex = re.sub(r'\d+', '1,', regex)
+
+        for link in links:
+            if re.match(new_regex, link, re.U):
+                resp_links.append(link)
+
+        print '[info] UrlFinder() post', url, '>>>', new_regex
+        print len(links), links, '>>>', len(resp_links), resp_links
+        self.write({'regex': new_regex, 'links': resp_links})
+
+
+class HubPageEditerRestAPI(tornado.web.RequestHandler):
+    def get(self):
+        print '[info] HubpageEditerRestAPI get'
+        self.write({'response': 'ok'})
+
+    def delete(self, url):
+        print '[info] HubpageEditerRestAPI delete'
+        self.set_status(204)
+        self.write({'response': url})
+
+    def put(self, url):
+        print '[info] HubpageEditerRestAPI put'
+        self.set_status(201)
+        self.write({'response': url})
 
 
 def signal_handler(signum, frame):
@@ -232,7 +381,13 @@ class Application(tornado.web.Application):
                     (r"/getSiteListJson", SiteListHandler),
                     (r"/getHubPage", HubPageHandler),
                     (r"/getHubPage2", HubPage2Handler),
-                    (r"/matchHubpage", MatchHugPageHandler)]
+                    (r"/matchHubPage", MatchHugPageHandler),
+                    (r"/editHubPage", HubPageEditer),
+                    (r"/urlFinder", UrlFinder)]
+        # (r'/hubpage$', HubpageEditerRestAPI),
+        # (r'/hubpage/{url}', HubpageEditerRestAPI),
+        # (r'/hubpage/(<url>)/(edit)$', HubpageEditerRestAPI)
+        # ]
 
         tornado.web.Application.__init__(self, handlers, **settings)
 
@@ -244,26 +399,22 @@ def init(search):
     g_site_index_list = []
 
     db = DBDriver()
-    l = db.get_domain_site()
-
-    for (domain, site) in l.items():
-        siteName = db.get_site_name(site)
-        if search:
-            if re.match(search, siteName, re.UNICODE):
-                print '[info] init() matched.', siteName
-                g_site_index_list.append([domain, site, siteName])
-        else:
-            g_site_index_list.append([domain, site, siteName])
+    # l = db.get_domain_site()
+    #
+    # for (domain, site) in l.items():
+    #     siteName = db.get_site_name(site)
+    #     g_site_index_list.append([domain, site, siteName])
+    g_site_index_list = db.get_all_domain_site_name()
 
     g_site_index_list.sort(reverse=False)
     g_recordsTotal = len(g_site_index_list)
     g_recordsFiltered = g_recordsTotal
 
-    print('init complate!')
+    print('[info] init complate!')
 
 
 def main():
-    # init('')
+    init('')
 
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()

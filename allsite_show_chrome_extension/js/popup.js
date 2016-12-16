@@ -1,88 +1,61 @@
-var list_regexs;
-var detail_regexs;
+var hostIP = "http://172.16.5.152:9000";
 
-function httpRequest(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4) {
-            callback(xhr.responseText);
-        }
-    };
-    xhr.send();
-}
+function editHubPage(action, hubPage) {
+    alert('＞＞＞ editHubPage　＞＞＞\n' + action + '\n' + hubPage);
 
-function showRegexs(result) {
-    result = JSON.parse(result);
-    list_regexs = JSON.parse(result).list_regexs;
-    detail_regexs = JSON.parse(result).detail_regexs;
-    // list_regexs= [{"regex":"list-","weight":"1"},{"regex":"index","weight":"1"},{"regex":"aaaa","weight":"1"}];
-    var table = '<table id=regexs_tab><tr><th>分类(列表/详情)</th><th>正则表达式</th><th>权重</th><th>采用</th></tr>';
-    for (var i in list_regexs) {
-        table += '<tr>';
-        table += '<td><input type=text size=2 value=list></td>';
-        table += '<td><input type=text size=15 value=' + list_regexs[i].regex + '></td>';
-        table += '<td><input type=text size=2 value=' + list_regexs[i].weight + '></td>';
-        table += '<td>use</td>';
-        table += '</tr>';
-    }
-    for (var i in detail_regexs) {
-        table += '<tr>';
-        table += '<td><input type=text size=2 value=detail></td>';
-        table += '<td><input type=text size=15 value=' + detail_regexs[i].regex + '></td>';
-        table += '<td><input type=text size=2 value=' + detail_regexs[i].weight + '></td>';
-        table += '<td>use</td>';
-        table += '</tr>';
-    }
-    table += '</table>';
-    document.getElementById('regexs').innerHTML = table;
-}
-
-function getChangedRegexs() {
-    console.log('getChangedRegexs() start');
-    var regex_type = [];
-    $("#regexs_tab tr td:nth-child(1) input").each(function () {
-        regex_type.push($(this).val());
-    });
-
-    var regexs = [];
-    $("#regexs_tab tr td:nth-child(2) input").each(function () {
-        regexs.push($(this).val());
-    });
-    var regexs_parten = regexs.join('|');
-
-    var weight = [];
-    $("#regexs_tab tr td:nth-child(3) input").each(function () {
-        weight.push($(this).val());
-    });
-
-    list_regexs = [];
-    detail_regexs = [];
-    for(var i=0; i<regex_type.length;i++){
-        if(regex_type[i]=='list'){
-            list_regexs.push({regex:regexs[i],weight:weight[i]});
-        }else{
-            detail_regexs.push({regex:regexs[i],weight:weight[i]});
-        }
-    }
-    console.log(list_regexs);
-    console.log(detail_regexs);
-    console.log('getChangedRegexs() end');
-}
-
-function onlineRegexsChange(e) {
-    console.log('onlineRegexsChange');
-    getChangedRegexs();
-    var message = {opt: "change", list_regexs: list_regexs, detail_regexs: detail_regexs};
-    console.log(message);
-    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-        for (var i = tabs.length - 1; i >= 0; i--) {
-            chrome.tabs.sendMessage(tabs[0].id, message);
+    $.ajax({
+        url: 'http://172.16.5.152:9000/editHubPage',
+        type: 'post',
+        dataType: 'json', //不能使用否则servesr无法取值
+        // contentType: "application/json; charset=UTF-8",
+        // data: {
+        //     action: action,
+        //     hubPage: hubPage
+        // },
+        data: JSON.stringify({
+            'action': action,
+            'hubPage': hubPage
+        }),
+        error: function (xhr, err) {
+            alert(err);
+        },
+        success: function (data, textStatus) {
+            var resp = data['response'];
+            alert('＞＞＞　editHubPage　＞＞＞\n' + resp);
         }
     });
 }
 
-var url = 'http://127.0.0.1:2000/regexs/list';
-httpRequest(url, showRegexs);
+function showHubpages() {
+    html =
+        '<input id=hubPage type=text size=40 placeholder="需要修改（重新学习）的 URL">' +
+        '<a id=add href="#" type="button" class="btn btn-primary btn-sm">增加</a>' +
+        '<a id=delete href="#" type="button" class="btn btn-primary btn-sm">删除</a>' +
+        '<input id=regex type=text size=40 placeholder="查询 URL（支持正则）">' +
+        '<a id=match href="#" type="button" class="btn btn-primary btn-sm">查询</a>';
 
-document.body.onchange = onlineRegexsChange;
+    document.getElementById('hubPages_div').innerHTML = html;
+}
+
+//-----------------------------------------------------
+showHubpages();
+
+$('a').click(function () {
+    var act = $(this).attr('id');
+
+    if (act == 'add' || act == 'delete') {
+        var hubPage = $('#hubPage').val();
+        alert('act:' + act + '\nhubPage:' + hubPage);
+        editHubPage(act, hubPage)
+    }
+
+    if (act == 'match') {
+        var regex = $('#regex').val();
+        var message = {"act": "match", "regex": regex};
+        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+            for (var i = tabs.length - 1; i >= 0; i--) {
+                chrome.tabs.sendMessage(tabs[0].id, message);
+            }
+        });
+    }
+});
