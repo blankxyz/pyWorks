@@ -1,4 +1,5 @@
 var hostIP = "http://172.16.5.152:9000";
+
 // var hostIP = chrome.cookies.get({
 //     'url': 'localhost',
 //     'name': 'hostIP'
@@ -79,7 +80,7 @@ function httpPost_ajax(hrefs) {
     alert('＞＞＞ 发送页面全部链接到服务器　＞＞＞\n' + hostIP + '\n' + topPage + '\n' + links);
 
     $.ajax({
-        url: 'http://172.16.5.152:9000/matchHubPage',
+        url: hostIP + '/matchHubPage',
         type: 'post',
         dataType: 'json', //不能使用否则servesr无法取值
         // contentType: "application/json; charset=UTF-8",

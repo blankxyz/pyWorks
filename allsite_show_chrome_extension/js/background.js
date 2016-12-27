@@ -5,7 +5,7 @@ function editHubPage(action, hubPage) {
     alert('＞＞＞ editHubPage　＞＞＞\n' + action + '\n' + hubPage);
 
     $.ajax({
-        url: 'http://172.16.5.152:9000/editHubPage',
+        url: hostIP + '/editHubPage',
         type: 'post',
         dataType: 'json', //不能使用否则servesr无法取值
         // contentType: "application/json; charset=UTF-8",
@@ -22,7 +22,8 @@ function editHubPage(action, hubPage) {
         },
         success: function (data, textStatus) {
             var resp = data['response'];
-            // alert('＞＞＞　editHubPage　＞＞＞\n' + resp);
+            alert('＞＞＞　editHubPage　＞＞＞\n' + resp);
+            // chrome.browserAction.setBadgetext({text:'add ok!'});
             var notification = new Notification(hubPage, {
                 body: "已经添加到全站爬虫",
                 iconUrl: 'images/icon16.png',

@@ -26,7 +26,7 @@
                     "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
                     "sZeroRecords": "没有数据 。。。",
                     "sProcessing": "<img src='/static/images/loading_roll.gif'/>",
-                    //"sSearch": "网站名称检索：",
+                    "sSearch": "检索",
                     "oPaginate": {
                         "sFirst": "首页",
                         "sPrevious": "前页",
@@ -35,9 +35,9 @@
                     }
                 },
                 "info": true,
-                "aLengthMenu": [20, 50, 100],
-                "bLengthChange": true,
-                "bFilter": false,
+                "aLengthMenu": [20],
+                "bLengthChange": false,
+                "bFilter": true,
                 "bProcessing": true,
                 "bServerSide": true,
                 "ajax": "./getSiteListJson",
@@ -54,7 +54,7 @@
                         "sWidth": "20%",
                         "aTargets": [1],
                         "mRender": function (data, type, row) {
-                            return '<a href=\"/getHubPage?hubPage=' + row[0] + '\">' +
+                            return '<a target=\"hubPageframe\" href=\"/getHubPage2?init=true&site=' + row[0] + '\">' +
                                 '<span class=\"badge\" style=\"background-color:dodgerblue\">' + row[1] + '</span>' +
                                 '</a>';
                         }
@@ -79,19 +79,70 @@
 
 {% block body %}
 <style type="text/css">
+    body {
+        background-color: #f1f1f1;
+    }
 </style>
 
 {% set url_pre = "http://www." %}
-<div id="site_index_div" style="width:800px; margin-left:50px;margin-top:50px" class="col-sm-9">
+
+<div id="menu" style="height:100%;width:150px;float:left;background-color: #3c3c3c"
+     class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar nav-pills" role="navigation">
+        <ul class="nav nav-pills nav-stacked">
+            <li>
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="采集网站图形展示">采集网站汇总
+                </a>
+            </li>
+            <li class="active">
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="采集数据URL展示"> 采集网站URL一览
+                </a>
+            </li>
+            <li>
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="采集状态"> 采集状态
+                </a>
+            </li>
+            <li>
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="异常监测"> 异常监测
+                </a>
+            </li>
+            <li>
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="todo"> todo
+                </a>
+            </li>
+            <li id="todo">
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="todo"> todo
+                </a>
+            </li>
+            <li id="todo">
+                <a href="#" target="mainframe" data-toggle="tooltip"
+                   title="管理工具"> 管理工具
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div id="site_index_div" style="float:left;margin-left:180px;margin-top:50px;width:43%;" class="inverse col-sm-9">
     <table id="site_index_tab" class="table">
         <thead>
         <tr>
             <th>网站地址</th>
-            <th></th>
+            <th>列表数</th>
             <th>网站名称</th>
         </tr>
         </thead>
     </table>
+</div>
+
+<div id="main" style="float:right;margin-right:50px;margin-top:50px;width:43%;" class="inverse col-sm-9">
+    <iframe name="hubPageframe" style="height:100%;width:800px" frameborder="0" scrolling="yes"></iframe>
 </div>
 {% end %}
 </html>

@@ -19,37 +19,36 @@
 
 {% block body %}
 <style type="text/css">
-    option.imagebacked {
-        padding: 2px 0 2px 20px;
-        background-repeat: no-repeat;
-        background-position: 1px 2px;
-        vertical-align: middle;
+    body {
+        background-color: #E2E2E2;
     }
 </style>
 {% set url_pre = "http://www." %}
 
-<div id="site_index_div" style="width:800px; margin-left:50px;margin-top:50px;" class="col-sm-9">
+
+<div id="site_index_div" style="width:800px;" class="col-sm-9">
     <table id="hubPages_tab" class="table">
         <thead>
         <tr>
-            <th>列表页URL</th>
-            <th>件数</th>
+            <th><<< &nbsp;&nbsp;&nbsp;{{ site_name }}&nbsp;&nbsp;&nbsp;>>>   的列表页</th>
+            {#<th>件数</th>#}
         </tr>
         </thead>
         <tbody>
         {% for hubPage in hubPages %}
-        <tr style="border: 1px;">
+        <tr style="border: 5px;">
             <td>
                 <a href="{{ hubPage }}">{{ hubPage }}</a>
             </td>
-            <td>
-                <span class="badge" style="background-color:dodgerblue">10</span>
-            </td>
+            {#            <td>#}
+            {#                <span class="badge" style="background-color:dodgerblue">10</span>#}
+            {#            </td>#}
         </tr>
         {% end %}
         </tbody>
     </table>
 </div>
+
 {% end %}
 
 
@@ -68,18 +67,18 @@
                     "sLast": "尾页"
                 },
                 "sZeroRecords": "没有数据 。。。",
-                "sProcessing": "<img src='/static/images/loading.gif'/>",
-{#                "sSearch": "检索："#}
+                "sProcessing": "<img src='/static/images/loading_roll.gif'/>",
+                "sSearch": "检索："
             },
             "oSearch": {"sSearch": "", "bRegex": true, "bSmart": true},
             "info": true,
-            "searching": false,
+            "searching": true,
             "processing": true,
             "search": {"regex": true},//开启正则支持
             {#"bStateSave": true, //状态保存,与正则检索矛盾#}
-            "bFilter": true,
-            "bLengthChange": true,
-            "aLengthMenu": [20, 50, 100],
+            "bFilter": false,
+            "bLengthChange": false,
+            "aLengthMenu": [20],
             "scrollY": "785px",
             "bScrollCollapse": true,
             "aaSorting": [[0, "desc"]]

@@ -1,5 +1,3 @@
-{#{% extends "main.html" %}#}
-{% autoescape None %}
 <html>
 <head>
     <meta charset="utf-8">
@@ -17,27 +15,21 @@
     <title>全站展示-中文网站-列表页一览</title>
 </head>
 
-{% block body %}
 <style type="text/css">
     body {
-        background-color: #f1f1f1;
+        background-color: #E2E2E2;
     }
 </style>
-{% set url_pre = "http://www." %}
-
 
 <div id="site_index_div" style="width:800px;" class="col-sm-9">
     <table id="hubPages_tab" class="table">
         <thead>
         <tr>
-            <th><<< &nbsp;&nbsp;&nbsp;{{ site_name }}&nbsp;&nbsp;&nbsp;>>> 的列表页</th>
+            <th><<< &nbsp;&nbsp;&nbsp;init&nbsp;&nbsp;&nbsp;>>> 的列表页</th>
         </tr>
         </thead>
     </table>
 </div>
-
-{% end %}
-
 
 <script type="text/javascript">
     $(document).ready(function () {
@@ -63,21 +55,18 @@
             "bFilter": true,
             "bProcessing": true,
             "bServerSide": true,
-            "ajax": "./getHubPage2?init=false",
+            "ajax": "./getHubPage2",
             "aoColumns": [{"mData": "hubPage"}],
             "aoColumnDefs": [
                 {
                     "sWidth": "100%",
                     "aTargets": [0],
                     "mRender": function (data, type, row) {
-                        return '<a href=\"' + row[0] + '\">' + row[0] + '</a>';
+                        return row[0];
                     }
                 }
             ]
         });
     });
 </script>
-
 </html>
-
-

@@ -1,10 +1,11 @@
 var hostIP = "http://172.16.5.152:9000";
+// var hostIP = localStorage.hostIP;
 
 function editHubPage(action, hubPage) {
     alert('＞＞＞ editHubPage　＞＞＞\n' + action + '\n' + hubPage);
 
     $.ajax({
-        url: 'http://172.16.5.152:9000/editHubPage',
+        url: hostIP + '/editHubPage',
         type: 'post',
         dataType: 'json', //不能使用否则servesr无法取值
         // contentType: "application/json; charset=UTF-8",
@@ -28,6 +29,7 @@ function editHubPage(action, hubPage) {
 
 function showHubpages() {
     html =
+        '<p> 服务器地址: ' + hostIP + '</p>' +
         '<input id=hubPage type=text size=40 placeholder="需要修改（重新学习）的 URL">' +
         '<a id=add href="#" type="button" class="btn btn-primary btn-sm">增加</a>' +
         '<a id=delete href="#" type="button" class="btn btn-primary btn-sm">删除</a>' +
