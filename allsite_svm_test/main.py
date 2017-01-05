@@ -64,7 +64,7 @@ class DBDriver(object):
         # pprint(l)
         for (domain, info) in l.items():
             info = eval(info)
-            ret.append([domain, info['site'], int(info['hugPageCnt']), info['name']])
+            ret.append([domain, info['site'], int(info['hubPageCnt']), info['name']])
 
         ret.sort(key=lambda x: x[2], reverse=True)
         return ret
@@ -162,7 +162,7 @@ class Util(object):
         for info in site_list_all:
             if info:
                 site = unicode(info[1], "utf-8")
-                site_name =  info[3]
+                site_name = info[3]
                 if site_name:
                     site_name = unicode(site_name, "utf-8")
                     if re.search(search_word, site_name, re.UNICODE) or re.search(search_word, site, re.UNICODE):
@@ -254,6 +254,13 @@ class SiteListHandler(tornado.web.RequestHandler):
     show site list
     """
 
+    def set_default_headers(self):
+        self.set_header('Access-Control-Allow-Origin', '*')
+        # self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        # self.set_header('Access-Control-Max-Age', 1000)
+        # self.set_header('Access-Control-Allow-Headers', '*')
+        # self.set_header('Content-type', 'application/json')
+
     def get(self):
         site_index_list = []
         global g_site_list_current
@@ -285,7 +292,9 @@ class SiteListHandler(tornado.web.RequestHandler):
                         "recordsTotal": len(g_site_list_current),  # 共 4,861 条
                         "recordsFiltered": len(g_site_list_current),  # 共 4,861 条(控制共计页数)
                         'data': site_index_list})
+        pprint(j)
 
+        self.set_default_headers()
         self.write(j)
 
 
@@ -293,6 +302,12 @@ class HubPageHandler(tornado.web.RequestHandler):
     """
     show hubPage list
     """
+    def set_default_headers(self):
+        self.set_header('Access-Control-Allow-Origin', '*')
+        # self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        # self.set_header('Access-Control-Max-Age', 1000)
+        # self.set_header('Access-Control-Allow-Headers', '*')
+        # self.set_header('Content-type', 'application/json')
 
     def get(self):
         site = self.get_argument('site', '')
@@ -303,6 +318,7 @@ class HubPageHandler(tornado.web.RequestHandler):
         site_name = db.get_site_name(site)
         print '[info] HubPageHandler() get save to global', site, len(hubPages)
 
+        self.set_default_headers()
         self.render("hubPages.html", hubPages=hubPages, site_name=site_name)
 
 
@@ -496,6 +512,7 @@ class Application(tornado.web.Application):
 
         handlers = [(r"/", MainHandler),
                     (r"/getSiteListJson", SiteListHandler),
+                    (r"/allsite", SiteListHandler),
                     (r"/getHubPage", HubPageHandler),
                     (r"/getHubPage2", HubPage2Handler),
                     (r"/matchHubPage", MatchHugPageHandler),

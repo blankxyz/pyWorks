@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<h1>SiteList</h1>
+<table>
+    <tbody>
+    {% for info in SiteList %}
+        <tr>
+            <td> {{ info.site }} </td>
+            <td>{{ info.hubPageCnt }}</td>
+            <td>{{ info.domain }}</td>
+            <td>{{ info.name }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
