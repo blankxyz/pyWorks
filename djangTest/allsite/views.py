@@ -7,7 +7,7 @@ from djangTest.settings import DBNAME, DBHOST, ALLSITE_TAB
 import datetime
 import re
 import pymongo
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseServerError
 from django.http import JsonResponse
 import json
 # Create your views here.
@@ -24,10 +24,8 @@ class DBDriver(object):
         self.site_cn_all = self.db.site_cn_all
 
     def get_site_cn_all(self, start, length, search):
-        print start, length, search
         ret = []
-        if
-        cond = re.compile(search)
+        cond = {'name':{'$regex':search}}
         cnt = self.site_cn_all.find(cond).count()
         l = self.site_cn_all.find(cond).sort("hubPageCnt", pymongo.DESCENDING).limit(length).skip(start)
         for info in l:
@@ -67,3 +65,4 @@ def index(request):
     # return render(request, 'index.html', context={'SiteList': ret})
     # return HttpResponse(output, content_type="application/json")
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
+    # return HttpResponseServerError()
