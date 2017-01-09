@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>采集后台管理系统 | Log in</title>
+    <title>采集后台管理系统 | 登录</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <!-- Bootstrap 3.3.6 -->
@@ -55,11 +55,11 @@
     <script>
         $(document).ready(function () {
             //Datemask dd/mm/yyyy
-            $("#mask1").inputmask("dd/mm/yyyy", {"placeholder": "dd/mm/yyyy"});
+            $("#usr").inputmask("dd/mm/yyyy",
+                {"placeholder": "dd/mm/yyyy"});
             //Datemask2 mm/dd/yyyy
-            $("#mask2").inputmask("mm/dd/yyyy", {
-                "placeholder": "mm/dd/yyyy"
-            });
+            $("#pwd").inputmask("mm/dd/yyyy",
+                {"placeholder": "mm/dd/yyyy"});
             $("[data-mask]").inputmask();
         });
     </script>
@@ -68,21 +68,21 @@
 <body class="hold-transition login-page">
 <div class="login-box">
     <div class="login-logo">
-        <a href="../../index2.html"><b>采集后台管理系统</b></a>
+        <b>采集后台管理系统</b>
     </div>
     <!-- /.login-logo -->
     <div class="login-box-body">
-        <p id="msg" class="login-box-msg">Sign in to start your session</p>
-        <form action="../../index2.html" method="post">
+        <p id="msg" class="login-box-msg">系统登录</p>
+        <form action="/login/" method="post">
             <div class="form-group has-feedback">
                 <!-- <input type="text" class="form-control" data-inputmask="'alias': 'dd/mm/yyyy'" data-mask> -->
-                <input type="text" class="form-control" data-inputmask="'alias': 'dd/mm/yyyy'"
+                <input id="usr" type="text" class="form-control" data-inputmask="'alias': 'dd/mm/yyyy'"
                        data-toggle="tooltip" data-placement="top" title="请输入用户名" data-mask>
                 <span class="glyphicon glyphicon-user form-control-feedback"></span>
             </div>
             <div class="form-group has-feedback">
-                <input type="password" class="form-control" placeholder="Password"
-                data-toggle="tooltip" data-placement="top" title="英文大小写 + 数字，8位以上。">
+                <input id="pwd" type="password" class="form-control" placeholder="Password"
+                       data-toggle="tooltip" data-placement="top" title="英文大小写 + 数字，8位以上。">
                 <span class="glyphicon glyphicon-lock form-control-feedback"></span>
             </div>
             <div class="row">

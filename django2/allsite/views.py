@@ -26,10 +26,12 @@ def regist(req):
             return HttpResponse('regist success!!')
     else:
         uf = UserForm()
+
     return render_to_response('regist.html', {'uf': uf}, context_instance=RequestContext(req))
 
 
 def login(req):
+    print '[info] login start'
     if req.method == 'POST':
         uf = UserForm(req.POST)
         if uf.is_valid():
@@ -39,7 +41,7 @@ def login(req):
             user = User.objects.filter(username__exact=username, password__exact=password)
             if user:
                 # 比较成功，跳转index
-                response = HttpResponseRedirect('/allsite/index/')
+                response = HttpResponseRedirect('/index.html')
                 # 将username写入浏览器cookie,失效时间为3600
                 response.set_cookie('username', username, 60)
                 return response
@@ -47,6 +49,8 @@ def login(req):
                 return HttpResponseRedirect('/allsite/login/')
     else:
         uf = UserForm()
+
+    print '[info] login end'
     return render_to_response('login.html', {'uf': uf}, context_instance=RequestContext(req))
 
 
