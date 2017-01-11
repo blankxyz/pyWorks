@@ -23,6 +23,7 @@ def regist(req):
             # 获得表单数据
             username = uf.cleaned_data['username']
             password = uf.cleaned_data['password']
+            print '[info] regist username: %s,password: %s.' % (username, password)
             # 添加到数据库
             User.objects.create(username=username, password=password)
             # return HttpResponse('regist success!!')
