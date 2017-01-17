@@ -1,0 +1,35 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %} post article {% endblock %}
+{% block content %}
+    <div style="margin-left: 100px;margin-top: 100px;width: 80%;padding: 100px 100px 10px;" class="form-group">
+        <form action="/article/post/new" method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <span class="input-group-addon">userName</span>
+                <input name='userName' type='text'/><br>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">title</span>
+                <input name='title' type='text'/><br>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">content</span>
+                <input name='content' type='text'/><br>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">file</span>
+                <input name="upload_file" type="file"/>
+            </div>
+            <div class="input-group">
+                <input name="submit" type="submit" class="btn"/>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{#{% block script %}#}
+{#    {{ super() }}#}
+{#    <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">#}
+{#    <script src="https://code.jquery.com/jquery.js"></script>#}
+{#{% endblock %}#}
