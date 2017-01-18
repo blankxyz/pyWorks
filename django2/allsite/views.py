@@ -37,6 +37,17 @@ class DBDriver(object):
         # pprint(ret)
         return (ret, cnt)
 
+    def get_hubPageList(self, start, length, search):
+        ret = []
+        cond = {'name':{'$regex':search}}
+        cnt = self.site_cn_all.find(cond).count()
+        l = self.site_cn_all.find(cond).sort("hubPageCnt", pymongo.DESCENDING).limit(length).skip(start)
+        for info in l:
+            ret.append([info['site'], info['hubPageCnt'], info['name']])
+
+        # pprint(ret)
+        return (ret, cnt)
+
 
 def sitelistJson(request):
     print '[info] sitelistJson start.'
@@ -65,6 +76,35 @@ def sitelistJson(request):
                            'data': ret})
 
     print '[info] sitelistJson end.'
+    return HttpResponse(output, content_type='application/json; charset=UTF-8')
+
+def hubPageListJson(request):
+    print '[info] hubPageListJson start.'
+
+    draw = request.GET.get('draw')
+    start = request.GET.get('start')
+    length = request.GET.get('length')
+    search = request.GET.get('search[value]')
+
+    start = int(start)
+    length = int(length)
+    end = start + length
+    print '[info] hubPageListJson draw:', draw, 'start:', start, 'length:', length, 'end:', end, 'search:', search
+
+    db = DBDriver()
+    (ret, cnt) = db.get_hubPageList(start, length, search)
+    # pprint({"draw": draw,
+    #         "recordsTotal": cnt,
+    #         "recordsFiltered": cnt,
+    #         'data': ret})
+
+    # 等效于 json.dumps()
+    output = JsonResponse({"draw": draw,
+                           "recordsTotal": cnt,
+                           "recordsFiltered": cnt,
+                           'data': ret})
+
+    print '[info] hubPageListJson end.'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 #----------------------------------------------------------------------------------------------------------
@@ -130,8 +170,17 @@ def index(req):
 
 def allsite(req):
     username = req.COOKIES.get('username', '')
-    return render_to_response('sitelist.html', {'username': username})
+    return render_to_response('domainlist.html', {'username': username})
 
 
-def sitelist(req):
-    return render_to_response('sitelist.html')
+def domainlist(req):
+    return render_to_response('domainlist.html')
+
+def hubPageList(req):
+    return render_to_response('hubPageList.html')
+
+def detailPageList(req):
+    return render_to_response('detailPageList.html')
+
+def newDomainList(req):
+    return render_to_response('newDomainList.html')
