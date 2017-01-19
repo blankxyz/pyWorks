@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
     <!-- DataTables -->
     <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+    <!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="{% static 'plugins/iCheck/all.css' %}">
     <!-- Theme style -->
     <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
     <!-- AdminLTE Skins. Choose a skin from the css/skins
@@ -37,6 +39,8 @@
     <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
     <!-- SlimScroll -->
     <script src="{% static 'plugins/slimScroll/jquery.slimscroll.min.js' %}"></script>
+    <!-- iCheck 1.0.1 -->
+    <script src="{% static 'plugins/iCheck/icheck.min.js' %}"></script>
     <!-- FastClick -->
     <script src="{% static 'plugins/fastclick/fastclick.js' %}"></script>
     <!-- AdminLTE App -->
@@ -44,16 +48,30 @@
     <!-- AdminLTE for demo purposes -->
     <script src="{% static 'dist/js/demo.js' %}"></script>
 
-   <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>
-   <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
-   <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
-   <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
-   <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
-   <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts-all-3.js"></script>
+    <script type="text/javascript"
+            src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+    <script type="text/javascript"
+            src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
     <!-- page script -->
+    <style>
+        .float_left {
+            float: left;
+            margin-left: 20px;
+            margin-top: 20px;
+        }
+
+        .float_right {
+            float: right;
+        }
+    </style>
     <script type="text/javascript">
         $(document).ready(function () {
             $('#site_index_tab').DataTable({
+                'dom': '<"float_left"fl>rti<"float_right"p>',
                 "oLanguage": {
                     "sLengthMenu": "每页 _MENU_ 条",
                     "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
@@ -74,103 +92,28 @@
                 "bLengthChange": false,
                 "bFilter": true,
                 "bProcessing": true,
-                "bServerSide": true,
-                "ajax": "http://127.0.0.1:8000/allsite/sitelistJson/",
-                "aoColumns": [{
-                    "mData": "hubPage"
-                }, {
-                    "mData": "hubPageCnt"
-                }, {
-                    "mData": "siteName"
-                }],
-                "aoColumnDefs": [{
-                    "sWidth": "45%",
-                    "aTargets": [0],
-                    "mRender": function (data, type, row) {
-                        return row[0];
-                    }
-                }, {
-                    "sWidth": "15%",
-                    "aTargets": [1],
-                    "mRender": function (data, type, row) {
-                        return '<a target=\"hubPageframe\" href=\"http://172.16.5.152:9000/getHubPage2?init=true&site=' + row[0] + '\">' +
-                            '<span class=\"badge\" style=\"background-color:dodgerblue\">' + row[1] + '</span>' +
-                            '</a>';
-                    }
-                }, {
-                    "sWidth": "40%",
-                    "aTargets": [2],
-                    "mRender": function (data, type, row) {
-                        return '<a href=\"' + row[0] + '\">' + row[2] + '</a>';
-                    }
-                }]
+                "initComplete": function () {
+                    var api = this.api();
+                    api.$('td').click(function () {
+                        api.search(this.innerHTML).draw();
+                    });
+                }
+            });
+
+            $('tr').click(function () {
+                var name = $(this).children("td").last();
+                if (name.length != 0) {
+                    name.html('<input type="text" value=' + name.text() +
+                        '>&nbsp;&nbsp;<a href="#"><span class="glyphicon glyphicon-ok"></span></a>');
+                }
+            });
+
+            //Flat red color scheme for iCheck
+            $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
+                checkboxClass: 'icheckbox_flat-green',
+                radioClass: 'iradio_flat-green'
             });
         });
-    </script>
-
-    <!-- main1 -->
-    <script type="text/javascript">
-        // 基于准备好的dom，初始化echarts实例
-        var dom = document.getElementById('IndustryCategory');
-        var myChart1 = echarts.init(dom);
-        var app = {};
-
-        app.title = '环形图';
-
-        option = {
-            tooltip: {
-                trigger: 'item',
-                formatter: "{a} <br/>{b}: {c} ({d}%)"
-            },
-            legend: {
-                orient: 'vertical',
-                x: 'left',
-                data: ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']
-            },
-            series: [{
-                name: '访问来源',
-                type: 'pie',
-                radius: ['50%', '70%'],
-                avoidLabelOverlap: false,
-                label: {
-                    normal: {
-                        show: false,
-                        position: 'center'
-                    },
-                    emphasis: {
-                        show: true,
-                        textStyle: {
-                            fontSize: '30',
-                            fontWeight: 'bold'
-                        }
-                    }
-                },
-                labelLine: {
-                    normal: {
-                        show: false
-                    }
-                },
-                data: [{
-                    value: 335,
-                    name: '直接访问'
-                }, {
-                    value: 310,
-                    name: '邮件营销'
-                }, {
-                    value: 234,
-                    name: '联盟广告'
-                }, {
-                    value: 135,
-                    name: '视频广告'
-                }, {
-                    value: 1548,
-                    name: '搜索引擎'
-                }]
-            }]
-        };
-
-        // 使用刚指定的配置项和数据显示图表。
-        myChart1.setOption(option);
     </script>
 </head>
 
@@ -667,18 +610,25 @@
                 <small>域名管理</small>
             </h1>
             <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li><a href="#">Tables</a></li>
-                <li class="active">Data tables</li>
+                <li><a href="/allsite/index/"><i class="fa fa-dashboard"></i> 监控台</a></li>
+                <li class="active">域名管理</li>
             </ol>
         </section>
         <!-- Main content -->
         <section class="content">
             <div id="sitelist" class="inverse">
-                <!--<iframe src="http://172.16.5.152:9000/" style="border: 0px;height:900px;width:1600px""></iframe> -->
                 <div class="row">
                     <div class="col-xs-12">
-                        <div class="box" style="float:left;margin-left:20px;margin-top: 0px; width:45%;">
+                        <div class="box" style="margin-left:50px;margin-top:20px;width:95%;">
+                            <div class="form-group">
+                                <label class="checkbox-inline pull-right" style="margin-top:20px;margin-right:20px;">
+                                    <input type="radio" name="list_type" id="new" value="new" class="flat-red" checked>
+                                    今日新增
+                                </label>
+                                <label class="checkbox-inline pull-right" style="margin-top:20px;margin-right:20px;">
+                                    <input type="radio" name="list_type" id="all" value="all" class="flat-red"> 全部
+                                </label>
+                            </div>
                             <div class="box-body">
                                 <table id="site_index_tab"
                                        class="table table-striped table-bordered table-hover table-condensed">
@@ -689,47 +639,199 @@
                                         <th>网站名称</th>
                                     </tr>
                                     </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>http://lmjx.net</td>
+                                        <td>185676</td>
+                                        <td>中国路面机械网-工程</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.xbiao.com</td>
+                                        <td>158655</td>
+                                        <td>腕表之家</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://liuxue86.com</td>
+                                        <td>127777</td>
+                                        <td>出国留学网-【中国最</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.xnmfw.com</td>
+                                        <td>101222</td>
+                                        <td>西宁买房网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.hqbpc.com</td>
+                                        <td>792233</td>
+                                        <td>华强北电脑网 - 中</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://hc360.com</td>
+                                        <td>77066</td>
+                                        <td>慧聪网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://shoes.net.cn</td>
+                                        <td>76685</td>
+                                        <td>环球鞋网-鞋行业垂直</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.elong.com</td>
+                                        <td>70122</td>
+                                        <td>艺龙网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://jiancai.com</td>
+                                        <td>69333</td>
+                                        <td>建材网-打造中国一流</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://tom.com</td>
+                                        <td>66055</td>
+                                        <td>TOM.COM</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://gaokao.com</td>
+                                        <td>112222</td>
+                                        <td>高考网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.cheshi.com</td>
+                                        <td>60273</td>
+                                        <td>网上车市-国产汽车-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.ccoo.cn</td>
+                                        <td>56955</td>
+                                        <td>化州在线</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.cps.com.cn</td>
+                                        <td>122344</td>
+                                        <td>cps中安网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.66163.com</td>
+                                        <td>55677</td>
+                                        <td>福建之窗|福建新闻|</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.ljia.net</td>
+                                        <td>54433</td>
+                                        <td>邯郸房产_邯郸信息港</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.offcn.com</td>
+                                        <td>52331</td>
+                                        <td>安徽中公教育</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.cebike.com</td>
+                                        <td>51411</td>
+                                        <td>电动车商情网-权威的</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://qingdaonews.com</td>
+                                        <td>51342</td>
+                                        <td>青岛新闻网首页</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.chinabgao.com</td>
+                                        <td>51127</td>
+                                        <td>中国报告大厅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.qqyy.com</td>
+                                        <td>49123</td>
+                                        <td>全球医院网_提供医院</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.8684.cn</td>
+                                        <td>48712</td>
+                                        <td>公交线路查询_公交查</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.citscq.com</td>
+                                        <td>46232</td>
+                                        <td>重庆中国国际旅行社【</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.xsjk.net</td>
+                                        <td>47222</td>
+                                        <td>携手健康网_科学全面</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.it168.com</td>
+                                        <td>48122</td>
+                                        <td>IT168.com</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://cang.com</td>
+                                        <td>45622</td>
+                                        <td>华夏收藏网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.eol.cn</td>
+                                        <td>46112</td>
+                                        <td>中国教育在线</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.39.net</td>
+                                        <td>46012</td>
+                                        <td>39健康网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://ppsj.com.cn</td>
+                                        <td>46551</td>
+                                        <td>品牌世家-中国品牌门</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.texnet.com.cn</td>
+                                        <td>41912</td>
+                                        <td>中国纺织网 纺织网上</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.gamedog.cn</td>
+                                        <td>52211</td>
+                                        <td>游戏狗</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.njcw.com</td>
+                                        <td>42330</td>
+                                        <td>南京车网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.eastmoney.com</td>
+                                        <td>42011</td>
+                                        <td>东方财富网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.koolearn.com</td>
+                                        <td>41223</td>
+                                        <td>新东方在线</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.cngold.org</td>
+                                        <td>23441</td>
+                                        <td>中国黄金投资网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://365jia.cn</td>
+                                        <td>34112</td>
+                                        <td>万家热线</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.poco.cn</td>
+                                        <td>23212</td>
+                                        <td>poco摄影网</td>
+                                    </tr>
+                                    <tr>
+                                        <td>http://www.edulife.com.cn</td>
+                                        <td>34412</td>
+                                        <td>教育人生网</td>
+                                    </tr>
+                                    </tbody>
                                 </table>
-                            </div>
-                        </div>
-                        <!--
-                        <div id="main" style="float:left; margin-left:50px; width:45%;" class="row">
-                            <iframe name="hubPageframe" style="height:920px;width:800px" frameborder="0"
-                                    scrolling="yes"></iframe>
-                        </div>
-                        -->
-                        <!-- 行业分类 -->
-                        <div class="box box-danger" style="float:left; margin-left:20px; width:45%;">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">行业分类</h3>
-                                <div class="box-tools pull-right">
-                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i
-                                            class="fa fa-minus"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i
-                                            class="fa fa-times"></i></button>
-                                </div>
-                            </div>
-                            <div class="box-body">
-                                <!-- <canvas id="pieChart" style="height:250px"></canvas> -->
-                                <div id="IndustryCategory" style="width: 500px;height:300px;"></div>
-                            </div>
-                        </div>
-                        <!-- 地域 -->
-                        <div class="box box-primary" style="float:left; margin-left:20px; width:45%;">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">地域选择</h3>
-                                <div class="box-tools pull-right">
-                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i
-                                            class="fa fa-minus"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i
-                                            class="fa fa-times"></i></button>
-                                </div>
-                            </div>
-                            <div class="box-body">
-                                <!-- <canvas id="pieChart" style="height:250px"></canvas> -->
-                                <div id="Erea" style="width: 500px;height:300px;"></div>
                             </div>
                         </div>
                     </div>

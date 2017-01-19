@@ -10,7 +10,5 @@ urlpatterns = patterns('',
                        url(r'^allsite/$', views.allsite, name='allsite'),
                        url(r'^domainlist/$', views.domainlist, name='domainlist'),
                        url(r'^hubPageList/$', views.hubPageList, name='hubPageList'),
-                       url(r'^detailPageList/$', views.detailPageList, name='detailPageList'),
-                       url(r'^newDomainList/$', views.newDomainList, name='newDomainList'),
                        url(r'^sitelistJson/$', views.sitelistJson, name='sitelistJson'),
                        )

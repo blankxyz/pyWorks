@@ -178,9 +178,3 @@ def domainlist(req):
 
 def hubPageList(req):
     return render_to_response('hubPageList.html')
-
-def detailPageList(req):
-    return render_to_response('detailPageList.html')
-
-def newDomainList(req):
-    return render_to_response('newDomainList.html')
