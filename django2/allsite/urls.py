@@ -21,4 +21,7 @@ urlpatterns = patterns('',
                        url(r'^drawDetailTrend/$', views.drawDetailTrend, name='drawDetailTrend'),
                        url(r'^drawCrawlTimePart/$', views.drawCrawlTimePart, name='drawCrawlTimePart'),
                        url(r'^drawNewDomain/$', views.drawNewDomain, name='drawNewDomain'),
+                       url(r'^drawDetailList/$', views.drawDetailList, name='drawDetailList'),
+                       url(r'^urlList/$', views.urlList, name='urlList'),
+                       url(r'^domainModify/$', views.domainModify, name='domainModify'),
                        )

@@ -19,5 +19,5 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^allsite/', include('allsite.urls')),
+    url(r'^allsite/', include('allsite.urls',namespace='allsite')),
 ]

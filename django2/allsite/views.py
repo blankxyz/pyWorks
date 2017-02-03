@@ -6,7 +6,7 @@ from django.shortcuts import render, render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django import forms
-from models import User
+# from models import User
 from pprint import pprint
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 import pymongo
 from django.http import HttpResponse, HttpResponseServerError
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 import json
 # Create your views here.
 import time
@@ -57,7 +58,7 @@ class DBDriver(object):
 
 
 def sitelistJson(request):
-    print '[info] sitelistJson start.'
+    print('[info] sitelistJson start.')
 
     draw = request.GET.get('draw')
     start = request.GET.get('start')
@@ -67,7 +68,7 @@ def sitelistJson(request):
     start = int(start)
     length = int(length)
     end = start + length
-    print '[info] sitelistJson draw:', draw, 'start:', start, 'length:', length, 'end:', end, 'search:', search
+    print('[info] sitelistJson draw:', draw, 'start:', start, 'length:', length, 'end:', end, 'search:', search)
 
     db = DBDriver()
     (ret, cnt) = db.get_site_cn_all(start, length, search)
@@ -82,12 +83,12 @@ def sitelistJson(request):
                            "recordsFiltered": cnt,
                            'data': ret})
 
-    print '[info] sitelistJson end.'
+    print('[info] sitelistJson end.')
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 
 def hubPageListJson(request):
-    print '[info] hubPageListJson start.'
+    print('[info] hubPageListJson start.')
 
     draw = request.GET.get('draw')
     start = request.GET.get('start')
@@ -97,7 +98,7 @@ def hubPageListJson(request):
     start = int(start)
     length = int(length)
     end = start + length
-    print '[info] hubPageListJson draw:', draw, 'start:', start, 'length:', length, 'end:', end, 'search:', search
+    print('[info] hubPageListJson draw:', draw, 'start:', start, 'length:', length, 'end:', end, 'search:', search)
 
     db = DBDriver()
     (ret, cnt) = db.get_hubPageList(start, length, search)
@@ -112,7 +113,7 @@ def hubPageListJson(request):
                            "recordsFiltered": cnt,
                            'data': ret})
 
-    print '[info] hubPageListJson end.'
+    print('[info] hubPageListJson end.')
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 
@@ -123,46 +124,47 @@ class UserForm(forms.Form):
 
 
 def regist(req):
-    print '[info] regist start.'
+    print('[info] regist start.')
     if req.method == 'POST':
         uf = UserForm(req.POST)
         if uf.is_valid():
             username = uf.cleaned_data['username']
             password = uf.cleaned_data['password']
-            print '[info] regist username: %s,password: %s.' % (username, password)
+            print('[info] regist username: %s,password: %s.' % (username, password))
             # 添加到数据库
-            User.objects.create(username=username, password=password)
+            # User.objects.create(username=username, password=password)
             # return HttpResponse('regist success!!')
             return HttpResponseRedirect('/allsite/login/')
     else:
         uf = UserForm()
 
-    print '[info] regist end.'
+    print('[info] regist end.')
     return render_to_response('regist.html', {'uf': uf}, context_instance=RequestContext(req))
 
 
 def login(req):
-    print '[info] login start.'
+    print('[info] login start.')
     if req.method == 'POST':
         uf = UserForm(req.POST)
         if uf.is_valid():
             username = uf.cleaned_data['username']
             password = uf.cleaned_data['password']
-            print '[info] login username: %s, password: %s' % (username, password)
-            user = User.objects.filter(username__exact=username, password__exact=password)
+            print('[info] login username: %s, password: %s' % (username, password))
+            # user = User.objects.filter(username__exact=username, password__exact=password)
+            user = 'user'
             if user:
                 response = HttpResponseRedirect('/allsite/index/')
                 # 将username写入浏览器cookie,失效时间为3600
                 response.set_cookie('username', username, 60)
-                print '[info] login success.'
+                print('[info] login success.')
                 return response
             else:
-                print '[info] login failure.'
+                print('[info] login failure.')
                 return HttpResponseRedirect('/allsite/login/')
     else:
         uf = UserForm()
 
-    print '[info] login end.'
+    print('[info] login end.')
     return render_to_response('login.html', {'uf': uf}, context_instance=RequestContext(req))
 
 
@@ -171,22 +173,23 @@ def logout(req):
     response.delete_cookie('username')
     return response
 
+
 # @csrf_exempt
 @ensure_csrf_cookie
 def index(req):
     username = req.COOKIES.get('username', '')
     result = {}
     result['domain_total'] = 15222
-    return render_to_response('index.html', {'result': result})
+    return render_to_response('app/index.html', {'result': result})
 
 
 def allsite(req):
     username = req.COOKIES.get('username', '')
-    return render_to_response('domainlist.html', {'username': username})
+    return render_to_response('app/domainlist.html', {'username': username})
 
 
 def domainlist(req):
-    return render_to_response('domainlist.html')
+    return render_to_response('app/domainlist.html')
 
 
 def hubPageList(req):
@@ -224,7 +227,7 @@ def dashBoardCnt(request):
 
 
 def drawHubPageRank(request):
-    print 'drawHubPageRank start.........'
+    # print 'drawHubPageRank start.........'
 
     # draw = request.GET.get('draw')
     # start = request.GET.get('start')
@@ -235,23 +238,23 @@ def drawHubPageRank(request):
 
     output = JsonResponse({"hubPageRank": arr})
 
-    print 'drawHubPageRank end ........'
+    # print 'drawHubPageRank end ........'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 
 def drawDomainRank(request):
-    print 'drawDomainRank start.........'
+    # print 'drawDomainRank start.........'
 
     arr1 = [10000, 12000, 16000, 10000, 8000, 4000, 4000, 3000, 1000, 500]
     arr2 = [30000, 22000, 16000, 20000, 10000, 9000, 8000, 6000, 10000, 1000]
     output = JsonResponse({"domainRankUsed": arr1, "domainRankUnUsed": arr2})
 
-    print 'drawDomainRank end ........'
+    # print 'drawDomainRank end ........'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 
 def drawHubPageTrend(request):
-    print 'drawHubPageTrend start.........'
+    # print 'drawHubPageTrend start.........'
 
     arr1 = [120, 132, 133, 134, 150, 200, 210, 220, 232, 233, 235, 260,
             261, 262, 277, 278, 280, 290, 310, 330, 340, 350, 380]
@@ -259,12 +262,12 @@ def drawHubPageTrend(request):
 
     output = JsonResponse({"hubPageTrend": arr1, "period": period})
 
-    print 'drawHubPageTrend end ........'
+    # print 'drawHubPageTrend end ........'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 
 def drawDetailTrend(request):
-    print 'drawDetailTrend start.........'
+    # print 'drawDetailTrend start.........'
 
     beforeYesterday = [90, 132, 133, 134, 150, 200, 210, 220, 232, 233, 235, 260, 261, 262, 277, 278, 280, 290, 310,
                        330, 340, 350, 360, ]
@@ -275,12 +278,12 @@ def drawDetailTrend(request):
 
     output = JsonResponse({"beforeYesterday": beforeYesterday, "yesterday": yesterday, "today": today})
 
-    print 'drawDetailTrend end ........'
+    # print 'drawDetailTrend end ........'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
 
 
 def drawCrawlTimePart(request):
-    print 'drawCrawlTimePart start.........'
+    # print 'drawCrawlTimePart start.........'
     data = {}
     data['0-1'] = 0
     data['1-2'] = 0
@@ -294,20 +297,21 @@ def drawCrawlTimePart(request):
 
     output = JsonResponse(data)
 
-    print 'drawCrawlTimePart end ........'
+    # print 'drawCrawlTimePart end ........'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
+
 
 # @csrf_exempt
 @ensure_csrf_cookie
 def drawNewDomain(request):
-    print 'drawNewDomain start *************************'
+    # print 'drawNewDomain start *************************'
     timeList = []
     domainCnt = []
-    print 'drawNewDomain', request.POST
+    # print 'drawNewDomain', request.POST
 
     if request.POST.has_key('opt'):
         opt = request.POST['opt']
-        print 'drawNewDomain', opt
+        # print 'drawNewDomain', opt
 
         if (opt == "day"):
             timeList = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
@@ -329,5 +333,108 @@ def drawNewDomain(request):
         domainCnt = [500, 420, 360, 500, 700, 900, 800]
 
     output = JsonResponse({'timeList': timeList, 'domainCnt': domainCnt})
-    print 'drawNewDomain end *************************'
+    # print 'drawNewDomain end *************************'
     return HttpResponse(output, content_type='application/json; charset=UTF-8')
+
+
+def drawDetailList(request):
+    print()
+    '[info] drawDetailList start.'
+
+    # draw = request.GET.get('draw')
+    # start = request.GET.get('start')
+    # length = request.GET.get('length')
+    # search = request.GET.get('search[value]')
+    draw = 1
+    start = 1
+    length = 5
+    search = ''
+
+    start = int(start)
+    length = int(length)
+    end = start + length
+    print('[info] drawDetailList draw:', draw, 'start:', start, 'length:', length, 'end:', end, 'search:', search)
+    ret = [
+        'http://lmjx.net',
+        'http://www.xbiao.com',
+        'http://liuxue86.com',
+        'http://www.xnmfw.com',
+        'http://shoes.net.cn',
+        'http://www.hqbpc.com',
+        'http://hc360.com',
+        'http://shoes.net.cn'
+    ]
+    cnt = len(ret)
+
+    output = JsonResponse({"draw": draw,
+                           "recordsTotal": cnt,
+                           "recordsFiltered": cnt,
+                           'data': ret})
+
+    print('[info] drawDetailList end.')
+    return HttpResponse(output, content_type='application/json; charset=UTF-8')
+
+
+def urlList(request):
+    limit = 10
+
+    urlList = [{'url': 'http://lmjx.net', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://www.xbiao.com', 'hubPageCnt': 158655, 'siteName': u'腕表之家'},
+               {'url': 'http://liuxue86.com', 'hubPageCnt': 127777, 'siteName': u'出国留学网-【中国最'},
+               {'url': 'http://www.xnmfw.com', 'hubPageCnt': 101222, 'siteName': u'西宁买房网'},
+               {'url': 'http://www.hqbpc.com', 'hubPageCnt': 792233, 'siteName': u'华强北电脑网 - 中'},
+               {'url': 'http://hc360.com', 'hubPageCnt': 77066, 'siteName': u'慧聪网'},
+               {'url': 'http://shoes.net.cn', 'hubPageCnt': 76685, 'siteName': u'环球鞋网-鞋行业垂直'},
+               {'url': 'http://www.elong.com', 'hubPageCnt': 70122, 'siteName': u'艺龙网'},
+               {'url': 'http://jiancai.com', 'hubPageCnt': 69333, 'siteName': u'建材网-打造中国一流'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               {'url': 'http://lmjx.net ', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'},
+               ]
+
+    paginator = Paginator(urlList, limit)
+    page_num = request.GET.get('page', 1)
+    loaded = paginator.page(page_num)
+
+    context = {
+        'urlList': loaded
+    }
+
+    return render(request, 'urlList.html', context)
+
+
+def domainModify(request):
+    print('[info] domainModify start .....')
+    limit = 10
+
+    urlList = [{'url': 'http://lmjx.net', 'hubPageCnt': 185676, 'siteName': u'中国路面机械网-工程'}
+               ]
+
+    paginator = Paginator(urlList, limit)
+    page_num = request.GET.get('page', 1)
+    loaded = paginator.page(page_num)
+
+    context = {
+        'urlList': loaded
+    }
+    print('[info] domainModify end.')
+    return render(request, 'domainModify.html', context)
