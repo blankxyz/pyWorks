@@ -1034,12 +1034,12 @@ def main():
     db.make_userArea_point_js()  # 控制前端采集点描绘
     db.make_userArea_outline_js()  # 控制前端行政区轮廓划分
 
+    print 'tornado server port:', options.port
     tornado.locale.set_default_locale('zh_CN')
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
-
 
 def patch_address():
     db = DBDriver()
