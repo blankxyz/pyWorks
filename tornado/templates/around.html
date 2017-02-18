@@ -19,7 +19,7 @@
           rel="stylesheet"/>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
     <!-- 高德地图 -->
-{#    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>#}
+    {#    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>#}
     <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0"/>
     <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
     <script type="text/javascript"
@@ -52,7 +52,7 @@
 {#</div>#}
 
 <!-- 左侧检索栏  -->
-<div id="filter_div" style="float:left;width:200px; margin-left:50px">
+<div id="filter_div" style="float:left; margin-left:10px" class="col-md-2">
     <h3>共有<span id="total">{{ total }}</span>条微信</h3>
     <hr>
     <div class="form-group row">
@@ -94,8 +94,8 @@
 </div>
 
 <!-- 中间 微信信息展示栏  -->
-<div id="sns_info_div" style="float:left;width:800px; margin-left:20px" class="col-sm-9">
-    <div style="height: 50px;alignment: center">
+<div id="sns_info_div" style="float:left;" class="col-md-5">
+    <div style="height: 30px;alignment: center">
         <ul class="pager">
             <li>
                 <a id="firstPage" onclick="pagging(this)">首页</a>
@@ -146,7 +146,7 @@
                     <div class="sns_timeLocation row clearfix">
                         <h6><span class="glyphicon glyphicon-time"></span>&nbsp;
                             {{ sns_info["ago_days"] }}&nbsp;
-{#                            {{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
+                            {#{{ datetime.datetime.utcfromtimestamp(sns_info["timestamp"]).strftime("%Y-%m-%d %H:%M:%S") }}#}
                             &nbsp;&nbsp;&nbsp;
                             <span class="glyphicon glyphicon-screenshot"></span>&nbsp;
                             {{ sns_info["poi_address"] }}
@@ -171,7 +171,6 @@
                         {% end %}
                     </div>
                     {% end %}
-
                 </div>
             </td>
         </tr>
@@ -180,12 +179,9 @@
     </table>
 </div>
 
-<!-- 右侧 地图展示栏  -->
-<div id="map_title" style="float:left;width:700px; height:60px; margin-top:0px;margin-left:10px;">
-    <h3>信息采集位置</h3>
-</div>
 <!-- 右上 地图坐标栏  -->
-<div id="myPageTop" style="margin-right:140px;margin-top:5px">
+<div id="myPageTop" style="float:right;margin-top:5px" class="col-md-4">
+    <h3>信息采集位置</h3>
     <table>
         <tr>
             <td>
@@ -205,7 +201,7 @@
         </tr>
     </table>
 </div>
-<div id="map_div" style="float:left;width:700px; height:800px; margin-top:10px;margin-left:10px;" class="map"
+<div id="map_div" style="float:right;height:500px;margin-top:20px;" class="map col-md-4"
      tabindex="0">
     <h1>地图加载后，会覆盖该区域。</h1>
 </div>
@@ -237,8 +233,8 @@
                 authors: authors,
                 timeStart: $('#timeStart').val(),
                 timeEnd: $('#timeEnd').val(),
-                x_y:$('#x_y').val(),
-                distance:$('#distance').val(),
+                x_y: $('#x_y').val(),
+                distance: $('#distance').val(),
                 hasPic: $('#hasPic').is(':checked')
             },
             error: function (xhr, err) {
@@ -383,18 +379,18 @@
     });
     mass.setMap(map);
     //---------限制区域----------------------------------------------------------------
-{#    map.setLimitBounds(map.getBounds());#}
-{#    function getLimitBounds() {#}
-{#        var limitBounds = map.getLimitBounds();#}
-{#        if (limitBounds) {#}
-{#            var tip = [];#}
-{#            tip.push('限制区域：\n西南坐标[' + limitBounds.southwest.lng + ',' + limitBounds.southwest.lat + ']\n')#}
-{#            tip.push('东北坐标[' + limitBounds.northeast.lng + ',' + limitBounds.northeast.lat + ']')#}
-{#            alert(tip.join(''));#}
-{#        } else {#}
-{#            alert('未设置限制区域');#}
-{#        }#}
-{#    }#}
+    {#    map.setLimitBounds(map.getBounds());#}
+    {#    function getLimitBounds() {#}
+    {#        var limitBounds = map.getLimitBounds();#}
+    {#        if (limitBounds) {#}
+    {#            var tip = [];#}
+    {#            tip.push('限制区域：\n西南坐标[' + limitBounds.southwest.lng + ',' + limitBounds.southwest.lat + ']\n')#}
+    {#            tip.push('东北坐标[' + limitBounds.northeast.lng + ',' + limitBounds.northeast.lat + ']')#}
+    {#            alert(tip.join(''));#}
+    {#        } else {#}
+    {#            alert('未设置限制区域');#}
+    {#        }#}
+    {#    }#}
 </script>
 </html>
 
