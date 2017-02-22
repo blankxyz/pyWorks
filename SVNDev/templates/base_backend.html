@@ -1,0 +1,32 @@
+<!-- login first page -->
+
+{% extends 'lib/_base.html' %}
+
+{% block title %}智慧星光采集后台{% endblock title %}
+
+{% block bodyclass %}skin-blue hold-transition sidebar-mini{% endblock bodyclass %}
+{% block wrapper_content %}
+    <div class="hold-transition skin-blue sidebar-mini">
+        {% include 'lib/_main_header.html' %}
+        <!-- Left side column. contains the logo and sidebar -->
+        {% include 'lib/_main_sidebar.html' %}
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <!-- Main content -->
+            <section class="content">{% block section_content %}content{% endblock section_content %}</section>
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+        {% include 'lib/_main_footer.html' %}
+
+        <!-- Control Sidebar -->
+        {% include 'lib/_control_sidebar.html' %}
+        <!-- /.control-sidebar -->
+        <!-- Add the sidebar's background. This div must be placed
+             immediately after the control sidebar -->
+        <div class="control-sidebar-bg"></div>
+    </div>
+
+{% endblock wrapper_content %}

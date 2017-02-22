@@ -1,0 +1,71 @@
+{% load static admin_static %}
+<!DOCTYPE html>
+{% block docttype_tail %}{% endblock docttype_tail %}
+<html {% block html_lang %}{% endblock html_lang %}>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}{% endblock title %}</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <!-- Bootstrap 3.3.6 -->
+    <link rel="stylesheet" href='{% static "bootstrap/css/bootstrap.min.css" %}'>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href='{% static "Font-Awesome-master/css/font-awesome.min.css" %}'>
+    <!-- Ionicons -->
+    <link rel="stylesheet" href='{% static "ionicons-2.0.1/css/ionicons.min.css" %}'>
+    <!-- Theme style -->
+    <link rel="stylesheet" href='{% static "dist/css/AdminLTE.min.css" %}'>
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+         folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href='{% static "dist/css/skins/_all-skins.min.css" %}'>
+    <!-- iCheck -->
+    <link rel="stylesheet" href='{% static "plugins/iCheck/flat/blue.css" %}'>
+    {% block head_css %}{% endblock head_css %}
+
+    <!--[if lt IE 9]>
+    <script src='{% static "public/js/respond.min.js" %}'></script>
+    <![endif]-->
+    {% block header_tail %}{% endblock header_tail %}
+
+</head>
+{% load i18n %}
+{#<body class="hold-transition skin-blue sidebar-mini">#}
+<body class="{% block bodyclass %}{% endblock bodyclass %}">
+
+
+<div class="wrapper">
+    {% block wrapper_content %}{% endblock wrapper_content %}
+</div>
+<!-- ./wrapper -->
+
+{% block body_middle %}{% endblock body_middle %}
+
+{% block body_js %}
+    <!-- jQuery 2.2.3 -->
+    <script src='{% static "plugins/jQuery/jquery-2.2.3.min.js" %}'></script>
+    {% block jquery_js %}{% endblock jquery_js %}
+
+    <!-- jQuery UI 1.11.4 -->
+    <script src="{% static 'public/jquery-ui-1.11.4/jquery-ui.min.css' %}"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button);
+    </script>
+    <!-- Bootstrap 3.3.6 -->
+    <script src='{% static "bootstrap/js/bootstrap.min.js" %}'></script>
+    <!-- Morris.js charts -->
+    <!-- Slimscroll -->
+    <script src='{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}'></script>
+    <!-- AdminLTE App -->
+    <script src='{% static "dist/js/app.min.js" %}'></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src='{% static "dist/js/demo.js" %}'></script>
+
+{% endblock body_js %}
+
+{% block body_tail %}{% endblock body_tail %}
+
+</body>
+</html>

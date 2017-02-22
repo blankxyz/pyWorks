@@ -1,0 +1,46 @@
+{% load i18n static admin_static %}
+<!-- Left side column. contains the sidebar -->
+<aside class="main-sidebar">
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+        <!-- sidebar menu: : style can be found in sidebar.less -->
+
+        <ul class="sidebar-menu">
+            {% if request.user.is_staff %}
+                <li class="treeview">
+                    {#                    <a href="{% url 'admin' %}">#}
+                    <a href="#">
+                        <i class="fa fa-dashboard"></i> <span>用户管理</span>
+                        <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="{% url 'admin:backend_admin_user_changelist' %}"><i class="fa fa-circle-o"></i>
+                            用户管理 </a></li>
+                        <li><a href="{% url 'admin:auth_group_changelist' %}"><i class="fa fa-circle-o"></i> 分组权限 </a>
+                        </li>
+                    </ul>
+                </li>
+            {% endif %}
+            {% if perms.backend_admin.view_allsite %}
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-files-o"></i>
+                        <span>全站爬虫</span>
+                        <span class="pull-right-container">
+               <i class="fa fa-angle-left pull-right"></i>
+            </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="{% url 'allsite:main' %}"><i class="fa fa-circle-o"></i> 主控面板</a></li>
+                        <li><a href="{% url 'allsite:crawlTimes' %}"><i class="fa fa-circle-o"></i> 采集时间差</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+
+        </ul>
+    </section>
+    <!-- /.sidebar -->
+</aside>
