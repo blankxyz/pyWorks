@@ -1941,33 +1941,32 @@ def login():
     global g_advice_keyword_list
     global g_start_url_list
 
-    # if request.method == 'POST':
-    #     print '[info] login() POST.'
-    #     user_id = request.form['username']
-    #     password = request.form['password']
-    #     mysql_db = MySqlDrive()
-    #     if mysql_db.check_password(user_id, password):
-    #         session['user_id'] = user_id  # password OK！
-    #         mysql_db.set_current_main_setting(user_id=user_id, start_url='', site_domain='', black_domain_str='',
-    #                                           setting_json='')
-    #
-    #         session['start_url'] = ''
-    #         session['site_domain'] = ''
-    #         session['black_domain_str'] = ''
-    #
-    #         g_advice_regex_list = []  # 推荐所使用的 正则
-    #         g_advice_keyword_list = []  # 推荐所使用的 关键字
-    #         g_start_url_list = []  # 推荐所使用的首页所有的url
-    #
-    #         return render_template('menu.html', user_id=user_id)
-    #     else:
-    #         flash(u"输入密码不正确。", "error")
-    #
-    print '[info] login() ok.'
-    # return render_template('login.html')
-    session['user_id'] = 'admin'
+    if request.method == 'POST':
+        print '[info] login() POST.'
+        user_id = request.form['username']
+        password = request.form['password']
+        mysql_db = MySqlDrive()
+        if mysql_db.check_password(user_id, password):
+            session['user_id'] = user_id  # password OK！
+            mysql_db.set_current_main_setting(user_id=user_id, start_url='', site_domain='', black_domain_str='',
+                                              setting_json='')
 
-    return render_template('test2.html', user_id='admin')
+            session['start_url'] = ''
+            session['site_domain'] = ''
+            session['black_domain_str'] = ''
+
+            g_advice_regex_list = []  # 推荐所使用的 正则
+            g_advice_keyword_list = []  # 推荐所使用的 关键字
+            g_start_url_list = []  # 推荐所使用的首页所有的url
+
+            return render_template('menu.html', user_id=user_id)
+        else:
+            flash(u"输入密码不正确。", "error")
+
+    print '[info] login() ok.'
+    return render_template('login.html')
+    # session['user_id'] = 'admin'
+    # return render_template('test2.html', user_id='admin')
 
 
 @app.errorhandler(404)

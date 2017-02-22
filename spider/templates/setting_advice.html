@@ -61,6 +61,8 @@
         });
 
         $("a").click(function () {
+            alert('click!');
+
             var id_str = $(this).attr("id");
             if (id_str.search("regex") >= 0) {
                 {#regex_score_4 - > regex_list - 3 - regex#}
@@ -76,7 +78,7 @@
                 {#alert(regex_id + ":" + expr);#}
             }
             var myWin = window.open("setting_advice_window?regex=" + expr, "_blank",
-                "top=200,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no,resizable=no,location=yes");
+                    "top=200,left=400,width=900,height=600,menubar=no,scrollbars=yes,toolbar=no,status=no,resizable=no,location=yes");
             if (myWin.document) {
                 myWin.document.title = "推荐";
             }
