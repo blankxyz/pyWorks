@@ -1,0 +1,179 @@
+{% extends 'base_backend.html' %}
+{% load static admin_static i18n %}
+{% load backend_admin_filtets %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'backend/config/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/theme/lesser-dark.css' %}">
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div>
+        <div class="box-header with-border">
+            <h3 class="box-title">修改配置</h3>
+        </div>
+        <!-- form start -->
+        <div class="box box-primary">
+            <div class="box-body">
+                <form id="create_user_form" role="form" action="" method="post"
+                      enctype="multipart/form-data">{% csrf_token %}
+
+                    <!-- /.box-header -->
+                    {#                    <div class="box-header">#}
+                    {#                        <button class="btn btn-primary" id="_save">修改配置</button>#}
+                    {#                        <button type="submit" class="btn btn-primary" id="_submit" name="_save"#}
+                    {#                                style="display: none">sure#}
+                    {#                        </button>#}
+                    {#                    </div>#}
+                    <div class="form-group">
+                        <label for="">配置名称：</label>{{ config.savename }}
+                    </div>
+                    <div class="form-group">
+                        <label for="">网站名：</label>{{ config.webname }}
+                    </div>
+                    <div class="form-group">
+                        <label for="">域名：</label>{{ config.url }}
+                    </div>
+                    <div class="form-group">
+                        <label for="">上传人：</label>{{ config.author }}
+                    </div>
+                    <div class="form-group">
+                        <label for="">上传时间：</label>{{ savetime }}
+                    </div>
+                    <div class="form-group">
+                        <label for="">修改信息：</label><input type="text" name="change_config_message" size="50"
+                                                          placeholder="请填入修改原因和概括修改内容">
+
+                        <a href="{% url 'config:change_history' config_id %}" class="btn btn-info btn-xs">修改历史</a>
+                    </div>
+
+                    <div class="form-group">
+                        <div id="file_show">
+                            <textarea name="code" id="code" cols="100%" rows="30">{{ code }}</textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="_save">修改配置</button>
+                    <br>
+                    {#                    <div class="box-footer">#}
+                    {#                        <h5>修改历史</h5>#}
+                    {#                        <table class="table table-striped" id="change_his_table">#}
+                    {#                            <tr>#}
+                    {#                                <th>修改人</th>#}
+                    {#                                <th>修改日志</th>#}
+                    {#                                <th>时间</th>#}
+                    {#                                <th>版本信息</th>#}
+                    {#                                <th width="20%"></th>#}
+                    {#                            </tr>#}
+                    {#                            {% for log in svn_log %}#}
+                    {#                                <tr class="chang_config_tr">#}
+                    {#                                    <td>{{ log.author }}</td>#}
+                    {#                                    <td>{{ log.message }}</td>#}
+                    {#                                    <td>{{ log.date }}</td>#}
+                    {#                                    <td class="change_version">#}
+                    {#                                        {{ log.revision }}#}
+                    {#                                    </td>#}
+                    {#                                    <td>#}
+                    {#                                        <button class=" change_diff_a btn btn-primary  btn-xs no-display"> 修改详情</button>#}
+                    {#                                    </td>#}
+                    {#                                </tr>#}
+                    {#                            {% endfor %}#}
+                    {#                        </table>#}
+                    {##}
+                    {#                    </div>#}
+
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block body_js %}
+    {{ block.super }}
+    <script src="{% static 'public/CodeMirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'public/CodeMirror/mode/python/python.js' %}"></script>
+    <script>
+        var body = $('body');
+        body.append("<div id='DiffBox'></div>");
+        var DiffBox = $('#DiffBox');
+        body.append("<div id='mask'></div>");
+
+        $(document).ready(function () {
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+
+            var file_show = $('#file_show');
+            var textarea = document.getElementById('code');
+            var editor = CodeMirror.fromTextArea(textarea, {
+                mode: "python",
+                lineNumbers: true,
+                theme: "lesser-dark",
+            });
+            editor.setOption("extraKeys", {
+                Tab: function (cm) {
+                    var spaces = new Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces);
+                }
+            });
+            $('#_save').click(function () {
+                textarea.innerHTML = editor.getValue();
+            });
+
+            $('.chang_config_tr').hover(function () {
+                    var note = $(this).find('.change_diff_a');
+                    note.removeClass('no-display');
+                }, function () {
+                    var note = $(this).parent().find('.change_diff_a');
+                    note.addClass('no-display');
+                }
+            );
+        });
+
+        $('.change_diff_a').click(function () {
+            DiffBox.children().remove();
+            var next_tr = $(this).closest('tr').next();
+            if (next_tr.length == 0) {
+                alert('no change')
+            } else {
+                var w_height = $(window).height();
+                var w_width = $(window).width();
+                var wrapper = $('.wrapper');
+                var v1 = $(this).parent().prev().text();
+                var v2 = next_tr.find('.change_version').text();
+                wrapper.css('z-index', 2);
+                /*重要，z-index底层对照*/
+                $.post({
+                    data: {'v1': v1, 'v2': v2},
+                    url: "{% url 'config:change_diff' %}",
+                    success: function (data, statusText, xmlHttpRequest) {
+                        console.log(data);
+                        $.each(data, function (index, item) {
+                            var p_tag = $(document.createElement('p'));
+                            p_tag.text(item);
+                            DiffBox.append(p_tag);
+                        });
+                        $("#mask").addClass("mask").fadeIn("slow");
+                        DiffBox.fadeIn("slow");
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        console.log(textStatus)
+                    },
+                    dataType: 'json'
+                });
+            }
+            return false
+        });
+
+        var mask = $('#mask');
+        mask.click(function () {
+            if (DiffBox.css('display') == 'block') {
+                DiffBox.fadeOut();
+                mask.fadeOut();
+            }
+        })
+
+
+    </script>
+
+{% endblock body_js %}

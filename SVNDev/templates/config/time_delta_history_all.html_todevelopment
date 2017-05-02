@@ -1,0 +1,303 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <!-- page script -->
+    <style>
+        .no-display {
+            display: none;
+        }
+
+        .main-content-pagitor {
+            width: 50%;
+            padding: 10px 20px 5px 20px;
+            overflow: auto;
+            margin-left: 20px;
+            /*position: relative;*/
+            text-align: center;
+        }
+
+        .main-content-pagitor a {
+            color: blue;
+            padding: 0 5px 0 5px;
+        }
+
+        .main-content-pagitor span {
+            color: #585858;
+            /*padding: 20px 20px 20px 20px;*/
+        }
+
+        #exclude-wrap1 {
+            z-index: 3;
+            position: absolute;
+            width: 100%;
+        }
+
+        #exclude-div1 {
+            width: 70%;
+            max-height: 200px;
+            background-color: rgb(236, 240, 245);
+            border: solid thin darkgray;
+        }
+
+        .exclude-li {
+            list-style: none;
+            float: left;
+            margin-right: 15px;
+            margin-top: 10px;
+        }
+
+        .sl-btns {
+            margin-top: 10px;
+            margin-left: 40%;
+            height: 50px;
+        }
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+
+    <div id="domainlist" class="inverse">
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ kwargs.title }}</h3>
+                </div>
+                <div class="box box-primary" style="width:100%;">
+                    <div class="box-header with-border" style="border-color: #1b6d85">
+
+                        <!-- Date range -->
+                        <form action="{{ kwargs.url_search }}" method="post">{% csrf_token %}
+                            <div class="form-group">
+                                <div class="input-group" style="width: 20%;float: left">
+                                    <input id="domains" name="domains" type="text" class="form-control pull-right"
+                                           size="80px"
+                                           placeholder="需要搜索的{% if kwargs.config %}配置{% else %}域名{% endif %}，多个用空格间隔">
+                                </div>
+                                <div class="input-group" style="width: 10%;float: left">
+                                    <input type="text" class="no-display" name="tag" value="search">
+                                    <button class="form-control pull-left btn btn-sm btn-primary"
+                                            style="margin-left:10px;width: 50px">检索
+                                    </button>
+                                </div>
+                                <div class="input-group" style="width: 10%;float: left">
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                    <div id="box-body1" class="box-body" style="z-index: 1">
+                        <div class="form-group" style="margin-bottom: 20px">
+                            <div class="input-group" style=";float: left">
+                                <button id="exclude-button" class="pull-left btn btn-sm btn-primary btn-xs"
+                                        style="width: 80px">排除所选项
+                                </button>
+                            </div>
+                            <div class="input-group" style="width: 35%;float: left">
+                                {#                                    <a href="{{ kwargs.url_exclude }}" id="exclude-manage1"#}
+                                {#                                       class="pull-left btn btn-primary btn-xs"#}
+                                {#                                       style="margin-left:10px;width: 80px">已排除管理#}
+                                {#                                    </a>#}
+                                <p id="exclude-manage1" class="pull-left btn btn-primary btn-xs"
+                                   style="margin-left:10px;width: 80px">已排除选项
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="box-body" id="exclude-wrap1">
+                            <form action="{{ kwargs.url_exclude }}" method="post">{% csrf_token %}
+                                <div class="sl-tab-cont-item" style="display: none;" id="exclude-div1">
+                                    <div class="sl-v-list clearfix">
+                                        <ul class="J_valueList ">
+                                            {% for exclude in kwargs.exclude_list %}
+                                                <li class="exclude-li"><input type="checkbox" name="recover_check"
+                                                                              value="{{ exclude }}"> {{ exclude }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="sl-btns">
+                                        <p class="pull-left btn btn-sm btn-primary" id="all-exclude">全选</p>
+                                        <button class="pull-left btn btn-sm btn-primary" style="margin-left: 10px">恢复
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <table class="table table-striped">
+                            <tr style="height:18px">
+                                <td style='width:16px;background-color:#073f01'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">0-1分钟</td>
+                                <td style='width:16px;background-color:#075f01'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">1-2分钟</td>
+                                <td style='width:16px;background-color:#07a001'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">2-5分钟</td>
+                                <td style='width:16px;background-color:#0fc005'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">5-15分钟</td>
+                                <td style='width:16px;background-color:#20e010'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">15-30分钟</td>
+                                <td style='width:16px;background-color:#b04020'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">30-60分钟</td>
+                                <td style='width:16px;background-color:#800f05'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">60-120分钟</td>
+                                <td style='width:16px;background-color:#5f0701'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">120-240分钟</td>
+                                <td style='width:16px;background-color:#2f0000'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">超过240分钟</td>
+                            </tr>
+                        </table>
+                        <hr>
+                        <div>
+                            <table class="table table-striped table-hover table-condensed" id="check_table">
+                                <thead id="exclude-thead">
+                                <tr id="exclude-thead-tr">
+                                    <th style="width:13%">日期</th>
+                                    <th style="width:13%">总采集量</th>
+                                    <th style="width:37%" id="exclude-img-width1"></th>
+                                    <th style="width:37%">采集时间差比</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for i in result %}
+                                    <tr class="no-display"><td class="sum-history-url">{{ i.url_sum }}</td></tr>
+                                    <div  class="vue-tr" id="{{ i.date }}">
+                                    <tr style="height:15px">
+
+                                        {% verbatim %}
+                                        <td style="height:13px">
+                                            {{ info.date }}
+                                        </td>
+                                        <td style="height:13px">{{ info.total }}</td>
+                                        <td style="height:13px">
+                                            <div style="float:right;height:10px">
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'0-1分钟 , ' + info.data.d1.percent + ', ' + info.data.d1.cnt"
+                                                     v-bind:style="{width: info.data.d1.width + 'px', height: '97%' , float: 'left', 'background-color': '#073f01'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'1-2分钟 , ' + info.data.d2.percent + ', ' + info.data.d2.cnt"
+                                                     v-bind:style="{width: info.data.d2.width + 'px', height: '97%' , float: 'left', 'background-color': '#075f01'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'2-5分钟 , ' + info.data.d3.percent + ', ' + info.data.d3.cnt"
+                                                     v-bind:style="{width: info.data.d3.width + 'px', height: '97%' , float: 'left', 'background-color': '#07a001'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'5-15分钟 , ' + info.data.d4.percent + ', ' + info.data.d4.cnt"
+                                                     v-bind:style="{width: info.data.d4.width + 'px', height: '97%' , float: 'left', 'background-color': '#0fc005'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'15-30分钟 , ' + info.data.d5.percent + ', ' + info.data.d5.cnt"
+                                                     v-bind:style="{width: info.data.d5.width + 'px', height: '97%' , float: 'left', 'background-color': '#20e010'}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="height:13px">
+                                            <div style="float:left;height:10px">
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'30-60分钟 , ' + info.data.d6.percent + ', ' + info.data.d6.cnt"
+                                                     v-bind:style="{width: info.data.d6.width + 'px', height: '97%' , float: 'left', 'background-color': '#b04020'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title=" '60-120分钟 , ' + info.data.d7.percent + ', ' + info.data.d7.cnt"
+                                                     v-bind:style="{width: info.data.d7.width + 'px', height: '97%' , float: 'left', 'background-color': '#800f05'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title=" '120-240分钟 , ' + info.data.d8.percent + ', ' + info.data.d8.cnt"
+                                                     v-bind:style="{width: info.data.d8.width + 'px', height: '97%' , float: 'left', 'background-color': '#5f0701'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title=" '超过240分钟 , ' + info.data.d9.percent + ', ' + info.data.d9.cnt"
+                                                     v-bind:style="{width: info.data.d9.width + 'px', height: '97%' , float: 'left', 'background-color': '#2f0000'}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                        {% endverbatim %}
+                                    </tr>
+                                    </div>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <input type="text" class="no-display" name="tag" value="exclude">
+                            <button type="submit" id="_submit" class="no-display">提交</button>
+                        </div>
+                        <br>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+    {#    <!-- date-range-picker -->#}
+    {#    <script src="{% static 'plugins/daterangepicker/moment.min.js' %}"></script>#}
+    {#    <script src="{% static 'plugins/daterangepicker/daterangepicker.js' %}"></script>#}
+    {#    <!-- bootstrap datepicker -->#}
+    {#    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>#}
+    <script src="{% static 'backend/config/js/vue.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+        });
+        $(document).ready(function () {
+             var exclude_width = parseInt($('#exclude-img-width1').css('width'));
+            $('.vue-tr').each(function (index, val) {
+                var url = $(this).prev().children('.sum-history-url').text();
+                var id_now = '#' + $(this).attr('id');
+                alert(url);
+                $.get({
+                    url: url,
+                    success: function (data, statusText, xmlHttpRequest) {
+                        console.log(data);
+                        var vue_data = {
+                            info: data
+                        };
+                        new Vue({
+                            el: '#2017-04-04',
+                            data: vue_data
+                        });
+{#                        $(this).find('.exclude-all-div').each(function (index, value) {#}
+{#                            var percent = parseFloat($.trim($(this).attr('title').split(',')[1]));#}
+{#                            var real_width = exclude_width * 0.95 * percent * 0.01 + 'px';#}
+{#                            $(this).css('width', real_width);#}
+{#                        });#}
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        console.log(errorThrown)
+                    },
+                    dataType: 'json'
+                });
+
+            });
+
+
+{#           #}
+{#            $('.exclude-detail-div').each(function (index, value) {#}
+{#                var percent = parseFloat($.trim($(this).attr('title').split(',')[1]));#}
+{#                var real_width = exclude_width * 0.95 * percent * 0.01 + 'px';#}
+{#                $(this).css('width', real_width);#}
+{#            });#}
+
+
+        });
+
+        {#        var data = {'total': '1000', 'name': 'xiaoming'};#}
+        {#        var vuedata = {#}
+        {#            info: data#}
+        {#        };#}
+        {#        new Vue({#}
+        {#            el: '#vue_all_deltas',#}
+        {#            data: vuedata#}
+        {#        });#}
+
+
+    </script>
+    <script src="{% static 'backend/config/js/delta.js' %}"></script>
+{% endblock body_tail %}

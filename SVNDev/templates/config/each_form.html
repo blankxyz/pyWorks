@@ -1,0 +1,116 @@
+{% extends 'base_backend.html' %}
+{% load static admin_static i18n %}
+{% load backend_admin_filtets %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'backend/backend_admin/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div>
+        <div class="box-header with-border">
+            <h3 class="box-title">配置分组管理</h3>
+        </div>
+        <!-- form start -->
+        <div class="box box-primary">
+            <div class="box-body">
+                <form id="create_user_form" role="form"
+                      action=" {% if change %}{% url 'config:each_change' group_id %}{% else %}{% url 'config:each_add' %}{% endif %}"
+                      method="post">{% csrf_token %}
+                    <div class="form-group">
+                        <label class="required" for="id_name">组名:</label>
+                        <span>{{ form.groups_name }}</span>
+                    </div>
+
+                    {% if change %}
+                        <div class="form-group">
+                            <label class="required" for="id_name">创建者:</label>
+                            <span>{{ group.user.nickname }}</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                       <label >选择用户:</label>
+                    </div>
+
+                    <div class="box-body">
+
+                        <table id="example1" border="1" class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th class="action-checkbox"><input type="checkbox"></th>
+                                <th>用户名</th>
+                                <th>姓名</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for i in form.users %}
+                                <tr>
+                                    <td class="action-checkbox">{{ i.tag }}<span class="no-display"></span></td>
+
+                                    {% with i=i|striptags %}
+                                        {% with user=i|user_filter %}
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.nickname }}</td>
+                                        {% endwith %}
+                                    {% endwith %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- /.box-footer -->
+                    <div class="box-footer">
+                        <button class="btn btn-primary" id="create_user_button">确认</button>
+                        <button type="submit" class="btn btn-primary" id="create_user_submit" name="_save"
+                                style="display: none">sure
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block body_js %}
+    {{ block.super }}
+
+    <!-- DataTables -->
+    <script src="{% static 'plugins/datatables/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+
+
+    <script>
+        $(function () {
+            $('.action-checkbox').css('width', '5');
+            $('.action-checkbox input').each(function () {
+                if($(this).prop('checked') == true){
+                    $(this).next().text(1)
+                }else{
+                    $(this).next().text(0)
+                }
+            });
+            $("#example1").DataTable({
+                "order": [[ 0, 'dec' ],],
+                "language": {
+                    "emptyTable": "没有匹配的数据",
+                    "info": "_START_ to _END_ of _TOTAL_",
+                    "infoEmpty": "0 of _MAX_",
+                    "infoFiltered": "",
+                    "lengthMenu": "显示 _MENU_ 条",
+                    "search": "搜索:",
+                    "zeroRecords": "没有匹配的数据",
+                    "paginate": {
+                        "first": "首页",
+                        "last": "尾页",
+                        "next": "下一页",
+                        "previous": "上一页"
+                    },
+                }
+            });
+        })
+        ;
+    </script>
+{% endblock body_js %}

@@ -1,0 +1,743 @@
+{% extends 'base_backend.html' %}
+{% load config_filters %}
+{% load static %}
+
+{% block head_css %}
+    <link rel="stylesheet" href="{% static 'public/ComboSelect/css/combo.select.css' %}">
+{% endblock head_css %}
+
+{% block header_tail %}
+    <!-- page script -->
+    <style>
+        .no-display {
+            display: none;
+        }
+
+        .main-content-pagitor {
+            width: 50%;
+            padding: 10px 20px 5px 20px;
+            overflow: auto;
+            margin-left: 20px;
+            /*position: relative;*/
+            text-align: center;
+        }
+
+        .main-content-pagitor a {
+            color: blue;
+            padding: 0 5px 0 5px;
+        }
+
+        .main-content-pagitor span {
+            color: #585858;
+            /*padding: 20px 20px 20px 20px;*/
+        }
+
+        #exclude-wrap1, #exclude-wrap3 {
+            z-index: 3;
+            position: absolute;
+            width: 100%;
+        }
+
+        #exclude-wrap2 {
+            z-index: 3;
+            position: absolute;
+            width: 400px;
+        }
+
+        .z-wrap1 {
+            z-index: 3;
+            position: absolute;
+        }
+
+        #exclude-div1, #exclude-div3 {
+            width: 70%;
+            max-height: 200px;
+            background-color: rgb(236, 240, 245);
+            border: solid thin darkgray;
+        }
+
+        #exclude-div2 {
+            width: 100%;
+            height: 300px;
+            background-color: rgb(236, 240, 245);
+            border: solid thin darkgray;
+        }
+
+        #delta-custom1 {
+            width: 120px;
+            height: 100px;
+            background-color: rgb(236, 240, 245);
+            border: solid thin darkgray;
+        }
+
+        .exclude-li {
+            list-style: none;
+            float: left;
+            margin-right: 15px;
+            margin-top: 10px;
+        }
+
+        .sl-btns {
+            margin-top: 10px;
+            margin-left: 40%;
+            height: 50px;
+        }
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+
+    <div id="domainlist" class="inverse">
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ kwargs.title }}</h3>
+                </div>
+                <div class="box box-primary" style="width:100%;">
+                    <div class="box-header with-border" style="border-color: #1b6d85">
+
+                        <!-- Date range -->
+                        <form action="{{ kwargs.url_search }}" method="post">{% csrf_token %}
+
+                            <div class="form-group">
+                                <div class="input-group" style="float: left">
+                                    <select name="select-options1" id="select-options1" class="form-control">
+                                        {% for select in kwargs.select_options1 %}
+                                            <option value="{{ forloop.counter0 }}"
+                                                    {% ifequal forloop.counter0 kwargs.select_options1_tag %}selected{% endifequal %}>{{ select }}</option>
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+                                <div id="search-domains-div"
+                                     class="input-group {% if kwargs.select_options1_tag == 1 %}no-display{% endif %}"
+                                     style="width: 15%;float: left">
+                                    <input id="domains" name="domains" type="text" class="form-control pull-right"
+                                           size="80px"
+                                           placeholder="{% if kwargs.config %}精准搜索,多个用空格间隔{% else %}模糊查询，支持单个搜索{% endif %}">
+                                </div>
+                                {% if kwargs.search_arg == 'config' %}
+                                    <div id="config-groups-div"
+                                         class="input-group {% if kwargs.select_options1_tag == 0 %}no-display{% endif %}"
+                                         style="width: 15%;float: left">
+                                        <select id="spider-config-groups" name="spider-config-groups">
+                                            {% for i in kwargs.spider_config_groups %}
+                                                <option value="{{ i.id }}"
+                                                        {% ifequal i.id kwargs.spider_config_groups_count %}selected{% endifequal %}>{{ i.groupname }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% endif %}
+
+                                <div class="input-group" style="width: 10%;float: left;margin-left: 20px">
+                                    <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                    <input id="date-begin" name="date-begin" type="text" class="form-control pull-right"
+                                           size="50px" value={{ kwargs.date }}>
+                                </div>
+
+                                <div class="input-group" style="width: 10%;float: left">
+                                    <input type="text" class="no-display" name="tag" value="search">
+                                    <button class="form-control pull-left btn btn-sm btn-primary"
+                                            style="margin-left:10px;width: 50px">检索
+                                    </button>
+                                </div>
+                                <div class="input-group" style="width: 10%;float: left">
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                    <div id="box-body1" class="box-body" style="z-index: 1">
+                        <div class="form-group" style="margin-bottom: 20px">
+                            <div style="float: left; width: 45%">
+                                <div class="input-group" style=";float: left">
+                                    <button id="exclude-button" class="pull-left btn btn-sm btn-primary btn-xs"
+                                            style="width: 80px">排除所选{{ kwargs.search_arg_name }}
+                                    </button>
+                                </div>
+                                <div class="input-group" style="float: left">
+                                    {#                                    <a href="{{ kwargs.url_exclude }}" id="exclude-manage1"#}
+                                    {#                                       class="pull-left btn btn-primary btn-xs"#}
+                                    {#                                       style="margin-left:10px;width: 80px">已排除管理#}
+                                    {#                                    </a>#}
+                                    <p id="exclude-manage1" class="pull-left btn btn-primary btn-xs"
+                                       style="margin-left:10px;width: 80px">已排除{{ kwargs.search_arg_name }}
+                                    </p>
+                                </div>
+
+                                {% if kwargs.search_arg == 'config' %}
+                                    <div class="input-group" style=";float: left">
+                                        <p id="exclude-manage2" class="pull-left btn btn-primary btn-xs"
+                                           style="margin-left:10px;width: 80px">分组排除选择
+                                        </p>
+                                    </div>
+                                    <div class="input-group" style="float: left">
+                                        <p id="exclude-manage3" class="pull-left btn btn-primary btn-xs"
+                                           style="margin-left:10px;width: 80px">已排除分组
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="input-group" style="width: 45%;float: left">
+                                <div id="" class="pull-left small-box bg-aqua" style="padding:0 10px">
+                                    <span>{% if kwargs.config %}配置{% else %}域名{% endif %}
+                                        总数：{{ kwargs.all_num }}  </span>
+                                    <span style="margin-left: 10px">已排除： {{ kwargs.exclude_list_num }}</span>
+                                    {% if kwargs.search_arg == 'config' %}
+                                        <span style="margin-left: 10px">已排除分组： {{ kwargs.delta_config_groups_exclude_num }}（{{ kwargs.exclude_groups_configs_num }}）</span>
+                                    {% endif %}
+                                    {% if kwargs.args == 'groupsexclude' %}
+                                        <span style="margin-left: 10px">巡查、海外： {{ kwargs.exclude_groups_num }}</span>{% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="box-body" id="exclude-wrap1">
+                            <form action="{{ kwargs.url_exclude }}" method="post">{% csrf_token %}
+                                <div class="sl-tab-cont-item exclude-div" style="display: none;" id="exclude-div1">
+                                    <div class="sl-v-list clearfix">
+                                        <ul class="J_valueList ">
+                                            {% for exclude in kwargs.exclude_list %}
+                                                <li class="exclude-li"><input type="checkbox" name="recover_check"
+                                                                              value="{{ exclude }}"> {{ exclude }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="sl-btns">
+                                        <input type="text" class="no-display" value="{{ kwargs.url }}" name="now-url">
+                                        <p class="pull-left btn btn-sm btn-primary all-exclude" id="all-exclude">全选</p>
+                                        <button class="pull-left btn btn-sm btn-primary" style="margin-left: 10px">恢复
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        {% if kwargs.search_arg == 'config' %}
+                            <div class="box-body" id="exclude-wrap2">
+                                <form action="{{ kwargs.url_search }}" method="post">{% csrf_token %}
+                                    <div class="sl-tab-cont-item" style="display: none;" id="exclude-div2">
+                                        <div id="" class="input-group"
+                                             style="width:300px;margin-left: 50px; margin-top: 20px ">
+                                            <p style="margin:5px 5px;text-align: center">配置分组排除(可多选)</p>
+                                            <select multiple='multiple' id="spider-config-groups-exclude"
+                                                    name="spider-config-groups-exclude"
+                                                    style="height: 200px;width: 100% ">
+                                                {% for i in kwargs.spider_config_groups %}
+                                                    {% if forloop.counter0 > 0 %}
+                                                    <option value="{{ i.id }}">{{ i.groupname }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="sl-btns">
+                                            <input type="text" class="no-display" name="date-begin"
+                                                   value={{ kwargs.date }}>
+                                            <input type="text" class="no-display" name="tag" value="exclude_group">
+                                            <button class="pull-left btn btn-sm btn-primary" style="margin-left: 10px">
+                                                排除
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="box-body" id="exclude-wrap3">
+                                <form action="{{ kwargs.url_exclude_groups }}" method="post">{% csrf_token %}
+                                    <div class="sl-tab-cont-item  exclude-div" style="display: none;" id="exclude-div3">
+                                        <div class="sl-v-list clearfix">
+                                            <ul class="J_valueList ">
+                                                {% for exclude_g in kwargs.delta_config_groups_exclude_list %}
+                                                    <li class="exclude-li"><input type="checkbox" name="recover_check"
+                                                                                  value="{{ exclude_g.id }}"> {{ exclude_g.groupname }}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="sl-btns">
+                                            <input type="text" class="no-display" value="{{ kwargs.url }}"
+                                                   name="now-url">
+                                            <p class="pull-left btn btn-sm btn-primary all-exclude" id="all-exclude3">
+                                                全选</p>
+                                            <button class="pull-left btn btn-sm btn-primary" style="margin-left: 10px">
+                                                恢复
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endif %}
+
+                        <div style="" id="vue_all_deltas">
+
+                            <table class="table table-striped table-condensed">
+                                {% if kwargs.search_tag == 2 %}
+                                    {% with sum_search as info %}
+                                        <tr style="height:15px">
+                                            <td style="height:13px;width: 16%;">
+                                                <p>总数据量</p>
+                                            </td>
+                                            <td style="height:13px;width: 10%" id="exclude-total">
+                                                {{ info.total }}
+                                            </td>
+                                            <td style="height:13px;width: 37%;">
+                                                <div style="float:right;height:10px">
+                                                    <div class="exclude-detail-div"
+                                                         title="0-1分钟 , {{ info.data.d1.percent }} , {{ info.data.d1.cnt }} "
+                                                         style="width:{{ info.data.d1.width }}px;height:97%;float:left;background-color:#073f01"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="1-2分钟 , {{ info.data.d2.percent }} , {{ info.data.d2.cnt }} "
+                                                         style="width:{{ info.data.d2.width }}px;height:97%;float:left;background-color:#075f01"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="2-5分钟 , {{ info.data.d3.percent }} , {{ info.data.d3.cnt }} "
+                                                         style="width:{{ info.data.d3.width }}px;height:97%;float:left;background-color:#07a001"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="5-15分钟 , {{ info.data.d4.percent }} , {{ info.data.d4.cnt }}"
+                                                         style="width:{{ info.data.d4.width }}px;float:left;height:97%;background-color:#0fc005"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="15-30分钟 , {{ info.data.d5.percent }} , {{ info.data.d5.cnt }} "
+                                                         style="width:{{ info.data.d5.width }}px;float:left;height:97%;background-color:#20e010"></div>
+                                                </div>
+                                            </td>
+                                            <td style="height:13px;width: 37%;">
+                                                <div style="float:left;height:10px">
+                                                    <div class="exclude-detail-div"
+                                                         title="30-60分钟 , {{ info.data.d6.percent }} , {{ info.data.d6.cnt }} "
+                                                         style="width:{{ info.data.d6.width }}px;float:left;height:97%;background-color:#b04020"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="60-120分钟 , {{ info.data.d7.percent }} , {{ info.data.d7.cnt }} "
+                                                         style="width:{{ info.data.d7.width }}px;float:left;height:97%;background-color:#800f05"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="120-240分钟 , {{ info.data.d8.percent }} , {{ info.data.d8.cnt }} "
+                                                         style="width:{{ info.data.d8.width }}px;float:left;height:97%;background-color:#5f0701"></div>
+
+                                                    <div class="exclude-detail-div"
+                                                         title="超过240分钟 , {{ info.data.d9.percent }} , {{ info.data.d9.cnt }} "
+                                                         style="width:{{ info.data.d9.width }}px;float:left;height:97%;background-color:#2f0000"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endwith %}
+                                {% else %}
+                                    <tr style="height:15px" class="sum-delta-tr"
+                                        id="{% if kwargs.url_rank_sum %}vue_rank{% elif kwargs.url_custom_sum %}vue_custom{% elif kwargs.url_search_sum %}vue_search{% else %}vue_tr{% endif %}">
+                                        <td style="height:13px;width: 16%;">
+                                            {% if  kwargs.url_rank_sum or kwargs.url_custom_sum %}
+                                                <p>总数据量</p>
+                                            {% else %}
+                                                <a href={{ kwargs.url_sum_history }}>总数据量</a>
+                                            {% endif %}
+                                        </td>
+                                        {% verbatim %}
+                                        <td style="height:13px;width: 10%" id="exclude-total" class="no-display">{{
+                                            info.total }}
+                                        </td>
+                                        <td style="height:13px" id="exclude-buffer" class="">数据加载中···</td>
+                                        <td style="height:13px;width: 37%">
+                                            <div style="float:right;height:10px">
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'0-1分钟 , ' + info.data.d1.percent + ', ' + info.data.d1.cnt"
+                                                     v-bind:style="{width: info.data.d1.width + 'px', height: '97%' , float: 'left', 'background-color': '#073f01'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'1-2分钟 , ' + info.data.d2.percent + ', ' + info.data.d2.cnt"
+                                                     v-bind:style="{width: info.data.d2.width + 'px', height: '97%' , float: 'left', 'background-color': '#075f01'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'2-5分钟 , ' + info.data.d3.percent + ', ' + info.data.d3.cnt"
+                                                     v-bind:style="{width: info.data.d3.width + 'px', height: '97%' , float: 'left', 'background-color': '#07a001'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'5-15分钟 , ' + info.data.d4.percent + ', ' + info.data.d4.cnt"
+                                                     v-bind:style="{width: info.data.d4.width + 'px', height: '97%' , float: 'left', 'background-color': '#0fc005'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'15-30分钟 , ' + info.data.d5.percent + ', ' + info.data.d5.cnt"
+                                                     v-bind:style="{width: info.data.d5.width + 'px', height: '97%' , float: 'left', 'background-color': '#20e010'}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="height:13px;width: 37%">
+                                            <div style="float:left;height:10px">
+                                                <div class="exclude-all-div"
+                                                     v-bind:title="'30-60分钟 , ' + info.data.d6.percent + ', ' + info.data.d6.cnt"
+                                                     v-bind:style="{width: info.data.d6.width + 'px', height: '97%' , float: 'left', 'background-color': '#b04020'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title=" '60-120分钟 , ' + info.data.d7.percent + ', ' + info.data.d7.cnt"
+                                                     v-bind:style="{width: info.data.d7.width + 'px', height: '97%' , float: 'left', 'background-color': '#800f05'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title=" '120-240分钟 , ' + info.data.d8.percent + ', ' + info.data.d8.cnt"
+                                                     v-bind:style="{width: info.data.d8.width + 'px', height: '97%' , float: 'left', 'background-color': '#5f0701'}">
+                                                </div>
+                                                <div class="exclude-all-div"
+                                                     v-bind:title=" '超过240分钟 , ' + info.data.d9.percent + ', ' + info.data.d9.cnt"
+                                                     v-bind:style="{width: info.data.d9.width + 'px', height: '97%' , float: 'left', 'background-color': '#2f0000'}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                        {% endverbatim %}
+
+
+                                    </tr>
+                                {% endif %}
+
+                            </table>
+
+                        </div>
+                        <table class="table table-striped">
+                            <tr style="height:18px">
+                                <td style='width:16px;background-color:#073f01'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">0-1分钟</td>
+                                <td style='width:16px;background-color:#075f01'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">1-2分钟</td>
+                                <td style='width:16px;background-color:#07a001'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">2-5分钟</td>
+                                <td style='width:16px;background-color:#0fc005'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">5-15分钟</td>
+                                <td style='width:16px;background-color:#20e010'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">15-30分钟</td>
+                                <td style='width:16px;background-color:#b04020'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">30-60分钟</td>
+                                <td style='width:16px;background-color:#800f05'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">60-120分钟</td>
+                                <td style='width:16px;background-color:#5f0701'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">120-240分钟</td>
+                                <td style='width:16px;background-color:#2f0000'></td>
+                                <td style="font-size:12px;width:80px;text-align:left">超过240分钟</td>
+                            </tr>
+                        </table>
+                        <hr>
+
+                        <table class="table table-striped table-hover table-condensed" id="check_table">
+                            <thead id="exclude-thead">
+                            <tr id="exclude-thead-tr">
+                                <th style="width:4%"><input type="checkbox" name="all_check">全选</th>
+                                <th style="width:10%">
+                                <span style="float: left">
+                                    {% if kwargs.search_arg == 'config' %}
+                                        配置
+                                    {% else %}
+                                        域名
+                                    {% endif %}
+                                </span>
+                                    {% if kwargs.search_arg == 'config' %}
+                                        <a href="?idrank={{ kwargs.id_rank_tag }}&rankg=1" style="float: right">
+                                            {% if kwargs.id_rank_tag == 0 %}
+                                                <i class="fa fa-fw fa-sort"></i>
+                                            {% elif kwargs.id_rank_tag == 1 %}
+                                                <i class="fa fa-fw fa-sort-numeric-asc"></i>
+                                            {% elif kwargs.id_rank_tag == -1 %}
+                                                <i class="fa fa-fw fa-sort-numeric-desc"></i>
+                                            {% endif %}
+                                        </a>
+                                    {% endif %}
+
+                                </th>
+                                <th style="width:7%">总采集量</th>
+                                <th style="width:5%;z-index: 1;">
+                                    {% if kwargs.search_tag != 1 %}
+                                        <form action="{{ kwargs.url_search }}" method="post" class="z-wrap2"
+                                              style="float: left">{% csrf_token %}
+                                            <input type="text" class="no-display" name="tag" value="rank">
+                                            <input type="text" class="no-display" name="date-begin"
+                                                   value={{ kwargs.date }}>
+                                            <select name="delta_ranks" id="delta-ranks-selected">
+                                                {% for v in kwargs.time_delta_rank_list %}
+                                                    <option value="{{ forloop.counter0 }}" class="delta-rank-option"
+                                                            {% ifequal forloop.counter0 kwargs.time_delta_rank_selected %}selected{% endifequal %}
+
+                                                    >{{ v }}</option>
+                                                {% endfor %}
+                                                <input type="submit" class="no-display" name="submit_delta_tank"
+                                                       id="submit_delta_tank">
+                                            </select>
+                                        </form>
+                                        <div class="box-body z-wrap1">
+                                            <div class="sl-tab-cont-item" style="display: none" id="delta-custom1">
+                                                <form action="{{ kwargs.url_search }}" method="post"
+                                                      style="float: left; margin-top: 10px; margin-left: 10px">{% csrf_token %}
+                                                    <input type="text" class="no-display" name="tag" value="custom">
+                                                    <input type="text" class="no-display" name="date-begin"
+                                                           value={{ kwargs.date }}>
+                                                    <select name="time_delta_rank_begin" id="delta-ranks-selected1"
+                                                            style="float: left">
+                                                        {% for v in kwargs.time_delta_rank_list1 %}
+                                                            {% if forloop.counter < 10 %}
+                                                                <option value="{{ forloop.counter }}"
+                                                                        {% ifequal forloop.counter kwargs.time_delta_rank_begin %}selected{% endifequal %}>{{ v }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                    <span style="float:left ;">-</span>
+                                                    <select name="time_delta_rank_end" id="delta-ranks-selected2"
+                                                            style="float: left">
+                                                        {% for v in kwargs.time_delta_rank_list1 %}
+                                                            {% if forloop.counter > 1 %}
+                                                                <option value="{{ forloop.counter }}"
+                                                                        {% ifequal forloop.counter kwargs.time_delta_rank_end %}selected{% endifequal %}>{{ v }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+
+                                                    <div class="">
+                                                        <button type="submit" class="btn btn-sm btn-primary"
+                                                                style="margin:10px 0 0 30px;">提交
+                                                        </button>
+                                                    </div>
+                                                    <p>本查询较慢</p>
+
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </th>
+                                <th style="width:37%" id="exclude-img-width1">
+                                    <span style="float: left">{% if kwargs.delta_custom_tag > 0 %}
+                                        {{ kwargs.time_delta_rank_begin_time }}-
+                                        {{ kwargs.time_delta_rank_end_time }}{% endif %}</span>
+                                </th>
+                                <th style="width:37%">采集时间差比</th>
+                            </tr>
+                            </thead>
+                            <form action="{{ kwargs.url }}" method="post">{% csrf_token %}
+                                <tbody>
+                                {% for info in result %}
+                                    <tr style="height:15px">
+                                        <td style="height:13px"><input type="checkbox" name="exclude_check"
+                                                                       value="{{ info.domain }}"></td>
+                                        <td style="height:13px">
+                                            <a href="{% url 'config:time_delta_history_view' kwargs.url_arg kwargs.args info.domain %} ">{{ info.domain }}</a>
+                                            {#                                            {% if kwargs.url_arg == 'news' %}#}
+                                            {#                                                {% if kwargs.user %}#}
+                                            {#                                                    <a href="{% url 'config:users_delta_news_history_view' info.domain %} ">{{ info.domain }}</a>#}
+                                            {#                                                {% else %}#}
+                                            {#                                                    <a href="{% url 'config:news_in_delta_history_view' info.domain %} ">{{ info.domain }}</a>#}
+                                            {#                                                {% endif %}#}
+                                            {#                                            {% elif kwargs.url_arg == 'forums' %}#}
+                                            {#                                                {% if kwargs.args == 'users' %}#}
+                                            {#                                                    <a href="{% url 'config:forums_user_delta_history_view' info.domain %} ">{{ info.domain }}</a>#}
+                                            {#                                                {% else %}#}
+                                            {#                                                    <a href="{% url 'config:forums_in_delta_history_view' info.domain %} ">{{ info.domain }}</a>#}
+                                            {#                                                {% endif %}#}
+                                            {#                                            {% elif kwargs.all_domains_configs %}#}
+                                            {#                                                <a href="{% url 'config:all_delta_history_view' info.domain %} ">{{ info.domain }}</a>#}
+                                            {#                                            {% endif %}#}
+                                        </td>
+                                        <td style="height:13px">{{ info.total }}</td>
+                                        <td style="height:13px">
+                                            {% if kwargs.time_delta_rank_selected > 0 and kwargs.time_delta_rank_selected < kwargs.time_delta_rank_len %}
+                                                {% with d=kwargs.time_delta_rank_selected|stringformat:'s' %}
+                                                    {{ info.data|delta_rank_data:d }}
+                                                {% endwith %}
+                                            {% elif kwargs.delta_custom_tag > 0 %}
+                                                {{ delta_custom_result|delta_custom_data:info.domain }}
+                                            {% endif %}
+                                        </td>
+                                        <td style="height:13px">
+                                            <div style="float:right;height:10px">
+                                                <div class="exclude-detail-div"
+                                                     title="0-1分钟 , {{ info.data.d1.percent }} , {{ info.data.d1.cnt }} "
+                                                     style="width:{{ info.data.d1.width }}px;height:97%;float:left;background-color:#073f01"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="1-2分钟 , {{ info.data.d2.percent }} , {{ info.data.d2.cnt }} "
+                                                     style="width:{{ info.data.d2.width }}px;height:97%;float:left;background-color:#075f01"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="2-5分钟 , {{ info.data.d3.percent }} , {{ info.data.d3.cnt }} "
+                                                     style="width:{{ info.data.d3.width }}px;height:97%;float:left;background-color:#07a001"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="5-15分钟 , {{ info.data.d4.percent }} , {{ info.data.d4.cnt }}"
+                                                     style="width:{{ info.data.d4.width }}px;float:left;height:97%;background-color:#0fc005"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="15-30分钟 , {{ info.data.d5.percent }} , {{ info.data.d5.cnt }} "
+                                                     style="width:{{ info.data.d5.width }}px;float:left;height:97%;background-color:#20e010"></div>
+                                            </div>
+                                        </td>
+                                        <td style="height:13px">
+                                            <div style="float:left;height:10px">
+                                                <div class="exclude-detail-div"
+                                                     title="30-60分钟 , {{ info.data.d6.percent }} , {{ info.data.d6.cnt }} "
+                                                     style="width:{{ info.data.d6.width }}px;float:left;height:97%;background-color:#b04020"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="60-120分钟 , {{ info.data.d7.percent }} , {{ info.data.d7.cnt }} "
+                                                     style="width:{{ info.data.d7.width }}px;float:left;height:97%;background-color:#800f05"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="120-240分钟 , {{ info.data.d8.percent }} , {{ info.data.d8.cnt }} "
+                                                     style="width:{{ info.data.d8.width }}px;float:left;height:97%;background-color:#5f0701"></div>
+
+                                                <div class="exclude-detail-div"
+                                                     title="超过240分钟 , {{ info.data.d9.percent }} , {{ info.data.d9.cnt }} "
+                                                     style="width:{{ info.data.d9.width }}px;float:left;height:97%;background-color:#2f0000"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <input type="text" class="no-display" name="tag" value="exclude">
+                                <input type="text" class="no-display" name="date-begin" value={{ kwargs.date }}>
+                                <button type="submit" id="_submit" class="no-display">提交</button>
+                            </form>
+                        </table>
+
+
+                        <br>
+                        <p>
+                            {% if result1.has_previous %}
+                                <a href="?page={{ result1.previous_page_number }}{{ kwargs.url_add_args }}">上一页</a>
+                            {% endif %}
+                            {{ result1.number }} of {{ result1.paginator.num_pages }}
+                            {% if result1.has_next %}
+                                <a href="?page={{ result1.next_page_number }}{{ kwargs.url_add_args }}">下一页</a>
+                            {% endif %}
+                            <input type="text" id="page-judge" style="width: 30px;height:20px; margin-left: 20px">
+                            <a href="" id="page-judge-a">跳页</a>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+    {#    <!-- date-range-picker -->#}
+    <script src="{% static 'plugins/daterangepicker/moment.min.js' %}"></script>
+    {#    <script src="{% static 'plugins/daterangepicker/daterangepicker.js' %}"></script>#}
+    {#    <!-- bootstrap datepicker -->#}
+    <script src="{% static 'public/ComboSelect/js/jquery.combo.select.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'backend/config/js/vue_bak1.js' %}"></script>
+
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+        });
+
+        $(document).ready(function () {
+            $.fn.datepicker.dates['zh-hans'] = {
+                days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
+                daysShort: ["日", "一", "二", "三", "四", "五", "六", "日"],
+                daysMin: ["日", "一", "二", "三", "四", "五", "六", "日"],
+                months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+                monthsShort: ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"],
+                meridiem: ["上午", "下午"],
+                //suffix:      ["st", "nd", "rd", "th"],
+                today: "今天"
+            };
+            $('#date-begin').datepicker({
+                format: 'yyyy-mm-dd',
+                language: 'zh-hans'
+            });
+            var spider_groups = $(function () {
+                $('#spider-config-groups').comboSelect({
+                    maxHeight: 200,
+                });
+            });
+
+            if ($('#spider-config-groups').length > 0) {
+                var exclude_width = parseInt($('#exclude-img-width1').css('width'));
+                $('.exclude-detail-div').each(function (index, value) {
+                    var percent = parseFloat($.trim($(this).attr('title').split(',')[1]));
+                    var real_width = exclude_width * 0.98 * percent * 0.01 + 'px';
+                    $(this).css('width', real_width);
+                });
+            };
+
+            var vue_tr = $('#vue_tr');
+            var vue_rank = $('#vue_rank');
+            var vue_custom = $('#vue_custom');
+            var vue_search = $('#vue_search');
+            var sum_tr = $('.sum-delta-tr');
+
+            var url_sum = null;
+            if (vue_tr.length > 0) {
+                url_sum = '{{ kwargs.url_sum }}';
+            } else if (vue_rank.length > 0) {
+                url_sum = '{{ kwargs.url_rank_sum }}';
+            } else if (vue_custom.length > 0) {
+                url_sum = '{{ kwargs.url_custom_sum }}';
+            } else if (vue_search.length > 0) {
+                url_sum = '{{ kwargs.url_search_sum }}';
+            }
+            if (sum_tr.length > 0) {
+                var exclude_width = parseInt($('#exclude-img-width1').css('width'));
+                $.get({
+                    url: url_sum,
+                    success: function (data, statusText, xmlHttpRequest) {
+                        var vue_data = {
+                            info: data
+                        };
+                        new Vue({
+                            el: '#vue_all_deltas',
+                            data: vue_data
+                        });
+                        $('#exclude-buffer').addClass('no-display');
+                        $('#exclude-total').removeClass('no-display');
+                        $('.exclude-all-div').each(function (index, value) {
+                            var percent = parseFloat($.trim($(this).attr('title').split(',')[1]));
+                            var real_width = exclude_width * 0.95 * percent * 0.01 + 'px';
+                            $(this).css('width', real_width);
+                        });
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        console.log(errorThrown)
+                    },
+                    dataType: 'json'
+                });
+            }
+            {#            跳页#}
+            $('#page-judge-a').click(function () {
+                var page_judege = $('#page-judge').val();
+                var href_judge = "?page=" + page_judege;
+                $(this).attr('href', href_judge);
+            });
+
+        });
+
+        {#        分组、配置搜索选择#}
+        var config_groups_div = $('#config-groups-div');
+        var search_domains_div = $('#search-domains-div');
+        $('#select-options1').change(function () {
+            if ($(this).val() == 1) {
+                config_groups_div.removeClass('no-display');
+                search_domains_div.addClass('no-display');
+            } else if ($(this).val() == 0) {
+                config_groups_div.addClass('no-display');
+                search_domains_div.removeClass('no-display');
+            }
+        });
+
+        {#        var data = {'total': '1000', 'name': 'xiaoming'};#}
+        {#        var vuedata = {#}
+        {#            info: data#}
+        {#        };#}
+        {#        new Vue({#}
+        {#            el: '#vue_all_deltas',#}
+        {#            data: vuedata#}
+        {#        });#}
+
+    </script>
+    <script src="{% static 'backend/config/js/delta.js' %}"></script>
+{% endblock body_tail %}

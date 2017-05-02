@@ -1,0 +1,51 @@
+{% extends 'base_backend.html' %}
+{% load static admin_static i18n %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'backend/backend_admin/css/style.css' %}">
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div>
+        <div class="box-header with-border">
+            <h3 class="box-title">查询配置</h3>
+        </div>
+        <!-- form start -->
+        <div class="box box-primary">
+            <div class="box-body">
+                <table border="1" class="table table-bordered table-striped dataTable">
+                    <tr>
+                        <th>用户名</th>
+                        <th>真实姓名</th>
+                        <th>配置名称</th>
+                        <th>操作</th>
+                    </tr>
+                    {% for i in config_all %}
+                        <tr>
+                            <td>{{ i.user.username }}</td>
+                            <td>{{ i.user.nickname }}</td>
+                            <td>{{ i.name }}</td>
+                            <td>
+                                {% if perms.backend_admin.begin_config %}
+                                    启动
+                                {% endif %}
+                                {% if perms.backend_admin.view_config_detail %}
+                                    | 详情
+                                {% endif %}
+                                {% if perms.backend_admin.delete_config %}
+                                    | 删除
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                </table>
+
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <script src='{% static "backend/backend_admin/js/changepassword.js" %}'></script>
+{% endblock jquery_js %}

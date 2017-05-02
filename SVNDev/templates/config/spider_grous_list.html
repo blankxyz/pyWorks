@@ -1,0 +1,97 @@
+{% extends 'base_backend.html' %}
+{% load static admin_static i18n %}
+{% load backend_admin_filtets %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'backend/backend_admin/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div>
+        <div class="box-header with-border">
+            <h3 class="box-title">{{ model_verbose_name }}管理</h3>
+        </div>
+        <!-- form start -->
+        <div class="box box-primary">
+            <div class="box-header">
+
+            </div>
+            <div class="box-body">
+                <form id="model_form" role="form"
+                      action=""
+                      method="post">{% csrf_token %}
+
+                    <div class="group">
+
+                        <table id="config_each_table" border="1" class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>key</th>
+                                <th>gid_name</th>
+                                <th>time_avg</th>
+                                <th>file_num</th>
+                                <th>spider_num</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for values in result_list %}
+                                <tr>
+                                    <td> {{ values.key }}</td>
+                                    <td>  {{ values.gid_name }} </td>
+                                    <td> {{ values.time_avg }}</td>
+                                    <td> {{ values.file_num }}</td>
+                                    <td> {{ values.spider_num }}</td>
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- /.box-footer -->
+                    <div class="box-footer">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block body_js %}
+    {{ block.super }}
+
+    <!-- DataTables -->
+    <script src="{% static 'plugins/datatables/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+
+
+    <script>
+        $(function () {
+
+            $("#config_each_table").DataTable({
+{#                "columnDefs": [#}
+{#                    {"orderable": false, "targets": 0}#}
+{#                ],#}
+                "order": [[0, 'dec'],],
+                "language": {
+                    "emptyTable": "没有匹配的数据",
+                    "info": "_START_ to _END_ of _TOTAL_",
+                    "infoEmpty": "0 of _MAX_",
+                    "infoFiltered": "",
+                    "lengthMenu": "显示 _MENU_ 条",
+                    "search": "搜索:",
+                    "zeroRecords": "没有匹配的数据",
+                    "paginate": {
+                        "first": "首页",
+                        "last": "尾页",
+                        "next": "下一页",
+                        "previous": "上一页"
+                    },
+                }
+            });
+        });
+
+
+    </script>
+{% endblock body_js %}

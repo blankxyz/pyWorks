@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static admin_static%}
+
+{% block form_top %}
+  {% if not is_popup %}
+    <p>{% trans "注意粗体字体所在项都为必填" %}</p>
+  {% else %}
+    <p>{% trans "Enter a username and password." %}</p>
+  {% endif %}
+{% endblock %}
+
+{% block after_field_sets %}
+<script type="text/javascript">document.getElementById("id_username").focus();</script>
+{% endblock %}

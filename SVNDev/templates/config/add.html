@@ -1,0 +1,123 @@
+{% extends 'base_backend.html' %}
+{% load static admin_static i18n %}
+{% load backend_admin_filtets %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'backend/config/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/theme/lesser-dark.css' %}">
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div>
+        <div class="box-header with-border">
+            <h3 class="box-title">添加配置</h3>
+        </div>
+        <!-- form start -->
+        <div class="box box-primary">
+            <div class="box-body">
+                <form id="create_user_form" role="form" action="" method="post"
+                      enctype="multipart/form-data">{% csrf_token %}
+                    {% for field in form %}
+                        <div class="form-group" style="float: left; margin-right: 20px">
+                            <label for="" class="control-label">{{ field.label }}：</label>
+                            <p>{{ field }}</p>
+                        </div>
+                    {% endfor %}
+                    <div class="form-group">
+                        <br>
+                        <br style="clear: both">
+                        <input type="file" name="config_file">
+                        <br>
+                        <div id="file_show">
+                            {#                            <pre class="">代码展示区域</pre>#}
+                            <textarea name="code" id="code" cols="0" rows="1" class="">代码展示区域</textarea>
+                        </div>
+
+                    </div>
+
+                    <!-- /.box-footer -->
+                    <div class="box-footer">
+                        <button class="btn btn-primary" id="_save">添加配置</button>
+                        <button type="submit" class="btn btn-primary" id="_submit"
+                                style="display: none">sure
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block body_js %}
+    {{ block.super }}
+    <script src="{% static 'public/CodeMirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'public/CodeMirror/mode/python/python.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            var file_input = $('input[name="config_file"]');
+            var file_show = $('#file_show');
+            var textarea = document.getElementById('code');
+
+
+            function codem() {
+                var editor = CodeMirror.fromTextArea(textarea, {
+                    mode: "python",
+                    lineNumbers: true,
+                    matchBrackets: true,
+                    theme: "lesser-dark",
+                    parserConfig: {useHTMLKludges: true},
+                });
+                editor.setOption("extraKeys", {
+                    Tab: function (cm) {
+                        var spaces = new Array(cm.getOption("indentUnit") + 1).join(" ");
+                        cm.replaceSelection(spaces);
+                    }
+                });
+                textarea.innerHTML = editor.getValue();
+            }
+
+            function readfile() {
+                var files = file_input.prop('files');
+                var file_path = file_input.val();
+                var file_path_split = file_path.split('.');
+                var file_formate = file_path_split[file_path_split.length - 1];
+                if (file_formate == 'py') {
+                    var reader = new FileReader();
+                    //将文件以文本形式读入页面
+                    reader.readAsText(files[0], 'UTF-8');
+                    reader.onload = function (f) {
+                        var fileString = f.target.result;
+                        //显示文件
+                        textarea.innerHTML = fileString;
+                        codem();
+                    }
+                } else {
+                    alert('您传入的文件格式为' + file_formate + '，请传入py文件');
+                    file_input.val('');
+                    textarea.innerHTML = '代码展示区域';
+                    return false;
+                }
+                ;
+            };
+
+
+            file_input.click(function () {
+                file_input.val('');
+                var textarea_next = file_show.children('div');
+                if (textarea_next) {
+                    textarea_next.remove();
+                }
+                textarea.style.display = 'block';
+                textarea.innerHTML = '代码展示区域';
+            });
+            file_input.change(function () {
+                textarea.innerHTML = '代码加载中...';
+                readfile();
+            });
+        });
+
+    </script>
+
+{% endblock body_js %}
