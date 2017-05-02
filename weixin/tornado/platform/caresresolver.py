@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function, with_statement
 import pycares
 import socket
 
-from weixin import gen
-from weixin.ioloop import IOLoop
-from weixin.netutil import Resolver, is_valid_ip
+from tornado import gen
+from tornado.ioloop import IOLoop
+from tornado.netutil import Resolver, is_valid_ip
 
 
 class CaresResolver(Resolver):
@@ -18,9 +18,6 @@ class CaresResolver(Resolver):
     so it is only recommended for use in ``AF_INET`` (i.e. IPv4).  This is
     the default for ``tornado.simple_httpclient``, but other libraries
     may default to ``AF_UNSPEC``.
-
-    .. versionchanged:: 4.1
-       The ``io_loop`` argument is deprecated.
     """
     def initialize(self, io_loop=None):
         self.io_loop = io_loop or IOLoop.current()

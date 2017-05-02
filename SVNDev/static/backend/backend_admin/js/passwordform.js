@@ -27,6 +27,7 @@
 //     return password;
 // }
 
+
 $(document).ready(function () {
     // 获取option值
     var permissions = $('#id_permissions');
@@ -39,9 +40,6 @@ $(document).ready(function () {
         } else {
             $(this).text($.trim(new_text[2]));
         }
-        console.log($.inArray($.trim(new_text[1]), display_array));
-        console.log($.trim(new_text[1]));
-
     });
 
 

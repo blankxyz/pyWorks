@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function, with_statement
 import re
 import sys
 
-from weixin.util import unicode_type, basestring_type, u
+from tornado.util import bytes_type, unicode_type, basestring_type, u
 
 try:
     from urllib.parse import parse_qs as _parse_qs  # py3
@@ -82,7 +82,7 @@ def json_encode(value):
     # JSON permits but does not require forward slashes to be escaped.
     # This is useful when json data is emitted in a <script> tag
     # in HTML, as it prevents </script> tags from prematurely terminating
-    # the javascript.  Some json libraries do this escaping by default,
+    # the javscript.  Some json libraries do this escaping by default,
     # although python's standard library does not, so we do it here.
     # http://stackoverflow.com/questions/1580647/json-why-are-forward-slashes-escaped
     return json.dumps(value).replace("</", "<\\/")
@@ -187,7 +187,7 @@ else:
         return encoded
 
 
-_UTF8_TYPES = (bytes, type(None))
+_UTF8_TYPES = (bytes_type, type(None))
 
 
 def utf8(value):
@@ -215,7 +215,7 @@ def to_unicode(value):
     """
     if isinstance(value, _TO_UNICODE_TYPES):
         return value
-    if not isinstance(value, bytes):
+    if not isinstance(value, bytes_type):
         raise TypeError(
             "Expected bytes, unicode, or None; got %r" % type(value)
         )
@@ -246,7 +246,7 @@ def to_basestring(value):
     """
     if isinstance(value, _BASESTRING_TYPES):
         return value
-    if not isinstance(value, bytes):
+    if not isinstance(value, bytes_type):
         raise TypeError(
             "Expected bytes, unicode, or None; got %r" % type(value)
         )
@@ -264,7 +264,7 @@ def recursive_unicode(obj):
         return list(recursive_unicode(i) for i in obj)
     elif isinstance(obj, tuple):
         return tuple(recursive_unicode(i) for i in obj)
-    elif isinstance(obj, bytes):
+    elif isinstance(obj, bytes_type):
         return to_unicode(obj)
     else:
         return obj
@@ -378,10 +378,7 @@ def linkify(text, shorten=False, extra_params="",
 def _convert_entity(m):
     if m.group(1) == "#":
         try:
-            if m.group(2)[:1].lower() == 'x':
-                return unichr(int(m.group(2)[1:], 16))
-            else:
-                return unichr(int(m.group(2)))
+            return unichr(int(m.group(2)))
         except ValueError:
             return "&#%s;" % m.group(2)
     try:

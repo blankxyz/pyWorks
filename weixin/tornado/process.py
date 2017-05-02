@@ -21,6 +21,7 @@ the server into multiple processes and managing subprocesses.
 from __future__ import absolute_import, division, print_function, with_statement
 
 import errno
+import multiprocessing
 import os
 import signal
 import subprocess
@@ -29,19 +30,11 @@ import time
 
 from binascii import hexlify
 
-from weixin.concurrent import Future
-from weixin import ioloop
-from weixin.iostream import PipeIOStream
-from weixin.log import gen_log
-from weixin.platform.auto import set_close_exec
-from weixin import stack_context
-from weixin.util import errno_from_exception
-
-try:
-    import multiprocessing
-except ImportError:
-    # Multiprocessing is not available on Google App Engine.
-    multiprocessing = None
+from tornado import ioloop
+from tornado.iostream import PipeIOStream
+from tornado.log import gen_log
+from tornado.platform.auto import set_close_exec
+from tornado import stack_context
 
 try:
     long  # py2
@@ -49,21 +42,8 @@ except NameError:
     long = int  # py3
 
 
-# Re-export this exception for convenience.
-try:
-    CalledProcessError = subprocess.CalledProcessError
-except AttributeError:
-    # The subprocess module exists in Google App Engine, but is empty.
-    # This module isn't very useful in that case, but it should
-    # at least be importable.
-    if 'APPENGINE_RUNTIME' not in os.environ:
-        raise
-
-
 def cpu_count():
     """Returns the number of processors on this machine."""
-    if multiprocessing is None:
-        return 1
     try:
         return multiprocessing.cpu_count()
     except NotImplementedError:
@@ -156,7 +136,7 @@ def fork_processes(num_processes, max_restarts=100):
         try:
             pid, status = os.wait()
         except OSError as e:
-            if errno_from_exception(e) == errno.EINTR:
+            if e.errno == errno.EINTR:
                 continue
             raise
         if pid not in children:
@@ -203,9 +183,6 @@ class Subprocess(object):
       ``tornado.process.Subprocess.STREAM``, which will make the corresponding
       attribute of the resulting Subprocess a `.PipeIOStream`.
     * A new keyword argument ``io_loop`` may be used to pass in an IOLoop.
-
-    .. versionchanged:: 4.1
-       The ``io_loop`` argument is deprecated.
     """
     STREAM = object()
 
@@ -255,7 +232,7 @@ class Subprocess(object):
 
         The callback takes one argument, the return code of the process.
 
-        This method uses a ``SIGCHLD`` handler, which is a global setting
+        This method uses a ``SIGCHILD`` handler, which is a global setting
         and may conflict if you have other libraries trying to handle the
         same signal.  If you are using more than one ``IOLoop`` it may
         be necessary to call `Subprocess.initialize` first to designate
@@ -270,44 +247,14 @@ class Subprocess(object):
         Subprocess._waiting[self.pid] = self
         Subprocess._try_cleanup_process(self.pid)
 
-    def wait_for_exit(self, raise_error=True):
-        """Returns a `.Future` which resolves when the process exits.
-
-        Usage::
-
-            ret = yield proc.wait_for_exit()
-
-        This is a coroutine-friendly alternative to `set_exit_callback`
-        (and a replacement for the blocking `subprocess.Popen.wait`).
-
-        By default, raises `subprocess.CalledProcessError` if the process
-        has a non-zero exit status. Use ``wait_for_exit(raise_error=False)``
-        to suppress this behavior and return the exit status without raising.
-
-        .. versionadded:: 4.2
-        """
-        future = Future()
-
-        def callback(ret):
-            if ret != 0 and raise_error:
-                # Unfortunately we don't have the original args any more.
-                future.set_exception(CalledProcessError(ret, None))
-            else:
-                future.set_result(ret)
-        self.set_exit_callback(callback)
-        return future
-
     @classmethod
     def initialize(cls, io_loop=None):
-        """Initializes the ``SIGCHLD`` handler.
+        """Initializes the ``SIGCHILD`` handler.
 
         The signal handler is run on an `.IOLoop` to avoid locking issues.
         Note that the `.IOLoop` used for signal handling need not be the
         same one used by individual Subprocess objects (as long as the
         ``IOLoops`` are each running in separate threads).
-
-        .. versionchanged:: 4.1
-           The ``io_loop`` argument is deprecated.
         """
         if cls._initialized:
             return
@@ -320,7 +267,7 @@ class Subprocess(object):
 
     @classmethod
     def uninitialize(cls):
-        """Removes the ``SIGCHLD`` handler."""
+        """Removes the ``SIGCHILD`` handler."""
         if not cls._initialized:
             return
         signal.signal(signal.SIGCHLD, cls._old_sigchld)
@@ -336,7 +283,7 @@ class Subprocess(object):
         try:
             ret_pid, status = os.waitpid(pid, os.WNOHANG)
         except OSError as e:
-            if errno_from_exception(e) == errno.ECHILD:
+            if e.args[0] == errno.ECHILD:
                 return
         if ret_pid == 0:
             return

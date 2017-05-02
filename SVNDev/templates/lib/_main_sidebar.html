@@ -1,4 +1,5 @@
 {% load i18n static admin_static %}
+{% load backend_admin_filtets %}
 <!-- Left side column. contains the sidebar -->
 <aside class="main-sidebar">
     <!-- sidebar: style can be found in sidebar.less -->
@@ -8,18 +9,25 @@
         <ul class="sidebar-menu">
             {% if request.user.is_staff %}
                 <li class="treeview">
-                    {#                    <a href="{% url 'admin' %}">#}
                     <a href="#">
                         <i class="fa fa-dashboard"></i> <span>用户管理</span>
                         <span class="pull-right-container">
               <i class="fa fa-angle-left pull-right"></i>
             </span>
                     </a>
-                    <ul class="treeview-menu">
-                        <li><a href="{% url 'admin:backend_admin_user_changelist' %}"><i class="fa fa-circle-o"></i>
-                            用户管理 </a></li>
-                        <li><a href="{% url 'admin:auth_group_changelist' %}"><i class="fa fa-circle-o"></i> 分组权限 </a>
-                        </li>
+                    <ul class="treeview-menu" id="user_siderbar">
+                        {% if perms.backend_admin.view_user %}
+                            <li><a href="{% url 'backend_admin:change_list' 'backend_admin' 'user' %}"><i
+                                    class="fa fa-circle-o"></i>
+                                用户管理 </a></li>
+                        {% endif %}
+                        {% if perms.backend_admin.view_group %}
+                            <li>
+                                {#                            <a href="{% url 'admin:auth_group_changelist' %}"><i class="fa fa-circle-o"></i> 分组权限 </a>#}
+                                <a href="{% url 'backend_admin:change_list' 'auth' 'group' %}"><i
+                                        class="fa fa-circle-o"></i> 分组权限 </a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </li>
             {% endif %}
@@ -32,9 +40,100 @@
                <i class="fa fa-angle-left pull-right"></i>
             </span>
                     </a>
-                    <ul class="treeview-menu">
+                    <ul class="treeview-menu" id="allsite_siderbar">
                         <li><a href="{% url 'allsite:main' %}"><i class="fa fa-circle-o"></i> 主控面板</a></li>
+                        <li><a href="{% url 'allsite:domainList' %}"><i class="fa fa-circle-o"></i> 域名管理</a></li>
+                        <li><a href="{% url 'allsite:hubPageList' %}"><i class="fa fa-circle-o"></i> 频道页一览</a></li>
+                        <li><a href="{% url 'allsite:detailList' %}"><i class="fa fa-circle-o"></i> 详情页一览</a></li>
+                        <li><a href="{% url 'allsite:detailLikenessList' %}"><i class="fa fa-circle-o"></i> 详情-直采相似度</a>
+                        </li>
+                        <li><a href="{% url 'allsite:detailCorrectList' %}"><i class="fa fa-circle-o"></i> 详情-人工确认</a>
+                        </li>
                         <li><a href="{% url 'allsite:crawlTimes' %}"><i class="fa fa-circle-o"></i> 采集时间差</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if perms.backend_admin.view_allsite %}
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-files-o"></i>
+                        <span>传播分析</span>
+                        <span class="pull-right-container">
+               <i class="fa fa-angle-left pull-right"></i>
+            </span>
+                    </a>
+                    <ul class="treeview-menu" id="comments_siderbar">
+                        <li><a href="{% url 'comments:main' %}"><i class="fa fa-circle-o"></i> 主控面板</a></li>
+                        <li><a href="{% url 'comments:commentInfoList' %}"><i class="fa fa-circle-o"></i> 采集查询</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if perms.backend_admin.view_allsite %}
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-files-o"></i>
+                        <span>频道采集</span>
+                        <span class="pull-right-container">
+               <i class="fa fa-angle-left pull-right"></i>
+            </span>
+                    </a>
+                    <ul class="treeview-menu" id="channels_siderbar">
+                        <li><a href="{% url 'channels:main' %}"><i class="fa fa-circle-o"></i> 主控面板</a></li>
+                        <li><a href="{% url 'channels:domainTree' %}"><i class="fa fa-circle-o"></i> 总览图</a></li>
+                        <li><a href="{% url 'channels:configInfoList' %}"><i class="fa fa-circle-o"></i> 配置管理</a></li>
+                        <li><a href="{% url 'channels:channelInfoList' %}"><i class="fa fa-circle-o"></i> 频道管理</a></li>
+                        <li><a href="{% url 'channels:runResultList' %}"><i class="fa fa-circle-o"></i> 运行结果</a></li>
+                        <li><a href="{% url 'channels:timedeltaList' %}"><i class="fa fa-circle-o"></i> 时间差</a></li>
+                        <li><a href="{% url 'channels:routerList' %}"><i class="fa fa-circle-o"></i> 路由管理</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if perms.config.view_config %}
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-files-o"></i>
+                        <span>配置管理</span>
+                        <span class="pull-right-container">
+               <i class="fa fa-angle-left pull-right"></i>
+            </span>
+                    </a>
+                    <ul class="treeview-menu" id="config_siderbar">
+                        {% if request.user|has_group:'配置主管' %}
+                            <li><a href="{% url 'config:group' %}"><i class="fa fa-circle-o"></i> 配置人员分组</a></li>
+                        {% endif %}
+                        {% if perms.config.add_config %}
+                            <li><a href="{% url 'config:add_config' %}"><i class="fa fa-circle-o"></i> 添加配置</a>
+                        {% endif %}
+                        </li>
+                        <li><a href="{% url 'config:select' %}"><i class="fa fa-circle-o"></i> 查询配置</a></li>
+                        <li><a href="{% url 'config:spider_groups_monitor' %}"><i class="fa fa-circle-o"></i> 配置分组检测</a>
+                        </li>
+                        <li><a href="{% url 'config:all_domains_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            域名-所有时间差</a></li>
+                        <li><a href="{% url 'config:all_configs_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            配置-所有时间差</a></li>
+                        <li><a href="{% url 'config:news_user_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            新闻-域名-入库时间差</a>
+                        </li>
+                        <li><a href="{% url 'config:news_all_user_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            新闻-域名-用户不去重</a>
+                        </li>
+                        <li><a href="{% url 'config:config_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            新闻-配置-入库时间差</a></li>
+                        <li><a href="{% url 'config:config_groupsexclude_delta' %}"><i class="fa fa-circle-o"></i>
+                            新闻-配置-除巡查海外</a></li>
+                        <li><a href="{% url 'config:forums_user_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            论坛-域名-入库时间差</a></li>
+                        <li><a href="{% url 'config:forums_all_user_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            论坛-域名-用户不去重</a></li>
+                        <li><a href="{% url 'config:forums_config_timedelta_view' %}"><i class="fa fa-circle-o"></i>
+                            论坛-配置-入库时间差</a></li>
+                        <li><a href="{% url 'config:config_url_search' %}"><i class="fa fa-circle-o"></i> 配置-url查询</a>
+                        </li>
+
                     </ul>
                 </li>
             {% endif %}

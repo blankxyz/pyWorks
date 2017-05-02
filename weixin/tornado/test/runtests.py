@@ -7,12 +7,11 @@ import logging
 import operator
 import textwrap
 import sys
-from weixin.httpclient import AsyncHTTPClient
-from weixin.httpserver import HTTPServer
-from weixin.ioloop import IOLoop
-from weixin.netutil import Resolver
-from weixin.options import define, options, add_parse_callback
-from weixin.test.util import unittest
+from tornado.httpclient import AsyncHTTPClient
+from tornado.ioloop import IOLoop
+from tornado.netutil import Resolver
+from tornado.options import define, options, add_parse_callback
+from tornado.test.util import unittest
 
 try:
     reduce  # py2
@@ -23,7 +22,6 @@ TEST_MODULES = [
     'tornado.httputil.doctests',
     'tornado.iostream.doctests',
     'tornado.util.doctests',
-    'tornado.test.asyncio_test',
     'tornado.test.auth_test',
     'tornado.test.concurrent_test',
     'tornado.test.curl_httpclient_test',
@@ -36,16 +34,12 @@ TEST_MODULES = [
     'tornado.test.ioloop_test',
     'tornado.test.iostream_test',
     'tornado.test.locale_test',
-    'tornado.test.locks_test',
     'tornado.test.netutil_test',
     'tornado.test.log_test',
     'tornado.test.options_test',
     'tornado.test.process_test',
-    'tornado.test.queues_test',
     'tornado.test.simple_httpclient_test',
     'tornado.test.stack_context_test',
-    'tornado.test.tcpclient_test',
-    'tornado.test.tcpserver_test',
     'tornado.test.template_test',
     'tornado.test.testing_test',
     'tornado.test.twisted_test',
@@ -71,23 +65,7 @@ class TornadoTextTestRunner(unittest.TextTestRunner):
             self.stream.write("\n")
         return result
 
-
-class LogCounter(logging.Filter):
-    """Counts the number of WARNING or higher log records."""
-    def __init__(self, *args, **kwargs):
-        # Can't use super() because logging.Filter is an old-style class in py26
-        logging.Filter.__init__(self, *args, **kwargs)
-        self.warning_count = self.error_count = 0
-
-    def filter(self, record):
-        if record.levelno >= logging.ERROR:
-            self.error_count += 1
-        elif record.levelno >= logging.WARNING:
-            self.warning_count += 1
-        return True
-
-
-def main():
+if __name__ == '__main__':
     # The -W command-line option does not work in a virtualenv with
     # python 3 (as of virtualenv 1.7), so configure warnings
     # programmatically instead.
@@ -104,29 +82,17 @@ def main():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     warnings.filterwarnings("error", category=DeprecationWarning,
                             module=r"tornado\..*")
-    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
-    warnings.filterwarnings("error", category=PendingDeprecationWarning,
-                            module=r"tornado\..*")
     # The unittest module is aggressive about deprecating redundant methods,
     # leaving some without non-deprecated spellings that work on both
     # 2.7 and 3.2
     warnings.filterwarnings("ignore", category=DeprecationWarning,
                             message="Please use assert.* instead")
-    # unittest2 0.6 on py26 reports these as PendingDeprecationWarnings
-    # instead of DeprecationWarnings.
-    warnings.filterwarnings("ignore", category=PendingDeprecationWarning,
-                            message="Please use assert.* instead")
-    # Twisted 15.0.0 triggers some warnings on py3 with -bb.
-    warnings.filterwarnings("ignore", category=BytesWarning,
-                            module=r"twisted\..*")
 
     logging.getLogger("tornado.access").setLevel(logging.CRITICAL)
 
     define('httpclient', type=str, default=None,
            callback=lambda s: AsyncHTTPClient.configure(
                s, defaults=dict(allow_ipv6=False)))
-    define('httpserver', type=str, default=None,
-           callback=HTTPServer.configure)
     define('ioloop', type=str, default=None)
     define('ioloop_time_monotonic', default=False)
     define('resolver', type=str, default=None,
@@ -142,7 +108,7 @@ def main():
     def configure_ioloop():
         kwargs = {}
         if options.ioloop_time_monotonic:
-            from weixin.platform.auto import monotonic_time
+            from tornado.platform.auto import monotonic_time
             if monotonic_time is None:
                 raise RuntimeError("monotonic clock not found")
             kwargs['time_func'] = monotonic_time
@@ -150,11 +116,7 @@ def main():
             IOLoop.configure(options.ioloop, **kwargs)
     add_parse_callback(configure_ioloop)
 
-    log_counter = LogCounter()
-    add_parse_callback(
-        lambda: logging.getLogger().handlers[0].addFilter(log_counter))
-
-    import weixin.testing
+    import tornado.testing
     kwargs = {}
     if sys.version_info >= (3, 2):
         # HACK:  unittest.main will make its own changes to the warning
@@ -164,16 +126,4 @@ def main():
         # detail.  http://bugs.python.org/issue15626
         kwargs['warnings'] = False
     kwargs['testRunner'] = TornadoTextTestRunner
-    try:
-        weixin.testing.main(**kwargs)
-    finally:
-        # The tests should run clean; consider it a failure if they logged
-        # any warnings or errors. We'd like to ban info logs too, but
-        # we can't count them cleanly due to interactions with LogTrapTestCase.
-        if log_counter.warning_count > 0 or log_counter.error_count > 0:
-            logging.error("logged %d warnings and %d errors",
-                          log_counter.warning_count, log_counter.error_count)
-            sys.exit(1)
-
-if __name__ == '__main__':
-    main()
+    tornado.testing.main(**kwargs)

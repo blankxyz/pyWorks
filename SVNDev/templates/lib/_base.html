@@ -66,6 +66,22 @@
 {% endblock body_js %}
 
 {% block body_tail %}{% endblock body_tail %}
-
+<script>
+    $(document).ready(function () {
+        var main_siders = $('.treeview-menu');
+        var href = window.location.href;
+        if (href.indexOf('admin') > 0) {
+            $('#user_siderbar').css('display', 'block');
+        } else if (href.indexOf('allsite') > 0) {
+            $('#allsite_siderbar').css('display', 'block');
+        } else if (href.indexOf('comments') > 0) {
+            $('#comments_siderbar').css('display', 'block');
+        } else if (href.indexOf('channels') > 0) {
+            $('#channels_siderbar').css('display', 'block');
+        } else if (href.indexOf('config') > 0) {
+            $('#config_siderbar').css('display', 'block');
+        }
+    })
+</script>
 </body>
 </html>

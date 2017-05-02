@@ -5,59 +5,22 @@ from __future__ import absolute_import, division, print_function, with_statement
 import contextlib
 import datetime
 import functools
+import logging
 import socket
 import sys
 import threading
 import time
 
-from weixin import gen
-from weixin.ioloop import IOLoop, TimeoutError, PollIOLoop, PeriodicCallback
-from weixin.log import app_log
-from weixin.platform.select import _Select
-from weixin.stack_context import ExceptionStackContext, StackContext, wrap, NullContext
-from weixin.testing import AsyncTestCase, bind_unused_port, ExpectLog
-from weixin.test.util import unittest, skipIfNonUnix, skipOnTravis, skipBefore35, exec_test
+from tornado import gen
+from tornado.ioloop import IOLoop, PollIOLoop, TimeoutError
+from tornado.stack_context import ExceptionStackContext, StackContext, wrap, NullContext
+from tornado.testing import AsyncTestCase, bind_unused_port
+from tornado.test.util import unittest, skipIfNonUnix, skipOnTravis
 
 try:
     from concurrent import futures
 except ImportError:
     futures = None
-
-
-class FakeTimeSelect(_Select):
-    def __init__(self):
-        self._time = 1000
-        super(FakeTimeSelect, self).__init__()
-
-    def time(self):
-        return self._time
-
-    def sleep(self, t):
-        self._time += t
-
-    def poll(self, timeout):
-        events = super(FakeTimeSelect, self).poll(0)
-        if events:
-            return events
-        self._time += timeout
-        return []
-
-
-class FakeTimeIOLoop(PollIOLoop):
-    """IOLoop implementation with a fake and deterministic clock.
-
-    The clock advances as needed to trigger timeouts immediately.
-    For use when testing code that involves the passage of time
-    and no external dependencies.
-    """
-    def initialize(self):
-        self.fts = FakeTimeSelect()
-        super(FakeTimeIOLoop, self).initialize(impl=self.fts,
-                                               time_func=self.fts.time)
-
-    def sleep(self, t):
-        """Simulate a blocking sleep by advancing the clock."""
-        self.fts.sleep(t)
 
 
 class TestIOLoop(AsyncTestCase):
@@ -89,8 +52,7 @@ class TestIOLoop(AsyncTestCase):
         thread = threading.Thread(target=target)
         self.io_loop.add_callback(thread.start)
         self.wait()
-        delta = time.time() - self.stop_time
-        self.assertLess(delta, 0.1)
+        self.assertAlmostEqual(time.time(), self.stop_time, places=2)
         thread.join()
 
     def test_add_timeout_timedelta(self):
@@ -192,7 +154,7 @@ class TestIOLoop(AsyncTestCase):
 
     def test_remove_timeout_after_fire(self):
         # It is not an error to call remove_timeout after it has run.
-        handle = self.io_loop.add_timeout(self.io_loop.time(), self.stop)
+        handle = self.io_loop.add_timeout(self.io_loop.time(), self.stop())
         self.wait()
         self.io_loop.remove_timeout(handle)
 
@@ -210,257 +172,23 @@ class TestIOLoop(AsyncTestCase):
         self.io_loop.add_callback(lambda: self.io_loop.add_callback(self.stop))
         self.wait()
 
-    def test_remove_timeout_from_timeout(self):
-        calls = [False, False]
-
-        # Schedule several callbacks and wait for them all to come due at once.
-        # t2 should be cancelled by t1, even though it is already scheduled to
-        # be run before the ioloop even looks at it.
-        now = self.io_loop.time()
-
-        def t1():
-            calls[0] = True
-            self.io_loop.remove_timeout(t2_handle)
-        self.io_loop.add_timeout(now + 0.01, t1)
-
-        def t2():
-            calls[1] = True
-        t2_handle = self.io_loop.add_timeout(now + 0.02, t2)
-        self.io_loop.add_timeout(now + 0.03, self.stop)
-        time.sleep(0.03)
-        self.wait()
-        self.assertEqual(calls, [True, False])
-
-    def test_timeout_with_arguments(self):
-        # This tests that all the timeout methods pass through *args correctly.
-        results = []
-        self.io_loop.add_timeout(self.io_loop.time(), results.append, 1)
-        self.io_loop.add_timeout(datetime.timedelta(seconds=0),
-                                 results.append, 2)
-        self.io_loop.call_at(self.io_loop.time(), results.append, 3)
-        self.io_loop.call_later(0, results.append, 4)
-        self.io_loop.call_later(0, self.stop)
-        self.wait()
-        self.assertEqual(results, [1, 2, 3, 4])
-
-    def test_add_timeout_return(self):
-        # All the timeout methods return non-None handles that can be
-        # passed to remove_timeout.
-        handle = self.io_loop.add_timeout(self.io_loop.time(), lambda: None)
-        self.assertFalse(handle is None)
-        self.io_loop.remove_timeout(handle)
-
-    def test_call_at_return(self):
-        handle = self.io_loop.call_at(self.io_loop.time(), lambda: None)
-        self.assertFalse(handle is None)
-        self.io_loop.remove_timeout(handle)
-
-    def test_call_later_return(self):
-        handle = self.io_loop.call_later(0, lambda: None)
-        self.assertFalse(handle is None)
-        self.io_loop.remove_timeout(handle)
-
-    def test_close_file_object(self):
-        """When a file object is used instead of a numeric file descriptor,
-        the object should be closed (by IOLoop.close(all_fds=True),
-        not just the fd.
-        """
-        # Use a socket since they are supported by IOLoop on all platforms.
-        # Unfortunately, sockets don't support the .closed attribute for
-        # inspecting their close status, so we must use a wrapper.
-        class SocketWrapper(object):
-            def __init__(self, sockobj):
-                self.sockobj = sockobj
-                self.closed = False
-
-            def fileno(self):
-                return self.sockobj.fileno()
-
-            def close(self):
-                self.closed = True
-                self.sockobj.close()
-        sockobj, port = bind_unused_port()
-        socket_wrapper = SocketWrapper(sockobj)
-        io_loop = IOLoop()
-        io_loop.add_handler(socket_wrapper, lambda fd, events: None,
-                            IOLoop.READ)
-        io_loop.close(all_fds=True)
-        self.assertTrue(socket_wrapper.closed)
-
-    def test_handler_callback_file_object(self):
-        """The handler callback receives the same fd object it passed in."""
-        server_sock, port = bind_unused_port()
-        fds = []
-
-        def handle_connection(fd, events):
-            fds.append(fd)
-            conn, addr = server_sock.accept()
-            conn.close()
-            self.stop()
-        self.io_loop.add_handler(server_sock, handle_connection, IOLoop.READ)
-        with contextlib.closing(socket.socket()) as client_sock:
-            client_sock.connect(('127.0.0.1', port))
-            self.wait()
-        self.io_loop.remove_handler(server_sock)
-        self.io_loop.add_handler(server_sock.fileno(), handle_connection,
-                                 IOLoop.READ)
-        with contextlib.closing(socket.socket()) as client_sock:
-            client_sock.connect(('127.0.0.1', port))
-            self.wait()
-        self.assertIs(fds[0], server_sock)
-        self.assertEqual(fds[1], server_sock.fileno())
-        self.io_loop.remove_handler(server_sock.fileno())
-        server_sock.close()
-
-    def test_mixed_fd_fileobj(self):
-        server_sock, port = bind_unused_port()
-
-        def f(fd, events):
-            pass
-        self.io_loop.add_handler(server_sock, f, IOLoop.READ)
-        with self.assertRaises(Exception):
-            # The exact error is unspecified - some implementations use
-            # IOError, others use ValueError.
-            self.io_loop.add_handler(server_sock.fileno(), f, IOLoop.READ)
-        self.io_loop.remove_handler(server_sock.fileno())
-        server_sock.close()
-
-    def test_reentrant(self):
-        """Calling start() twice should raise an error, not deadlock."""
-        returned_from_start = [False]
-        got_exception = [False]
-
-        def callback():
-            try:
-                self.io_loop.start()
-                returned_from_start[0] = True
-            except Exception:
-                got_exception[0] = True
-            self.stop()
-        self.io_loop.add_callback(callback)
-        self.wait()
-        self.assertTrue(got_exception[0])
-        self.assertFalse(returned_from_start[0])
-
-    def test_exception_logging(self):
-        """Uncaught exceptions get logged by the IOLoop."""
-        # Use a NullContext to keep the exception from being caught by
-        # AsyncTestCase.
-        with NullContext():
-            self.io_loop.add_callback(lambda: 1 / 0)
-            self.io_loop.add_callback(self.stop)
-            with ExpectLog(app_log, "Exception in callback"):
-                self.wait()
-
-    def test_exception_logging_future(self):
-        """The IOLoop examines exceptions from Futures and logs them."""
-        with NullContext():
-            @gen.coroutine
-            def callback():
-                self.io_loop.add_callback(self.stop)
-                1 / 0
-            self.io_loop.add_callback(callback)
-            with ExpectLog(app_log, "Exception in callback"):
-                self.wait()
-
-    @skipBefore35
-    def test_exception_logging_native_coro(self):
-        """The IOLoop examines exceptions from awaitables and logs them."""
-        namespace = exec_test(globals(), locals(), """
-        async def callback():
-            self.io_loop.add_callback(self.stop)
-            1 / 0
-        """)
-        with NullContext():
-            self.io_loop.add_callback(namespace["callback"])
-            with ExpectLog(app_log, "Exception in callback"):
-                self.wait()
-    def test_spawn_callback(self):
-        # An added callback runs in the test's stack_context, so will be
-        # re-arised in wait().
-        self.io_loop.add_callback(lambda: 1 / 0)
-        with self.assertRaises(ZeroDivisionError):
-            self.wait()
-        # A spawned callback is run directly on the IOLoop, so it will be
-        # logged without stopping the test.
-        self.io_loop.spawn_callback(lambda: 1 / 0)
-        self.io_loop.add_callback(self.stop)
-        with ExpectLog(app_log, "Exception in callback"):
-            self.wait()
-
-    @skipIfNonUnix
-    def test_remove_handler_from_handler(self):
-        # Create two sockets with simultaneous read events.
-        client, server = socket.socketpair()
-        try:
-            client.send(b'abc')
-            server.send(b'abc')
-
-            # After reading from one fd, remove the other from the IOLoop.
-            chunks = []
-
-            def handle_read(fd, events):
-                chunks.append(fd.recv(1024))
-                if fd is client:
-                    self.io_loop.remove_handler(server)
-                else:
-                    self.io_loop.remove_handler(client)
-            self.io_loop.add_handler(client, handle_read, self.io_loop.READ)
-            self.io_loop.add_handler(server, handle_read, self.io_loop.READ)
-            self.io_loop.call_later(0.03, self.stop)
-            self.wait()
-
-            # Only one fd was read; the other was cleanly removed.
-            self.assertEqual(chunks, [b'abc'])
-        finally:
-            client.close()
-            server.close()
-
 
 # Deliberately not a subclass of AsyncTestCase so the IOLoop isn't
 # automatically set as current.
 class TestIOLoopCurrent(unittest.TestCase):
     def setUp(self):
-        self.io_loop = None
-        IOLoop.clear_current()
+        self.io_loop = IOLoop()
 
     def tearDown(self):
-        if self.io_loop is not None:
-            self.io_loop.close()
+        self.io_loop.close()
 
-    def test_default_current(self):
-        self.io_loop = IOLoop()
-        # The first IOLoop with default arguments is made current.
-        self.assertIs(self.io_loop, IOLoop.current())
-        # A second IOLoop can be created but is not made current.
-        io_loop2 = IOLoop()
-        self.assertIs(self.io_loop, IOLoop.current())
-        io_loop2.close()
-
-    def test_non_current(self):
-        self.io_loop = IOLoop(make_current=False)
-        # The new IOLoop is not initially made current.
-        self.assertIsNone(IOLoop.current(instance=False))
-        # Starting the IOLoop makes it current, and stopping the loop
-        # makes it non-current. This process is repeatable.
-        for i in range(3):
-            def f():
-                self.current_io_loop = IOLoop.current()
-                self.io_loop.stop()
-            self.io_loop.add_callback(f)
-            self.io_loop.start()
-            self.assertIs(self.current_io_loop, self.io_loop)
-            # Now that the loop is stopped, it is no longer current.
-            self.assertIsNone(IOLoop.current(instance=False))
-
-    def test_force_current(self):
-        self.io_loop = IOLoop(make_current=True)
-        self.assertIs(self.io_loop, IOLoop.current())
-        with self.assertRaises(RuntimeError):
-            # A second make_current=True construction cannot succeed.
-            IOLoop(make_current=True)
-        # current() was not affected by the failed construction.
-        self.assertIs(self.io_loop, IOLoop.current())
+    def test_current(self):
+        def f():
+            self.current_io_loop = IOLoop.current()
+            self.io_loop.stop()
+        self.io_loop.add_callback(f)
+        self.io_loop.start()
+        self.assertIs(self.current_io_loop, self.io_loop)
 
 
 class TestIOLoopAddCallback(AsyncTestCase):
@@ -570,8 +298,7 @@ class TestIOLoopRunSync(unittest.TestCase):
         self.io_loop.close()
 
     def test_sync_result(self):
-        with self.assertRaises(gen.BadYieldError):
-            self.io_loop.run_sync(lambda: 42)
+        self.assertEqual(self.io_loop.run_sync(lambda: 42), 42)
 
     def test_sync_exception(self):
         with self.assertRaises(ZeroDivisionError):
@@ -602,56 +329,6 @@ class TestIOLoopRunSync(unittest.TestCase):
         def f():
             yield gen.Task(self.io_loop.add_timeout, self.io_loop.time() + 1)
         self.assertRaises(TimeoutError, self.io_loop.run_sync, f, timeout=0.01)
-
-    @skipBefore35
-    def test_native_coroutine(self):
-        namespace = exec_test(globals(), locals(), """
-        async def f():
-            await gen.Task(self.io_loop.add_callback)
-        """)
-        self.io_loop.run_sync(namespace['f'])
-
-
-class TestPeriodicCallback(unittest.TestCase):
-    def setUp(self):
-        self.io_loop = FakeTimeIOLoop()
-        self.io_loop.make_current()
-
-    def tearDown(self):
-        self.io_loop.close()
-
-    def test_basic(self):
-        calls = []
-
-        def cb():
-            calls.append(self.io_loop.time())
-        pc = PeriodicCallback(cb, 10000)
-        pc.start()
-        self.io_loop.call_later(50, self.io_loop.stop)
-        self.io_loop.start()
-        self.assertEqual(calls, [1010, 1020, 1030, 1040, 1050])
-
-    def test_overrun(self):
-        sleep_durations = [9, 9, 10, 11, 20, 20, 35, 35, 0, 0]
-        expected = [
-            1010, 1020, 1030,  # first 3 calls on schedule
-            1050, 1070,  # next 2 delayed one cycle
-            1100, 1130,  # next 2 delayed 2 cycles
-            1170, 1210,  # next 2 delayed 3 cycles
-            1220, 1230,  # then back on schedule.
-        ]
-        calls = []
-
-        def cb():
-            calls.append(self.io_loop.time())
-            if not sleep_durations:
-                self.io_loop.stop()
-                return
-            self.io_loop.sleep(sleep_durations.pop(0))
-        pc = PeriodicCallback(cb, 10000)
-        pc.start()
-        self.io_loop.start()
-        self.assertEqual(calls, expected)
 
 
 if __name__ == "__main__":

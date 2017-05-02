@@ -1,0 +1,250 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/theme/lesser-dark.css' %}">
+    <style>
+        .debug-radio {
+            width: 16px;
+            height: 16px;
+            vertical-align: text-bottom;
+        }
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div class="row">
+        <!-- code -->
+        <section id="codeSection" class="col-md-6 connectedSortable">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">爬虫代码</h3>
+                    <button id="turn" class="btn btn-xs btn-warning"><i class="fa fa-retweet">转屏</i></button>
+                </div>
+                <div class="box-body">
+                    <textarea id="codeView" class="form-control" rows="35" placeholder="请输入代码"></textarea>
+                </div>
+                <div class="box-footer">
+                    <div class="form-group">
+                        <label>代理</label>
+                        <input type="radio" name="proxy" value="0" class="debug-radio" checked>不使用
+                        <input type="radio" name="proxy" value="1" class="debug-radio">使用
+                        <button id="kill" class="btn btn-md btn-default pull-right" style="margin-left: 10px">停止
+                        </button>
+                        <button id="continue" class="btn btn-md btn-success pull-right" style="margin-left: 10px">长测
+                        </button>
+                        <button id="single" class="btn btn-md btn-success pull-right" style="margin-left: 10px">单测
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- result -->
+        <section id="resultSection" class="col-md-6 connectedSortable">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">测试结果</h3>
+                    <span id="status" class="badge">loading...</span>
+                </div>
+                <div class="box-body">
+                    <textarea id="result" class="form-control" rows="38"></textarea>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script src="{% static 'public/CodeMirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'public/CodeMirror/mode/python/python.js' %}"></script>
+    <!-- page script -->
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var cnt = 0;
+            var uuid;
+            var code = "";
+            var clock;
+            var turn = true;
+            var editor;
+
+            function codem() {
+                var textarea = document.getElementById('codeView');
+                editor = CodeMirror.fromTextArea(textarea, {
+                    mode: "python",
+                    lineNumbers: true,
+                    matchBrackets: true,
+                    theme: "lesser-dark",
+                    parserConfig: {useHTMLKludges: true}
+                });
+                editor.setOption("extraKeys", {
+                    Tab: function (cm) {
+                        var spaces = new Array(cm.getOption("indentUnit") + 1).join(" ");
+                        cm.replaceSelection(spaces);
+                    }
+                });
+                editor.setSize('750px','700px');
+                //textarea.innerHTML = editor.getValue();
+                console.log("[info] codem() end.");
+            }
+
+            function checkService() {
+                $.ajax({
+                    url: 'http://192.168.133.101/webspider/alive',
+                    type: 'GET',
+                    timeout: 500, //超时时间设置，单位毫秒
+                    data: {},
+                    error: function (xhr, err) {
+                        $("#status").text("超时2秒，服务异常！").attr("class", "label label-danger");
+                        window.clearInterval(clock);
+                        console.log("[error] /webspider/alive:" + err);
+                    },
+                    success: function (data, status) {
+                        console.log("[info] checkService() end.", data);
+                        //$("#status").text("服务正常");
+                    }
+                });
+            }
+
+            function getStatus() {
+                $.ajax({
+                    url: 'http://192.168.133.101/webspider/status',
+                    type: 'GET',
+                    data: {
+                        code: uuid
+                    },
+                    error: function (xhr, err) {
+                        console.log("[error] /webspider/status err:", xhr, err);
+                    },
+                    success: function (data, status) {
+                        var msg = "";
+                        if (data == 1) {
+                            msg = "任务完成";
+                            window.clearInterval(clock);
+                        } else if (data == 0) {
+                            msg = "尚未完成";
+                        } else {
+                            msg = "不存在的任务";
+                        }
+                        $("#status").text(msg);
+                        console.log("[info] getStatus() end.", data);
+                    }
+                });
+            }
+
+            function getResult() {
+                if (uuid == "") {
+                    return false;
+                }
+                $("#result").val("");
+                $.ajax({
+                    url: 'http://192.168.133.101/webspider/code_result?code=' + uuid,
+                    type: 'GET',
+                    data: {},
+                    error: function (xhr, err) {
+                        console.log("[error] /webspider/code_result:", err);
+                    },
+                    success: function (data, status) {
+                        $("#result").val(data);
+                        console.log("[info] getResult() end. uuid:", uuid);
+                    }
+                });
+            }
+
+            function refresh() {
+                cnt++;
+                console.log("[info] refresh() cnt:", cnt);
+                getStatus();
+                getResult();
+            }
+
+            function start(type) {
+                var proxy_flag = $("input[type='radio']:checked").val();
+                //var code = $("#codeView").val();
+                var code = editor.getValue();
+                if (code == "") {
+                    alert("代码不能为空");
+                    return false;
+                }
+                checkService();
+                console.log("[info] start() proxy:", proxy_flag, "type:", type, "code:", code);
+                $("#result").val("");
+                $("#status").text("测试任务开始");
+                clock = window.setInterval(refresh, 1000); // 1s
+                $.ajax({
+                    url: 'http://192.168.133.101/webspider/run_code',
+                    type: 'POST',
+                    data: {
+                        type: type,
+                        proxy: proxy_flag,
+                        code: code
+                    },
+                    error: function (xhr, err) {
+                        console.log("[error] /webspider/run_code:", err);
+                    },
+                    success: function (data, status) {
+                        console.log("[info] start() end. uuid:", data);
+                        uuid = data;
+                    }
+                });
+            }
+
+            codem();
+
+            $("#turn").click(function () {
+                if (turn) {
+                    $("#codeSection").attr("class", "col-md-12 connectedSortable");
+                    $("#codeView").attr("rows", "14");
+                    $("#resultSection").attr("class", "col-md-12 connectedSortable");
+                    $("#result").attr("rows", "16");
+                    editor.setSize('1550px','300px');
+                } else {
+                    $("#codeSection").attr("class", "col-md-6 connectedSortable");
+                    $("#codeView").attr("rows", "35");
+                    $("#resultSection").attr("class", "col-md-6 connectedSortable");
+                    $("#result").attr("rows", "38");
+                    editor.setSize('750px','700px');
+                }
+                turn = !turn;
+            });
+
+            $("#single").click(function () {
+                start(0);
+            });
+
+            $("#continue").click(function () {
+                start(1);
+            });
+
+            $("#codeColor").click(function () {
+                codem();
+            });
+
+            $("#kill").click(function () {
+                console.log("[info] kill() start.");
+                $.ajax({
+                    url: 'http://192.168.133.101/webspider/kill',
+                    type: 'GET',
+                    data: {
+                        code: uuid
+                    },
+                    error: function (xhr, err) {
+                        $("#status").text("任务终止失败！");
+                        console.log("[error] /webspider/kill" + err);
+                    },
+                    success: function (data, status) {
+                        window.clearInterval(clock);
+                        $("#result").val("");
+                        $("#status").text("任务终止");
+                        console.log("[info] kill() end.", data);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock body_tail %}

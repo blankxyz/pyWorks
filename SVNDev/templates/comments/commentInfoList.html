@@ -1,0 +1,220 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <style>
+
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    <div id="domainlist" class="inverse">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-primary" style="margin-left:40px;margin-top:10px;width:95%;">
+                    <div class="box-header with-border" style="border-color: #1b6d85">
+                        <form action="/comments/commentInfoList/" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <input id="search" name="search" class="pull-left col-md-2"
+                                       style="height:34px;" value="{{ search }}" placeholder="请输入URL（模糊匹配）">
+                                <div class="input-group pull-left">
+                                    <button class="pull-left btn btn-primary"
+                                            style="margin-left: 20px;">检索
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="box-body">
+                        <table id="comments_tab" class="table table-striped table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th id="th_head">
+                                    <div class="col-md-12">
+                                        <div class="col-md-3"> URL
+                                            <span id="search_cnt" class="badge">计算中...</span>
+                                        </div>
+                                        <div class="col-md-5"> 内容</div>
+                                        <div class="col-md-2"> 来源</div>
+                                        <div class="col-md-2"> 采集时间</div>
+                                    </div>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for info in result %}
+                                <tr id="tr_{{ forloop.counter }}">
+                                    <td>
+                                        <div class="row">
+                                            <div id="div_up_{{ forloop.counter }}"
+                                                 class="col-md-12">
+                                                <div class="col-md-3">
+                                                    <a href="{{ info.post_url }}"
+                                                       target="_blank">{{ info.post_url }}</a>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    {{ info.content }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    {{ info.source }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    {{ info.ctime }}
+                                                </div>
+                                            </div>
+                                            <div id="div_down_{{ forloop.counter }}"
+                                                 class="col-md-12" style="margin-top:10px;display:none">
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-users" title="父ID"></i> {{ info.parent_id }}
+                                                </div>
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-user" title="ID"></i> {{ info.id }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-align-justify" title="楼层"></i> {{ info.floor }}
+                                                </div>
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-sitemap" title="网站名称"></i> {{ info.siteName }}
+                                                </div>
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-map-marker" title="地域"></i> {{ info.area }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-share" title="分享数"></i> {{ info.shareCount }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-thumbs-o-up"></i> {{ info.up_count }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-thumbs-o-down"></i> {{ info.down_count }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="pageDiv" class="box-footer with-border" style="border-color: #1b6d85;height:60px">
+                        <ul class="pagination pagination-bg" style="margin-top:5px">
+                            <li>
+                                <a id="firstPage" href="#"> 首页</a>
+                            </li>
+                            <li>
+                                <a id="prevPage" href="#"> 上一页 </a>
+                            </li>
+                            <li class="disabled">
+                                <span>第 {{ page }} 页</span><span id="pageNum"> 共 ... 页</span>
+                            </li>
+                            <li>
+                                <a id="nextPage" href="#"> 下一页 </a>
+                            </li>
+                            <li>
+                                <a id="lastPage" href="#"> 末页 </a>
+                            </li>
+                            <li>
+                                <div class="col-md-1">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input id="gotoPageNum" type="text" placeholder="  跳转页"
+                                                   style="height:30px;width:60px">
+                                            <div class="input-group-addon">
+                                                <a id="gotoPage" href="javascript:gotoPage();">
+                                                    <i class="glyphicon glyphicon-play"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- InputMask -->
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.date.extensions.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.extensions.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/allsite/js/allsite_util.js' %}"></script>
+    <script type="text/javascript">
+        function getCommentsSearchCnt() {
+            var search = $('#search').val();
+            $('#pageDiv').hide();
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/comments/commentsPaginatorAPI/',
+                type: 'GET',
+                data: {
+                    search: search,
+                    page_num: 1
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("commentsPaginatorAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    var searchCnt = data['search_cnt'];
+                    window.sessionStorage.setItem('search_cnt', searchCnt);
+                    window.sessionStorage.setItem("total_pages", data['total_pages']);
+                    $('#search_cnt').text("共" + searchCnt + "条");
+                    setPaginator(searchCnt, search, "", "", data['current_page'], data['total_pages']);
+                    $("#searchBtn").removeAttr("disabled");
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $("#gotoPageNum").inputmask("99999", {showMaskOnFocus: false, showMaskOnHover: false, placeholder: ""});
+
+            var search = $("#search").val();
+            var currentPage = getQueryString("page");
+            var totalPages = window.sessionStorage.getItem("total_pages");
+
+            window.sessionStorage.setItem("search", search);
+
+            if (currentPage != null) {
+                $('#search_cnt').text("共" + window.sessionStorage.getItem("search_cnt") + "条");
+                setPaginator(window.sessionStorage.getItem("search_cnt"), search, "", "", currentPage, totalPages);
+            }
+            else {
+                getCommentsSearchCnt();
+            }
+
+            $('tr').mouseover(function () {
+                var id = $(this).attr("id");
+                var row = id.substring(3, id.length);
+                $("#div_down_" + row).show();
+                var td = $(this).children("td").first();
+                td.attr("style", "border:thin solid blue;");
+                if (row == "1") {
+                    $("#th_head").attr("style", "border-bottom:thin solid blue;");
+                }
+            });
+
+            $('tr').mouseleave(function () {
+                var id = $(this).attr("id");
+                var row = id.substring(3, id.length);
+                $("#div_down_" + row).hide();
+                var td = $(this).children("td").first();
+                td.attr("style", "");
+                if (row == "1") {
+                    $("#th_head").attr("style", "");
+                }
+            });
+        });
+    </script>
+{% endblock body_tail %}

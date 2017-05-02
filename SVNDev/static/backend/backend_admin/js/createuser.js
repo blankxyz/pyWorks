@@ -80,7 +80,7 @@ $(document).ready(function () {
     function duplicate_username() {
         // ajax提示区域
         $.post({
-            data: {'username_duplicate': username.val()},
+            data: {'username_duplicate': username.val(), 'username': change_username.text()},
             // url: {% url 'backend_admin:duplicate_username'%},
             url: '/duplicate_username',
             success: function (data, statusText, xmlHttpRequest) {
@@ -88,13 +88,18 @@ $(document).ready(function () {
                 if (data == '1') {
                     username_test.attr('class', 'create_element_class error');
                     username_test.text('用户名已存在')
-                } else {
+                } else if(data == '2'){
+                    username_test.attr('class', success_class);
+                    username_test.text('')
+                }else {
                     username_test.attr('class', success_class);
                     username_test.text('');
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
+                username_test.attr('class', 'create_element_class error');
                 username_test.text('获取用户名出现错误');
+                console.log(textStatus)
             },
             dataType: 'text'
         });
@@ -167,7 +172,7 @@ $(document).ready(function () {
     var new_password = $('#id_password1');
     var new_password_again = $('#id_password2');
 
-    // 获取昵称生成按输入框
+    // 获取姓名生成按输入框
     var nickname = $('#id_nickname');
 
     // 获取保存按钮
@@ -263,13 +268,13 @@ $(document).ready(function () {
         password_same_func()
     });
 
-    // 昵称验证提示生成
+    // 姓名验证提示生成
     var nickname_test_span = create_element('span', nickname);
-    // 昵称验证
+    // 姓名验证
     function nickname_test(nickname_input, nickname_test_text) {
         if (nickname_input.val().length == 0) {
             nickname_test_text.attr('class', 'error create_element_class');
-            nickname_test_text.text('昵称不能为空')
+            nickname_test_text.text('姓名不能为空')
         } else {
             nickname_test_text.attr('class', success_class);
             nickname_test_text.text('')
@@ -294,7 +299,6 @@ $(document).ready(function () {
         var permissions_checkboxes = $(this).closest('.box-permission').find('input[name="checkbox_permission"]');
         if ($(this).prop('checked') == true) {
             $(this).attr("checked", true);
-            console.log(permissions_checkboxes);
             permissions_checkboxes.each(function () {
                 $(this).prop("checked", "checked");
             })
@@ -355,7 +359,6 @@ $(document).ready(function () {
             submitnum = 1
         }
     };
-
 
     $('#create_user_button').click(function () {
         submitnum = 0;

@@ -1,36 +1,38 @@
-var THEME = 'shine';
+var THEME = 'shine';//dark infographic macarons roma shine vintage
 
 function ajaxError(err, msg) {
     alert('[错误信息]' + msg + err);
 }
 
 // ------------------ 域名总数 频道总数 详情页总数 今日新增域名  ------------------
-//window.setInterval(function () {
-$.ajax({
-    url: '/allsite/dashBoardTopCnt/',
-    type: 'get',
-    contentType: "application/json; charset=UTF-8",
-    error: function (xhr, err) {
-        ajaxError(err, '域名总数 频道总数 详情页总数 今日新增域名');
-    },
-    success: function (data, textStatus) {
-        $('#domainCnt').text(data["domain_cnt"]);
-        $('#hubPageCnt').text(data["hubPage_cnt"]);
-        $('#detailTodayAllCnt').text(data["detail_today_all_cnt"]);
-        $('#detailTodayUserCnt').text(data["detail_today_user_cnt"]);
-        $('#detailTodayUserPar').val(data["detail_today_user_per"]);
-        $('#detailTodayDirectCnt').text(data["detail_today_direct_cnt"]);
-        $('#detailTodayDirectPar').val(data["detail_today_direct_per"]);
-        $('#newDoaminCnt').text(data["new_doamin_cnt"]);
-        $('.knob').knob();
-    }
-});
-//}, 600);
+function dashBoardTopFunc() {
+    $.ajax({
+        url: '/allsite/dashBoardTopCntAPI/',
+        type: 'get',
+        contentType: "application/json; charset=UTF-8",
+        error: function (xhr, err) {
+            ajaxError(err, '域名总数 频道总数 详情页总数 今日新增域名');
+        },
+        success: function (data, textStatus) {
+            $('#domainCnt').text(data["domain_cnt"]);
+            $('#hubPageCnt').text(data["hubPage_cnt"]);
+            $('#detailTodayAllCnt').text(data["detail_today_all_cnt"]);
+            $('#detailTodayUserCnt').text(data["detail_today_user_cnt"]);
+            $('#detailTodayUserPar').val(data["detail_today_user_per"]);
+            $('#detailTodayDirectCnt').text(data["detail_today_direct_cnt"]);
+            $('#detailTodayDirectPar').val(data["detail_today_direct_per"]);
+            $('#newDoaminCnt').text(data["new_doamin_cnt"]);
+            $('.knob').knob();
+        }
+    });
+}
+dashBoardTopFunc();//先调用一次，加快显示。
+//window.setInterval(dashBoardTopFunc, 60 * 1000); // 60s
 
 // -------------- 采集统计24小时 ------------------
 function detailTrendFunc(THEME) {
     $.ajax({
-        url: '/allsite/drawDetailTrend/',
+        url: '/allsite/drawDetailTrendAPI/',
         type: 'get',
         contentType: "application/json; charset=UTF-8",
         error: function (xhr, err) {
@@ -90,11 +92,92 @@ function detailTrendFunc(THEME) {
 }
 detailTrendFunc(THEME);
 
+// -------------- 各项目准确性统计 ------------------
+function detailLikeness(THEME) {
+    $.ajax({
+        url: '/allsite/mainDetailLikenessAPI/',
+        type: 'get',
+        contentType: "application/json; charset=UTF-8",
+        error: function (xhr, err) {
+            ajaxError(err, '各项目准确性统计');
+        },
+        success: function (data, textStatus) {
+            var myChart = echarts.init(document.getElementById("detailLikeness"), THEME);
+            var option = {
+                title: {
+                    text: ''
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['整体', '标题', '内容', '来源', '时间']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '5%',
+                    containLabel: true
+                },
+                xAxis: {
+                    data: data['days'],
+                    type: 'category',
+                    boundaryGap: false,
+                    axisLabel: {
+                        interval: data['days'],
+                        rotate: 60,
+                        textStyle: {
+                            //color: "blue",
+                            fontSize: 6
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: '整体',
+                        type: 'line',
+                        stack: '整体准确率',
+                        data: data['all_likeness']
+                    },
+                    {
+                        name: '标题',
+                        type: 'line',
+                        stack: '标题准确率',
+                        data: data['title_likeness']
+                    },
+                    {
+                        name: '内容',
+                        type: 'line',
+                        stack: '内容准确率',
+                        data: data['content_likeness']
+                    },
+                    {
+                        name: '来源',
+                        type: 'line',
+                        stack: '来源准确率',
+                        data: data['source_likeness']
+                    },
+                    {
+                        name: '时间',
+                        type: 'line',
+                        stack: '时间准确率',
+                        data: data['ctime_likeness']
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+    });
+}
+detailLikeness(THEME);
 
 // ------------------ 频道探测速度  ------------------
 function hubPageTrendFunc(THEME) {
     $.ajax({
-        url: '/allsite/drawHubPageTrend/',
+        url: '/allsite/drawHubPageTrendAPI/',
         type: 'get',
         contentType: "application/json; charset=UTF-8",
         error: function (xhr, err) {
@@ -143,7 +226,7 @@ hubPageTrendFunc(THEME);
 // ------------------ 域名总数 ------------------
 function newDomainOpt(THEME, opt) {
     $.ajax({
-        url: '/allsite/drawNewDomain/',
+        url: '/allsite/drawNewDomainAPI/',
         type: 'POST',
         data: {opt: opt},
         dataType: "json",
@@ -194,7 +277,7 @@ function newDomainOpt(THEME, opt) {
                         interval: data['interval'],
                         rotate: 60,
                         textStyle: {
-                            color: "blue",
+                            //color: "blue",
                             fontSize: 6
                         }
                     }
@@ -244,7 +327,7 @@ newDomainOpt(THEME, 'week');
 // ------------------ 新站发现(日增量) ------------------
 function newDomainOptDays(THEME, opt) {
     $.ajax({
-        url: '/allsite/drawNewDomain/',
+        url: '/allsite/drawNewDomainAPI/',
         type: 'POST',
         data: {opt: opt},
         dataType: "json",
@@ -294,7 +377,7 @@ function newDomainOptDays(THEME, opt) {
                         interval: data['interval'],
                         rotate: 60,
                         textStyle: {
-                            color: "blue",
+                            //color: "blue",
                             fontSize: 6
                         }
                     }
@@ -344,7 +427,7 @@ newDomainOptDays(THEME, 'week');
 // ------------------ 采集入库统计（域名 top10） ------------------
 function domainRankFunc(THEME) {
     $.ajax({
-        url: '/allsite/drawDomainRank/',
+        url: '/allsite/drawDomainRankAPI/',
         type: 'get',
         contentType: "application/json; charset=UTF-8",
         error: function (xhr, err) {
@@ -389,7 +472,7 @@ domainRankFunc(THEME);
 // ------------------ 采集入库统计（一周） ------------------
 function crawlUsedFunc(THEME) {
     $.ajax({
-        url: '/allsite/drawCrawlUsed/',
+        url: '/allsite/drawCrawlUsedAPI/',
         type: 'get',
         contentType: "application/json; charset=UTF-8",
         error: function (xhr, err) {
@@ -444,7 +527,7 @@ crawlUsedFunc(THEME);
 // ------------------ 频道采集量排名 ------------------
 function hubPageRankFunc(THEME) {
     $.ajax({
-        url: '/allsite/drawHubPageRank/',
+        url: '/allsite/drawHubPageRankAPI/',
         type: 'get',
         contentType: "application/json; charset=UTF-8",
         error: function (xhr, err) {
@@ -569,7 +652,7 @@ redisMonitorFunc(THEME);
 // ------------------ 采集时间差 ------------------
 function crawlTimePart(THEME) {
     $.ajax({
-        url: '/allsite/drawCrawlTimePart/',
+        url: '/allsite/drawCrawlTimePartAPI/',
         type: 'get',
         contentType: "application/json; charset=UTF-8",
         error: function (xhr, err) {
@@ -635,44 +718,66 @@ function crawlTimePart(THEME) {
 }
 crawlTimePart(THEME);
 
-// ------------------ detail_diff  ------------------
-function detailDiffFunc(THEME) {
-    var myChart = echarts.init(document.getElementById("detail_diff"), THEME);
-    var option = {
-        title: {
-            text: '     扫描周期：20.6 小时'
+// ------------------ 域名发现方式分类  ------------------
+function domainSearchCategory(THEME) {
+    $.ajax({
+        url: '/allsite/drawDomainSearchCategoryAPI/',
+        type: 'get',
+        contentType: "application/json; charset=UTF-8",
+        error: function (xhr, err) {
+            ajaxError(err, '域名发现方式分类');
         },
-        tooltip: {
-            trigger: 'axis'
-        },
-        legend: {
-            data: ['今天']
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']
-        },
-        yAxis: {
-            type: 'value'
-        },
-        series: [
-            {
-                name: '今日',
-                type: 'line',
-                stack: '扫描量',
-                data: [120, 132, 133, 134, 150, 200, 210, 220, 232, 233, 235, 260, 261, 262, 277, 278, 280, 290, 310, 330, 340, 350, 360]
-            }]
-    };
-    myChart.setOption(option);
+        success: function (data, textStatus) {
+            var myChart = echarts.init(document.getElementById("domainSearchCategory"), THEME);
+            var option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b}: {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    x: 'left',
+                    data: ['手工添加', '交叉搜索', '百度', '搜狗', '360']
+                },
+                series: [
+                    {
+                        name: '访问来源',
+                        type: 'pie',
+                        radius: ['50%', '90%'],
+                        avoidLabelOverlap: false,
+                        label: {
+                            normal: {
+                                show: false,
+                                position: 'center'
+                            },
+                            emphasis: {
+                                show: true,
+                                textStyle: {
+                                    fontSize: '30',
+                                    fontWeight: 'bold'
+                                }
+                            }
+                        },
+                        labelLine: {
+                            normal: {
+                                show: false
+                            }
+                        },
+                        data: [
+                            {value: data['manual_added'], name: '手工添加'},
+                            {value: data['cross_domain_link'], name: '交叉搜索'},
+                            {value: data['engine_baidu'], name: '百度'},
+                            {value: data['engine_sogou'], name: '搜狗'},
+                            {value: data['engine_so'], name: '360'}
+                        ]
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+    });
 }
-detailDiffFunc(THEME);
+domainSearchCategory(THEME);
 
 
 

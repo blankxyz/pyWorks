@@ -1,0 +1,181 @@
+数据结构
+
+频道查询数据
+mongodb://192.168.16.223:37017/channelspider.channel
+｛
+	"url": "频道url",
+	"domain": "频道域名",
+	"channel_name": "频道名称",
+	"siteName": "网站名称",
+	"config_id": "配置id",
+	"interval": "调度间隔 秒数",
+	"update_ts": "任务更新时间 时间戳",
+	"data_db": "redis://redis-spider-cooperation-1.istarshine.net.cn/10/data",
+	"dedup_uri": "redis://redis-spider-cooperation-1.istarshine.net.cn:6379/10/dedup",
+	"info_flag": ""
+	"channel_encoding": "utf8",
+	"detail_encoding": "utf8",
+	"crawl_rules": {
+		"precise_xpath_list": [], # 精准xpath，匹配详情页url，最多匹配到a标签，不能匹配@href
+		"region_xpath_list": [], # 详情页url所在区域的xpath，例如某个div
+		"keep_params": True, # 是否保留url中的参数
+		"ends": [], # 详情页url结尾字符
+		"detail_keywords": [], # 详情页url中包含的关键字 不包含的将被丢掉 相当于白名单
+		"list_keywords": [], # 列表页url中包含的关键字 包含的将被丢掉 相当于黑名单
+		"detail_regexs": [], # 详情页url匹配的正则 不匹配的将被丢掉 相当于白名单
+		"list_regexs": [], # 列表页url中匹配的正则 匹配的将被丢掉 相当于黑名单
+		},
+｝
+
+配置查询数据
+mongodb://192.168.16.223:37017/channelspider.config
+{
+	"config_id":"配置id",
+	"domain":"对应网站域名",
+	"channel_name":"对应频道名称",
+	"code":"代码",
+	"website_name":"对应网站名称",
+	"config_filename": "配置文件名",
+}
+
+频道任务数据
+	redis://192.168.16.223/8/
+正式任务存放
+	hash_channel_spider:300
+	hash_channel_spider:1800
+	hash_channel_spider:7200
+正式任务采集队列
+	list_channel_spider_task
+临时任务
+	list_channel_spider_task_test
+临时任务采集数据存放 列表页信息
+	hash_channel_spider_result_test
+临时任务采集数据存放
+	list_channel_spider_result_test_{config_id}
+
+哈希类型
+field url
+value json
+{
+	"url": "频道url",
+	"config_id": "配置id",
+	"info_flag": "",
+	"channel_encoding": "utf8",
+	"detail_encoding": "utf8",
+	"code": "代码",
+	"siteName": "网站名称",
+	"channel": "频道名称",
+	"data_db": "入库地址",
+	"dedup_uri": "去重地址",
+	"crawl_rules": {},
+}
+
+测试数据结果
+列表页信息
+	hash
+	field channel_url
+	value {"url": "title"}
+详情页结果数据
+{
+	"url":"详情页url",
+	"title":"标题",
+	"content":"内容",
+	"ctime":"发布时间 datetime格式",
+	"gtime":"采集时间 datetime格式",
+	"siteName":"网站名称",
+	"info_flag":"",
+	"data_db":"入库地址",
+	"source":"来源",
+	"channel":"频道名称",
+	"channel_url":"频道url",
+	"channel_title": "频道页中此url对应的标题",
+	"error": "失败原因",
+}
+
+运行日志
+mongodb://192.168.16.223:37017/channelspider.log
+{
+	"channel_url": "",
+	"run_log": [{
+		'start_time': "开始时间戳", 
+		'end_time': "结束时间戳",
+		'total_data_num': "总数据量",
+		'new_count': "新数据量",
+		'parse_success_num': "解析成功数据量",
+		'parse_failed_num': "解析失败数据量",
+		'download_failed_num': "下载失败数据量",
+		'spider_id': "爬虫id",
+		'worker_id': "",
+		'config_id': "配置id",
+		'config_name':"配置文件名",
+		'siteName':"网站名",
+		'job_id': "",
+		"info_flag": "",
+		"encoding": "utf8"
+		"code": "代码",
+		"siteName": "网站名称",
+		"channel": "频道名称",
+		"data_db": "入库地址",
+		"dedup_uri": "去重地址",
+		"crawl_rules": {},
+		"code_error": [{
+						"url": "", 
+						"error": "",},
+						],
+	}],
+	"timedelta_%Y-%m-%d": {
+		"d1": 0,
+		...
+		"d9": 0,
+	}
+}
+
+
+路由管理 去重库 入库地址
+去重库:
+	贴吧	redis://redis-dupweibo-1.istarshine.net.cn:6379/0/tieba_dedup
+	微博	redis://redis-dupweibo-1.istarshine.net.cn:6379/0/sina_dedup
+	行业	redis://redis-dupweibo-1.istarshine.net.cn:6379/0/industry_dedup
+	腾讯微博	redis://redis-dupweibo-1.istarshine.net.cn:6379/0/qq_dedup
+	秘书	redis://redis-dupurl-1.istarshine.net.cn:6379/0/dedup
+	海外	redis://redis-dupurl-1.istarshine.net.cn:6379/0/oversea_dedup
+	话题	redis://redis-dupurl-1.istarshine.net.cn:6379/0/topic_dedup
+	全站	redis://redis-dupurl-1.istarshine.net.cn:6379/0/allsite_dedup
+	问答	redis://redis-dupurl-1.istarshine.net.cn:6379/0/ask_dedup
+	行业汽车	redis://redis-dupurl-1.istarshine.net.cn:6379/0/car_dedup
+	行业金融	redis://redis-dupurl-1.istarshine.net.cn:6379/0/money_dedup
+	行业旅游	redis://redis-dupurl-1.istarshine.net.cn:6379/0/travel_dedup
+	政策	redis://redis-dupurl-1.istarshine.net.cn:6379/0/policy_dedup
+	招标	redis://redis-dupurl-1.istarshine.net.cn:6379/0/bidding_dedup
+	外文	redis://redis-dupurl-1.istarshine.net.cn:6379/0/foreignlang_dedup
+入库:
+	腾讯微博	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/qq_data
+	贴吧	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/tieba_data
+	微博	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/sina_data
+	行业	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/industry_data
+	秘书	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/data
+	海外	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/oversea_data
+	话题	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/topic_data
+	全站	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/allsite_data
+	问答	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/ask_data
+	行业汽车	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/car_data
+	行业金融	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/money_data
+	行业旅游	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/travel_data
+	政策	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/policy_data
+	招标	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/bidding_data
+	外文	redis://redis-collectioncache-1.istarshine.net.cn:6379/3/foreignlang_data
+
+info_flag:
+	新闻	"01"
+	论坛	"02"
+	博客	"03"
+	新浪微博	"0401"
+	腾讯微博	"0402"
+	平煤	"05"
+	微信	"06"
+	视频	"07"
+	长微博	"08"
+	APP	"09"
+	评论	"10"
+	搜索	"99"
+

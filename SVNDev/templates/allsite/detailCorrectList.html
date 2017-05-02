@@ -1,0 +1,196 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <!-- page script -->
+    <style>
+        .badge_ok {
+            background-color: forestgreen;
+        }
+
+        .badge_ng {
+            background-color: crimson;
+        }
+
+        .main-content-pagitor {
+            width: 50%;
+            padding: 10px 20px 5px 20px;
+            overflow: auto;
+            margin-left: 20px;
+            /*position: relative;*/
+            text-align: center;
+        }
+
+        .main-content-pagitor a {
+            color: blue;
+            padding: 0 5px 0 5px;
+        }
+
+        .main-content-pagitor span {
+            color: #585858;
+            /*padding: 20px 20px 20px 20px;*/
+        }
+    </style>
+    <!-- daterange picker -->
+    <link rel="stylesheet" href="{% static 'plugins/daterangepicker/daterangepicker.css' %}">
+    <!-- bootstrap datepicker -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}">
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    <div id="domainlist" class="inverse">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-primary" style="margin-left:40px;margin-top:10px;width:95%;">
+                    <div class="box-header with-border" style="border-color: #1b6d85">
+                        <form action="/allsite/detailCorrectList/" method="post">
+                            {% csrf_token %}
+                            <!-- Date range -->
+                            <div class="form-group">
+                                {% csrf_token %}
+                                <input name="url" class="pull-left col-md-2"
+                                       style="height:34px;" value="{{ url }}" placeholder="请输入URL（模糊匹配）">
+                                <input name="start" type="text" class="pull-left col-md-1"
+                                       style="height:34px;margin-left: 20px;"
+                                       placeholder="YYYYmmdd" value="{{ start }}">
+                                <input name="end" type="text" class="pull-left col-md-1"
+                                       style="height:34px;margin-left: 20px;"
+                                       placeholder="YYYYmmdd" value="{{ end }}">
+                                <div class="input-group pull-left">
+                                    <button class="pull-left btn btn-primary"
+                                            style="margin-left: 20px;">检索
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="box-body">
+                        <table class="table table-striped table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th style="width:60%">人工确认对象（URL）
+                                    <span class="badge">共{{ search_cnt }}件</span>
+                                </th>
+                                <th style="width:5%">标题</th>
+                                <th style="width:5%">内容</th>
+                                <th style="width:5%">来源</th>
+                                <th style="width:5%">时间</th>
+                                <th style="width:20%">更新时间</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for info in result %}
+                                <tr style="height:15px">
+                                    <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;height:13px"
+                                        title="{{ info.url }}">
+                                        <a href="{{ info.url }}" target="_blank">{{ info.url }}</a>
+                                    </td>
+                                    <td style="height:13px">
+                                        {% if info.correct.title %}
+                                            <span class="badge badge_ok">正</span>
+                                        {% else %}
+                                            <span class="badge badge_ng">误</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="height:13px">
+                                        {% if info.correct.content %}
+                                            <span class="badge badge_ok">正</span>
+                                        {% else %}
+                                            <span class="badge badge_ng">误</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="height:13px">
+                                        {% if info.correct.source %}
+                                            <span class="badge badge_ok">正</span>
+                                        {% else %}
+                                            <span class="badge badge_ng">误</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="height:13px">
+                                        {% if info.correct.ctime %}
+                                            <span class="badge badge_ok">正</span>
+                                        {% else %}
+                                            <span class="badge badge_ng">误</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="height:13px">{{ info.update }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="pageDiv" class="box-footer with-border" style="border-color:#1b6d85;height:60px">
+                        <ul class="pagination pagination-bg" style="margin-top:5px">
+                            <li>
+                                <a id="firstPage" href="?page=1"> 首页</a>
+                            </li>
+                            <li>
+                                {% if result.has_previous %}
+                                    <a id="prevPage" href="?page={{ result.previous_page_number }}"> 上一页 </a>
+                                {% else %}
+                                    <a id="prevPage" href="#"> 上一页 </a>
+                                {% endif %}
+                            </li>
+                            <li class="disabled">
+                                <span>第 {{ result.number }} 页</span>
+                                <span> 共{{ result.paginator.num_pages }} 页</span>
+                            </li>
+                            <li>
+                                {% if result.has_next %}
+                                    <a id="nextPage" href="?page={{ result.next_page_number }}"> 下一页 </a>
+                                {% else %}
+                                    <a id="prevPage" href="#"> 下一页 </a>
+                                {% endif %}
+                            </li>
+                            <li>
+                                <a id="lastPage" href="?page={{ result.paginator.num_pages }}"> 末页 </a>
+                            </li>
+                            <li>
+                                <div class="col-md-1">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input id="gotoPageNum" type="text" placeholder="  跳转页"
+                                                   style="height:30px;width:60px"
+                                                   data-inputmask='"mask": "999999"' data-mask>
+                                            <div class="input-group-addon">
+                                                <a id="gotoPage" href="javascript:gotoPage();">
+                                                    <i class="glyphicon glyphicon-play"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- date-range-picker -->
+    <script src="{% static 'plugins/daterangepicker/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/daterangepicker/daterangepicker.js' %}"></script>
+    <!-- bootstrap datepicker -->
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript">
+        $('#dateRange').daterangepicker({
+            locale: {
+                applyLabel: '确定',
+                cancelLabel: '取消',
+                fromLabel: '起始时间',
+                toLabel: '结束时间',
+                customRangeLabel: '自定义',
+                daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+                monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                firstDay: 1
+            }
+        });
+    </script>
+{% endblock body_tail %}

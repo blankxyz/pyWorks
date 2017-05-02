@@ -1,0 +1,300 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        table,
+        td,
+        th {
+            border-collapse: collapse;
+            border-spacing: 0
+        }
+
+        td,
+        th {
+            border: 1px solid #bcbcbc;
+            padding: 5px 5px
+        }
+
+        th {
+            background: #42b983;
+            font-weight: 400;
+            color: #fff;
+            cursor: pointer
+        }
+
+        tr:nth-of-type(odd) {
+            background: #fff
+        }
+
+        tr:nth-of-type(even) {
+            background: #eee
+        }
+
+        input {
+            outline: none
+        }
+
+        input[type=text] {
+            border: 1px solid #ccc;
+            padding: .5rem .3rem;
+        }
+
+        input[type=text]:focus {
+            border-color: #42b983;
+        }
+
+        button {
+            outline: none;
+            padding: 5px 8px;
+            color: #fff;
+            border: 1px solid #BCBCBC;
+            border-radius: 3px;
+            background-color: #009A61;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .pagination {
+            display: inline-block;
+            padding-left: 0;
+            margin: 21px 0;
+            border-radius: 3px;
+        }
+
+        .pagination > li {
+            display: inline;
+        }
+
+        .pagination > li > a {
+            position: relative;
+            float: left;
+            padding: 6px 12px;
+            line-height: 1.5;
+            text-decoration: none;
+            color: #009a61;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            margin-left: -1px;
+            list-style: none;
+        }
+
+        .pagination > li > a:hover {
+            background-color: #eee;
+        }
+
+        .pagination .active {
+            color: #fff;
+            background-color: #009a61;
+            border-left: none;
+            border-right: none;
+        }
+
+        .pagination .active:hover {
+            background: #009a61;
+            cursor: default;
+        }
+
+        .pagination > li:first-child > a .p {
+            border-bottom-left-radius: 3px;
+            border-top-left-radius: 3px;
+        }
+
+        .pagination > li:last-child > a {
+            border-bottom-right-radius: 3px;
+            border-top-right-radius: 3px;
+        }
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    {% verbatim %}
+        <div id="section" class="inverse">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box  box-success" style="margin-left:40px;margin-top:10px;width:95%;">
+                        <div id="dedup">
+                            <div class="box-header with-border">
+                                <div class="form-group" style="margin-top:20px">
+                                    <label>名称</label>
+                                    <input type="text" v-model="info.name" style="width:7%"/>&nbsp;&nbsp;&nbsp;
+                                    <label>去重库地址</label>
+                                    <input type="text" v-model="info.dedup" style="width:28%"/>&nbsp;&nbsp;&nbsp;
+                                    <label>入库地址</label>
+                                    <input type="text" v-model="info.data_db" style="width:28%"/>
+                                    <button @click="addInfo">添加</button>
+                                </div>
+                            </div>
+                            <div class="box-body with-border">
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th style="width:10%">名称</th>
+                                        <th style="width:30%">去重库地址</th>
+                                        <th style="width:30%">入库地址</th>
+                                        <th style="width:4%">操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="info in infoList">
+                                        <td>{{ info.name }}</td>
+                                        <td>{{ info.dedup }}</td>
+                                        <td>{{ info.data_db }}</td>
+                                        <td :class="'text-center'">
+                                            <button @click="removeInfo($index)" class="btn btn-sm">删除</button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main end -->
+    {% endverbatim %}
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- vue.js -->
+    <script src="{% static 'plugins/vue1/vue.js' %}"></script>
+    <script src="{% static 'plugins/vue1/vue-resource.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript">
+        function getInfoList(obj) {
+            obj.$http.get(
+                '/channels/routerListAPI/'
+            ).then(
+                function (response) {
+                    var items = response.data['ret']['result'];
+                    //console.log(items);
+                    for (var j = 0; j < 100; j++) {
+                        obj.infoList.shift();
+                    }
+                    for (var i = 0; i < items.length; i++) {
+                        obj.infoList.push(items[i]);
+                    }
+                    //console.log('ok:', response.data);
+                },
+                function (response) {
+                    console.log('error:', response.data);
+                }
+            ).catch(
+                function (response) {
+                    console.log('catch:', response)
+                }
+            )
+        }
+
+        function addInfo(obj) {
+            var param = {
+                name: obj.info.name,
+                dedup: obj.info.dedup,
+                data_db: obj.info.data_db
+            };
+            obj.$http.post(
+                '/channels/routerListAPI/', param, {emulateJSON: true}
+            ).then(
+                function (response) {
+                    obj.infoList.push(obj.info);
+                    obj.info = {name: '', dedup: '', data_db: ''};
+                    //console.log('ok:', response.data);
+                },
+                function (response) {
+                    console.log('error:', response.data);
+                }
+            ).catch(
+                function (response) {
+                    console.log('catch:', response)
+                }
+            )
+        }
+
+        function removeInfo2(obj, index) {
+            var param = {
+                name: obj.infoList[index].name
+            };
+            obj.$http.delete(
+                '/channels/routerListAPI/', param
+            ).then(
+                function (response) {
+                    console.log('ok:', response.data);
+                    obj.infoList.splice(index, 1);
+                    //console.log("getInfoList end.");
+                },
+                function (response) {
+                    console.log('error:', response.data);
+                }
+            ).catch(
+                function (response) {
+                    console.log('catch:', response)
+                }
+            )
+        }
+
+        function removeInfo(obj, index) {
+            var param = {
+                name: obj.infoList[index].name
+            };
+            obj.$resource('/channels/routerListAPI/').remove(
+                param
+            ).then(
+                function (response) {
+                    obj.infoList.splice(index, 1);
+                    console.log('ok:', response.data);
+                }, function (response) {
+                    console.log('error:', response.data);
+                }
+            ).catch(
+                function (response) {
+                    console.log('catch:', response)
+                }
+            );
+        }
+
+        function init(obj) {
+            getInfoList(obj);
+        }
+
+        var routerVue = new Vue({
+            el: '#dedup',
+            data: {
+                info: {
+                    name: '',
+                    dedup: '',
+                    data_db: ''
+                },
+                infoList: []
+            },
+            methods: {
+                addInfo: function () {
+                    addInfo(this);
+                },
+                removeInfo: function (index) {
+                    removeInfo(this, index);
+                }
+            },
+            ready: function () {
+                init(this);
+            }
+        });
+    </script>
+{% endblock body_tail %}

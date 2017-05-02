@@ -1,0 +1,161 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+
+{% endblock header_tail %}
+
+{% block section_content %}
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-aqua">
+                <div class="inner">
+                    <p>新闻总数</p>
+                    <h3 id="newsCnt">0</h3>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-sitemap"></i>
+                </div>
+                <a href="/comments/newsInfoList/" class="small-box-footer">
+                    详情&nbsp;
+                    <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <p>评论总数</p>
+                    <h3 id="commentsCnt">0<sup style="font-size: 20px"></sup></h3>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-list"></i>
+                </div>
+                <a href="/comments/commentInfoList/" class="small-box-footer">
+                    详情&nbsp;
+                    <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-yellow">
+                <div class="inner">
+                    <p>新闻评论数</p>
+                    <h3 id="newsCommentsCnt">0</h3>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-list"></i>
+                </div>
+                <a href="/comments/detailList/" class="small-box-footer">
+                    详情&nbsp;
+                    <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-red">
+                <div class="inner">
+                    <p>今日新增评论</p>
+                    <h3 id="newCommentsCnt">0</h3>
+                </div>
+                <div class="icon">
+                    <i class="glyphicon glyphicon-star-empty"></i>
+                </div>
+                <a href="/comments/newsInfoList/" class="small-box-footer">
+                    详情&nbsp;
+                    <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- 评论采集任务队列  -->
+        <section class="col-md-6 connectedSortable">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">评论采集任务队列</h3>
+                    <div class="box-tools pull-left">
+                        <span class="label label-primary">正常值 < 10000</span>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div id="commentsQueue" style="width:100%;height:300px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="col-md-6 connectedSortable">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">缓存任务队列</h3>
+                    <div class="box-tools pull-left">
+                        <span class="label label-primary">正常值 < 10000</span>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div id="commentsCacheQueue" style="width:100%;height:300px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="col-md-6 connectedSortable">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">新闻采集数据历史统计</h3>
+                    <div class="box-tools pull-left">
+                        <span class="label label-primary">1周</span>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div id="domainNewsCnt" style="width:100%;height:300px;"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock section_content %}
+
+{% block jquery_js %}
+
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <!-- page script -->
+    <script type="text/javascript"
+            src="{% static 'plugins/echarts/extension/dataTool.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'plugins/echarts/echarts-all-3.js' %}"></script>
+    <script src="{% static 'dist/js/demo.js' %}"></script>
+    <script src="{% static 'backend/js/theme/dark.js' %}"></script>
+    <script src="{% static 'backend/js/theme/infographic.js' %}"></script>
+    <script src="{% static 'backend/js/theme/macarons.js' %}"></script>
+    <script src="{% static 'backend/js/theme/roma.js' %}"></script>
+    <script src="{% static 'backend/js/theme/shine.js' %}"></script>
+    <script src="{% static 'backend/js/theme/vintage.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/comments/js/comments_main.js' %}"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+        });
+    </script>
+{% endblock body_tail %}

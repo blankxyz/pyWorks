@@ -14,9 +14,19 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf import settings
+
+from backend_admin import views as backend_admin_view
+
+handler403 = backend_admin_view.perm_deny
+handler404 = backend_admin_view.page_no
 
 urlpatterns = [
+    url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT, }),
     url(r'', include('backend_admin.urls', namespace='backend_admin'), ),
+    url(r'^config/', include('config.urls', namespace='config'), ),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^allsite/', include('allsite.urls', namespace='allsite'), ),
+    url(r'^comments/', include('comments.urls', namespace='comments'), ),
+    url(r'^channels/', include('channelConfigMgr.urls', namespace='channels'), ),
 ]

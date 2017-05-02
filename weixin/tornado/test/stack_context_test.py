@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function, with_statement
 
-from weixin import gen
-from weixin.log import app_log
-from weixin.stack_context import (StackContext, wrap, NullContext, StackContextInconsistentError,
-                                  ExceptionStackContext, run_with_stack_context, _state)
-from weixin.testing import AsyncHTTPTestCase, AsyncTestCase, ExpectLog, gen_test
-from weixin.test.util import unittest
-from weixin.web import asynchronous, Application, RequestHandler
+from tornado import gen
+from tornado.log import app_log
+from tornado.stack_context import (StackContext, wrap, NullContext, StackContextInconsistentError,
+                                   ExceptionStackContext, run_with_stack_context, _state)
+from tornado.testing import AsyncHTTPTestCase, AsyncTestCase, ExpectLog, gen_test
+from tornado.test.util import unittest
+from tornado.web import asynchronous, Application, RequestHandler
 import contextlib
 import functools
 import logging
@@ -35,11 +35,11 @@ class TestRequestHandler(RequestHandler):
         logging.debug('in part3()')
         raise Exception('test exception')
 
-    def write_error(self, status_code, **kwargs):
-        if 'exc_info' in kwargs and str(kwargs['exc_info'][1]) == 'test exception':
-            self.write('got expected exception')
+    def get_error_html(self, status_code, **kwargs):
+        if 'exception' in kwargs and str(kwargs['exception']) == 'test exception':
+            return 'got expected exception'
         else:
-            self.write('unexpected failure')
+            return 'unexpected failure'
 
 
 class HTTPStackContextTest(AsyncHTTPTestCase):
@@ -219,13 +219,22 @@ class StackContextTest(AsyncTestCase):
     def test_yield_in_with(self):
         @gen.engine
         def f():
-            self.callback = yield gen.Callback('a')
-            with StackContext(functools.partial(self.context, 'c1')):
-                # This yield is a problem: the generator will be suspended
-                # and the StackContext's __exit__ is not called yet, so
-                # the context will be left on _state.contexts for anything
-                # that runs before the yield resolves.
-                yield gen.Wait('a')
+            try:
+                self.callback = yield gen.Callback('a')
+                with StackContext(functools.partial(self.context, 'c1')):
+                    # This yield is a problem: the generator will be suspended
+                    # and the StackContext's __exit__ is not called yet, so
+                    # the context will be left on _state.contexts for anything
+                    # that runs before the yield resolves.
+                    yield gen.Wait('a')
+            except StackContextInconsistentError:
+                # In python <= 3.3, this suspended generator is never garbage
+                # collected, so it remains suspended in the 'yield' forever.
+                # Starting in 3.4, it is made collectable by raising
+                # a GeneratorExit exception from the yield, which gets
+                # converted into a StackContextInconsistentError by the
+                # exit of the 'with' block.
+                pass
 
         with self.assertRaises(StackContextInconsistentError):
             f()
@@ -248,8 +257,11 @@ class StackContextTest(AsyncTestCase):
         # As above, but with ExceptionStackContext instead of StackContext.
         @gen.engine
         def f():
-            with ExceptionStackContext(lambda t, v, tb: False):
-                yield gen.Task(self.io_loop.add_callback)
+            try:
+                with ExceptionStackContext(lambda t, v, tb: False):
+                    yield gen.Task(self.io_loop.add_callback)
+            except StackContextInconsistentError:
+                pass
 
         with self.assertRaises(StackContextInconsistentError):
             f()

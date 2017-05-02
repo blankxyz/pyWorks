@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function, with_statement
 import fcntl
 import os
 
-from weixin.platform import interface
+from tornado.platform import interface
 
 
 def set_close_exec(fd):

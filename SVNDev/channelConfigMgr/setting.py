@@ -1,0 +1,12 @@
+# coding=utf-8
+
+MONGODB_SERVER = '192.168.16.223'
+MONGODB_PORT = 37017
+
+REDIS_SERVER = 'redis://192.168.16.223/8'
+
+PAGE_SIZE = 20
+
+STATUS_INIT = "待测试"
+STATUS_TEST = "测试中"
+STATUS_RUN = "运行中"

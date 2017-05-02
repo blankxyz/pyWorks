@@ -13,13 +13,12 @@
 from __future__ import absolute_import, division, print_function, with_statement
 
 try:
-    from weixin import gen
-    from weixin.httpclient import AsyncHTTPClient
-    from weixin.httpserver import HTTPServer
-    from weixin.simple_httpclient import SimpleAsyncHTTPClient
-    from weixin.ioloop import IOLoop, TimeoutError
-    from weixin import netutil
-    from weixin.process import Subprocess
+    from tornado import gen
+    from tornado.httpclient import AsyncHTTPClient
+    from tornado.httpserver import HTTPServer
+    from tornado.simple_httpclient import SimpleAsyncHTTPClient
+    from tornado.ioloop import IOLoop
+    from tornado import netutil
 except ImportError:
     # These modules are not importable on app engine.  Parts of this module
     # won't work, but e.g. LogTrapTestCase and main() will.
@@ -29,12 +28,10 @@ except ImportError:
     IOLoop = None
     netutil = None
     SimpleAsyncHTTPClient = None
-    Subprocess = None
-from weixin.log import gen_log, app_log
-from weixin.stack_context import ExceptionStackContext
-from weixin.util import raise_exc_info, basestring_type
+from tornado.log import gen_log
+from tornado.stack_context import ExceptionStackContext
+from tornado.util import raise_exc_info, basestring_type
 import functools
-import inspect
 import logging
 import os
 import re
@@ -47,31 +44,14 @@ try:
 except ImportError:
     from io import StringIO  # py3
 
-try:
-    from collections.abc import Generator as GeneratorType  # py35+
-except ImportError:
-    from types import GeneratorType
-
-if sys.version_info >= (3, 5):
-    iscoroutine = inspect.iscoroutine
-    iscoroutinefunction = inspect.iscoroutinefunction
-else:
-    iscoroutine = iscoroutinefunction = lambda f: False
-
 # Tornado's own test suite requires the updated unittest module
 # (either py27+ or unittest2) so tornado.test.util enforces
 # this requirement, but for other users of tornado.testing we want
 # to allow the older version if unitest2 is not available.
-if sys.version_info >= (3,):
-    # On python 3, mixing unittest2 and unittest (including doctest)
-    # doesn't seem to work, so always use unittest.
+try:
+    import unittest2 as unittest
+except ImportError:
     import unittest
-else:
-    # On python 2, prefer unittest2 when available.
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        import unittest
 
 _next_port = 10000
 
@@ -83,8 +63,8 @@ def get_unused_port():
     only that a series of get_unused_port calls in a single process return
     distinct ports.
 
-    .. deprecated::
-       Use bind_unused_port instead, which is guaranteed to find an unused port.
+    **Deprecated**.  Use bind_unused_port instead, which is guaranteed
+    to find an unused port.
     """
     global _next_port
     port = _next_port
@@ -92,13 +72,12 @@ def get_unused_port():
     return port
 
 
-def bind_unused_port(reuse_port=False):
+def bind_unused_port():
     """Binds a server socket to an available port on localhost.
 
     Returns a tuple (socket, port).
     """
-    [sock] = netutil.bind_sockets(None, 'localhost', family=socket.AF_INET,
-                                  reuse_port=reuse_port)
+    [sock] = netutil.bind_sockets(None, 'localhost', family=socket.AF_INET)
     port = sock.getsockname()[1]
     return sock, port
 
@@ -114,36 +93,6 @@ def get_async_test_timeout():
         return float(os.environ.get('ASYNC_TEST_TIMEOUT'))
     except (ValueError, TypeError):
         return 5
-
-
-class _TestMethodWrapper(object):
-    """Wraps a test method to raise an error if it returns a value.
-
-    This is mainly used to detect undecorated generators (if a test
-    method yields it must use a decorator to consume the generator),
-    but will also detect other kinds of return values (these are not
-    necessarily errors, but we alert anyway since there is no good
-    reason to return a value from a test.
-    """
-    def __init__(self, orig_method):
-        self.orig_method = orig_method
-
-    def __call__(self, *args, **kwargs):
-        result = self.orig_method(*args, **kwargs)
-        if isinstance(result, GeneratorType) or iscoroutine(result):
-            raise TypeError("Generator and coroutine test methods should be"
-                            " decorated with tornado.testing.gen_test")
-        elif result is not None:
-            raise ValueError("Return value from test method ignored: %r" %
-                             result)
-
-    def __getattr__(self, name):
-        """Proxy all unknown attributes to the original method.
-
-        This is important for some of the decorators in the `unittest`
-        module, such as `unittest.skipIf`.
-        """
-        return getattr(self.orig_method, name)
 
 
 class AsyncTestCase(unittest.TestCase):
@@ -208,19 +157,13 @@ class AsyncTestCase(unittest.TestCase):
                 self.assertIn("FriendFeed", response.body)
                 self.stop()
     """
-    def __init__(self, methodName='runTest', **kwargs):
-        super(AsyncTestCase, self).__init__(methodName, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(AsyncTestCase, self).__init__(*args, **kwargs)
         self.__stopped = False
         self.__running = False
         self.__failure = None
         self.__stop_args = None
         self.__timeout = None
-
-        # It's easy to forget the @gen_test decorator, but if you do
-        # the test will silently be ignored because nothing will consume
-        # the generator.  Replace the test method with a wrapper that will
-        # make sure it's not an undecorated generator.
-        setattr(self, methodName, _TestMethodWrapper(getattr(self, methodName)))
 
     def setUp(self):
         super(AsyncTestCase, self).setUp()
@@ -228,8 +171,6 @@ class AsyncTestCase(unittest.TestCase):
         self.io_loop.make_current()
 
     def tearDown(self):
-        # Clean up Subprocess, so it can be used again with a new ioloop.
-        Subprocess.uninitialize()
         self.io_loop.clear_current()
         if (not IOLoop.initialized() or
                 self.io_loop is not IOLoop.instance()):
@@ -253,11 +194,7 @@ class AsyncTestCase(unittest.TestCase):
         return IOLoop()
 
     def _handle_exception(self, typ, value, tb):
-        if self.__failure is None:
-            self.__failure = (typ, value, tb)
-        else:
-            app_log.error("multiple unhandled exceptions in test",
-                          exc_info=(typ, value, tb))
+        self.__failure = (typ, value, tb)
         self.stop()
         return True
 
@@ -343,29 +280,20 @@ class AsyncHTTPTestCase(AsyncTestCase):
     Tests will typically use the provided ``self.http_client`` to fetch
     URLs from this server.
 
-    Example, assuming the "Hello, world" example from the user guide is in
-    ``hello.py``::
+    Example::
 
-        import hello
-
-        class TestHelloApp(AsyncHTTPTestCase):
+        class MyHTTPTest(AsyncHTTPTestCase):
             def get_app(self):
-                return hello.make_app()
+                return Application([('/', MyHandler)...])
 
             def test_homepage(self):
-                response = self.fetch('/')
-                self.assertEqual(response.code, 200)
-                self.assertEqual(response.body, 'Hello, world')
-
-    That call to ``self.fetch()`` is equivalent to ::
-
-        self.http_client.fetch(self.get_url('/'), self.stop)
-        response = self.wait()
-
-    which illustrates how AsyncTestCase can turn an asynchronous operation,
-    like ``http_client.fetch()``, into a synchronous operation. If you need
-    to do other asynchronous operations in tests, you'll probably need to use
-    ``stop()`` and ``wait()`` yourself.
+                # The following two lines are equivalent to
+                #   response = self.fetch('/')
+                # but are shown in full here to demonstrate explicit use
+                # of self.stop and self.wait.
+                self.http_client.fetch(self.get_url('/'), self.stop)
+                response = self.wait()
+                # test contents of response
     """
     def setUp(self):
         super(AsyncHTTPTestCase, self).setUp()
@@ -424,8 +352,6 @@ class AsyncHTTPTestCase(AsyncTestCase):
 
     def tearDown(self):
         self.http_server.stop()
-        self.io_loop.run_sync(self.http_server.close_all_connections,
-                              timeout=get_async_test_timeout())
         if (not IOLoop.initialized() or
                 self.http_client.io_loop is not IOLoop.instance()):
             self.http_client.close()
@@ -438,8 +364,10 @@ class AsyncHTTPSTestCase(AsyncHTTPTestCase):
     Interface is generally the same as `AsyncHTTPTestCase`.
     """
     def get_http_client(self):
-        return AsyncHTTPClient(io_loop=self.io_loop, force_instance=True,
-                               defaults=dict(validate_cert=False))
+        # Some versions of libcurl have deadlock bugs with ssl,
+        # so always run these tests with SimpleAsyncHTTPClient.
+        return SimpleAsyncHTTPClient(io_loop=self.io_loop, force_instance=True,
+                                     defaults=dict(validate_cert=False))
 
     def get_httpserver_options(self):
         return dict(ssl_options=self.get_ssl_options())
@@ -486,53 +414,18 @@ def gen_test(func=None, timeout=None):
     .. versionadded:: 3.1
        The ``timeout`` argument and ``ASYNC_TEST_TIMEOUT`` environment
        variable.
-
-    .. versionchanged:: 4.0
-       The wrapper now passes along ``*args, **kwargs`` so it can be used
-       on functions with arguments.
     """
     if timeout is None:
         timeout = get_async_test_timeout()
 
     def wrap(f):
-        # Stack up several decorators to allow us to access the generator
-        # object itself.  In the innermost wrapper, we capture the generator
-        # and save it in an attribute of self.  Next, we run the wrapped
-        # function through @gen.coroutine.  Finally, the coroutine is
-        # wrapped again to make it synchronous with run_sync.
-        #
-        # This is a good case study arguing for either some sort of
-        # extensibility in the gen decorators or cancellation support.
+        f = gen.coroutine(f)
+
         @functools.wraps(f)
-        def pre_coroutine(self, *args, **kwargs):
-            result = f(self, *args, **kwargs)
-            if isinstance(result, GeneratorType) or iscoroutine(result):
-                self._test_generator = result
-            else:
-                self._test_generator = None
-            return result
-
-        if iscoroutinefunction(f):
-            coro = pre_coroutine
-        else:
-            coro = gen.coroutine(pre_coroutine)
-
-        @functools.wraps(coro)
-        def post_coroutine(self, *args, **kwargs):
-            try:
-                return self.io_loop.run_sync(
-                    functools.partial(coro, self, *args, **kwargs),
-                    timeout=timeout)
-            except TimeoutError as e:
-                # run_sync raises an error with an unhelpful traceback.
-                # Throw it back into the generator or coroutine so the stack
-                # trace is replaced by the point where the test is stopped.
-                self._test_generator.throw(e)
-                # In case the test contains an overly broad except clause,
-                # we may get back here.  In this case re-raise the original
-                # exception, which is better than nothing.
-                raise
-        return post_coroutine
+        def wrapper(self):
+            return self.io_loop.run_sync(
+                functools.partial(f, self), timeout=timeout)
+        return wrapper
 
     if func is not None:
         # Used like:
@@ -565,9 +458,6 @@ class LogTrapTestCase(unittest.TestCase):
     `logging.basicConfig` and the "pretty logging" configured by
     `tornado.options`.  It is not compatible with other log buffering
     mechanisms, such as those provided by some test runners.
-
-    .. deprecated:: 4.1
-       Use the unittest module's ``--buffer`` option instead, or `.ExpectLog`.
     """
     def run(self, result=None):
         logger = logging.getLogger()
@@ -599,16 +489,10 @@ class ExpectLog(logging.Filter):
     Useful to make tests of error conditions less noisy, while still
     leaving unexpected log entries visible.  *Not thread safe.*
 
-    The attribute ``logged_stack`` is set to true if any exception
-    stack trace was logged.
-
     Usage::
 
         with ExpectLog('tornado.application', "Uncaught exception"):
             error_response = self.fetch("/some_page")
-
-    .. versionchanged:: 4.3
-       Added the ``logged_stack`` attribute.
     """
     def __init__(self, logger, regex, required=True):
         """Constructs an ExpectLog context manager.
@@ -626,11 +510,8 @@ class ExpectLog(logging.Filter):
         self.regex = re.compile(regex)
         self.required = required
         self.matched = False
-        self.logged_stack = False
 
     def filter(self, record):
-        if record.exc_info:
-            self.logged_stack = True
         message = record.getMessage()
         if self.regex.match(message):
             self.matched = True
@@ -639,7 +520,6 @@ class ExpectLog(logging.Filter):
 
     def __enter__(self):
         self.logger.addFilter(self)
-        return self
 
     def __exit__(self, typ, value, tb):
         self.logger.removeFilter(self)
@@ -679,7 +559,7 @@ def main(**kwargs):
     See http://docs.python.org/library/unittest.html#unittest.main
     for full argument list.
     """
-    from weixin.options import define, options, parse_command_line
+    from tornado.options import define, options, parse_command_line
 
     define('exception_on_interrupt', type=bool, default=True,
            help=("If true (default), ctrl-c raises a KeyboardInterrupt "

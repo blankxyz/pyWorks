@@ -1,0 +1,331 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <!-- page script -->
+    <style>
+
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    {% verbatim %}
+        <div id="myVue" class="inverse">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box box-success" style="margin-left:20px;margin-top:10px;width:95%;">
+                        <div class="box-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="panel_hubPage">
+                                    <div class="box-header with-border" style="border-color: #61b34d;">
+                                        <input v-model="url" value="{{ url }}" class="pull-left" size="40px"
+                                               style="margin-top:10px;margin-left:10px;height:30px;">
+                                        <button id="searchBtn" class="pull-left btn btn-sm btn-success"
+                                                style="margin-top:10px;margin-left:10px;">检索
+                                        </button>
+                                        <button id="addInfoBtn" class="pull-right btn btn-sm btn-success"
+                                                data-toggle="modal"
+                                                data-target="#infoModal">添加频道信息
+                                        </button>
+                                    </div>
+                                    <div class="box-body with-border">
+                                        <table id="hubPageList_tab" style="table-layout:fixed"
+                                               class="table table-striped table-hover table-condensed">
+                                            <thead>
+                                            <tr>
+                                                <th style="width:55%">列表页
+                                                    <span id="search_cnt" class="badge">共 {{ searchCnt }} 条</span>
+                                                </th>
+                                                <th style="width:30%">频道名称</th>
+                                                <th style="width:10%">优先级</th>
+                                                <th style="width:5%"></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr v-for="info in result"
+                                                v-on:mouseover="showDetail($index)"
+                                                v-on:mouseleave="hideDetail($index)">
+                                                <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                                    title="{{ info.url }}">
+                                                    <a href="{{ info.url }}" target="_blank">{{ info.url }}</a>
+                                                </td>
+                                                <td>{{ info.name }}</td>
+                                                <td>{{ info.period }}</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="paginator" class="box-footer with-border"
+                                         style="border-color: #1b6d85;height:60px">
+                                        <ul class="pagination pagination-bg" style="margin-top:5px">
+                                            <li class="disabled">
+                                                <a v-on:click="paginator('first')"> 首页</a>
+                                            </li>
+                                            <li v-bind:class="{ page > 1: 'active','disabled' }">
+                                                <a v-on:click="paginator('prev')"> 上一页</a>
+                                            </li>
+                                            <li class="disabled">
+                                                <span>第 {{ page }} 页</span><span> 共 {{ totalPages }} 页</span>
+                                            </li>
+                                            <li v-bind:class="page < totalPage: 'active','disabled'}">
+                                                <a v-on:click="paginator('next')"> 下一页</a>
+                                            </li>
+                                            <li>
+                                                <a v-on:click="paginator('last')"> 末页</a>
+                                            </li>
+                                            <li>
+                                                <div class="col-md-1">
+                                                    <div class="form-group">
+                                                        <div class="input-group">
+                                                            <input id="gotoPageNum" type="text" placeholder="  跳转页"
+                                                                   style="height:30px;width:60px">
+                                                            <div class="input-group-addon">
+                                                                <a id="gotoPage" href="javascript:gotoPage();">
+                                                                    <i class="glyphicon glyphicon-play"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- modal-dialog -->
+        <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="box box-success">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h3 class="modal-title">信息维护</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div class="box-body">
+                                <label class="col-sm-2 control-label">URL</label>
+                                <div class="col-sm-10">
+                                    <input type="text" id="url" class="form-control" value="" readonly>
+                                </div>
+                                <label class="col-sm-2 control-label">频道名称</label>
+                                <div class="col-sm-10">
+                                    <input type="text" id="hubPageName" class="form-control" value="">
+                                </div>
+                                <label class="col-sm-2 control-label">优先级</label>
+                                <div class="col-sm-10">
+                                    <input type="text" id="period" class="form-control" value=""
+                                           placeholder="1 or 5 or 15">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="direct-chat-messages col-md-6" style="height:70px;margin-top:0px;">
+                                <div class="direct-chat-msg">
+                                    <img class="direct-chat-img" src="{% static "dist/img/user2-160x160.jpg" %}"
+                                         alt="message user image" style="width:35px;height:35px;">
+                                    <div class="direct-chat-text pull-left" style="margin-left:10px;height:30px;">
+                                        <p id="msg"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 pull-right" style="margin-top:20px;">
+                                <button id='deleteBtn' class="btn btn-primary">删除</button>
+                                <button id='modifyBtn' class="btn btn-primary">保存</button>
+                                <button class="btn btn-default" data-dismiss="modal">关闭</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endverbatim %}
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- InputMask -->
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.date.extensions.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.extensions.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/allsite/js/allsite_util.js' %}"></script>
+    <script type="text/javascript">
+        const PAGE_SIZE = 20;
+        function getPaginator(obj) {
+            $('#pageDiv').hide();
+
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/allsite/getHubPageSearchCntAPI/',
+                type: 'POST',
+                data: {
+                    search: obj.url,
+                    page_num: obj.page,
+                    quick_flg: true
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("getHubPageSearchCntAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    console.log(data);
+                    console.log("getPaginator end.");
+                    obj.searchCnt = data['search_cnt'];
+                    obj.page = data['current_page'];
+                    obj.totalPages = data['total_pages'];
+                    $("#searchBtn").removeAttr("disabled");
+                    $('#paginator').show();
+                }
+            });
+        }
+
+        function infoChange(id) {
+            var act = "";
+            if (id == "deleteBtn") {
+                act = "DELETE";
+            } else if (id == "modifyBtn") {
+                //act = "PUT";
+                act = "POST";
+            } else if (id == "addInfoBtn") {
+                $("#url").val("");
+                $("#url").removeAttr("readonly");
+                $("#hubPageName").val("");
+                $("#period").val("");
+                $("#deleteBtn").attr("disabled", "");
+                $("#msg").text("请添加信息。");
+                return;
+            } else if (id == "addBtn") {
+                //act = "POST";
+                return;
+            } else if (id == "searchBtn") {
+                return;
+            } else {
+                return;
+            }
+
+            console.log("[info] infoChange id:", id, "act:", act);
+
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/allsite/quickHubPageListViewAPI/',
+                type: act,
+                data: {
+                    act: act,
+                    url: $("#url").val(),
+                    name: $("#hubPageName").val(),
+                    period: $("#period").val()
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    console.log("[error] infoChange:", err);
+                    alert("infoChange:" + err);
+                },
+                success: function (data, textStatus) {
+                    var msg = data['ret'];
+                    console.log("[info] infoChange ret:", msg);
+                    $("#msg").text(msg);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+
+            $("#search").change(function () {
+                $("#searchBtn").removeAttr("disabled");
+            });
+
+            $("button").click(function () {
+                var id = $(this).attr("id");
+                infoChange(id);
+            })
+        });
+
+        function init(obj) {
+            $("#gotoPageNum").inputmask("99999", {showMaskOnFocus: false, showMaskOnHover: false, placeholder: ""});
+            $('#paginator').hide();
+            getInfoList(obj);
+            getPaginator(obj);
+        }
+        //----------------------------------------------------------------------------
+        var myVue = new Vue({
+            el: '#myVue',
+            data: {
+                preSearch: "",
+                url: "",
+                page: 1,
+                totalPages: 1,
+                searchCnt: 0,
+                result: [],
+                row: -1
+            },
+            methods: {
+                showDetail: function (row) {
+                    myVue.row = row;
+                    if ($(this).parent().parent('#hubPageList_tab').text().length > 0) {
+                        var opt = $(this).children("td").last();
+                        if (opt.html().length == 0) {
+                            // 填充 modal-dialog
+                            opt.html('<button class="btn btn-primary btn-xs" data-toggle="modal" data-target="#infoModal">信息维护</button>');
+                            var url = $(this).children("td").first().text();
+                            var name = $(this).children("td").eq(1).text();
+                            var period = $(this).children("td").eq(2).text();
+                            $('#url').val(url.replace(/(\s*)|(\s$)|[\r\n]/g, ""));
+                            $('#hubPageName').val(name);
+                            $('#period').val(period);
+                            $("#deleteBtn").removeAttr("disabled");
+                            $("#msg").text("请输入信息，点击按钮。");
+                        }
+                    }
+                },
+                hideDetail: function (row) {
+                    myVue.row = -1;
+                    if ($(this).parent().parent('#hubPageList_tab').text().length > 0) {
+                        var opt = $(this).children("td").last();
+                        if (opt.html().length != 0) {
+                            opt.html('');
+                        }
+                    }
+                },
+                search: function () {
+                    getInfoList(this);
+                    getPaginator(this);
+                },
+                paginator: function (action) {
+                    switch (action) {
+                        case "first":
+                            myVue.page = 1;
+                            break;
+                        case "last":
+                            myVue.page = myVue.totalPages;
+                            break;
+                        case "next":
+                            myVue.page = myVue.page + 1;
+                            break;
+                        case "prev":
+                            myVue.page = myVue.page - 1;
+                            break;
+                    }
+                    getInfoList(this);
+                }
+            },
+            ready: function () {
+                init(this);
+            }
+        });
+        //----------------------------------------------------------------------------
+    </script>
+{% endblock body_tail %}

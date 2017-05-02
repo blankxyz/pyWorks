@@ -19,22 +19,19 @@ Unittest for the twisted-style reactor.
 
 from __future__ import absolute_import, division, print_function, with_statement
 
-import logging
 import os
 import shutil
 import signal
-import sys
 import tempfile
 import threading
-import warnings
 
 try:
     import fcntl
-    from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
+    from twisted.internet.defer import Deferred
     from twisted.internet.interfaces import IReadDescriptor, IWriteDescriptor
     from twisted.internet.protocol import Protocol
     from twisted.python import log
-    from weixin.platform.twisted import TornadoReactor, TwistedIOLoop
+    from tornado.platform.twisted import TornadoReactor, TwistedIOLoop
     from zope.interface import implementer
     have_twisted = True
 except ImportError:
@@ -43,12 +40,10 @@ except ImportError:
 # The core of Twisted 12.3.0 is available on python 3, but twisted.web is not
 # so test for it separately.
 try:
-    from twisted.web.client import Agent, readBody
+    from twisted.web.client import Agent
     from twisted.web.resource import Resource
     from twisted.web.server import Site
-    # As of Twisted 15.0.0, twisted.web is present but fails our
-    # tests due to internal str/bytes errors.
-    have_twisted_web = sys.version_info < (3,)
+    have_twisted_web = True
 except ImportError:
     have_twisted_web = False
 
@@ -57,23 +52,18 @@ try:
 except ImportError:
     import _thread as thread  # py3
 
-from weixin.escape import utf8
-from weixin import gen
-from weixin.httpclient import AsyncHTTPClient
-from weixin.httpserver import HTTPServer
-from weixin.ioloop import IOLoop
-from weixin.platform.auto import set_close_exec
-from weixin.platform.select import SelectIOLoop
-from weixin.testing import bind_unused_port
-from weixin.test.util import unittest
-from weixin.util import import_object
-from weixin.web import RequestHandler, Application
+from tornado.httpclient import AsyncHTTPClient
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+from tornado.platform.auto import set_close_exec
+from tornado.platform.select import SelectIOLoop
+from tornado.testing import bind_unused_port
+from tornado.test.util import unittest
+from tornado.util import import_object
+from tornado.web import RequestHandler, Application
 
 skipIfNoTwisted = unittest.skipUnless(have_twisted,
                                       "twisted module not present")
-
-skipIfPy26 = unittest.skipIf(sys.version_info < (2, 7),
-                             "twisted incompatible with singledispatch in py26")
 
 
 def save_signal_handlers():
@@ -417,7 +407,7 @@ class CompatibilityTests(unittest.TestCase):
         # http://twistedmatrix.com/documents/current/web/howto/client.html
         chunks = []
         client = Agent(self.reactor)
-        d = client.request(b'GET', utf8(url))
+        d = client.request('GET', url)
 
         class Accumulator(Protocol):
             def __init__(self, finished):
@@ -435,97 +425,36 @@ class CompatibilityTests(unittest.TestCase):
             return finished
         d.addCallback(callback)
 
-        def shutdown(failure):
-            if hasattr(self, 'stop_loop'):
-                self.stop_loop()
-            elif failure is not None:
-                # loop hasn't been initialized yet; try our best to
-                # get an error message out. (the runner() interaction
-                # should probably be refactored).
-                try:
-                    failure.raiseException()
-                except:
-                    logging.error('exception before starting loop', exc_info=True)
+        def shutdown(ignored):
+            self.stop_loop()
         d.addBoth(shutdown)
         runner()
         self.assertTrue(chunks)
         return ''.join(chunks)
 
-    def twisted_coroutine_fetch(self, url, runner):
-        body = [None]
-
-        @gen.coroutine
-        def f():
-            # This is simpler than the non-coroutine version, but it cheats
-            # by reading the body in one blob instead of streaming it with
-            # a Protocol.
-            client = Agent(self.reactor)
-            response = yield client.request(b'GET', utf8(url))
-            with warnings.catch_warnings():
-                # readBody has a buggy DeprecationWarning in Twisted 15.0:
-                # https://twistedmatrix.com/trac/changeset/43379
-                warnings.simplefilter('ignore', category=DeprecationWarning)
-                body[0] = yield readBody(response)
-            self.stop_loop()
-        self.io_loop.add_callback(f)
-        runner()
-        return body[0]
-
     def testTwistedServerTornadoClientIOLoop(self):
         self.start_twisted_server()
         response = self.tornado_fetch(
-            'http://127.0.0.1:%d' % self.twisted_port, self.run_ioloop)
+            'http://localhost:%d' % self.twisted_port, self.run_ioloop)
         self.assertEqual(response.body, 'Hello from twisted!')
 
     def testTwistedServerTornadoClientReactor(self):
         self.start_twisted_server()
         response = self.tornado_fetch(
-            'http://127.0.0.1:%d' % self.twisted_port, self.run_reactor)
+            'http://localhost:%d' % self.twisted_port, self.run_reactor)
         self.assertEqual(response.body, 'Hello from twisted!')
 
     def testTornadoServerTwistedClientIOLoop(self):
         self.start_tornado_server()
         response = self.twisted_fetch(
-            'http://127.0.0.1:%d' % self.tornado_port, self.run_ioloop)
+            'http://localhost:%d' % self.tornado_port, self.run_ioloop)
         self.assertEqual(response, 'Hello from tornado!')
 
     def testTornadoServerTwistedClientReactor(self):
         self.start_tornado_server()
         response = self.twisted_fetch(
-            'http://127.0.0.1:%d' % self.tornado_port, self.run_reactor)
+            'http://localhost:%d' % self.tornado_port, self.run_reactor)
         self.assertEqual(response, 'Hello from tornado!')
-
-    @skipIfPy26
-    def testTornadoServerTwistedCoroutineClientIOLoop(self):
-        self.start_tornado_server()
-        response = self.twisted_coroutine_fetch(
-            'http://127.0.0.1:%d' % self.tornado_port, self.run_ioloop)
-        self.assertEqual(response, 'Hello from tornado!')
-
-
-@skipIfNoTwisted
-@skipIfPy26
-class ConvertDeferredTest(unittest.TestCase):
-    def test_success(self):
-        @inlineCallbacks
-        def fn():
-            if False:
-                # inlineCallbacks doesn't work with regular functions;
-                # must have a yield even if it's unreachable.
-                yield
-            returnValue(42)
-        f = gen.convert_yielded(fn())
-        self.assertEqual(f.result(), 42)
-
-    def test_failure(self):
-        @inlineCallbacks
-        def fn():
-            if False:
-                yield
-            1 / 0
-        f = gen.convert_yielded(fn())
-        with self.assertRaises(ZeroDivisionError):
-            f.result()
 
 
 if have_twisted:
@@ -552,13 +481,9 @@ if have_twisted:
             # with py27+, but not unittest2 on py26.
             'test_changeGID',
             'test_changeUID',
-            # This test sometimes fails with EPIPE on a call to
-            # kqueue.control. Happens consistently for me with
-            # trollius but not asyncio or other IOLoops.
-            'test_childConnectionLost',
         ],
         # Process tests appear to work on OSX 10.7, but not 10.6
-        # 'twisted.internet.test.test_process.PTYProcessTestsBuilder': [
+        #'twisted.internet.test.test_process.PTYProcessTestsBuilder': [
         #    'test_systemCallUninterruptedByChildExit',
         #    ],
         'twisted.internet.test.test_tcp.TCPClientTestsBuilder': [
@@ -577,7 +502,7 @@ if have_twisted:
         'twisted.internet.test.test_threads.ThreadTestsBuilder': [],
         'twisted.internet.test.test_time.TimeTestsBuilder': [],
         # Extra third-party dependencies (pyOpenSSL)
-        # 'twisted.internet.test.test_tls.SSLClientTestsMixin': [],
+        #'twisted.internet.test.test_tls.SSLClientTestsMixin': [],
         'twisted.internet.test.test_udp.UDPServerTestsBuilder': [],
         'twisted.internet.test.test_unix.UNIXTestsBuilder': [
             # Platform-specific.  These tests would be skipped automatically
@@ -597,14 +522,6 @@ if have_twisted:
         ],
         'twisted.internet.test.test_unix.UNIXPortTestsBuilder': [],
     }
-    if sys.version_info >= (3,):
-        # In Twisted 15.2.0 on Python 3.4, the process tests will try to run
-        # but fail, due in part to interactions between Tornado's strict
-        # warnings-as-errors policy and Twisted's own warning handling
-        # (it was not obvious how to configure the warnings module to
-        # reconcile the two), and partly due to what looks like a packaging
-        # error (process_cli.py missing). For now, just skip it.
-        del twisted_tests['twisted.internet.test.test_process.ProcessTestsBuilder']
     for test_name, blacklist in twisted_tests.items():
         try:
             test_class = import_object(test_name)
@@ -634,24 +551,6 @@ if have_twisted:
                     os.chdir(self.__curdir)
                     shutil.rmtree(self.__tempdir)
 
-                def flushWarnings(self, *args, **kwargs):
-                    # This is a hack because Twisted and Tornado have
-                    # differing approaches to warnings in tests.
-                    # Tornado sets up a global set of warnings filters
-                    # in runtests.py, while Twisted patches the filter
-                    # list in each test. The net effect is that
-                    # Twisted's tests run with Tornado's increased
-                    # strictness (BytesWarning and ResourceWarning are
-                    # enabled) but without our filter rules to ignore those
-                    # warnings from Twisted code.
-                    filtered = []
-                    for w in super(TornadoTest, self).flushWarnings(
-                            *args, **kwargs):
-                        if w['category'] in (BytesWarning, ResourceWarning):
-                            continue
-                        filtered.append(w)
-                    return filtered
-
                 def buildReactor(self):
                     self.__saved_signals = save_signal_handlers()
                     return test_class.buildReactor(self)
@@ -680,14 +579,6 @@ if have_twisted:
     # log.startLoggingWithObserver(log.PythonLoggingObserver().emit, setStdout=0)
     # import logging; logging.getLogger('twisted').setLevel(logging.WARNING)
 
-    # Twisted recently introduced a new logger; disable that one too.
-    try:
-        from twisted.logger import globalLogBeginner
-    except ImportError:
-        pass
-    else:
-        globalLogBeginner.beginLoggingTo([])
-
 if have_twisted:
     class LayeredTwistedIOLoop(TwistedIOLoop):
         """Layers a TwistedIOLoop on top of a TornadoReactor on a SelectIOLoop.
@@ -697,13 +588,13 @@ if have_twisted:
         correctly.  In some tests another TornadoReactor is layered on top
         of the whole stack.
         """
-        def initialize(self, **kwargs):
+        def initialize(self):
             # When configured to use LayeredTwistedIOLoop we can't easily
             # get the next-best IOLoop implementation, so use the lowest common
             # denominator.
-            self.real_io_loop = SelectIOLoop(make_current=False)
+            self.real_io_loop = SelectIOLoop()
             reactor = TornadoReactor(io_loop=self.real_io_loop)
-            super(LayeredTwistedIOLoop, self).initialize(reactor=reactor, **kwargs)
+            super(LayeredTwistedIOLoop, self).initialize(reactor=reactor)
             self.add_callback(self.make_current)
 
         def close(self, all_fds=False):
@@ -721,12 +612,7 @@ if have_twisted:
             # tornado-on-twisted-on-tornado.  I'm clearly missing something
             # about the startup/crash semantics, but since stop and crash
             # are really only used in tests it doesn't really matter.
-            def f():
-                self.reactor.crash()
-                # Become current again on restart. This is needed to
-                # override real_io_loop's claim to being the current loop.
-                self.add_callback(self.make_current)
-            self.reactor.callWhenRunning(f)
+            self.reactor.callWhenRunning(self.reactor.crash)
 
 if __name__ == "__main__":
     unittest.main()

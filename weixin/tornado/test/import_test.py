@@ -1,6 +1,5 @@
-# flake8: noqa
 from __future__ import absolute_import, division, print_function, with_statement
-from weixin.test.util import unittest
+from tornado.test.util import unittest
 
 
 class ImportTest(unittest.TestCase):
@@ -8,32 +7,31 @@ class ImportTest(unittest.TestCase):
         # Some of our modules are not otherwise tested.  Import them
         # all (unless they have external dependencies) here to at
         # least ensure that there are no syntax errors.
-        import weixin.auth
-        import weixin.autoreload
-        import weixin.concurrent
+        import tornado.auth
+        import tornado.autoreload
+        import tornado.concurrent
         # import tornado.curl_httpclient  # depends on pycurl
-        import weixin.escape
-        import weixin.gen
-        import weixin.http1connection
-        import weixin.httpclient
-        import weixin.httpserver
-        import weixin.httputil
-        import weixin.ioloop
-        import weixin.iostream
-        import weixin.locale
-        import weixin.log
-        import weixin.netutil
-        import weixin.options
-        import weixin.process
-        import weixin.simple_httpclient
-        import weixin.stack_context
-        import weixin.tcpserver
-        import weixin.template
-        import weixin.testing
-        import weixin.util
-        import weixin.web
-        import weixin.websocket
-        import weixin.wsgi
+        import tornado.escape
+        import tornado.gen
+        import tornado.httpclient
+        import tornado.httpserver
+        import tornado.httputil
+        import tornado.ioloop
+        import tornado.iostream
+        import tornado.locale
+        import tornado.log
+        import tornado.netutil
+        import tornado.options
+        import tornado.process
+        import tornado.simple_httpclient
+        import tornado.stack_context
+        import tornado.tcpserver
+        import tornado.template
+        import tornado.testing
+        import tornado.util
+        import tornado.web
+        import tornado.websocket
+        import tornado.wsgi
 
     # for modules with dependencies, if those dependencies can be loaded,
     # load them too.
@@ -44,4 +42,4 @@ class ImportTest(unittest.TestCase):
         except ImportError:
             pass
         else:
-            import weixin.curl_httpclient
+            import tornado.curl_httpclient

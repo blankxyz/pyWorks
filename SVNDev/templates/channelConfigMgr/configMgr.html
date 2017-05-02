@@ -1,0 +1,640 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/lib/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'public/CodeMirror/theme/lesser-dark.css' %}">
+    <style>
+        .channels-radio {
+            width: 16px;
+            height: 16px;
+            vertical-align: text-bottom;
+        }
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    {% verbatim %}
+        <div id="section" class="inverse">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box box-success" style="margin-left:40px;margin-top:10px;width:95%;">
+                        <div class="box-header with-border" style="border-color: #1b6d85">
+                            <div class="form-group">
+                                <input class="pull-left col-md-1" style="height:34px;" value="[[ searchConfigId ]]"
+                                       v-model="searchConfigId" placeholder="ConfigID">
+                                <input class="pull-left col-md-2" style="height:34px;margin-left:10px;"
+                                       value="[[ searchDomain ]]"
+                                       v-model="searchDomain" placeholder="域名">
+                                <label class="checkbox-inline pull-left" style="margin-top: 5px">
+                                    <input type="radio" v-model="active_flag" name="active_flag" value="active"
+                                           class="channels-radio" checked>启用&nbsp;&nbsp;&nbsp;
+                                    <input type="radio" v-model="active_flag" name="active_flag" value="delete"
+                                           class="channels-radio">停用
+                                </label>
+                                <button @click="search" v-bind:disabled="isSearchBtnDisabled"
+                                        class="pull-left btn btn-success" style="margin-left: 20px;">检索
+                                </button>
+                                <button id="addInfoBtn" class="pull-right btn btn-sm btn-success"
+                                        data-toggle="modal" data-target="#infoModal">添加配置信息
+                                </button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="comments_tab" class="table table-striped table-hover table-condensed"
+                                   style="table-layout:fixed">
+                                <thead>
+                                <tr>
+                                    <th style="width:15%">
+                                        ConfigID <span class="badge">共 [[ searchCnt ]] 条</span>
+                                    </th>
+                                    <th style="width:15%">频道名称</th>
+                                    <th style="width:15%">域名</th>
+                                    <th style="width:15%">网站名称</th>
+                                    <th style="width:15%">代码</th>
+                                    <th style="width:15%"> 操 作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="info in result" id="tr_[[ $index ]]"
+                                    v-on:mouseover="showOpt($index)"
+                                    v-on:mouseleave="hideOpt($index)">
+                                    <td>[[ info.config_id ]]
+                                        <!--
+                                        <span class="badge pull-center" style="margin-left: 20px">
+                                            [[ info.channel_cnt ]]
+                                        </span>
+                                        -->
+                                    </td>
+                                    <td>[[ info.channel_name ]]</td>
+                                    <td>[[ info.domain ]]</td>
+                                    <td>[[ info.website_name ]]</td>
+                                    <td>[[ info.config_filename ]]</td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- paginator -->
+                        <paginator v-show="isPaginatorShow" v-bind:current.sync="page" v-bind:total.sync="totalPages">
+                        </paginator>
+                        <!-- paginator end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main end -->
+
+        <!-- modal-dialog -->
+        <div id="infoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" style="width: 800px;">
+                <div class="modal-content">
+                    <div class="box box-success">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                    style="color:red">&times;
+                            </button>
+                            <h3 class="modal-title">信息维护</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div class="box-body">
+                                <label class="col-sm-2 control-label">ConfigID</label>
+                                <div class="col-sm-10">
+                                    <input id="config_id" type="text" class="form-control col-sm-10" v-model="config_id"
+                                           value="[[ config_id ]]" placeholder="系统编号" readonly>
+                                </div>
+                                <label class="col-sm-2 control-label">频道名称</label>
+                                <div class="col-sm-10">
+                                    <input id="channel_name" type="text" class="form-control" v-model="channel_name"
+                                           value="[[ channel_name ]]" placeholder="">
+                                </div>
+                                <label class="col-sm-2 control-label">域名</label>
+                                <div class="col-sm-10">
+                                    <input id="domain" type="text" class="form-control" v-model="domain"
+                                           value="[[ domain ]]" placeholder="">
+                                </div>
+                                <label class="col-sm-2 control-label">网站名称</label>
+                                <div class="col-sm-10">
+                                    <input id="website_name" type="text" class="form-control" v-model="website_name"
+                                           value="[[ website_name ]]" placeholder="">
+                                </div>
+                                <label class="col-sm-2 control-label">代码上传</label>
+                                <div class="col-sm-2">
+                                    <input type="file" id="myfile" name="myfile" class="form-control"/>
+                                </div>
+                                <label class="col-sm-2 control-label">文件名</label>
+                                <div class="col-sm-6">
+                                    <input id="config_filename" type="text" class="form-control"
+                                           v-model="config_filename" value="[[ config_filename ]]" placeholder="上传代码名称">
+                                </div>
+                                <label class="col-sm-2 control-label" v-show="isCodeShow">代码内容</label>
+                                <div class="col-sm-10" v-show="isCodeShow">
+                                    <textarea v-model="codeView" class="form-control"
+                                              rows="20">[[ codeView ]]</textarea>
+                                    <!--
+                                    <textarea name="code" id="code" class="form-control" rows="20"></textarea>
+                                    -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="direct-chat-messages col-md-8" style="height:70px;margin-top:0px;">
+                                <div class="direct-chat-msg">
+                                    <img class="direct-chat-img" src="/static/dist/img/user2-160x160.jpg"
+                                         alt="message user image" style="width:35px;height:35px;">
+                                    <div class="direct-chat-text pull-left" style="margin-left:10px;height:30px;">
+                                        [[ msg ]]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 pull-right" style="margin-top:20px;">
+                                <button v-on:click="saveInfo" v-bind:disabled="isSaveBtnDisabled"
+                                        class="btn btn-sm btn-success">保存
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- dialog end -->
+
+        <!-- remove modal-dialog -->
+        <div id="removeDialog" class="modal modal-warning">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">确认删除</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[[ msg ]]</p>
+                        <li v-for="url in channels">
+                            <a href="/channels/channelInfoList/?searchUrl=[[ url ]]">[[ url ]]</a>
+                        </li>
+                    </div>
+                    <div class="modal-footer">
+                        <button v-on:click="removeInfo" v-bind:disabled="isRemoveBtnDisabled" type="button"
+                                class="btn btn-outline">删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- remove dialog end. -->
+
+        <!-- recovery modal-dialog -->
+        <div id="recoveryDialog" class="modal modal-warning">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">确认恢复</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[[ msg ]]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button v-on:click="recoveryInfo" v-bind:disabled="isRecoveryBtnDisabled" type="button"
+                                class="btn btn-outline">恢复
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- recovery dialog end. -->
+    {% endverbatim %}
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- vue.js -->
+    <script src="{% static 'plugins/vue1/vue.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script src="{% static 'public/CodeMirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'public/CodeMirror/mode/python/python.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/channels/js/channels_util.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/channels/js/channels_component.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#addInfoBtn").click(function () {
+                clearInfo(infoVue);
+            });
+        });
+
+        function codem() {
+            var textarea = document.getElementById('code');
+            console.log("codem");
+            var editor = CodeMirror.fromTextArea(textarea, {
+                mode: "python",
+                lineNumbers: true,
+                matchBrackets: true,
+                theme: "lesser-dark",
+                parserConfig: {useHTMLKludges: true}
+            });
+            editor.setOption("extraKeys", {
+                Tab: function (cm) {
+                    var spaces = new Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces);
+                }
+            });
+            console.log(editor.getValue());
+            textarea.innerHTML = editor.getValue();
+        }
+        //----------------------------------------------------------------------------
+        function clearInfo(obj) {
+            //console.log("add info");
+            obj.config_id = "";
+            obj.channel_name = "";
+            obj.domain = "";
+            obj.website_name = "";
+            obj.config_filename = "";
+            obj.codeView = "";
+            obj.msg = MSG;
+            obj.isDeleteBtnDisabled = false;
+            obj.isSaveBtnDisabled = false;
+            obj.isCodeShow = false;
+        }
+
+        function getInfoList(obj) {
+            //console.log("getInfoList start.");
+            obj.isSearchBtnDisabled = true;
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configListAPI/',
+                type: 'GET',
+                data: {
+                    active_flag: obj.active_flag,
+                    searchDomain: obj.searchDomain,
+                    searchConfigId: obj.searchConfigId,
+                    page: obj.page
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("channelListAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    var items = data['ret']['result'];
+                    //console.log(items);
+                    for (var j = 0; j < PAGE_SIZE; j++) {
+                        obj.result.shift();
+                    }
+                    for (var i = 0; i < items.length; i++) {
+                        obj.result.push(items[i]);
+                    }
+                    obj.isSearchBtnDisabled = false;
+                    //console.log("getInfoList end.");
+                }
+            });
+        }
+
+        function getPaginator(obj) {
+            //console.log("getPaginator start.");
+            obj.isPaginatorShow = false;
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configPaginatorAPI/',
+                type: 'GET',
+                data: {
+                    active_flag: obj.active_flag,
+                    searchDomain: obj.searchDomain,
+                    searchConfigId: obj.searchConfigId,
+                    page: obj.page
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("configPaginatorAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    //console.log('getPaginator:', data);
+                    obj.searchCnt = data['search_cnt'];
+                    obj.page = data['current_page'];
+                    obj.totalPages = data['total_pages'];
+                    if (obj.searchCnt > 0) obj.isPaginatorShow = true;
+                    //console.log("getPaginator end.");
+                }
+            });
+        }
+
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) {
+                return decodeURI(r[2]);
+            }
+            return null;
+        }
+
+        function initMain(obj) {
+            //console.log("initMain start.");
+            try {
+                var page = parseInt(obj.page);
+                if (isNaN(page) || page < 0) {
+                    throw new Error(10, "page is not number");
+                }
+            }
+            catch (e) {
+                console.log("initMain error.", e);
+                alert(e.name + ": " + e.message);
+                return;
+            }
+            var searchConfigId = getQueryString("searchConfigId");
+            if (searchConfigId != null) {
+                obj.searchConfigId = searchConfigId;
+            }
+            getInfoList(obj);
+            getPaginator(obj);
+
+        }
+
+        function saveInfo(obj) {
+            //console.log("saveInfo start.");
+            var form_data = new FormData();
+            var file_info = $('#myfile')[0].files[0];
+            form_data.append('file', file_info);
+            form_data.append('config_id', obj.config_id);
+            form_data.append('channel_name', obj.channel_name);
+            form_data.append('domain', obj.domain);
+            form_data.append('website_name', obj.website_name);
+            form_data.append('config_filename', obj.config_filename);
+            form_data.append('codeView', obj.codeView);
+
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configListAPI/',
+                type: 'POST',
+                data: form_data,
+                processData: false,  // tell jquery not to process the data
+                contentType: false, // tell jquery not to set contentType
+                error: function (xhr, err) {
+                    alert("saveInfo:" + err);
+                },
+                success: function (data, textStatus) {
+                    //console.log(data);
+                    obj.msg = data['msg'];
+                    // 添加一条信息
+                    initMain(mainVue);
+                    //console.log("saveInfo end.", data['ret']);
+                }
+            });
+        }
+
+        function removeInfo(obj) {
+            console.log("removeInfo start.", obj.config_id);
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configListAPI/',
+                type: 'DELETE',
+                data: {
+                    config_id: obj.config_id
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("removeInfo:" + err);
+                },
+                success: function (data, textStatus) {
+                    console.log(data);
+                    obj.isRemoveBtnDisabled = true;
+                    initMain(mainVue);
+                    obj.msg = "删除完成！";
+                    console.log("removeInfo end.", data['ret']);
+                }
+            });
+        }
+
+        function recoveryInfo(obj) {
+            console.log("recoveryInfo start.", obj.config_id);
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configListAPI/',
+                type: 'patch',
+                data: {
+                    config_id: obj.config_id
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("recoveryInfo:" + err);
+                },
+                success: function (data, status) {
+                    console.log(data);
+                    obj.isRecoveryBtnDisabled = true;
+                    initMain(mainVue);
+                    obj.msg = "恢复完成！";
+                    console.log("recoveryInfo end.", data['ret']);
+                }
+            });
+        }
+
+        function showInfoDialog(event) {
+            var obj = event.data.obj;
+            var rowId = event.data.rowId;
+            var config_id = $(rowId).children("td").eq(0).text();
+
+            obj.config_id = config_id;
+            obj.channel_name = $(rowId).children("td").eq(1).text();
+            obj.domain = $(rowId).children("td").eq(2).text();
+            obj.website_name = $(rowId).children("td").eq(3).text();
+            obj.config_filename = $(rowId).children("td").eq(4).text();
+            obj.codeView = "";
+            obj.isDeleteBtnDisabled = false;
+            obj.isSaveBtnDisabled = false;
+            obj.isCodeShow = true;
+            obj.msg = MSG;
+            obj.codeView = "loading ... ";
+            // 设定 obj.codeView
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configCodeAPI/',
+                type: 'GET',
+                data: {
+                    config_id: config_id
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("configCodeAPI:" + err);
+                },
+                success: function (data, status) {
+                    //console.log(data);
+                    obj.codeView = data['code'];
+                    //console.log(data['code']);
+                    //var textarea = document.getElementById('code');
+                    //textarea.innerHTML = data['code'];
+                    //codem();
+                    //console.log("showInfoDialog end.", data['ret']);
+                }
+            });
+        }
+
+        function setRemoveDialog(event) {
+            var obj = event.data.obj;
+            obj.config_id = event.data.config_id;
+            obj.msg = "正在查找绑定频道 ... ";
+            obj.channels = [];
+            obj.isRemoveBtnDisabled = true;
+            // 设定 obj.codeView
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/configUseCntAPI/',
+                type: 'GET',
+                data: {
+                    config_id: obj.config_id
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("configUseCntAPI:" + err);
+                },
+                success: function (data, status) {
+                    //console.log(data);
+                    obj.isRemoveBtnDisabled = false;
+                    obj.use_cnt = data['use_cnt'];
+                    obj.channels = data['channels'];
+                    obj.msg = "删除是不可恢复的，目前有如下 " + obj.use_cnt + " 个频道已绑定了该配置，你确认要删除 " + obj.config_id + " 吗？";
+                    //console.log("showInfoDialog end.", data['ret']);
+                }
+            });
+        }
+
+        function setRecoveryDialog(event) {
+            var obj = event.data.obj;
+            obj.config_id = event.data.config_id;
+            obj.msg = "确认完毕后，请恢复按钮。";
+            obj.isRecoveryBtnDisabled = false;
+        }
+
+        //----------------------------------------------------------------------------
+        Vue.config.delimiters = ['[[', ']]'];
+        //----------------------------------------------------------------------------
+        var infoVue = new Vue({
+            el: '#infoModal',
+            data: {
+                config_id: "",
+                channel_name: "",
+                domain: "",
+                website_name: "",
+                config_filename: "",
+                codeView: "",
+                msg: MSG,
+                isDeleteBtnDisabled: true,
+                isSaveBtnDisabled: true,
+                isCodeShow: true
+            },
+            methods: {
+                saveInfo: function () {
+                    saveInfo(this);
+                }
+            },
+            ready: function () {
+                //console.log("infoVue ready.");
+            }
+        });
+        //----------------------------------------------------------------------------
+        var removeVue = new Vue({
+            el: '#removeDialog',
+            data: {
+                use_cnt: 0,
+                config_id: "",
+                channels: [],
+                isRemoveBtnDisabled: false,
+                msg: ""
+            },
+            methods: {
+                removeInfo: function () {
+                    removeInfo(this);
+                }
+            }
+        });
+        //----------------------------------------------------------------------------
+        var recoveryVue = new Vue({
+            el: '#recoveryDialog',
+            data: {
+                use_cnt: 0,
+                config_id: "",
+                isRecoveryBtnDisabled: false,
+                msg: ""
+            },
+            methods: {
+                recoveryInfo: function () {
+                    recoveryInfo(this);
+                }
+            }
+        });
+        //----------------------------------------------------------------------------
+        var mainVue = new Vue({
+            el: '#section',
+            data: {
+                active_flag: "active",
+                searchConfigId: "",
+                searchDomain: "",
+                page: 1,
+                totalPages: 1,
+                isPaginatorShow: false,
+                searchCnt: 0,
+                result: [],
+                row: -1,
+                isSearchBtnDisabled: false
+            },
+            methods: {
+                showOpt: function (row) {
+                    this.row = row;
+                    var rowId = "#tr_" + row.toString();
+                    var config_id = $(rowId).children("td").eq(0).text();
+                    var opt = $(rowId).children("td").last();
+                    if (opt.html().length == 0) {
+                        if (this.active_flag == "active") {
+                            opt.html('<button id="dialogBtn" class="btn btn-success btn-xs" data-toggle="modal" data-target="#infoModal">编辑</button>&nbsp;&nbsp;' +
+                                '<button id="removeBtn" data-target="#removeDialog" data-toggle="modal" class="btn btn-warning btn-xs">停用</button>');
+                            $("#dialogBtn").bind("click", {rowId: rowId, obj: infoVue}, showInfoDialog);
+                            $("#removeBtn").bind("click", {config_id: config_id, obj: removeVue}, setRemoveDialog);
+                        } else {
+                            opt.html('<button id="dialogBtn" class="btn btn-success btn-xs" data-toggle="modal" data-target="#infoModal">查看</button>&nbsp;&nbsp;' +
+                                '<button id="recoveryBtn" data-target="#recoveryDialog" data-toggle="modal" class="btn btn-warning btn-xs">启用</button>');
+                            $("#dialogBtn").bind("click", {rowId: rowId, obj: infoVue}, showInfoDialog);
+                            $("#recoveryBtn").bind("click", {
+                                config_id: config_id,
+                                obj: recoveryVue
+                            }, setRecoveryDialog);
+                        }
+                    }
+                },
+                hideOpt: function (row) {
+                    this.row = row;
+                    var opt = $("#tr_" + row.toString()).children("td").last();
+                    if (opt.html().length != 0) {
+                        opt.html('');
+                        $("#dialogBtn").unbind("click");
+                    }
+                },
+                search: function () {
+                    initMain(this);
+                }
+            },
+            ready: function () {
+                initMain(this);
+            },
+            watch: {
+                page: function () {
+                    initMain(this);
+                }
+            }
+        });
+    </script>
+{% endblock body_tail %}

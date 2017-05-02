@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Django settings for backend project.
 
@@ -21,15 +22,22 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'sq!f#iw20wk@lsd7p2j9#8hz&uqq8-_358&3=_6@i&$=2pe4ce'
 
+# celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+# celery cache
+CELERY_RESULT_BACKEND = 'django-cache'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.16.223', '127.0.0.1','*']
+ALLOWED_HOSTS = ['192.168.16.223', '127.0.0.1', '*', '172.16.51.124']
+
+# django-celery
+
 
 # Application definition
 
 INSTALLED_APPS = (
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -37,19 +45,27 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'backend_admin',
+    'config',
+    'allsite',
+    'comments',
+    'channelConfigMgr',
     'rest_framework',
+    'django_celery_results',
 )
 
+
 MIDDLEWARE_CLASSES = (
+    # 'django.middleware.cache.UpdateCacheMiddleware',   # cache用
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware',   # cache用
 )
 
 # django_admin_bootstrapped
@@ -89,13 +105,40 @@ DATABASES = {
         'USER': 'root',
         'PASSWORD': 'zhxg_140101',
         'HOST': '192.168.16.223',
+        # 'PASSWORD': 'root',
+        # 'HOST': '127.0.0.1',
         'PORT': '',
     }
 }
 
 REST_FRAMEWORK = {
-    'PAGE_SIZE':20
+    'PAGE_SIZE': 20,
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
+        # 'rest_framework.renderers.XMLRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        # 'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
 }
+
+SESSION_COOKIE_AGE = 60*60*12
+
+
+CACHES = {
+    'default': {
+        # 'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        # 'LOCATION': 'unique-snowflake'
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+    }
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -117,6 +160,7 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale/'),)
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates'),]
 LOGIN_URL = 'backend_admin:login'
@@ -126,7 +170,7 @@ AUTH_USER_MODEL = 'backend_admin.User'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.163.com'
 EMAIL_PORT = 25  # SMTP端口
-EMAIL_HOST_USER = 'istartest@163.com' #我自己的邮箱
+EMAIL_HOST_USER = 'istartest@163.com'  # 我自己的邮箱
 EMAIL_HOST_PASSWORD = 'abcABC123'  # 我的邮箱密码,163邮箱为授权码
 EMAIL_SUBJECT_PREFIX = '智慧星光采集后台'  # 为邮件Subject-line前缀,默认是'[django]'
 EMAIL_USER_TLS = True

@@ -9,6 +9,11 @@
     margin-left: 10px;
 }
 
+/*清除浮动效果影响*/
+.no-float{
+    clear: both;
+}
+
 .no-display {
     display: none;
 }
@@ -18,9 +23,12 @@
 }
 
 .docBubble {
+    max-height: 300px;
+    overflow: scroll;
     position: absolute;
     text-align: left;
     background-color: lightyellow;
+
 }
 
 .ul-no-padding {

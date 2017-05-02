@@ -2,19 +2,17 @@
 
 from __future__ import absolute_import, division, print_function, with_statement
 
-from weixin import gen, ioloop
-from weixin.log import app_log
-from weixin.testing import AsyncTestCase, gen_test, ExpectLog
-from weixin.test.util import unittest, skipBefore35, exec_test
+from tornado import gen, ioloop
+from tornado.testing import AsyncTestCase, gen_test
+from tornado.test.util import unittest
+
 import contextlib
 import os
-import traceback
-import warnings
 
 
 @contextlib.contextmanager
 def set_environ(name, value):
-    old_value = os.environ.get(name)
+    old_value = os.environ.get('name')
     os.environ[name] = value
 
     try:
@@ -58,74 +56,10 @@ class AsyncTestCaseTest(AsyncTestCase):
         This test makes sure that a second call to wait()
         clears the first timeout.
         """
-        self.io_loop.add_timeout(self.io_loop.time() + 0.00, self.stop)
+        self.io_loop.add_timeout(self.io_loop.time() + 0.01, self.stop)
         self.wait(timeout=0.02)
         self.io_loop.add_timeout(self.io_loop.time() + 0.03, self.stop)
         self.wait(timeout=0.15)
-
-    def test_multiple_errors(self):
-        def fail(message):
-            raise Exception(message)
-        self.io_loop.add_callback(lambda: fail("error one"))
-        self.io_loop.add_callback(lambda: fail("error two"))
-        # The first error gets raised; the second gets logged.
-        with ExpectLog(app_log, "multiple unhandled exceptions"):
-            with self.assertRaises(Exception) as cm:
-                self.wait()
-        self.assertEqual(str(cm.exception), "error one")
-
-
-class AsyncTestCaseWrapperTest(unittest.TestCase):
-    def test_undecorated_generator(self):
-        class Test(AsyncTestCase):
-            def test_gen(self):
-                yield
-        test = Test('test_gen')
-        result = unittest.TestResult()
-        test.run(result)
-        self.assertEqual(len(result.errors), 1)
-        self.assertIn("should be decorated", result.errors[0][1])
-
-    @skipBefore35
-    def test_undecorated_coroutine(self):
-        namespace = exec_test(globals(), locals(), """
-        class Test(AsyncTestCase):
-            async def test_coro(self):
-                pass
-        """)
-
-        test_class = namespace['Test']
-        test = test_class('test_coro')
-        result = unittest.TestResult()
-
-        # Silence "RuntimeWarning: coroutine 'test_coro' was never awaited".
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            test.run(result)
-
-        self.assertEqual(len(result.errors), 1)
-        self.assertIn("should be decorated", result.errors[0][1])
-
-    def test_undecorated_generator_with_skip(self):
-        class Test(AsyncTestCase):
-            @unittest.skip("don't run this")
-            def test_gen(self):
-                yield
-        test = Test('test_gen')
-        result = unittest.TestResult()
-        test.run(result)
-        self.assertEqual(len(result.errors), 0)
-        self.assertEqual(len(result.skipped), 1)
-
-    def test_other_return(self):
-        class Test(AsyncTestCase):
-            def test_other_return(self):
-                return 42
-        test = Test('test_other_return')
-        result = unittest.TestResult()
-        test.run(result)
-        self.assertEqual(len(result.errors), 1)
-        self.assertIn("Return value from test method ignored", result.errors[0][1])
 
 
 class SetUpTearDownTest(unittest.TestCase):
@@ -181,17 +115,8 @@ class GenTest(AsyncTestCase):
         def test(self):
             yield gen.Task(self.io_loop.add_timeout, self.io_loop.time() + 1)
 
-        # This can't use assertRaises because we need to inspect the
-        # exc_info triple (and not just the exception object)
-        try:
+        with self.assertRaises(ioloop.TimeoutError):
             test(self)
-            self.fail("did not get expected exception")
-        except ioloop.TimeoutError:
-            # The stack trace should blame the add_timeout line, not just
-            # unrelated IOLoop/testing internals.
-            self.assertIn(
-                "gen.Task(self.io_loop.add_timeout, self.io_loop.time() + 1)",
-                traceback.format_exc())
 
         self.finished = True
 
@@ -229,50 +154,6 @@ class GenTest(AsyncTestCase):
                 test_short_timeout(self)
 
         self.finished = True
-
-    def test_with_method_args(self):
-        @gen_test
-        def test_with_args(self, *args):
-            self.assertEqual(args, ('test',))
-            yield gen.Task(self.io_loop.add_callback)
-
-        test_with_args(self, 'test')
-        self.finished = True
-
-    def test_with_method_kwargs(self):
-        @gen_test
-        def test_with_kwargs(self, **kwargs):
-            self.assertDictEqual(kwargs, {'test': 'test'})
-            yield gen.Task(self.io_loop.add_callback)
-
-        test_with_kwargs(self, test='test')
-        self.finished = True
-
-    @skipBefore35
-    def test_native_coroutine(self):
-        namespace = exec_test(globals(), locals(), """
-        @gen_test
-        async def test(self):
-            self.finished = True
-        """)
-
-        namespace['test'](self)
-
-    @skipBefore35
-    def test_native_coroutine_timeout(self):
-        # Set a short timeout and exceed it.
-        namespace = exec_test(globals(), locals(), """
-        @gen_test(timeout=0.1)
-        async def test(self):
-            await gen.sleep(1)
-        """)
-
-        try:
-            namespace['test'](self)
-            self.fail("did not get expected exception")
-        except ioloop.TimeoutError:
-            self.finished = True
-
 
 if __name__ == '__main__':
     unittest.main()

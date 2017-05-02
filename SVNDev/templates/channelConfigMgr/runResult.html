@@ -1,0 +1,303 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <style>
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    {% verbatim %}
+        <div id="main" class="inverse">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box box-success" style="margin-left:40px;margin-top:10px;width:95%;">
+                        <div class="box-header with-border" style="border-color: #1b6d85">
+                            <div class="form-group">
+                                <input class="pull-left col-md-5" style="height:34px;" value="[[ searchChannel ]]"
+                                       v-model="searchChannel" placeholder="必须设定频道URL，才能检索运行结果。">
+                                <button @click="search" class="pull-left btn btn-success"
+                                        style="margin-left: 20px;">检索
+                                </button>
+                                <label class="pull-right" style="margin-top: 5px;margin-right: 20px">
+                                    频道URL：[[searchChannel]] </label>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="comments_tab" class="table table-striped table-hover table-condensed"
+                                   style="table-layout:fixed">
+                                <thead>
+                                <tr>
+                                    <th style="width:15%">开始时间<span class="badge"> 共 [[ searchCnt ]] 条</span></th>
+                                    <th style="width:15%">结束时间</th>
+                                    <th style="width:10%">用 时</th>
+                                    <th style="width:8%">爬虫ID</th>
+                                    <th style="width:8%">配置名称</th>
+                                    <th style="width:8%">数据总数</th>
+                                    <th style="width:8%">新增数目</th>
+                                    <th style="width:10%">解析成功数目</th>
+                                    <th style="width:10%">解析失败数目</th>
+                                    <th style="width:10%">下载失败数目</th>
+                                    <th style="width:8%">代码错误</th>
+                                    <th style="width:10%"> 操 作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="info in result" id="tr_[[ $index ]]"
+                                    v-on:mouseover="showOpt($index)"
+                                    v-on:mouseleave="hideOpt($index)"
+                                    v-bind:color="color">
+                                    <td>[[ info.start_time ]]</td>
+                                    <td>[[ info.end_time ]]</td>
+                                    <td>[[ info.delta_time ]]</td>
+                                    <td>[[ info.spider_id ]]</td>
+                                    <td>[[ info.config_id ]]</td>
+                                    <td>[[ info.total_data_num ]]</td>
+                                    <td>[[ info.new_count ]]</td>
+                                    <td>[[ info.parse_success_num ]]</td>
+                                    <td>[[ info.parse_failed_num ]]</td>
+                                    <td>[[ info.download_failed_num ]]</td>
+                                    <td>[[ info.code_error_flag ]]</td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- paginator -->
+                        <paginator v-show="isPaginatorShow" v-bind:current.sync="page" v-bind:total.sync="totalPages">
+                        </paginator>
+                        <!-- paginator end -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main end -->
+        <!-- modal-dialog -->
+        <div id="errorDialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="box box-danger">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                    style="color:red">&times;
+                            </button>
+                            <h3 class="modal-title">错误详情</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div class="box-body">
+                                <label class="col-md-12 control-label">代码内容</label>
+                                <div class="col-md-12">
+                                    <textarea class="form-control" rows="15" readonly>[[ code ]]</textarea>
+                                </div>
+                                <label class="col-md-12 control-label">详情页URL</label>
+                                <div class="col-md-12">
+                                    <input type="text" class="form-control" v-model="url"
+                                           value="[[ url ]]" readonly>
+                                </div>
+                                <label class="col-md-12 control-label">错误信息</label>
+                                <div class="col-md-12">
+                                    <textarea class="form-control" rows="10" readonly>[[ error ]]</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="direct-chat-messages col-md-8" style="height:70px;margin-top:0px;">
+                                <div class="direct-chat-msg">
+                                    <img class="direct-chat-img" src="/static/dist/img/user2-160x160.jpg"
+                                         alt="message user image" style="width:35px;height:35px;">
+                                    <div class="direct-chat-text pull-left" style="margin-left:10px;height:30px;">
+                                        [[ msg ]]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 pull-right" style="margin-top:20px;">
+                                <button v-on:click="nextErrorInfo" v-bind:disabled="isNextBtnDisabled"
+                                        class="btn btn-sm btn-danger">查看一条
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- dialog end -->
+    {% endverbatim %}
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- vue.js -->
+    <script src="{% static 'plugins/vue1/vue.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/channels/js/channels_util.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/channels/js/channels_component.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#addInfoBtn").click(function () {
+                clearInfo();
+            });
+        });
+
+        function getInfoList(obj) {
+            console.log("getInfoList start.");
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/runResultListAPI/',
+                type: 'GET',
+                data: {
+                    searchChannel: obj.searchChannel,
+                    page: obj.page
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("runResultListAPI:" + err);
+                },
+                success: function (data, status) {
+                    var items = data['ret']['result'];
+                    console.log(items);
+                    for (var j = 0; j < PAGE_SIZE; j++) {
+                        obj.result.shift();
+                    }
+                    for (var i = 0; i < items.length; i++) {
+                        obj.result.push(items[i]);
+                    }
+                    console.log("runResultListAPI end.");
+                }
+            });
+        }
+
+        function getPaginator(obj) {
+            //console.log("getPaginator start.");
+            obj.isPaginatorShow = false;
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/channels/runResultPaginatorAPI/',
+                type: 'GET',
+                data: {
+                    searchChannel: obj.searchChannel,
+                    page: obj.page
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("runResultPaginatorAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    //console.log('getPaginator:', data);
+                    obj.searchCnt = data['search_cnt'];
+                    obj.page = data['current_page'];
+                    obj.totalPages = data['total_pages'];
+                    obj.hasPrev = data['has_prev'];
+                    obj.hasNext = data['has_next'];
+                    if (obj.searchCnt > 0) obj.isPaginatorShow = true;
+                    //console.log("runResultPaginatorAPI end.");
+                }
+            });
+        }
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) {
+                return decodeURI(r[2]);
+            }
+            return null;
+        }
+
+        function initMain(obj) {
+            var searchChannel = getQueryString("searchChannel");
+            if (searchChannel != null) {
+                obj.searchChannel = searchChannel;
+            }
+            getInfoList(obj);
+            getPaginator(obj);
+        }
+
+        function nextErrorInfo(obj) {
+            if (obj.code_error_idx == obj.code_error.length) {
+                obj.code_error_idx = 0;
+            }
+            obj.url = obj.code_error[obj.code_error_idx].url;
+            obj.error = obj.code_error[obj.code_error_idx].error;
+            obj.msg = "这是" + obj.code_error.length + "条错误中的第" + (obj.code_error_idx + 1) + "条信息。";
+            obj.code_error_idx++;
+        }
+        //----------------------------------------------------------------------------
+        Vue.config.delimiters = ['[[', ']]'];
+        //----------------------------------------------------------------------------
+        var errorVue = new Vue({
+            el: '#errorDialog',
+            data: {
+                code_error: [],
+                code: "",
+                error: "",
+                url: "",
+                code_error_idx: 0,
+                isNextBtnDisabled: false,
+                msg: "请点击查看。"
+            },
+            methods: {
+                nextErrorInfo: function () {
+                    nextErrorInfo(this);
+                }
+            }
+        });
+        //----------------------------------------------------------------------------
+        var mainVue = new Vue({
+            el: '#main',
+            data: {
+                searchChannel: "",
+                page: 1,
+                totalPages: 1,
+                hasPrev: false,
+                hasNext: false,
+                isPaginatorShow: false,
+                searchCnt: 0,
+                result: [],
+                row: -1
+            },
+            methods: {
+                showOpt: function (row) {
+                    mainVue.row = row;
+                    var rowId = "#tr_" + row.toString();
+                    var opt = $(rowId).children("td").last();
+                    if (opt.html().length == 0) {
+                        var hasError = $(rowId).children("td").eq(-2).text();
+                        if (hasError == "有") {
+                            opt.html('<button data-toggle="modal" data-target="#errorDialog" class="btn btn-danger btn-xs">错误详情</button>');
+                            errorVue.code = mainVue.result[mainVue.row].code;
+                            errorVue.code_error = mainVue.result[mainVue.row].code_error;
+                            errorVue.code_error_idx = 0;
+                        }
+                    }
+                },
+                hideOpt: function (row) {
+                    mainVue.row = row;
+                    var opt = $("#tr_" + row.toString()).children("td").last();
+                    if (opt.html().length != 0) {
+                        opt.html('');
+                        $("#dialogBtn").unbind("click");
+                    }
+                },
+                search: function () {
+                    getInfoList(this);
+                    getPaginator(this);
+                }
+            },
+            ready: function () {
+                initMain(this);
+            },
+            watch: {
+                page: function () {
+                    initMain(this);
+                }
+            }
+        });
+        //----------------------------------------------------------------------------
+    </script>
+{% endblock body_tail %}

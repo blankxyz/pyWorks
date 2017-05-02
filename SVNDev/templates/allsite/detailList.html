@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block header_tail %}
-    <!-- page script -->
     <style>
         .badge_ok {
             background-color: forestgreen;
@@ -12,8 +11,8 @@
             background-color: crimson;
         }
     </style>
-    <!-- DataTables -->
-    <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+    <!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="{% static 'plugins/iCheck/all.css' %}">
 {% endblock header_tail %}
 
 {% block section_content %}
@@ -21,24 +20,26 @@
     <div id="sitelist" class="inverse">
         <div class="row">
             <div class="col-xs-12">
-                <div class="box box-warning" style="margin-left:50px;margin-top:20px;width:95%;">
+                <div class="box box-warning" style="margin-left:40px;margin-top:10px;width:95%;">
                     <div class="tabbable">
                         <div class="tab-pane active" id="panel_hubPage">
                             <div class="box-header with-border" style="border-color: #f79709;">
                                 <form action="/allsite/detailList/" method="post">
                                     {% csrf_token %}
                                     <div style="margin-top:0px">
-                                        <input name="search" class="pull-left" size="40px"
+                                        <input id="search" name="search" class="pull-left" size="40px"
                                                style="margin-left:10px;height:30px;"
                                                value="{{ search }}">
-                                        <input id="selectCond" name="selectCond" type="hidden" value="">
-                                        <button class="pull-left btn btn-sm btn-warning"
-                                                style="margin-left:10px;">检索
+                                        <input id="selectCond" name="selectCond" type="hidden" value="{{ selectCond }}">
+                                        {#<input id="hubPage" name="hubPage" type="hidden" value="{{ hubPage }}">#}
+                                        <button id="searchBtn" class="pull-left btn btn-sm btn-warning"
+                                                style="margin-left:10px;" disabled="true">检索
                                         </button>
                                     </div>
-                                    <div style="margin-top:10px">
+                                    <div style="margin-top:10px;">
                                         <a id="clearAll" href="javascript:void(0);" style="margin-left:70px;">
-                                            <span class="badge" style="background-color:darkgray;">重置</span>
+                                            <span class="badge"
+                                                  style="background-color:darkgray;font-size:medium">重置</span>
                                         </a>
                                         <label id="showCond" style="margin-left: 70px"></label>
                                     </div>
@@ -51,12 +52,12 @@
                                     <thead>
                                     <tr>
                                         <th style="width:30%">
-                                            <div class="row" style="margin-left: 10px"><h4>
-                                                今日采集详情页URL（{{ all_cnt }}件）</h4>
+                                            <div class="row" style="margin-left: 10px"><h4> 今日采集详情页URL</h4>
                                             </div>
                                             <div class="row" style="margin-left: 10px">
-                                                <span class="badge badge_ok">正</span>
-                                                <span class="badge badge_ng">误</span>
+                                                <span class="badge badge_ok">同</span>
+                                                <span class="badge badge_ng">异</span>
+                                                <span id="search_cnt" class="badge">计算中...</span>
                                             </div>
                                         </th>
                                         <th style="width:10%">
@@ -68,13 +69,13 @@
                                             <div class="row"><h4><b>整体</b></h4></div>
                                             <div class="row">
                                                 <a id="_allOK" href="javascript:void(0);">
-                                                    <span class="badge badge_ok">
-                                                        {{ all_ok_cnt }}
+                                                    <span id="all_ok_cnt" class="badge badge_ok">
+                                                        同
                                                     </span>
                                                 </a>
                                                 <a id="_allNG" href="javascript:void(0);">
-                                                    <span class="badge badge_ng">
-                                                        {{ all_ng_cnt }}
+                                                    <span id="all_ng_cnt" class="badge badge_ng">
+                                                        异
                                                     </span>
                                                 </a>
                                             </div>
@@ -83,13 +84,13 @@
                                             <div class="row"><h4>标题</h4></div>
                                             <div class="row">
                                                 <a id="_titleOK" href="#">
-                                                    <span class="badge badge_ok">
-                                                        {{ title_ok_cnt }}
+                                                    <span id="title_ok_cnt" class="badge badge_ok">
+                                                        同
                                                     </span>
                                                 </a>
                                                 <a id="_titleNG" href="javascript:void(0);">
-                                                    <span class="badge badge_ng">
-                                                        {{ title_ng_cnt }}
+                                                    <span id="title_ng_cnt" class="badge badge_ng">
+                                                        异
                                                     </span>
                                                 </a>
                                             </div>
@@ -98,13 +99,13 @@
                                             <div class="row"><h4>内容</h4></div>
                                             <div class="row">
                                                 <a id="_contentOK" href="javascript:void(0);">
-                                                    <span class="badge badge_ok">
-                                                        {{ content_ok_cnt }}
+                                                    <span id="content_ok_cnt" class="badge badge_ok">
+                                                        同
                                                     </span>
                                                 </a>
                                                 <a id="_contentNG" href="javascript:void(0);">
-                                                    <span class="badge badge_ng">
-                                                        {{ content_ng_cnt }}
+                                                    <span id="content_ng_cnt" class="badge badge_ng">
+                                                        异
                                                     </span>
                                                 </a>
                                             </div>
@@ -113,13 +114,13 @@
                                             <div class="row"><h4>来源</h4></div>
                                             <div class="row">
                                                 <a id="_sourceOK" href="javascript:void(0);">
-                                                    <span class="badge badge_ok">
-                                                        {{ source_ok_cnt }}
+                                                    <span id="source_ok_cnt" class="badge badge_ok">
+                                                        同
                                                     </span>
                                                 </a>
                                                 <a id="_sourceNG" href="javascript:void(0);">
-                                                    <span class="badge badge_ng">
-                                                        {{ source_ng_cnt }}
+                                                    <span id="source_ng_cnt" class="badge badge_ng">
+                                                        异
                                                     </span>
                                                 </a>
                                             </div>
@@ -128,13 +129,13 @@
                                             <div class="row"><h4>时间</h4></div>
                                             <div class="row">
                                                 <a id="_ctimeOK" href="javascript:void(0);">
-                                                    <span class="badge badge_ok">
-                                                        {{ ctime_ok_cnt }}
+                                                    <span id="ctime_ok_cnt" class="badge badge_ok">
+                                                        同
                                                     </span>
                                                 </a>
                                                 <a id="_ctimeNG" href="javascript:void(0);">
-                                                    <span class="badge badge_ng">
-                                                        {{ ctime_ng_cnt }}
+                                                    <span id="ctime_ng_cnt" class="badge badge_ng">
+                                                        异
                                                     </span>
                                                 </a>
                                             </div>
@@ -156,50 +157,56 @@
                                             <td>
                                                 <span class="glyphicon {% if info.all_ok %} glyphicon-ok {% else %} glyphicon-remove {% endif %}"></span>
                                             </td>
-                                            <td>{{ info.compare_title|floatformat:0 }}</td>
-                                            <td>{{ info.compare_content|floatformat:0 }}</td>
-                                            <td>{{ info.compare_source|floatformat:0 }}</td>
-                                            <td>{{ info.compare_ctime|floatformat:0 }}</td>
+                                            <td style="color:{% if info.compare_title > 80 %}green{% else %}red{% endif %}">
+                                                {{ info.compare_title|floatformat:0 }}
+                                            </td>
+                                            <td style="color:{% if info.compare_content > 80 %}green{% else %}red{% endif %}">
+                                                {{ info.compare_content|floatformat:0 }}
+                                            </td>
+                                            <td style="color:{% if info.compare_source > 80 %}green{% else %}red{% endif %}">
+                                                {{ info.compare_source|floatformat:0 }}
+                                            </td>
+                                            <td style="color:{% if info.compare_ctime > 80 %}green{% else %}red{% endif %}">
+                                                {{ info.compare_ctime|floatformat:0 }}
+                                            </td>
                                             <td></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="box-footer with-border" style="border-color: #f79709;">
-                                <ul class="pagination pagination-bg">
+                            <div id="pageDiv" class="box-footer with-border" style="border-color:#f79709;height:60px">
+                                <ul class="pagination pagination-bg" style="margin-top:5px">
                                     <li>
-                                        <a href="?search={{ search }}&selectCond={{ selectCond }}&page=1"> 首页</a>
+                                        <a id="firstPage" href="#"> 首页</a>
                                     </li>
-                                    {% if index.has_previous %}
-                                        <li>
-                                            <a href="?search={{ search }}&selectCond={{ selectCond }}&page={{ index.previous_page_number }}">
-                                                上一页
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li>
-                                            <a href="#"> 上一页</a>
-                                        </li>
-                                    {% endif %}
                                     <li>
-                                        <span>{{ index.number }}页 / 共{{ index.paginator.num_pages }}页</span>
+                                        <a id="prevPage" href="#"> 上一页 </a>
                                     </li>
-                                    {% if index.has_next %}
-                                        <li>
-                                            <a href="?search={{ search }}&selectCond={{ selectCond }}&page={{ index.next_page_number }}">
-                                                下一页
-                                            </a>
-                                        </li>
-                                    {% else %}
-                                        <li>
-                                            <a href="#"> 下一页</a>
-                                        </li>
-                                    {% endif %}
+                                    <li class="disabled">
+                                        <span>第 {{ page }} 页</span><span id="pageNum"> 共 页</span>
+                                    </li>
                                     <li>
-                                        <a href="?search={{ search }}&selectCond={{ selectCond }}&page={{ index.paginator.num_pages }}">
-                                            末页
-                                        </a>
+                                        <a id="nextPage" href="#"> 下一页 </a>
+                                    </li>
+                                    <li>
+                                        <a id="lastPage" href="#"> 末页 </a>
+                                    </li>
+                                    <li>
+                                        <div class="col-md-1">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <input id="gotoPageNum" type="text" placeholder="  跳转页"
+                                                           style="height:30px;width:60px"
+                                                           data-inputmask='"mask": "999999"' data-mask>
+                                                    <div class="input-group-addon">
+                                                        <a id="gotoPage" href="javascript:gotoPage();">
+                                                            <i class="glyphicon glyphicon-play"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </li>
                                 </ul>
                             </div>
@@ -213,87 +220,135 @@
 
     <!-- modal-dialog start -->
     <div class="modal fade" id="diffModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" style="width:1100px;height:800px;">
+        <div class="modal-dialog" style="width:1100px;">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h3><a id="detail_url" class="modal-title" href="#" target="_blank">链接</a></h3>
                 </div>
-                {% for info in result %}
-                    <div id="dialog{{ forloop.counter }}" class="modal-body">
-                        <!-- left column -->
-                        <div class="col-md-6">
-                            <div class="box box-primary">
-                                <div class="box-header with-border">
-                                    <h3 class="box-title">配置采集结果（<label
-                                            id="direct_config_id">{{ info.direct_config_id }}</label>）
-                                    </h3>
-                                </div>
-                                <div class="box-body">
-                                    <div class="form-group">
-                                        <label class="control-label"> 标题</label>
-                                        <input id="direct_title" type="text" class="form-control"
-                                               readonly="true" value="{{ info.direct_title }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label> 内容</label>
-                                    <textarea id="direct_content" class="form-control" rows="10" readonly="true">
-                                    {{ info.direct_content }}
-                                    </textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="control-label"> 来源</label>
-                                        <input id="direct_source" type="text" class="form-control"
-                                               readonly="true" value="{{ info.direct_source }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="control-label"> 时间</label>
-                                        <input id="direct_ctime" type="text" class="form-control"
-                                               readonly="true" value="{{ info.direct_ctime }}">
-                                    </div>
-                                </div>
+                <div id="dialog" class="modal-body">
+                    <!-- left column -->
+                    <div class="col-md-6">
+                        <div class="box box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">配置采集结果（<label id="direct_config_id">未知</label>）
+                                </h3>
                             </div>
-                        </div>
-                        <!-- right column -->
-                        <div class="col-md-6">
-                            <div class="box box-warning">
-                                <div class="box-header with-border">
-                                    <h3 class="box-title">全站采集结果 (<label>{{ allsite_config_id }}</label>)</h3>
+                            <div class="box-body">
+                                <div class="form-group">
+                                    <label class="control-label"> 标题</label>
+                                    <input id="direct_title" type="text" class="form-control"
+                                           readonly=true value="未知">
                                 </div>
-                                <div class="box-body">
-                                    <div id="dialog_allsite_title" class="form-group {% if info.compare_title > 80 %} has-success
-                                {% else %} has-error {% endif %}">
-                                        <label class="control-label">标题</label>
-                                        <input id="allsite_title" type="text" class="form-control"
-                                               readonly="true" value="{{ info.title }}">
-                                    </div>
-                                    <div id="dialog_allsite_content" title=""
-                                         class="form-group {% if info.compare_content > 80 %} has-success
-                                {% else %} has-error {% endif %}">
-                                        <label>内容</label>
-                                    <textarea id="allsite_content" class="form-control" rows="10" readonly="true">
-                                    {{ info.content|removetags:"br p div strong font span a li ul"}}
-                                    </textarea>
-                                    </div>
-                                    <div id="dialog_allsite_source" class="form-group {% if info.compare_source > 80 %} has-success
-                                {% else %} has-error {% endif %}">
-                                        <label class="control-label">来源</label>
-                                        <input id="allsite_source" type="text" class="form-control"
-                                               readonly="true" value="{{ info.source }}">
-                                    </div>
-                                    <div id="dialog_allsite_ctime" class="form-group {% if info.compare_ctime > 80 %} has-success
-                                 {% else %} has-error {% endif %}">
-                                        <label class="control-label">时间</label>
-                                        <input id="allsite_ctime" type="text" class="form-control"
-                                               readonly="true" value="{{ info.ctime }}">
-                                    </div>
+                                <div class="form-group">
+                                    <label> 内容</label>
+                                    <textarea id="direct_content" class="form-control" rows="10" readonly="true">未知</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label"> 来源</label>
+                                    <input id="direct_source" type="text" class="form-control"
+                                           readonly="true" value="未知">
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label"> 时间</label>
+                                    <input id="direct_ctime" type="text" class="form-control"
+                                           readonly="true" value="未知">
                                 </div>
                             </div>
                         </div>
                     </div>
-                {% endfor %}
+                    <!-- right column -->
+                    <div class="col-md-6">
+                        <div class="box box-warning">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">全站采集结果 (<label>{{ allsite_config_id }}</label>)
+                                    <span class="badge badge_ok">同</span>
+                                    <span class="badge badge_ng">异</span>
+                                </h3>
+                            </div>
+                            <div class="box-body">
+                                <div id="dialog_allsite_title" class="form-group has-success">
+                                    <label class="control-label">
+                                        标题&nbsp;&nbsp;
+                                    </label>
+                                    <label style="color: green">
+                                        <input type="radio" id="dialog_correct_title_ok" name="dialog_correct_title"
+                                               class="flat-green" value="ok">正
+                                    </label>
+                                    <label style="color: red">
+                                        <input type="radio" id="dialog_correct_title_ng" name="dialog_correct_title"
+                                               class="flat-red" value="ng">误
+                                    </label>
+                                    <input id="allsite_title" type="text" class="form-control"
+                                           readonly="true" value="">
+                                </div>
+                                <div id="dialog_allsite_content" title="" class="form-group has-success">
+                                    <label>
+                                        内容&nbsp;&nbsp;
+                                    </label>
+                                    <label style="color: green">
+                                        <input type="radio" id="dialog_correct_content_ok" name="dialog_correct_content"
+                                               class="flat-green" value="ok">正
+                                    </label>
+                                    <label style="color: red">
+                                        <input type="radio" id="dialog_correct_content_ng" name="dialog_correct_content"
+                                               class="flat-red" value="ng">误
+                                    </label>
+                                    <textarea id="allsite_content" class="form-control" rows="10" readonly="true">
+                                    </textarea>
+                                </div>
+                                <div id="dialog_allsite_source" class="form-group has-success">
+                                    <label class="control-label">
+                                        来源&nbsp;&nbsp;
+                                    </label>
+                                    <label style="color: green">
+                                        <input type="radio" id="dialog_correct_source_ok" name="dialog_correct_source"
+                                               class="flat-green" value="ok">正
+                                    </label>
+                                    <label style="color: red">
+                                        <input type="radio" id="dialog_correct_source_ng" name="dialog_correct_source"
+                                               class="flat-red" value="ng">误
+                                    </label>
+                                    <input id="allsite_source" type="text" class="form-control"
+                                           readonly="true" value="">
+                                </div>
+                                <div id="dialog_allsite_ctime" class="form-group has-success">
+                                    <label class="control-label">
+                                        时间&nbsp;&nbsp;
+                                    </label>
+                                    <label style="color: green">
+                                        <input type="radio" id="dialog_correct_ctime_ok" name="dialog_correct_ctime"
+                                               class="flat-green" value="ok">正
+                                    </label>
+                                    <label style="color: red">
+                                        <input type="radio" id="dialog_correct_ctime_ng" name="dialog_correct_ctime"
+                                               class="flat-red" value="ng">误
+                                    </label>
+                                    <input id="allsite_ctime" type="text" class="form-control"
+                                           readonly="true" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                    <div class="direct-chat-messages col-md-6" style="height:100px;margin-top: 0px;">
+                        <div class="direct-chat-msg">
+                            <img class="direct-chat-img" src="{% static "dist/img/user2-160x160.jpg" %}"
+                                 alt="message user image">
+                            <div class="direct-chat-text pull-left" style="margin-left: 10px;">
+                                注）未做选择保存时，默认保存为“正”。
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 pull-right">
+                        <button id="dialog_save" type="button" class="btn btn-warning" data-dismiss="modal"
+                                style="margin-top: 20px;">保存
+                        </button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" style="margin-top: 20px;">
+                            取消
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -302,74 +357,267 @@
 {% endblock section_content %}
 
 {% block jquery_js %}
-    <!-- DataTables -->
-    <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+    <!-- InputMask -->
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.date.extensions.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.extensions.js' %}"></script>
+    <script src="{% static 'plugins/iCheck/icheck.min.js' %}"></script>
 {% endblock jquery_js %}
 
 {% block body_tail %}
-
+    <script type="text/javascript" src="{% static 'backend/allsite/js/allsite_util.js' %}"></script>
     <script type="text/javascript">
-        $(document).ready(function () {
+        function getDialogInfo(event) {
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/allsite/getDetailDialogInfoAPI/',
+                type: 'POST',
+                data: {
+                    url: event.data.detail_url
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("getDetailDialogInfoAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    console.log(data);
+                    $('#direct_config_id').text(data['direct_config_id']);
 
-            $('#selectCond').val(window.localStorage.cond);
+                    var arr = ["title", "content", "source", "ctime"];
+                    arr.forEach(function (part, index) {
+                        // 填充 modal-dialog
+                        $('#allsite_' + part).val(data[part]);
+                        $('#direct_' + part).val(data['direct_' + part]);
 
-            function setDialogInfo(detail_url) {
+                        if (data[part + '_ok'] == true) {
+                            $("#dialog_allsite_" + part).attr("class", "form-group has-success");
+                        } else {
+                            $("#dialog_allsite_" + part).attr("class", "form-group has-error");
+                        }
+
+                        if (data['correct_' + part] == 'ok') {
+                            $("#dialog_correct_" + part + "_ok").attr("checked", "true");
+                            $("#dialog_correct_" + part + "_ng").removeAttr("checked");
+                        } else if (data['correct_' + part] == 'ng') {
+                            $("#dialog_correct_" + part + "_ng").attr("checked", "true");
+                            $("#dialog_correct_" + part + "_ok").removeAttr("checked");
+                        } else {
+                            $("#dialog_correct_" + part + "_ok").removeAttr("checked");
+                            $("#dialog_correct_" + part + "_ng").removeAttr("checked");
+                        }
+                    });
+
+                    $('input[type="radio"].flat-red').iCheck({
+                        radioClass: 'iradio_flat-red'
+                    });
+                    $('input[type="radio"].flat-green').iCheck({
+                        radioClass: 'iradio_flat-green'
+                    });
+                }
+            });
+        }
+
+        function getDetailPartCnt(part, searchCnt) {
+            if (searchCnt == 0) {
+                $('#' + part + '_ok_cnt').text(0);
+                $('#' + part + '_ng_cnt').text(0);
+                window.sessionStorage.setItem(part + '_ok_cnt', 0);
+                window.sessionStorage.setItem(part + '_ng_cnt', 0);
+            } else {
                 $.ajaxSetup({
-                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
                 });
-
                 $.ajax({
-                    url: '/allsite/getDetailDialogInfo/',
+                    url: '/allsite/getDetailPartCntAPI/',
                     type: 'POST',
                     data: {
-                        url: detail_url
+                        search: $("#search").val(),
+                        hubPage: getQueryString("hubPage"),
+                        select_cond: $('#selectCond').val(),
+                        part: part,
+                        searchCnt: searchCnt
                     },
                     dataType: "json",
                     error: function (xhr, err) {
-                        alert(err);
+                        //alert("getDetailPartCntAPI:" + err);
                     },
                     success: function (data, textStatus) {
-                        // 填充 modal-dialog
-                        $('#allsite_title').val(data['title']);
-                        $('#allsite_content').val(data['content']);
-                        $('#allsite_source').val(data['source']);
-                        $('#allsite_ctime').val(data['ctime']);
-
-                        $('#direct_config_id').text(data['direct_config_id']);
-                        $('#direct_title').val(data['direct_title']);
-                        $('#direct_content').val(data['direct_content']);
-                        $('#direct_source').val(data['direct_source']);
-                        $('#direct_ctime').val(data['direct_ctime']);
-
-                        //$('#dialog_allsite_content').attr("title", data['content']);
-                        // $('#dialog_allsite_title').removeClass('has-success has-error');
-                        // $('#dialog_allsite_content').removeClass('has-success has-error');
-                        // $('#dialog_allsite_source').removeClass('has-success has-error');
-                        // $('#dialog_allsite_ctime').removeClass('has-success has-error');
-
-                        // if (data['title_ok']) {
-                        //     $('#dialog_allsite_title').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_title').addClass('has-error');
-                        // }
-                        // if (data['content_ok']) {
-                        //     $('#dialog_allsite_content').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_content').addClass('has-error');
-                        // }
-                        // if (data['source_ok']) {
-                        //     $('#dialog_allsite_source').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_source').addClass('has-error');
-                        // }
-                        // if (data['ctime_ok']) {
-                        //     $('#dialog_allsite_ctime').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_ctime').addClass('has-error');
-                        // }
+                        $('#' + part + '_ok_cnt').text(data['part_ok_cnt']);
+                        $('#' + part + '_ng_cnt').text(data['part_ng_cnt']);
+                        window.sessionStorage.setItem(part + '_ok_cnt', data['part_ok_cnt']);
+                        window.sessionStorage.setItem(part + '_ng_cnt', data['part_ng_cnt']);
                     }
                 });
+            }
+        }
+
+        function getDetailSearchCnt() {
+            $('#pageDiv').hide();
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/allsite/getDetailSearchCntAPI/',
+                type: 'POST',
+                data: {
+                    search: $("#search").val(),
+                    hubPage: getQueryString("hubPage"),
+                    select_cond: window.sessionStorage.getItem("selectCond"),
+                    page_num: 1
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    //alert("getDetailSearchCntAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    var searchCnt = data['search_cnt'];
+                    var search = window.sessionStorage.getItem("search");
+                    var selectCond = window.sessionStorage.getItem("selectCond");
+                    if (selectCond == null) {
+                        selectCond = "";
+                    }
+                    window.sessionStorage.setItem('search_cnt', searchCnt);
+                    window.sessionStorage.setItem("total_pages", data['total_pages']);
+
+                    $('#search_cnt').text("共" + searchCnt + "条");
+
+                    getDetailPartCnt("all", searchCnt);
+                    getDetailPartCnt("title", searchCnt);
+                    getDetailPartCnt("content", searchCnt);
+                    getDetailPartCnt("source", searchCnt);
+                    getDetailPartCnt("ctime", searchCnt);
+
+                    setPaginator(searchCnt, $('#search').val(), selectCond, "", data['current_page'], data['total_pages']);
+
+                    $("#searchBtn").removeAttr("disabled");
+                }
+            });
+        }
+
+        function drawSessionStorageSelectCond() {
+            var cond = window.sessionStorage.getItem("selectCond");
+            if (cond == null) return;
+
+            $('#showCond').html('');
+            var condList = cond.split("_");
+            for (var i = 0; i < condList.length; i++) {
+                var value = condList[i];
+                if (value.trim() != '') {
+                    var f = value.substring(0, value.length - 2); // title content author ...
+                    var t = value.substring(value.length - 2); // OK NG
+                    var fName = '';
+                    var color = '';
+
+                    if (t == 'OK') {
+                        color = 'forestgreen';
+                    } else {
+                        color = 'crimson';
+                    }
+                    switch (f) {
+                        case 'title':
+                            fName = '标题';
+                            break;
+                        case 'content':
+                            fName = '内容';
+                            break;
+                        case 'source':
+                            fName = '来源';
+                            break;
+                        case 'author':
+                            fName = '作者';
+                            break;
+                        case 'ctime':
+                            fName = '时间';
+                            break;
+                        default:
+                            fName = '整体';
+                    }
+                    var item = '<span class="badge" style="margin:5px;background-color:' + color + ';">' + fName + '</span>';
+                    $('#showCond').append(item);
+                }
+            }
+        }
+
+        function saveManualCorrectInfo() {
+            var direct_title = true;
+            var direct_content = true;
+            var direct_source = true;
+            var direct_ctime = true;
+
+            if ($("#dialog_allsite_title").attr("class").indexOf("error") >= 0) {
+                direct_title = false;
+            }
+            if ($("#dialog_allsite_content").attr("class").indexOf("error") >= 0) {
+                direct_content = false;
+            }
+            if ($("#dialog_allsite_source").attr("class").indexOf("error") >= 0) {
+                direct_source = false;
+            }
+            if ($("#dialog_allsite_ctime").attr("class").indexOf("error") >= 0) {
+                direct_ctime = false;
+            }
+
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/allsite/setDetailCorrectInfoAPI/',
+                type: 'POST',
+                data: {
+                    url: $("#detail_url").text().replace(/(\s*)|(\s$)|[\r\n]/g, ""),
+                    direct_title: $("#dialog_allsite_title").attr("class").indexOf("has-success") >= 0,
+                    direct_content: $("#dialog_allsite_content").attr("class").indexOf("has-success") >= 0,
+                    direct_source: $("#dialog_allsite_source").attr("class").indexOf("has-success") >= 0,
+                    direct_ctime: $("#dialog_allsite_ctime").attr("class").indexOf("has-success") >= 0,
+                    config_id: $("#direct_config_id").text(),
+                    correct_title: $("input[name='dialog_correct_title']:checked").val(),
+                    correct_content: $("input[name='dialog_correct_content']:checked").val(),
+                    correct_source: $("input[name='dialog_correct_source']:checked").val(),
+                    correct_ctime: $("input[name='dialog_correct_ctime']:checked").val()
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    console.log("getDetailSearchCntAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    console.log("getDetailSearchCntAPI: ok");
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            var search = $("#search").val();
+            var selectCond = $("#selectCond").val();
+            var currentPage = getQueryString("page");
+            var totalPages = window.sessionStorage.getItem("total_pages");
+
+
+            window.sessionStorage.setItem("search", search);
+            window.sessionStorage.setItem("selectCond", selectCond);
+
+            $("#gotoPageNum").inputmask("99999", {showMaskOnFocus: false, showMaskOnHover: false, placeholder: ""});
+
+            if (currentPage != null) {
+                //console.log("direct");
+                $('#search_cnt').text("共" + window.sessionStorage.getItem("search_cnt") + "条");
+                $('#all_ok_cnt').text(window.sessionStorage.getItem("all_ok_cnt"));
+                $('#all_ng_cnt').text(window.sessionStorage.getItem("all_ng_cnt"));
+                $('#title_ok_cnt').text(window.sessionStorage.getItem("title_ok_cnt"));
+                $('#title_ng_cnt').text(window.sessionStorage.getItem("title_ng_cnt"));
+                $('#content_ok_cnt').text(window.sessionStorage.getItem("content_ok_cnt"));
+                $('#content_ng_cnt').text(window.sessionStorage.getItem("content_ng_cnt"));
+                $('#source_ok_cnt').text(window.sessionStorage.getItem("source_ok_cnt"));
+                $('#source_ng_cnt').text(window.sessionStorage.getItem("source_ng_cnt"));
+                $('#ctime_ok_cnt').text(window.sessionStorage.getItem("ctime_ok_cnt"));
+                $('#ctime_ng_cnt').text(window.sessionStorage.getItem("ctime_ng_cnt"));
+
+                setPaginator(window.sessionStorage.getItem("search_cnt"), search, selectCond, "", currentPage, totalPages);
+            }
+            else {
+                //console.log("refresh");
+                getDetailSearchCnt();
             }
 
             $('tr').mouseover(function () {
@@ -378,39 +626,6 @@
                 for (var i = 1; i <= col_total; i++) {
                     if (i == col) {
                         $('#dialog' + i).show();
-
-                        // $('#dialog_allsite_title').removeClass('has-success has-error');
-                        // $('#dialog_allsite_content').removeClass('has-success has-error');
-                        // $('#dialog_allsite_source').removeClass('has-success has-error');
-                        // $('#dialog_allsite_ctime').removeClass('has-success has-error');
-
-                        // var title_per = $(this).children("td:eq(3)").text();
-                        // if (parseInt(title_per)>80) {
-                        //     $('#dialog_allsite_title').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_title').addClass('has-error');
-                        // }
-
-                        // var content_per = $(this).children("td:eq(4)").text();
-                        // if (parseInt(content_per)>80) {
-                        //     $('#dialog_allsite_content').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_content').addClass('has-error');
-                        // }
-
-                        // var source_per = $(this).children("td:eq(5)").text();
-                        // if (parseInt(source_per)>80) {
-                        //     $('#dialog_allsite_source').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_source').addClass('has-error');
-                        // }
-
-                        // var ctime_per = $(this).children("td:eq(6)").text();
-                        // if (parseInt(ctime_per)>80) {
-                        //     $('#dialog_allsite_ctime').addClass('has-success');
-                        // } else {
-                        //     $('#dialog_allsite_ctime').addClass('has-error');
-                        // }
                     } else {
                         $('#dialog' + i).hide();
                     }
@@ -418,85 +633,49 @@
 
                 var opt = $(this).children("td").last();
                 var detail_url = $(this).children("td").first().text();
-                if (opt.html().length == 0) {
-                    opt.html('<button class="btn btn-primary btn-xs" data-toggle="modal" data-target="#diffModal">明细</button>');
+                if (opt.html() == "") {
+                    opt.html('<button id="dialogBtn" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#diffModal">明细</button>');
                     // 填充 modal-dialog
-                    $('#detail_url').attr("href", detail_url);
-                    $('#detail_url').text(detail_url);
+                    $('#detail_url').attr("href", detail_url).text(detail_url);
                     detail_url = detail_url.replace(/(\s*)|(\s$)|[\r\n]/g, "");
-                    // setDialogInfo(detail_url);
+
+                    $("#dialogBtn").bind("click", {detail_url: detail_url}, getDialogInfo);
                 }
             });
 
             $('tr').mouseleave(function () {
                 var opt = $(this).children("td").last();
-                if (opt.html().length != 0) {
+                if (opt.html() != "") {
+                    $("#dialogBtn").unbind("click");
                     opt.html('');
                 }
             });
 
-            function drawSelectCondList(cond) {
-                $('#showCond').html('');
-                var condList = cond.split("_");
-                for (var i = 0; i < condList.length; i++) {
-                    var value = condList[i];
-                    if (value.trim() != '') {
-                        var f = value.substring(0, value.length - 2); // title content author ...
-                        var t = value.substring(value.length - 2); // OK NG
-                        var fName = '';
-                        var color = '';
+            drawSessionStorageSelectCond();
 
-                        if (t == 'OK') {
-                            color = 'forestgreen';
-                        } else {
-                            color = 'crimson';
-                        }
-                        switch (f) {
-                            case 'title':
-                                fName = '标题';
-                                break;
-                            case 'content':
-                                fName = '内容';
-                                break;
-                            case 'source':
-                                fName = '来源';
-                                break;
-                            case 'author':
-                                fName = '作者';
-                                break;
-                            case 'ctime':
-                                fName = '时间';
-                                break;
-                            default:
-                                fName = '整体';
-                        }
-                        var item = '<span class="badge" style="margin:5px;background-color:' + color + ';">' + fName + '</span>';
-                        $('#showCond').append(item);
-                    }
-                }
-            }
+            $("#search").change(function () {
+                $("#searchBtn").removeAttr("disabled");
+            });
 
-            if (typeof(window.localStorage.cond) == "undefined") {
-                window.localStorage.cond = '';
-            }
-            drawSelectCondList(window.localStorage.cond);
-
-            //var cond = window.localStorage.cond; // 每次click累加
             $("a").click(function () {
                 // 选择条件： _(固定分隔符) + field(title,content,source,ctime) + OK/NG（正误分类）
                 var id = $(this).attr("id");
                 if (id == "clearAll") {
-                    window.localStorage.cond = "";
-                    $('#showCond').html("");
-                    $('#selectCond').val("");
-                    return;
-                }
-                //没有找到'_'，则没有选择条件。
-                if (id.indexOf("_") == -1) {
+                    window.sessionStorage.removeItem("selectCond");
+                    $('#showCond').html("");  //show area
+                    $('#selectCond').val(""); //input hidden
+                    $("#searchBtn").removeAttr("disabled");
                     return;
                 }
 
-                var cond = window.localStorage.cond;
+                //开头没有找到'_'，则没有选择条件。
+                if (id.indexOf("_") != 0) {
+                    return;
+                } else {
+                    $("#searchBtn").removeAttr("disabled");
+                }
+
+                var cond = $("#selectCond").val();
                 var field = id.substring(1, id.length - 2);
 
                 if (field == "all") {
@@ -523,9 +702,13 @@
                     }
                 }
 
-                window.localStorage.cond = cond;
                 $('#selectCond').val(cond);
-                drawSelectCondList(cond);
+                window.sessionStorage.setItem("selectCond", cond);
+                drawSessionStorageSelectCond();
+            });
+
+            $("#dialog_save").click(function () {
+                saveManualCorrectInfo();
             });
         });
     </script>

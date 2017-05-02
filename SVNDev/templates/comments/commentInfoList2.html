@@ -1,0 +1,290 @@
+{% extends 'base_backend.html' %}
+{% load static %}
+
+{% block header_tail %}
+    <style>
+        .detail {
+            display: none;
+        }
+
+        .detail:hover {
+            display: block;
+        }
+    </style>
+{% endblock header_tail %}
+
+{% block section_content %}
+    <!-- Main content -->
+    {% verbatim %}
+        <div id="myVue" class="inverse">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box box-primary" style="margin-left:40px;margin-top:10px;width:95%;">
+                        <div class="box-header with-border" style="border-color: #1b6d85">
+                            <div class="form-group">
+                                <input class="pull-left col-md-3" style="height:34px;" value="{{ url }}"
+                                       v-model="url" placeholder="请输入URL">
+                                <div class="input-group pull-left">
+                                    <button v-on:click="search" class="pull-left btn btn-primary"
+                                            style="margin-left: 20px;">检索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="comments_tab" class="table table-striped table-hover table-condensed">
+                                <thead>
+                                <tr>
+                                    <th id="th_head">
+                                        <div class="col-md-12">
+                                            <div class="col-md-3"> URL
+                                                <span id="search_cnt" class="badge">共 {{ searchCnt }} 条</span>
+                                            </div>
+                                            <div class="col-md-5"> 内容</div>
+                                            <div class="col-md-2"> 来源</div>
+                                            <div class="col-md-2"> 采集时间</div>
+                                        </div>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="info in result"
+                                    v-on:mouseover="showDetail($index)"
+                                    v-on:mouseleave="hideDetail($index)">
+                                    <td id="td_{{ $index }}">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="col-md-3"
+                                                     style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                                     title="{{ info.post_url }}">
+                                                    <a href="{{ info.post_url }}"
+                                                       target="_blank">{{ info.post_url }}</a>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    {{ info.content }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    {{ info.source }}
+                                                </div>
+                                                <div class="col-md-2">
+                                                    {{ info.ctime }}
+                                                </div>
+                                            </div>
+                                            <div v-show="row == $index"
+                                                 class="col-md-12" style="margin-top:10px;">
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-users" title="父ID"></i> {{ info.parent_id }}
+                                                </div>
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-user" title="ID"></i> {{ info.id }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-align-justify" title="楼层"></i> {{ info.floor }}
+                                                </div>
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-sitemap" title="网站名称"></i> {{ info.siteName }}
+                                                </div>
+                                                <div class="col-md-2" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-map-marker" title="地域"></i> {{ info.area }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-share" title="分享数"></i> {{ info.shareCount }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-thumbs-o-up"></i> {{ info.up_count }}
+                                                </div>
+                                                <div class="col-md-1" style="border:thin dotted darkgray;">
+                                                    <i class="fa fa-thumbs-o-down"></i> {{ info.down_count }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="paginator" class="box-footer with-border" style="border-color: #1b6d85;height:60px">
+                            <ul class="pagination pagination-bg" style="margin-top:5px">
+                                <li class="disabled">
+                                    <a v-on:click="paginator('first')"> 首页</a>
+                                </li>
+                                <li v-bind:class="{ page > 1: 'active','disabled' }">
+                                    <a v-on:click="paginator('prev')"> 上一页</a>
+                                </li>
+                                <li class="disabled">
+                                    <span>第 {{ page }} 页</span><span> 共 {{ totalPages }} 页</span>
+                                </li>
+                                <li v-bind:class="page < totalPage: 'active','disabled'}">
+                                    <a v-on:click="paginator('next')"> 下一页</a>
+                                </li>
+                                <li>
+                                    <a v-on:click="paginator('last')"> 末页</a>
+                                </li>
+                                <li>
+                                    <div class="col-md-1">
+                                        <div class="form-group">
+                                            <div class="input-group">
+                                                <input id="gotoPageNum" type="text" placeholder="  跳转页"
+                                                       style="height:30px;width:60px">
+                                                <div class="input-group-addon">
+                                                    <a id="gotoPage" href="javascript:gotoPage();">
+                                                        <i class="glyphicon glyphicon-play"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endverbatim %}
+{% endblock section_content %}
+
+{% block jquery_js %}
+    <!-- InputMask -->
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.date.extensions.js' %}"></script>
+    <script src="{% static 'plugins/input-mask/jquery.inputmask.extensions.js' %}"></script>
+    <!-- vue.js -->
+    <script src="{% static 'plugins/vue1/vue.js' %}"></script>
+{% endblock jquery_js %}
+
+{% block body_tail %}
+    <script type="text/javascript" src="{% static 'backend/js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'backend/comments/js/comments_util.js' %}"></script>
+    <script type="text/javascript">
+        const PAGE_SIZE = 20;
+        function getInfoList(obj) {
+            console.log("getInfoList start.");
+            $("#searchBtn").attr("disabled");
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/comments/commentInfoListAPI/',
+                type: 'GET',
+                data: {
+                    search: obj.url,
+                    page: obj.page
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("commentInfoListAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    console.log(data);
+                    console.log("getInfoList end.");
+                    console.log(typeof(obj.result));
+                    // obj.result.length 有问题
+                    for (var j = 0; j < PAGE_SIZE; j++) {
+                        obj.result.shift();
+                    }
+                    var items = data['result'];
+                    for (var i = 0; i < items.length; i++) {
+                        obj.result.push(items[i]);
+                    }
+                    $("#searchBtn").removeAttr("disabled");
+                }
+            });
+        }
+
+        function getPaginator(obj) {
+            console.log("getPaginator start.");
+            $('#paginator').hide();
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+            });
+            $.ajax({
+                url: '/comments/commentsPaginatorAPI/',
+                type: 'GET',
+                data: {
+                    search: obj.url,
+                    page: obj.page
+                },
+                dataType: "json",
+                error: function (xhr, err) {
+                    alert("commentsPaginatorAPI:" + err);
+                },
+                success: function (data, textStatus) {
+                    console.log(data);
+                    console.log("getPaginator end.");
+
+                    obj.searchCnt = data['search_cnt'];
+                    obj.page = data['current_page'];
+                    obj.totalPages = data['total_pages'];
+                    obj.hasPrev = data['has_prev'];
+                    obj.hasNext = data['has_next'];
+
+                    $('#paginator').show();
+                }
+            });
+        }
+
+        function init(obj) {
+            $("#gotoPageNum").inputmask("99999", {showMaskOnFocus: false, showMaskOnHover: false, placeholder: ""});
+            $('#paginator').hide();
+            getInfoList(obj);
+            getPaginator(obj);
+        }
+        //----------------------------------------------------------------------------
+        var myVue = new Vue({
+            el: '#myVue',
+            data: {
+                preSearch: "",
+                url: "",
+                page: 1,
+                totalPages: 1,
+                hasPrev: false,
+                hasNext: false,
+                searchCnt: 0,
+                result: [],
+                row: -1
+            },
+            methods: {
+                showDetail: function (row) {
+                    myVue.row = row;
+                    $("#td_" + row).attr("style", "border:thin solid blue;");
+                    if (row == "0") {
+                        $("#th_head").attr("style", "border-bottom:thin solid blue;");
+                    }
+                },
+                hideDetail: function (row) {
+                    myVue.row = -1;
+                    $("#td_" + row).attr("style", "");
+                    if (row == "0") {
+                        $("#th_head").attr("style", "");
+                    }
+                },
+                search: function () {
+                    getInfoList(this);
+                    getPaginator(this);
+                },
+                paginator: function (action) {
+                    switch (action) {
+                        case "first":
+                            myVue.page = 1;
+                            break;
+                        case "last":
+                            myVue.page = myVue.totalPages;
+                            break;
+                        case "next":
+                            myVue.page = myVue.page + 1;
+                            break;
+                        case "prev":
+                            myVue.page = myVue.page - 1;
+                            break;
+                    }
+                    getInfoList(this);
+                }
+            },
+            ready: function () {
+                init(this);
+            }
+        });
+        //----------------------------------------------------------------------------
+    </script>
+{% endblock body_tail %}

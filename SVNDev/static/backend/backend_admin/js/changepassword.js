@@ -56,11 +56,17 @@ $(document).ready(function () {
     // 获取提交按钮
     var submit_button = $('button[name="_submit"]');
 
-    // 增加生成密码按钮
-    var password_create_button = create_element('button', new_password);
-    password_create_button.text('生成密码');
-    // 生成8位混合密码
+    // 获取是否为管理员修改密码
+    var change_admin = $('#change-user-admin');
 
+    // 增加生成密码按钮
+    if (change_admin.text().length > 0) {
+        var password_create_button = create_element('button', new_password);
+        password_create_button.text('生成密码');
+    }else{
+        password_create_button = change_admin;
+    }
+    // 生成8位混合密码
     password_create_button.click(function (e) {
         event.preventDefault();
         event.stopPropagation();
@@ -132,7 +138,7 @@ $(document).ready(function () {
         } else if (new_password.val().length != 0 && new_password_again.val().length == 0) {
             password_same.attr('class', 'error create_element_class');
             password_same.text('请再次输入您的密码')
-        }  else {
+        } else {
             password_same.attr('class', 'create_element_class');
             password_same.text('')
         }
